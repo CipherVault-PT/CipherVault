@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CipherVault</title>
+<title>CipherVault — Cofre Digital Pessoal</title>
 <meta name="theme-color" content="#0d0f14">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -354,7 +354,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* ══ NOTE CHAR COUNTER ══ */
 .note-char-count{font-size:.72rem;letter-spacing:1px;color:var(--text-muted);text-align:right;margin-top:4px;}
 
-/* ══ ACTIVITY LOG & OLDEST PW ══ */
+/* ══ DOCUMENTS ══ */
+#tab-docs{display:none;}
+#tab-docs.active{display:flex;flex:1;min-height:0;overflow-y:auto;}
+.doc-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:18px;transition:border-color .15s,transform .15s;animation:cardIn .25s ease;display:flex;flex-direction:column;gap:8px;}
+.doc-card:hover{border-color:var(--accent-dim);transform:translateY(-1px);}
+.doc-card-top{display:flex;align-items:flex-start;gap:12px;}
+.doc-file-icon{font-size:2rem;flex-shrink:0;width:44px;text-align:center;}
+.doc-card-info{flex:1;min-width:0;}
+.doc-card-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.doc-card-cat{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.doc-card-desc{font-size:.72rem;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.doc-card-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:.64rem;color:var(--text-muted);padding-top:8px;border-top:1px solid var(--border);}
+.doc-card-meta span{display:flex;align-items:center;gap:4px;}
+.doc-expiry-badge{font-size:.6rem;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;}
+.doc-expiry-badge.expired{background:rgba(224,82,82,.15);color:var(--red);}
+.doc-expiry-badge.soon{background:rgba(var(--accent-rgb),.15);color:var(--accent);}
+.doc-expiry-badge.ok{background:rgba(76,175,130,.15);color:var(--green);}
+.doc-filter-btn{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.doc-filter-btn.active{background:rgba(var(--accent-rgb),.15);border-color:var(--accent);color:var(--accent);}
+.doc-filter-btn:hover{border-color:var(--accent-dim);color:var(--text);}
 .activity-item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-size:.72rem;transition:border-color .15s;}
 .activity-item:hover{border-color:var(--accent-dim);}
 .activity-icon{font-size:1rem;flex-shrink:0;}
@@ -668,7 +687,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </svg>
   </div>
   <div class="lock-logo">CIPHERVAULT</div>
-  <div class="lock-sub" id="l-sub">Gestor de Credenciais</div>
+  <div class="lock-sub" id="l-sub">Cofre Digital Pessoal</div>
+  <div style="color:var(--text-muted);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:22px;text-align:center" id="l-sub2">Passwords · Documentos · Notas · Cartões</div>
   <div class="lock-badges">
     <div class="lock-badge">🔒 AES-256-GCM</div>
     <div class="lock-badge">📡 100% Offline</div>
@@ -775,27 +795,27 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">🔐</div>
           <div style="font-size:.72rem;font-weight:600;color:var(--text);margin-bottom:6px" id="sec-t1">Encriptação Militar</div>
-          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d1">Os teus dados são protegidos com <strong>AES-256-GCM</strong> — a mesma tecnologia usada por bancos, governos e serviços militares. É matematicamente impossível de quebrar sem a tua palavra-passe.</div>
+          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d1">Passwords, documentos, notas e cartões — tudo protegido com <strong>AES-256-GCM</strong>, a mesma tecnologia usada por bancos e governos. Impossível de quebrar sem a tua palavra-passe.</div>
         </div>
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">💾</div>
           <div style="font-size:.72rem;font-weight:600;color:var(--text);margin-bottom:6px" id="sec-t2">Ficheiro Local</div>
-          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d2">As tuas passwords ficam guardadas num ficheiro <strong>.vault</strong> no teu dispositivo — pen, computador ou telemóvel. O ficheiro é teu, está sob o teu controlo, nunca sai do teu dispositivo.</div>
+          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d2">Passwords, documentos, notas e cartões ficam num único ficheiro <strong>.vault</strong> no teu dispositivo — pen, computador ou telemóvel. Tudo teu, sob o teu controlo, nunca sai do dispositivo.</div>
         </div>
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">🌐</div>
           <div style="font-size:.72rem;font-weight:600;color:var(--text);margin-bottom:6px" id="sec-t3">Zero Servidores</div>
-          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d3">O CipherVault é apenas uma <strong>app de leitura</strong>. Não tem servidores, não tem base de dados, não guarda nada online. O GitHub apenas hospeda o código da app — nunca os teus dados.</div>
+          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d3">O CipherVault é uma <strong>app local</strong> para guardar passwords, documentos, notas e cartões. Sem servidores, sem base de dados online. O GitHub hospeda apenas o código — os teus dados ficam sempre no teu dispositivo.</div>
         </div>
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">👁️</div>
           <div style="font-size:.72rem;font-weight:600;color:var(--text);margin-bottom:6px" id="sec-t4">Zero Knowledge</div>
-          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d4"><strong>Ninguém</strong> tem acesso às tuas passwords — nem os criadores da app, nem o GitHub, nem nenhum servidor. Só tu, com a tua palavra-passe mestra, podes abrir o cofre.</div>
+          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d4"><strong>Ninguém</strong> tem acesso aos teus dados — nem os criadores da app, nem o GitHub, nem qualquer servidor. Só tu, com a tua palavra-passe mestra, podes abrir o cofre.</div>
         </div>
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">📡</div>
           <div style="font-size:.72rem;font-weight:600;color:var(--text);margin-bottom:6px" id="sec-t5">Funciona Offline</div>
-          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d5">Após a primeira abertura, a app funciona <strong>sem internet</strong>. Podes usar em qualquer lugar, sem ligação. Os teus dados nunca precisam de estar online.</div>
+          <div style="font-size:.64rem;color:var(--text-muted);line-height:1.7" id="sec-d5">Após a primeira abertura, a app funciona <strong>sem internet</strong>. Consulta as tuas passwords, documentos e notas em qualquer lugar, sem ligação. Os teus dados nunca precisam de estar online.</div>
         </div>
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">🔑</div>
@@ -863,6 +883,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <button class="tab-btn" id="tab-btn-notes" onclick="switchTab('notes')">📝 <span id="tab-notes-txt">Notas</span></button>
     <button class="tab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Cartões</span></button>
     <button class="tab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
+    <button class="tab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
   </div>
 
   <!-- DASHBOARD -->
@@ -981,6 +1002,23 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
         <div class="cards-grid" id="archive-grid"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div id="tab-docs">
+    <div class="content" style="width:100%;overflow-y:auto">
+      <div class="content-header">
+        <div class="content-title" id="docs-title">Documentos</div>
+        <button onclick="openDocModal()" style="font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="docs-add-txt">Adicionar documento</span>
+        </button>
+      </div>
+      <!-- FILTER TABS -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="docs-filter-row"></div>
+      <!-- DOCS GRID -->
+      <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px"></div>
     </div>
   </div>
 
@@ -1197,6 +1235,66 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- DOCUMENT MODAL -->
+<div class="modal-overlay" id="doc-overlay" onclick="if(event.target===this)closeDocModal()">
+  <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="doc-modal-title">📁 Novo Documento</div>
+    <div class="form-group">
+      <label id="doc-title-lbl">Título</label>
+      <input type="text" id="doc-title-input" placeholder="ex: CV 2026, Passaporte, Certidão...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label id="doc-cat-lbl">Categoria</label>
+        <select id="doc-cat">
+          <option value="pessoal">👤 Pessoal</option>
+          <option value="trabalho">💼 Trabalho</option>
+          <option value="banco">🏦 Banco</option>
+          <option value="saude">🏥 Saúde</option>
+          <option value="juridico">⚖️ Jurídico</option>
+          <option value="educacao">🎓 Educação</option>
+          <option value="outro">📋 Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="doc-date-lbl">Data do documento</label>
+        <input type="date" id="doc-date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label id="doc-expiry-lbl">Validade <span style="font-size:.56rem;color:var(--text-muted)">(opcional)</span></label>
+      <input type="date" id="doc-expiry">
+    </div>
+    <div class="form-group">
+      <label id="doc-desc-lbl">Descrição</label>
+      <textarea id="doc-desc" rows="2" placeholder="Sobre o que é, onde foi emitido, notas importantes..."></textarea>
+    </div>
+    <div class="form-group">
+      <label id="doc-file-lbl">Ficheiro</label>
+      <div id="doc-drop-zone" style="border:2px dashed var(--border);border-radius:4px;padding:24px;text-align:center;cursor:pointer;transition:all .2s" onclick="document.getElementById('doc-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleDocFileDrop(event)">
+        <div id="doc-drop-icon" style="font-size:2rem;margin-bottom:8px">📎</div>
+        <div id="doc-drop-text" style="font-size:.72rem;color:var(--text-muted)">Clica ou arrasta o ficheiro aqui</div>
+        <div style="font-size:.62rem;color:var(--text-muted);margin-top:4px">PDF, imagem, Word, Excel...</div>
+      </div>
+      <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.txt,.csv" onchange="handleDocFileSelect(event)">
+      <div id="doc-file-preview" style="display:none;margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="doc-file-icon" style="font-size:1.6rem"></span>
+          <div style="flex:1;min-width:0">
+            <div id="doc-file-name" style="font-size:.78rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+            <div id="doc-file-size" style="font-size:.64rem;color:var(--text-muted)"></div>
+          </div>
+          <button onclick="clearDocFile()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:4px">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="saveDoc()" id="doc-save-btn">Guardar documento</button>
+      <button class="btn btn-ghost" onclick="closeDocModal()" id="doc-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- CSV IMPORT MODAL -->
 <div class="modal-overlay" id="import-overlay" onclick="if(event.target===this)closeImport()">
   <div class="modal" style="max-width:440px">
@@ -1296,7 +1394,7 @@ const CATS={all:{icon:'◈'},email:{icon:'📧'},banco:{icon:'🏦'},jogo:{icon:
 // ══ TRANSLATIONS ══
 const T={
   pt:{
-    sub:'Gestor de Credenciais',masterLabel:'Palavra-passe mestra',hint:'Mínimo 4 caracteres',
+    sub:'Cofre Digital Pessoal',sub2:'Passwords · Documentos · Notas · Cartões',masterLabel:'Palavra-passe mestra',hint:'Mínimo 4 caracteres',
     openVault:'📂 Abrir Cofre',newVault:'✦ Novo Cofre',
     firstUseInfo:'<strong>Primeiro uso?</strong> Clica em <strong>Criar Novo Cofre</strong> e define a tua palavra-passe.<br>Já tens um cofre? Clica em <strong>Abrir Cofre Existente</strong> e seleciona o ficheiro <em>.vault</em>.',
     howToTitle:'📖 Como usar o CipherVault',
@@ -1329,7 +1427,7 @@ const T={
     btnEdit:'Editar',btnDel:'Apagar',btnArchive:'Arquivar',btnRestore:'Restaurar',btnGoSite:'Ir para o site',btnRead:'Ver',
     globalSearchResults:'Resultados da pesquisa',globalSearchEmpty:'Nenhum resultado para',
     welcomeSteps:[
-      {icon:'⬡',title:'CipherVault',text:'Bem-vindo ao teu gestor de credenciais pessoal.<br><strong>Seguro, offline e totalmente teu.</strong><br><br>Deixa-nos mostrar-te o essencial em 4 passos rápidos.'},
+      {icon:'⬡',title:'CipherVault',text:'Bem-vindo ao teu <strong>cofre digital pessoal</strong>.<br>Guarda passwords, documentos, notas, cartões bancários e muito mais.<br><br><strong>100% encriptado, 100% offline, 100% teu.</strong>'},
       {icon:'🔐',title:'O teu Cofre',text:'Guarda os teus <strong>utilizadores e passwords</strong> no separador <strong>Cofre</strong>.<br><br>Organiza por categorias e adiciona <strong>tags personalizadas</strong> para encontrar tudo rapidamente.'},
       {icon:'💳',title:'Cartões & Notas',text:'Guarda os teus <strong>cartões bancários com PIN</strong> no separador Cartões.<br><br>Usa as <strong>Notas seguras</strong> para PINs, IBANs, documentos ou qualquer texto encriptado.'},
       {icon:'💾',title:'Guarda sempre!',text:'Após cada alteração, clica em <strong>Guardar ficheiro</strong> na barra de topo.<br><br>Ficheiro <strong>ciphervault.vault</strong> encriptado com <strong>AES-256-GCM</strong>.<br><br>⚠️ <strong>Nunca percas a palavra-passe mestra</strong> — não há recuperação.'},
@@ -1380,7 +1478,7 @@ const T={
     cardTypeLabels:{debito:'Débito',credito:'Crédito',prepago:'Pré-pago',outro:'Outro'},
   },
   en:{
-    sub:'Credential Manager',masterLabel:'Master password',hint:'Minimum 4 characters',
+    sub:'Your Personal Digital Vault',sub2:'Passwords · Documents · Notes · Cards',masterLabel:'Master password',hint:'Minimum 4 characters',
     openVault:'📂 Open Vault',newVault:'✦ New Vault',
     firstUseInfo:'<strong>First time?</strong> Click <strong>Create New Vault</strong> and set your password.<br>Already have a vault? Click <strong>Open Existing Vault</strong> and select your <em>.vault</em> file.',
     howToTitle:'📖 How to use CipherVault',
@@ -1413,7 +1511,7 @@ const T={
     btnEdit:'Edit',btnDel:'Delete',btnArchive:'Archive',btnRestore:'Restore',btnGoSite:'Go to site',btnRead:'View',
     globalSearchResults:'Search results',globalSearchEmpty:'No results for',
     welcomeSteps:[
-      {icon:'⬡',title:'CipherVault',text:'Welcome to your personal credential manager.<br><strong>Secure, offline and entirely yours.</strong><br><br>Let us show you the essentials in 4 quick steps.'},
+      {icon:'⬡',title:'CipherVault',text:'Welcome to your <strong>personal digital vault</strong>.<br>Store passwords, documents, notes, bank cards and more.<br><br><strong>100% encrypted, 100% offline, 100% yours.</strong>'},
       {icon:'🔐',title:'Your Vault',text:'Store your <strong>usernames and passwords</strong> in the <strong>Vault</strong> tab.<br><br>Organise by category and add <strong>custom tags</strong> to find everything quickly.'},
       {icon:'💳',title:'Cards & Notes',text:'Store your <strong>bank cards with PIN</strong> in the Cards tab.<br><br>Use <strong>Secure Notes</strong> for PINs, IBANs, documents or any encrypted text.'},
       {icon:'💾',title:'Always save!',text:'After every change, click <strong>Save file</strong> in the top bar.<br><br>A <strong>ciphervault.vault</strong> file encrypted with <strong>AES-256-GCM</strong> will be created.<br><br>⚠️ <strong>Never lose your master password</strong> — there is no recovery.'},
@@ -1528,7 +1626,7 @@ async function submitOpenVault(){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];
     failedAttempts=0;doUnlock();
   }catch{handleFailedAttempt();}
 }
@@ -1591,7 +1689,7 @@ function doUnlock(){
   },500);
 }
 function lockApp(){
-  vault=[];notes=[];bankCards=[];activityLog=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -1888,7 +1986,7 @@ function applySettingsLang(){
 
 // ══ TABS ══
 function switchTab(tab){
-  ['dashboard','vault','notes','cards','archive'].forEach(id=>{
+  ['dashboard','vault','notes','cards','archive','docs'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     const btnEl=document.getElementById('tab-btn-'+id);
     if(tabEl){tabEl.classList.remove('active');void tabEl.offsetHeight;}
@@ -1901,6 +1999,7 @@ function switchTab(tab){
   if(tab==='archive')renderArchive();
   if(tab==='notes')renderNotesList();
   if(tab==='cards')renderBankCards();
+  if(tab==='docs')renderDocs();
 }
 
 // ══ LANGUAGE ══
@@ -1915,7 +2014,9 @@ function setLang(lang){
 function applyLangStatic(){
   const s=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=t(key);};
   const h=(id,key)=>{const el=document.getElementById(id);if(el)el.innerHTML=t(key);};
-  s('l-sub','sub');h('l-first-use','firstUseInfo');
+  s('l-sub','sub');
+  const lsub2=document.getElementById('l-sub2');if(lsub2)lsub2.textContent=t('sub2')||'Passwords · Documents · Notes · Cards';
+  h('l-first-use','firstUseInfo');
   // New login flow labels
   const btnOpenTxt=document.getElementById('l-btn-open-txt');if(btnOpenTxt)btnOpenTxt.textContent=currentLang==='en'?'Open Existing Vault':'Abrir Cofre Existente';
   const btnNewTxt=document.getElementById('l-btn-new-txt');if(btnNewTxt)btnNewTxt.textContent=currentLang==='en'?'Create New Vault':'Criar Novo Cofre';
@@ -1995,18 +2096,18 @@ function applyLangStatic(){
   // Security section
   const secTitle=document.getElementById('l-security-title');if(secTitle)secTitle.textContent=currentLang==='en'?'🔒 How does the security work?':'🔒 Como funciona a segurança?';
   const secTexts=currentLang==='en'?[
-    ['Military Encryption','Your data is protected with <strong>AES-256-GCM</strong> — the same technology used by banks, governments and military services. Mathematically impossible to break without your password.'],
-    ['Local File','Your passwords are stored in a <strong>.vault</strong> file on your device — USB drive, computer or phone. The file is yours, under your control, never leaves your device.'],
-    ['Zero Servers','CipherVault is just a <strong>reader app</strong>. No servers, no database, nothing stored online. GitHub only hosts the app code — never your data.'],
-    ['Zero Knowledge','<strong>Nobody</strong> has access to your passwords — not the app creators, not GitHub, not any server. Only you, with your master password, can open the vault.'],
-    ['Works Offline','After the first load, the app works <strong>without internet</strong>. Use it anywhere, without a connection. Your data never needs to be online.'],
+    ['Military Encryption','Passwords, documents, notes and cards — all protected with <strong>AES-256-GCM</strong>, the same technology used by banks and governments. Impossible to break without your password.'],
+    ['Local File','Passwords, documents, notes and cards are stored in a single <strong>.vault</strong> file on your device. Everything yours, under your control, never leaves your device.'],
+    ['Zero Servers','CipherVault stores passwords, documents, notes and cards in a single encrypted file on your device. No servers, no cloud. GitHub only hosts the app code — your data always stays with you.'],
+    ['Zero Knowledge','<strong>Nobody</strong> has access to your data — not the app creators, not GitHub, not any server. Only you, with your master password, can open the vault.'],
+    ['Works Offline','After the first load, the app works <strong>without internet</strong>. Access your passwords, documents and notes anywhere, without a connection. Your data never needs to be online.'],
     ['Your Key, Your Vault','The master password is <strong>never sent</strong> anywhere. It is used locally to encrypt and decrypt. If you lose it, there is no recovery — keep it on paper at home!'],
   ]:[
-    ['Encriptação Militar','Os teus dados são protegidos com <strong>AES-256-GCM</strong> — a mesma tecnologia usada por bancos, governos e serviços militares. É matematicamente impossível de quebrar sem a tua palavra-passe.'],
-    ['Ficheiro Local','As tuas passwords ficam guardadas num ficheiro <strong>.vault</strong> no teu dispositivo — pen, computador ou telemóvel. O ficheiro é teu, está sob o teu controlo, nunca sai do teu dispositivo.'],
-    ['Zero Servidores','O CipherVault é apenas uma <strong>app de leitura</strong>. Não tem servidores, não tem base de dados, não guarda nada online. O GitHub apenas hospeda o código da app — nunca os teus dados.'],
-    ['Zero Knowledge','<strong>Ninguém</strong> tem acesso às tuas passwords — nem os criadores da app, nem o GitHub, nem nenhum servidor. Só tu, com a tua palavra-passe mestra, podes abrir o cofre.'],
-    ['Funciona Offline','Após a primeira abertura, a app funciona <strong>sem internet</strong>. Podes usar em qualquer lugar, sem ligação. Os teus dados nunca precisam de estar online.'],
+    ['Encriptação Militar','Passwords, documentos, notas e cartões — tudo protegido com <strong>AES-256-GCM</strong>, a mesma tecnologia usada por bancos e governos. Impossível de quebrar sem a tua palavra-passe.'],
+    ['Ficheiro Local','Passwords, documentos, notas e cartões ficam num único ficheiro <strong>.vault</strong> no teu dispositivo. Tudo teu, sob o teu controlo, nunca sai do dispositivo.'],
+    ['Zero Servidores','O CipherVault é uma <strong>app local</strong> para guardar passwords, documentos, notas e cartões. Sem servidores, sem base de dados online. O GitHub hospeda apenas o código — os teus dados ficam sempre no teu dispositivo.'],
+    ['Zero Knowledge','<strong>Ninguém</strong> tem acesso aos teus dados — nem os criadores da app, nem o GitHub, nem qualquer servidor. Só tu, com a tua palavra-passe mestra, podes abrir o cofre.'],
+    ['Funciona Offline','Após a primeira abertura, a app funciona <strong>sem internet</strong>. Consulta passwords, documentos e notas em qualquer lugar, sem ligação. Os teus dados nunca precisam de estar online.'],
     ['A tua Chave, o teu Cofre','A palavra-passe mestra <strong>nunca é enviada</strong> para lado nenhum. É usada localmente para encriptar e desencriptar. Se a perderes, não há recuperação — guarda-a num papel em casa!'],
   ];
   secTexts.forEach(([title,desc],i)=>{
@@ -2020,7 +2121,7 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderHowTo();}
+function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){
@@ -2081,8 +2182,7 @@ function renderDashboard(){
   if(old>0){const names=active.filter(e=>e.pwUpdated&&(now-e.pwUpdated)>180*86400000).map(e=>e.name).join(', ');alerts.push({type:'warn',icon:'⏰',text:`${old} ${t('alertOld')}`,sub:names});}
   if(weak===0&&common.length===0&&dups===0&&old===0&&total>0)alerts.push({type:'good',icon:'✅',text:t('alertGood'),sub:t('alertGoodSub')});
   // Card expiry alerts
-  const now2=new Date();
-  bankCards.forEach(card=>{
+  const now2=new Date();  bankCards.forEach(card=>{
     if(!card.expiry||card.expiry.length<5)return;
     const [mm,yy]=card.expiry.split('/');
     if(!mm||!yy)return;
@@ -2090,6 +2190,14 @@ function renderDashboard(){
     const daysLeft=Math.floor((exp-now2)/(1000*60*60*24));
     if(daysLeft<0)alerts.push({type:'danger',icon:'💳',text:`${esc(card.bank)}: ${t('cardExpired')}`,sub:card.expiry});
     else if(daysLeft<=60)alerts.push({type:'warn',icon:'💳',text:`${esc(card.bank)}: ${t('cardExpiringSoon')}`,sub:`${card.expiry} — ${daysLeft} ${t('cardDaysLeft')}`});
+  });
+  // Document expiry alerts
+  documents.forEach(doc=>{
+    if(!doc.expiry)return;
+    const status=getExpiryStatus(doc.expiry);
+    if(!status)return;
+    if(status.cls==='expired')alerts.push({type:'danger',icon:'📁',text:`${esc(doc.title)}: ${currentLang==='en'?'Document expired!':'Documento expirado!'}`,sub:doc.expiry});
+    else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:doc.expiry});
   });
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
 
@@ -2711,12 +2819,12 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog});downloadVault({salt:Array.from(salt),payload});
+  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents});downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;closeChangePwModal();toast(t('toastPwChanged'));
 }
 
 // ══ SAVE FILE ══
-async function saveFile(){if(!masterKey)return;const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog});downloadVault({salt:Array.from(window._salt),payload:p});toast(t('toastSaved'));markSaved();}
+async function saveFile(){if(!masterKey)return;const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents});downloadVault({salt:Array.from(window._salt),payload:p});toast(t('toastSaved'));markSaved();}
 window.addEventListener('beforeunload',e=>{if(hasUnsaved&&masterKey){e.preventDefault();e.returnValue=currentLang==='en'?'You have unsaved changes. Are you sure you want to leave?':'Tens alterações não guardadas. Tens a certeza que queres sair?';return e.returnValue;}});
 function downloadVault(c){const b=new Blob([JSON.stringify(c)],{type:'application/octet-stream'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ciphervault.vault';a.click();}
 
@@ -2866,12 +2974,219 @@ function exportPDF(){
   toast(currentLang==='en'?'PDF ready! Open in browser → Print → Save as PDF':'PDF pronto! Abre no browser → Imprimir → Guardar como PDF');
 }
 
+// ══ DOCUMENTS ══
+let documents=[];let editingDocId=null;let pendingDocFile=null;
+
+const DOC_CATS={
+  pessoal:{icon:'👤',label:{pt:'Pessoal',en:'Personal'}},
+  trabalho:{icon:'💼',label:{pt:'Trabalho',en:'Work'}},
+  banco:{icon:'🏦',label:{pt:'Banco',en:'Bank'}},
+  saude:{icon:'🏥',label:{pt:'Saúde',en:'Health'}},
+  juridico:{icon:'⚖️',label:{pt:'Jurídico',en:'Legal'}},
+  educacao:{icon:'🎓',label:{pt:'Educação',en:'Education'}},
+  outro:{icon:'📋',label:{pt:'Outro',en:'Other'}},
+};
+const FILE_ICONS={
+  pdf:'📄',doc:'📝',docx:'📝',xls:'📊',xlsx:'📊',
+  png:'🖼️',jpg:'🖼️',jpeg:'🖼️',gif:'🖼️',webp:'🖼️',
+  txt:'📃',csv:'📊',zip:'🗜️',default:'📎'
+};
+function getFileIcon(name){
+  if(!name)return FILE_ICONS.default;
+  const ext=name.split('.').pop().toLowerCase();
+  return FILE_ICONS[ext]||FILE_ICONS.default;
+}
+function formatFileSize(bytes){
+  if(bytes<1024)return bytes+'B';
+  if(bytes<1024*1024)return (bytes/1024).toFixed(1)+'KB';
+  return (bytes/(1024*1024)).toFixed(1)+'MB';
+}
+function getDocCatLabel(cat){
+  return (DOC_CATS[cat]?.label[currentLang]||cat);
+}
+
+let currentDocFilter='all';
+
+function openDocModal(id=null){
+  editingDocId=id;pendingDocFile=null;
+  const isEdit=!!id;
+  document.getElementById('doc-modal-title').textContent=isEdit?
+    (currentLang==='en'?'📁 Edit Document':'📁 Editar Documento'):
+    (currentLang==='en'?'📁 New Document':'📁 Novo Documento');
+  if(isEdit){
+    const d=documents.find(d=>d.id===id);
+    document.getElementById('doc-title-input').value=d.title||'';
+    document.getElementById('doc-cat').value=d.cat||'outro';
+    document.getElementById('doc-date').value=d.date||'';
+    document.getElementById('doc-expiry').value=d.expiry||'';
+    document.getElementById('doc-desc').value=d.desc||'';
+    if(d.file){pendingDocFile=d.file;showDocFilePreview(d.file.name,d.file.size,d.file.type);}
+    else{clearDocFile();}
+  }else{
+    ['doc-title-input','doc-date','doc-expiry','doc-desc'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('doc-cat').value='pessoal';
+    clearDocFile();
+  }
+  document.getElementById('doc-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('doc-title-input').focus(),100);
+}
+function closeDocModal(){document.getElementById('doc-overlay').classList.remove('open');editingDocId=null;pendingDocFile=null;}
+
+function handleDocFileSelect(e){
+  const file=e.target.files[0];if(!file)return;
+  readDocFile(file);
+  e.target.value='';
+}
+function handleDocFileDrop(e){
+  e.preventDefault();
+  document.getElementById('doc-drop-zone').style.borderColor='var(--border)';
+  const file=e.dataTransfer?.files[0];if(!file)return;
+  readDocFile(file);
+}
+function readDocFile(file){
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    pendingDocFile={name:file.name,size:file.size,type:file.type,data:ev.target.result};
+    showDocFilePreview(file.name,file.size,file.type);
+  };
+  reader.readAsDataURL(file);
+}
+function showDocFilePreview(name,size,type){
+  document.getElementById('doc-drop-zone').style.display='none';
+  const preview=document.getElementById('doc-file-preview');
+  preview.style.display='block';
+  document.getElementById('doc-file-icon').textContent=getFileIcon(name);
+  document.getElementById('doc-file-name').textContent=name;
+  document.getElementById('doc-file-size').textContent=formatFileSize(size)+(type?` • ${type}`:'');
+}
+function clearDocFile(){
+  pendingDocFile=null;
+  document.getElementById('doc-drop-zone').style.display='block';
+  document.getElementById('doc-file-preview').style.display='none';
+}
+
+function saveDoc(){
+  const title=document.getElementById('doc-title-input').value.trim();
+  if(!title){toast(currentLang==='en'?'Title is required!':'Título obrigatório!');return;}
+  const doc={
+    id:editingDocId||Date.now().toString(36),
+    title,cat:document.getElementById('doc-cat').value,
+    date:document.getElementById('doc-date').value,
+    expiry:document.getElementById('doc-expiry').value,
+    desc:document.getElementById('doc-desc').value.trim(),
+    file:pendingDocFile?{...pendingDocFile}:null,
+    createdAt:editingDocId?(documents.find(d=>d.id===editingDocId)?.createdAt||Date.now()):Date.now(),
+  };
+  const wasEditing=editingDocId;
+  if(editingDocId){const idx=documents.findIndex(d=>d.id===editingDocId);documents[idx]=doc;}
+  else documents.push(doc);
+  logActivity(wasEditing?'edit':'add',title,'📁');
+  closeDocModal();
+  setTimeout(()=>{
+    renderDocs();
+    toast(wasEditing?(currentLang==='en'?'Document updated!':'Documento atualizado!'):(currentLang==='en'?'Document added!':'Documento adicionado!'));
+    markUnsaved();
+  },50);
+}
+function deleteDoc(id){
+  if(!confirm(currentLang==='en'?'Delete this document?':'Apagar este documento?'))return;
+  const d=documents.find(d=>d.id===id);
+  if(d)logActivity('delete',d.title,'🗑️');
+  documents=documents.filter(d=>d.id!==id);
+  renderDocs();toast(currentLang==='en'?'Document deleted.':'Documento apagado.');markUnsaved();
+}
+function downloadDoc(id){
+  const d=documents.find(doc=>doc.id===id);
+  if(!d?.file?.data){toast(currentLang==='en'?'No file attached!':'Sem ficheiro anexado!');return;}
+  try{
+    const a=document.createElement('a');
+    a.href=d.file.data;
+    a.download=d.file.name;
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>document.body.removeChild(a),200);
+    toast(currentLang==='en'?'Downloading...':'A transferir...');
+  }catch(err){
+    toast(currentLang==='en'?'Download failed. Try again.':'Erro no download. Tenta novamente.');
+    console.error('Download error:',err);
+  }
+}
+
+function getExpiryStatus(expiry){
+  if(!expiry)return null;
+  const exp=new Date(expiry);const now=new Date();
+  const days=Math.floor((exp-now)/86400000);
+  if(days<0)return{cls:'expired',label:currentLang==='en'?'Expired':'Expirado',days};
+  if(days<=60)return{cls:'soon',label:currentLang==='en'?`Expires in ${days}d`:`Expira em ${days}d`,days};
+  return{cls:'ok',label:currentLang==='en'?`Valid ${days}d`:`Válido ${days}d`,days};
+}
+
+function renderDocs(){
+  // Filter buttons
+  const filterRow=document.getElementById('docs-filter-row');
+  const allCats=['all',...Object.keys(DOC_CATS)];
+  filterRow.innerHTML=allCats.map(cat=>{
+    const count=cat==='all'?documents.length:documents.filter(d=>d.cat===cat).length;
+    if(cat!=='all'&&count===0)return '';
+    const label=cat==='all'?(currentLang==='en'?'All':'Todas'):getDocCatLabel(cat);
+    return `<button class="doc-filter-btn${currentDocFilter===cat?' active':''}" onclick="setDocFilter('${cat}')">${cat==='all'?'📁 ':''}${label} (${count})</button>`;
+  }).join('');
+
+  const grid=document.getElementById('docs-grid');
+  const filtered=currentDocFilter==='all'?documents:documents.filter(d=>d.cat===currentDocFilter);
+
+  if(!filtered.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="40" height="40"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>${currentLang==='en'?'No documents yet. Click "Add document" to start.':'Sem documentos. Clica em "Adicionar documento".'}</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML=filtered.map(doc=>{
+    const expStatus=getExpiryStatus(doc.expiry);
+    const catInfo=DOC_CATS[doc.cat]||{icon:'📋'};
+    const fileIcon=doc.file?getFileIcon(doc.file.name):'📎';
+    return `<div class="doc-card">
+      <div class="doc-card-top">
+        <div class="doc-file-icon">${fileIcon}</div>
+        <div class="doc-card-info">
+          <div class="doc-card-title">${esc(doc.title)}</div>
+          <div class="doc-card-cat">${catInfo.icon} ${getDocCatLabel(doc.cat)}</div>
+          ${doc.desc?`<div class="doc-card-desc">${esc(doc.desc)}</div>`:''}
+        </div>
+      </div>
+      <div class="doc-card-meta">
+        ${doc.date?`<span>📅 ${doc.date}</span>`:''}
+        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:'<span style="color:var(--text-muted);font-style:italic">${currentLang==="en"?"No file":"Sem ficheiro"}</span>'}
+        ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
+      </div>
+      <div class="card-actions">
+        ${doc.file?`<button class="card-btn" onclick="event.stopPropagation();downloadDoc('${doc.id}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          ${currentLang==='en'?'Download':'Transferir'}
+        </button>`:''}
+        <button class="card-btn" onclick="event.stopPropagation();openDocModal('${doc.id}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          ${t('btnEdit')}
+        </button>
+        <button class="card-btn danger" onclick="event.stopPropagation();deleteDoc('${doc.id}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+          ${t('btnDel')}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setDocFilter(cat){currentDocFilter=cat;renderDocs();}
+
 // ══ TOAST ══
 function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg;t2.classList.add('show');setTimeout(()=>t2.classList.remove('show'),2500);}
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -3056,7 +3371,7 @@ try{applyThemeColors('dark');}catch(e){console.warn('applyThemeColors error:',e)
 try{renderHowTo();}catch(e){console.warn('renderHowTo error:',e);}
 
 // ══ PWA ══
-const mf={name:'CipherVault',short_name:'CipherVault',description:'Encrypted Credential Manager',start_url:'.',display:'standalone',background_color:'#0d0f14',theme_color:'#0d0f14',orientation:'any',icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0f14'/%3E%3Crect x='156' y='256' width='200' height='176' rx='16' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Cpath d='M196 256v-80a60 60 0 0 1 120 0v80' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Ccircle cx='256' cy='336' r='20' fill='%23c9a84c'/%3E%3C/svg%3E",sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+const mf={name:'CipherVault',short_name:'CipherVault',description:'Cofre digital pessoal — passwords, documentos, notas e cartões, tudo encriptado',start_url:'.',display:'standalone',background_color:'#0d0f14',theme_color:'#0d0f14',orientation:'any',icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0f14'/%3E%3Crect x='156' y='256' width='200' height='176' rx='16' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Cpath d='M196 256v-80a60 60 0 0 1 120 0v80' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Ccircle cx='256' cy='336' r='20' fill='%23c9a84c'/%3E%3C/svg%3E",sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
 document.getElementById('pwa-manifest').setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
 if('serviceWorker' in navigator){const sw=`const C='cv4';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['.'])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k)))));});self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'./'}).catch(()=>{});}
 let deferredPrompt=null;
