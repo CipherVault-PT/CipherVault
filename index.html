@@ -354,6 +354,58 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* ══ NOTE CHAR COUNTER ══ */
 .note-char-count{font-size:.72rem;letter-spacing:1px;color:var(--text-muted);text-align:right;margin-top:4px;}
 
+/* ══ RECICLAGEM ══ */
+#tab-trash{display:none;}
+#tab-trash.active{display:flex;flex:1;min-height:0;overflow-y:auto;}
+.trash-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px;display:flex;flex-direction:column;gap:10px;animation:cardIn .25s ease;}
+.trash-card-top{display:flex;align-items:center;gap:12px;}
+.trash-type-icon{font-size:1.6rem;flex-shrink:0;width:38px;text-align:center;opacity:.85;}
+.trash-card-name{font-family:'Playfair Display',serif;font-size:1.02rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.trash-card-type{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-top:2px;}
+.trash-days-badge{font-size:.62rem;padding:4px 10px;border-radius:12px;background:rgba(var(--accent-rgb),.12);color:var(--accent);white-space:nowrap;margin-left:auto;}
+.trash-days-badge.urgent{background:rgba(224,82,82,.15);color:var(--red);}
+
+/* ══ FAVORITOS DASHBOARD ══ */
+.fav-quick{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;cursor:pointer;transition:all .18s;}
+.fav-quick:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px -6px rgba(var(--accent-rgb),.3);}
+.fav-quick-icon{font-size:1.3rem;flex-shrink:0;}
+.fav-quick-name{flex:1;font-size:.8rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fav-quick-arrow{color:var(--accent);opacity:0;transform:translateX(-4px);transition:all .18s;font-size:.85rem;}
+.fav-quick:hover .fav-quick-arrow{opacity:1;transform:translateX(0);}
+
+/* ══ POLIMENTO VISUAL ══ */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 45% at 15% -8%,rgba(var(--accent-rgb),.06),transparent 60%),
+             radial-gradient(ellipse 55% 40% at 105% 108%,rgba(var(--accent-rgb),.045),transparent 60%);}
+.entry-card,.doc-card,.dash-card,.bank-card-wrap,.trash-card{
+  background:linear-gradient(150deg,rgba(255,255,255,.028),rgba(255,255,255,0) 45%),var(--card);}
+.entry-card,.doc-card{animation:cardIn .32s ease backwards;}
+.cards-grid .entry-card:nth-child(1),#docs-grid .doc-card:nth-child(1){animation-delay:.02s;}
+.cards-grid .entry-card:nth-child(2),#docs-grid .doc-card:nth-child(2){animation-delay:.06s;}
+.cards-grid .entry-card:nth-child(3),#docs-grid .doc-card:nth-child(3){animation-delay:.1s;}
+.cards-grid .entry-card:nth-child(4),#docs-grid .doc-card:nth-child(4){animation-delay:.14s;}
+.cards-grid .entry-card:nth-child(5),#docs-grid .doc-card:nth-child(5){animation-delay:.18s;}
+.cards-grid .entry-card:nth-child(6),#docs-grid .doc-card:nth-child(6){animation-delay:.22s;}
+.cards-grid .entry-card:nth-child(7),#docs-grid .doc-card:nth-child(7){animation-delay:.26s;}
+.cards-grid .entry-card:nth-child(8),#docs-grid .doc-card:nth-child(8){animation-delay:.3s;}
+.entry-card:hover,.doc-card:hover{border-color:var(--accent-dim);transform:translateY(-2px);
+  box-shadow:0 10px 28px -10px rgba(var(--accent-rgb),.28),0 4px 12px -6px var(--shadow);}
+.dash-card{transition:all .2s;}
+.dash-card:hover{border-color:var(--accent-dim);transform:translateY(-2px);}
+.topbar-logo{background:linear-gradient(100deg,var(--accent) 42%,rgba(255,255,255,.92) 50%,var(--accent) 58%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:logoShine 7s ease-in-out infinite;}
+@keyframes logoShine{0%,78%{background-position:130% 0;}92%,100%{background-position:-30% 0;}}
+.modal{animation:modalIn .28s cubic-bezier(.34,1.3,.6,1);}
+@keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.975);}to{opacity:1;transform:translateY(0) scale(1);}}
+.btn:active,.card-btn:active,.topbar-actions button:active,.tab-btn:active,.doc-filter-btn:active{transform:scale(.955);}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;border:2px solid transparent;background-clip:padding-box;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-dim);background-clip:padding-box;}
+*{scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+@media(prefers-reduced-motion:reduce){.entry-card,.doc-card,.modal,.topbar-logo{animation:none!important;}}
+
 /* ══ PRESENTATION MODE ══ */
 #presentation-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9000;background:linear-gradient(135deg,#1a0e2e,#0e1a2e);border-bottom:2px solid var(--accent);padding:10px 20px;display:none;align-items:center;justify-content:space-between;gap:12px;}
 #presentation-banner.show{display:flex;}
@@ -910,6 +962,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <button class="tab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Cartões</span></button>
     <button class="tab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
     <button class="tab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
+    <button class="tab-btn" id="tab-btn-trash" onclick="switchTab('trash')">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
   </div>
 
   <!-- DASHBOARD -->
@@ -930,6 +983,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div class="dash-section-title" id="dash-alerts-title">Alertas &amp; Relatório</div>
       <div class="dash-alerts" id="dash-alerts"></div>
+
+      <div id="dash-favs-wrap" style="margin-top:18px;display:none">
+        <div class="dash-section-title" id="dash-favs-title">⭐ Favoritos</div>
+        <div id="dash-favs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px"></div>
+      </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px" id="dash-bottom-grid">
         <!-- CATEGORY CHART -->
@@ -1053,6 +1111,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <!-- DOCS GRID -->
       <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px"></div>
+    </div>
+  </div>
+
+  <!-- RECICLAGEM -->
+  <div id="tab-trash">
+    <div class="content" style="width:100%;overflow-y:auto">
+      <div class="content-header">
+        <div class="content-title" id="trash-title">Reciclagem</div>
+        <button class="btn btn-ghost" onclick="emptyTrash()" id="trash-empty-btn" style="flex:0;padding:8px 16px;font-size:.62rem;white-space:nowrap;display:none">🗑️ Esvaziar tudo</button>
+      </div>
+      <div id="trash-info" style="font-size:.72rem;color:var(--text-muted);margin-top:6px"></div>
+      <div id="trash-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:14px"></div>
     </div>
   </div>
 
@@ -1269,6 +1339,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 </div>
 
+<!-- WIFI QR MODAL -->
+<div class="modal-overlay" id="qr-overlay" onclick="if(event.target===this)closeQrModal()">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div class="modal-title" id="qr-title" style="justify-content:center">📶 WiFi QR Code</div>
+    <div style="background:#fff;padding:16px;border-radius:10px;display:inline-block;line-height:0;box-shadow:0 4px 20px rgba(0,0,0,.3)">
+      <canvas id="qr-canvas"></canvas>
+    </div>
+    <div id="qr-ssid" style="font-size:.85rem;color:var(--text);margin-top:16px;font-weight:600"></div>
+    <div id="qr-hint" style="font-size:.7rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Aponta a câmara do telemóvel para ligar automaticamente</div>
+    <div class="modal-actions" style="margin-top:18px">
+      <button class="btn btn-gold" onclick="closeQrModal()" id="qr-close-btn">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- DOCUMENT MODAL -->
 <div class="modal-overlay" id="doc-overlay" onclick="if(event.target===this)closeDocModal()">
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
@@ -1419,6 +1504,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 // ══ STATE ══
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
+let trash=[];
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
@@ -1660,7 +1746,7 @@ async function submitOpenVault(){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];cleanOldTrash();
     failedAttempts=0;doUnlock();
   }catch{handleFailedAttempt();}
 }
@@ -1723,7 +1809,7 @@ function doUnlock(){
   },500);
 }
 function lockApp(){
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -2033,7 +2119,7 @@ function applySettingsLang(){
 
 // ══ TABS ══
 function switchTab(tab){
-  ['dashboard','vault','notes','cards','archive','docs'].forEach(id=>{
+  ['dashboard','vault','notes','cards','archive','docs','trash'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     const btnEl=document.getElementById('tab-btn-'+id);
     if(tabEl){tabEl.classList.remove('active');void tabEl.offsetHeight;}
@@ -2046,6 +2132,7 @@ function switchTab(tab){
   if(tab==='notes')renderNotesList();
   if(tab==='cards')renderBankCards();
   if(tab==='docs')renderDocs();
+  if(tab==='trash')renderTrash();
 }
 
 // ══ LANGUAGE ══
@@ -2084,6 +2171,8 @@ function applyLangStatic(){
   document.getElementById('tab-btn-dashboard').textContent=t('tabDash');
   s('tb-new-txt','tbNew');s('tb-import-txt','tbImport');s('tb-save-txt','tbSave');s('tb-pdf-txt','tbPdf');
   const tbCsv=document.getElementById('tb-csv-txt');if(tbCsv)tbCsv.textContent=t('tbCsv');
+  const tdocs=document.getElementById('tab-docs-txt');if(tdocs)tdocs.textContent=currentLang==='en'?'Documents':'Documentos';
+  const ttrash=document.getElementById('tab-trash-txt');if(ttrash)ttrash.textContent=currentLang==='en'?'Recycle Bin':'Reciclagem';
   s('tb-changepw-txt','tbChangePw');s('tb-lock-txt','tbLock');
   // Modal labels
   document.getElementById('f-name-lbl').textContent=t('fName');document.getElementById('f-name').placeholder=t('fNamePh');
@@ -2167,7 +2256,7 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderHowTo();}
+function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){
@@ -2265,6 +2354,24 @@ function renderDashboard(){
     else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:doc.expiry});
   });
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
+
+  // ── FAVORITOS ──
+  const favList=active.filter(e=>e.fav).slice(0,8);
+  const favsWrap=document.getElementById('dash-favs-wrap');
+  const favsTitle=document.getElementById('dash-favs-title');
+  if(favsTitle)favsTitle.textContent=currentLang==='en'?'⭐ Favourites':'⭐ Favoritos';
+  if(favsWrap){
+    favsWrap.style.display=favList.length?'block':'none';
+    const favsEl=document.getElementById('dash-favs');
+    if(favsEl)favsEl.innerHTML=favList.map(e=>{
+      const ic=e.icon&&e.icon!=='⭐'?e.icon:(getServiceIcon(e.name)||'🔐');
+      return `<div class="fav-quick" onclick="openReadMode('${e.id}')">
+        <span class="fav-quick-icon">${ic}</span>
+        <div class="fav-quick-name">${esc(e.name)}</div>
+        <span class="fav-quick-arrow">→</span>
+      </div>`;
+    }).join('');
+  }
 
   // ── CATEGORY CHART ──
   const chartTitle=document.getElementById('dash-chart-title');
@@ -2419,6 +2526,7 @@ function renderCards(){
       ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i},'${esc(p)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(p)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
       <div class="card-actions">
         ${entry.url?`<button class="card-btn" onclick="event.stopPropagation();goToSiteEntry('${esc(entry.url)}','${esc(entry.pw)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${t('btnGoSite')}</button>`:''}
+        ${isWifiEntry(entry)&&entry.pw?`<button class="card-btn" onclick="event.stopPropagation();openWifiQR('${entry.id}')">📶 QR</button>`:''}
         <button class="card-btn" onclick="event.stopPropagation();openReadMode('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${t('btnRead')}</button>
         <button class="card-btn" onclick="event.stopPropagation();editEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
         <button class="card-btn" onclick="event.stopPropagation();archiveEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> ${t('btnArchive')}</button>
@@ -2688,10 +2796,11 @@ function saveEntry(){
   closeModal();renderAll();toast(editingId?t('toastUpdated'):t('toastAdded'));markUnsaved();
 }
 function deleteEntry(id){
-  if(!confirm(t('confirmDelete')))return;
+  if(!confirm(currentLang==='en'?'Move this entry to the recycle bin?':'Mover esta entrada para a reciclagem?'))return;
   const e=vault.find(v=>v.id===id);
-  if(e)logActivity('delete',e.name,'🗑️');
-  vault=vault.filter(v=>v.id!==id);renderAll();toast(t('toastDeleted'));markUnsaved();
+  if(e){logActivity('delete',e.name,'🗑️');trash.unshift({type:'vault',data:e,deletedAt:Date.now()});}
+  vault=vault.filter(v=>v.id!==id);renderAll();
+  toast(currentLang==='en'?'Moved to recycle bin 🗑️':'Movido para a reciclagem 🗑️');markUnsaved();
 }
 
 // ══ TAGS ══
@@ -2826,10 +2935,12 @@ function saveNote(){
 }
 function deleteCurrentNote(){
   if(!editingNoteId)return;
-  if(!confirm(t('confirmDeleteNote')))return;
-  notes=notes.filter(n=>n.id!==editingNoteId);
+  if(!confirm(currentLang==='en'?'Move this note to the recycle bin?':'Mover esta nota para a reciclagem?'))return;
+  const n=notes.find(nn=>nn.id===editingNoteId);
+  if(n){logActivity('delete',n.title||'...','🗑️');trash.unshift({type:'note',data:n,deletedAt:Date.now()});}
+  notes=notes.filter(nn=>nn.id!==editingNoteId);
   editingNoteId=null;renderNotesList();hideNoteEditor();
-  toast(t('toastNoteDeleted'));markUnsaved();
+  toast(currentLang==='en'?'Moved to recycle bin 🗑️':'Movida para a reciclagem 🗑️');markUnsaved();
 }
 
 // ══ BANK CARDS ══
@@ -2889,8 +3000,11 @@ function saveCard(){
   toast(editingCardId?t('cardUpdated'):t('cardAdded'));markUnsaved();
 }
 function deleteCard(id){
-  if(!confirm(t('cardConfirmDelete')))return;
-  bankCards=bankCards.filter(c=>c.id!==id);renderBankCards();toast(t('cardDeleted'));markUnsaved();
+  if(!confirm(currentLang==='en'?'Move this card to the recycle bin?':'Mover este cartão para a reciclagem?'))return;
+  const cd=bankCards.find(cc=>cc.id===id);
+  if(cd){logActivity('delete',cd.bank,'🗑️');trash.unshift({type:'card',data:cd,deletedAt:Date.now()});}
+  bankCards=bankCards.filter(cc=>cc.id!==id);renderBankCards();
+  toast(currentLang==='en'?'Moved to recycle bin 🗑️':'Movido para a reciclagem 🗑️');markUnsaved();
 }
 function renderBankCards(){
   const grid=document.getElementById('cards-grid-area');
@@ -2946,14 +3060,14 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents});downloadVault({salt:Array.from(salt),payload});
+  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash});downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;closeChangePwModal();toast(t('toastPwChanged'));
 }
 
 // ══ SAVE FILE ══
 async function saveFile(){
   if(!masterKey)return;
-  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents});
+  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash});
   const container={salt:Array.from(window._salt),payload:p};
   const dateStr=new Date().toISOString().slice(0,10);
   downloadVault(container,'ciphervault.vault');
@@ -3229,11 +3343,11 @@ function saveDoc(){
   },50);
 }
 function deleteDoc(id){
-  if(!confirm(currentLang==='en'?'Delete this document?':'Apagar este documento?'))return;
-  const d=documents.find(d=>d.id===id);
-  if(d)logActivity('delete',d.title,'🗑️');
-  documents=documents.filter(d=>d.id!==id);
-  renderDocs();toast(currentLang==='en'?'Document deleted.':'Documento apagado.');markUnsaved();
+  if(!confirm(currentLang==='en'?'Move this document to the recycle bin?':'Mover este documento para a reciclagem?'))return;
+  const d=documents.find(doc=>doc.id===id);
+  if(d){logActivity('delete',d.title,'🗑️');trash.unshift({type:'doc',data:d,deletedAt:Date.now()});}
+  documents=documents.filter(doc=>doc.id!==id);
+  renderDocs();toast(currentLang==='en'?'Moved to recycle bin 🗑️':'Movido para a reciclagem 🗑️');markUnsaved();
 }
 function downloadDoc(id){
   const d=documents.find(doc=>doc.id===id);
@@ -3296,7 +3410,7 @@ function renderDocs(){
   grid.innerHTML=filtered.map(doc=>{
     const expStatus=getExpiryStatus(doc.expiry);
     const catInfo=DOC_CATS[doc.cat]||{icon:'📋'};
-    const fileIcon=doc.file?getFileIcon(doc.file.name):'📎';
+    const fileIcon=getDocAutoIcon(doc);
     return `<div class="doc-card">
       <div class="doc-card-top">
         <div class="doc-file-icon">${fileIcon}</div>
@@ -3330,6 +3444,327 @@ function renderDocs(){
 }
 function setDocFilter(cat){currentDocFilter=cat;renderDocs();}
 
+// ══ RECICLAGEM ══
+const TRASH_DAYS=30;
+const TRASH_TYPE_META={
+  vault:{icon:'🔐',label:{pt:'Entrada',en:'Entry'}},
+  note:{icon:'📝',label:{pt:'Nota',en:'Note'}},
+  card:{icon:'💳',label:{pt:'Cartão',en:'Card'}},
+  doc:{icon:'📁',label:{pt:'Documento',en:'Document'}},
+};
+function trashItemName(it){
+  if(it.type==='vault')return it.data.name||'...';
+  if(it.type==='note')return it.data.title||'...';
+  if(it.type==='card')return it.data.bank||'...';
+  if(it.type==='doc')return it.data.title||'...';
+  return '...';
+}
+function cleanOldTrash(){
+  trash=trash.filter(it=>Date.now()-it.deletedAt<TRASH_DAYS*86400000);
+}
+function renderTrash(){
+  const grid=document.getElementById('trash-grid');if(!grid)return;
+  cleanOldTrash();
+  const title=document.getElementById('trash-title');
+  if(title)title.textContent=currentLang==='en'?'Recycle Bin':'Reciclagem';
+  const emptyBtn=document.getElementById('trash-empty-btn');
+  if(emptyBtn){
+    emptyBtn.style.display=trash.length?'block':'none';
+    emptyBtn.textContent=currentLang==='en'?'🗑️ Empty bin':'🗑️ Esvaziar tudo';
+  }
+  const info=document.getElementById('trash-info');
+  if(info)info.textContent=trash.length
+    ?(currentLang==='en'?`Items are kept for ${TRASH_DAYS} days, then permanently deleted.`:`Os itens ficam guardados ${TRASH_DAYS} dias e depois são apagados permanentemente.`)
+    :'';
+  if(!trash.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="40" height="40"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      <p>${currentLang==='en'?'Recycle bin is empty.':'A reciclagem está vazia.'}</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=trash.map((it,idx)=>{
+    const meta=TRASH_TYPE_META[it.type]||{icon:'📄',label:{pt:'Item',en:'Item'}};
+    const daysLeft=TRASH_DAYS-Math.floor((Date.now()-it.deletedAt)/86400000);
+    const urgent=daysLeft<=5;
+    return `<div class="trash-card">
+      <div class="trash-card-top">
+        <div class="trash-type-icon">${meta.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div class="trash-card-name">${esc(trashItemName(it))}</div>
+          <div class="trash-card-type">${meta.label[currentLang]||meta.label.pt} · ${timeAgo(it.deletedAt)}</div>
+        </div>
+        <span class="trash-days-badge${urgent?' urgent':''}">⏳ ${daysLeft}d</span>
+      </div>
+      <div class="card-actions" style="margin-top:0">
+        <button class="card-btn" onclick="restoreTrashItem(${idx})">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          ${currentLang==='en'?'Restore':'Restaurar'}
+        </button>
+        <button class="card-btn danger" onclick="deleteTrashForever(${idx})">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+          ${currentLang==='en'?'Delete forever':'Apagar já'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function restoreTrashItem(idx){
+  const it=trash[idx];if(!it)return;
+  if(it.type==='vault')vault.push(it.data);
+  else if(it.type==='note')notes.push(it.data);
+  else if(it.type==='card')bankCards.push(it.data);
+  else if(it.type==='doc')documents.push(it.data);
+  logActivity('restore',trashItemName(it),'♻️');
+  trash.splice(idx,1);
+  renderAll();
+  toast(currentLang==='en'?'Restored! ✓':'Restaurado! ✓');
+  markUnsaved();
+}
+function deleteTrashForever(idx){
+  const it=trash[idx];if(!it)return;
+  if(!confirm(currentLang==='en'
+    ?'Permanently delete? This CANNOT be undone!'
+    :'Apagar permanentemente? Esta ação NÃO pode ser desfeita!'))return;
+  trash.splice(idx,1);
+  renderTrash();
+  toast(currentLang==='en'?'Permanently deleted.':'Apagado permanentemente.');
+  markUnsaved();
+}
+function emptyTrash(){
+  if(!trash.length)return;
+  if(!confirm(currentLang==='en'
+    ?`Permanently delete all ${trash.length} items? This CANNOT be undone!`
+    :`Apagar permanentemente os ${trash.length} itens? Esta ação NÃO pode ser desfeita!`))return;
+  trash=[];
+  renderTrash();
+  toast(currentLang==='en'?'Recycle bin emptied.':'Reciclagem esvaziada.');
+  markUnsaved();
+}
+
+// ══ ÍCONES AUTOMÁTICOS DE DOCUMENTOS ══
+const DOC_AUTO_ICONS=[
+  [/cart[aã]o\s+de\s+cidad|citizen\s+card|\bcc\b/i,'🪪'],
+  [/carta\s+de\s+condu|driving\s+licen|licen[cç]a\s+de\s+condu/i,'🚗'],
+  [/passaporte|passport/i,'🛂'],
+  [/curr[ií]cul|\bcv\b|resume/i,'📋'],
+  [/certificad|certid[aã]o|diploma|curso/i,'📜'],
+  [/contrato|contract/i,'📝'],
+  [/fatura|recibo|invoice|receipt/i,'🧾'],
+  [/seguro|insurance|ap[oó]lice/i,'🛡️'],
+  [/\biban\b|\bbanco\b|\bbank\b|extrato/i,'🏦'],
+  [/vacin|boletim.*sa[uú]de|sns|utente/i,'💉'],
+  [/\bnif\b|contribuinte|finan[cç]as|\birs\b|\btax\b/i,'💶'],
+  [/escritura|caderneta|im[oó]vel|predial|arrendamento/i,'🏠'],
+  [/ve[ií]culo|matr[ií]cula|\bdua\b|inspe[cç][aã]o/i,'🚙'],
+];
+function getDocAutoIcon(doc){
+  const title=doc.title||'';
+  for(const [re,ic] of DOC_AUTO_ICONS){if(re.test(title))return ic;}
+  return doc.file?getFileIcon(doc.file.name):'📎';
+}
+
+// ══ GERADOR QR (ISO 18004, byte mode, EC L, v1-10 — validado bit-a-bit) ══
+const CVQR=(function(){
+  const EXP=new Array(256),LOG=new Array(256);
+  for(let i=0;i<8;i++)EXP[i]=1<<i;
+  for(let i=8;i<256;i++)EXP[i]=EXP[i-4]^EXP[i-5]^EXP[i-6]^EXP[i-8];
+  for(let i=0;i<255;i++)LOG[EXP[i]]=i;
+  const glog=n=>LOG[n];
+  const gexp=n=>{while(n<0)n+=255;while(n>=255)n-=255;return EXP[n];};
+  function Poly(num,shift){
+    let o=0;while(o<num.length&&num[o]===0)o++;
+    this.num=new Array(num.length-o+shift).fill(0);
+    for(let i=0;i<num.length-o;i++)this.num[i]=num[i+o];
+  }
+  Poly.prototype.mul=function(e){
+    const num=new Array(this.num.length+e.num.length-1).fill(0);
+    for(let i=0;i<this.num.length;i++)for(let j=0;j<e.num.length;j++)
+      if(this.num[i]!==0&&e.num[j]!==0)num[i+j]^=gexp(glog(this.num[i])+glog(e.num[j]));
+    return new Poly(num,0);
+  };
+  Poly.prototype.mod=function(e){
+    if(this.num.length-e.num.length<0)return this;
+    const ratio=glog(this.num[0])-glog(e.num[0]);
+    const num=this.num.slice();
+    for(let i=0;i<e.num.length;i++)if(e.num[i]!==0)num[i]^=gexp(glog(e.num[i])+ratio);
+    return new Poly(num,0).mod(e);
+  };
+  function ecPoly(n){let a=new Poly([1],0);for(let i=0;i<n;i++)a=a.mul(new Poly([1,gexp(i)],0));return a;}
+  const RS={1:[1,26,19],2:[1,44,34],3:[1,70,55],4:[1,100,80],5:[1,134,108],6:[2,86,68],7:[2,98,78],8:[2,121,97],9:[2,146,116],10:[2,86,68,2,87,69]};
+  const APOS={1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+  const G15b=0b10100110111,G18b=0b1111100100101,G15M=0b101010000010010;
+  const bchDigit=d=>{let n=0;while(d!==0){n++;d>>>=1;}return n;};
+  function bchInfo(data){let d=data<<10;while(bchDigit(d)-bchDigit(G15b)>=0)d^=G15b<<(bchDigit(d)-bchDigit(G15b));return((data<<10)|d)^G15M;}
+  function bchVer(data){let d=data<<12;while(bchDigit(d)-bchDigit(G18b)>=0)d^=G18b<<(bchDigit(d)-bchDigit(G18b));return(data<<12)|d;}
+  const maskFn=(p,i,j)=>{switch(p){case 0:return(i+j)%2===0;case 1:return i%2===0;case 2:return j%3===0;case 3:return(i+j)%3===0;case 4:return(Math.floor(i/2)+Math.floor(j/3))%2===0;case 5:return(i*j)%2+(i*j)%3===0;case 6:return((i*j)%2+(i*j)%3)%2===0;default:return((i*j)%3+(i+j)%2)%2===0;}};
+  function utf8(text){
+    const b=[];
+    for(let i=0;i<text.length;i++){
+      let ch=text.charCodeAt(i);
+      if(ch<0x80)b.push(ch);
+      else if(ch<0x800){b.push(0xC0|(ch>>6),0x80|(ch&0x3F));}
+      else if(ch>=0xD800&&ch<0xDC00){const c2=text.charCodeAt(++i);const u=0x10000+((ch-0xD800)<<10)+(c2-0xDC00);b.push(0xF0|(u>>18),0x80|((u>>12)&0x3F),0x80|((u>>6)&0x3F),0x80|(u&0x3F));}
+      else{b.push(0xE0|(ch>>12),0x80|((ch>>6)&0x3F),0x80|(ch&0x3F));}
+    }
+    return b;
+  }
+  function matrix(text){
+    const bytes=utf8(text);
+    let version=0,blocks=null;
+    for(let v=1;v<=10;v++){
+      const raw=RS[v],bl=[];
+      for(let i=0;i<raw.length;i+=3)for(let j=0;j<raw[i];j++)bl.push({total:raw[i+1],data:raw[i+2]});
+      const totalData=bl.reduce((s,b)=>s+b.data,0);
+      const lb=v<10?8:16;
+      if(Math.ceil((4+lb+bytes.length*8)/8)<=totalData){version=v;blocks=bl;break;}
+    }
+    if(!version)return null;
+    const totalDataCount=blocks.reduce((s,b)=>s+b.data,0);
+    const buf=[];let bufLen=0;
+    const put=(num,len)=>{for(let i=len-1;i>=0;i--){const bi=bufLen>>3;if(buf.length<=bi)buf.push(0);if((num>>>i)&1)buf[bi]|=0x80>>>(bufLen&7);bufLen++;}};
+    put(4,4);put(bytes.length,version<10?8:16);
+    for(const b of bytes)put(b,8);
+    if(bufLen+4<=totalDataCount*8)put(0,4);
+    while(bufLen%8!==0)put(0,1);
+    let pad=true;
+    while(bufLen<totalDataCount*8){put(pad?0xEC:0x11,8);pad=!pad;}
+    const dcd=[],ecd=[];let off=0,maxDc=0,maxEc=0;
+    for(const b of blocks){
+      const ec=b.total-b.data;maxDc=Math.max(maxDc,b.data);maxEc=Math.max(maxEc,ec);
+      const dc=buf.slice(off,off+b.data);off+=b.data;dcd.push(dc);
+      const rs=ecPoly(ec);
+      const mp=new Poly(dc,rs.num.length-1).mod(rs);
+      const e=new Array(ec);
+      for(let i=0;i<ec;i++){const mi=i+mp.num.length-ec;e[i]=mi>=0?mp.num[mi]:0;}
+      ecd.push(e);
+    }
+    const data=[];
+    for(let i=0;i<maxDc;i++)for(let b=0;b<blocks.length;b++)if(i<dcd[b].length)data.push(dcd[b][i]);
+    for(let i=0;i<maxEc;i++)for(let b=0;b<blocks.length;b++)if(i<ecd[b].length)data.push(ecd[b][i]);
+    const N=version*4+17;
+    function build(mask){
+      const m=Array.from({length:N},()=>new Array(N).fill(null));
+      const finder=(row,col)=>{
+        for(let r=-1;r<=7;r++){if(row+r<0||row+r>=N)continue;
+          for(let cc=-1;cc<=7;cc++){if(col+cc<0||col+cc>=N)continue;
+            m[row+r][col+cc]=(r>=0&&r<=6&&(cc===0||cc===6))||(cc>=0&&cc<=6&&(r===0||r===6))||(r>=2&&r<=4&&cc>=2&&cc<=4);
+          }}
+      };
+      finder(0,0);finder(N-7,0);finder(0,N-7);
+      const pos=APOS[version];
+      for(const row of pos)for(const col of pos){
+        if(m[row][col]!==null)continue;
+        for(let r=-2;r<=2;r++)for(let cc=-2;cc<=2;cc++)m[row+r][col+cc]=(r===-2||r===2||cc===-2||cc===2||(r===0&&cc===0));
+      }
+      for(let i=8;i<N-8;i++){if(m[i][6]===null)m[i][6]=(i%2===0);if(m[6][i]===null)m[6][i]=(i%2===0);}
+      const bits=bchInfo((1<<3)|mask);
+      for(let i=0;i<15;i++){
+        const mod=((bits>>i)&1)===1;
+        if(i<6)m[i][8]=mod;else if(i<8)m[i+1][8]=mod;else m[N-15+i][8]=mod;
+        if(i<8)m[8][N-i-1]=mod;else if(i<9)m[8][15-i-1+1]=mod;else m[8][15-i-1]=mod;
+      }
+      m[N-8][8]=true;
+      if(version>=7){
+        const vb=bchVer(version);
+        for(let i=0;i<18;i++){
+          const mod=((vb>>i)&1)===1;
+          m[Math.floor(i/3)][i%3+N-8-3]=mod;
+          m[i%3+N-8-3][Math.floor(i/3)]=mod;
+        }
+      }
+      let inc=-1,row=N-1,bitIndex=7,byteIndex=0;
+      for(let col=N-1;col>0;col-=2){
+        if(col===6)col--;
+        while(true){
+          for(let cc=0;cc<2;cc++){
+            if(m[row][col-cc]===null){
+              let dark=false;
+              if(byteIndex<data.length)dark=((data[byteIndex]>>>bitIndex)&1)===1;
+              if(maskFn(mask,row,col-cc))dark=!dark;
+              m[row][col-cc]=dark;
+              bitIndex--;if(bitIndex===-1){byteIndex++;bitIndex=7;}
+            }
+          }
+          row+=inc;
+          if(row<0||N<=row){row-=inc;inc=-inc;break;}
+        }
+      }
+      return m;
+    }
+    function penalty(m){
+      let score=0;
+      for(let dir=0;dir<2;dir++)for(let i=0;i<N;i++){
+        let run=1;
+        for(let j=1;j<N;j++){
+          const cur=dir===0?m[i][j]:m[j][i],prev=dir===0?m[i][j-1]:m[j-1][i];
+          if(cur===prev)run++;else{if(run>=5)score+=3+(run-5);run=1;}
+        }
+        if(run>=5)score+=3+(run-5);
+      }
+      for(let i=0;i<N-1;i++)for(let j=0;j<N-1;j++){
+        const v=m[i][j];
+        if(m[i][j+1]===v&&m[i+1][j]===v&&m[i+1][j+1]===v)score+=3;
+      }
+      const p1=[true,false,true,true,true,false,true,false,false,false,false];
+      const p2=[false,false,false,false,true,false,true,true,true,false,true];
+      for(let dir=0;dir<2;dir++)for(let i=0;i<N;i++)for(let j=0;j<=N-11;j++){
+        let ok1=true,ok2=true;
+        for(let k=0;k<11;k++){
+          const v=dir===0?m[i][j+k]:m[j+k][i];
+          if(v!==p1[k])ok1=false;
+          if(v!==p2[k])ok2=false;
+        }
+        if(ok1)score+=40;if(ok2)score+=40;
+      }
+      let dark=0;
+      for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(m[i][j])dark++;
+      score+=Math.floor(Math.abs(dark*100/(N*N)-50)/5)*10;
+      return score;
+    }
+    let best=null,bestScore=Infinity;
+    for(let p=0;p<8;p++){
+      const m=build(p);const s=penalty(m);
+      if(s<bestScore){bestScore=s;best=m;}
+    }
+    return best;
+  }
+  return {matrix};
+})();
+
+// ══ WIFI QR ══
+function escWifiField(s){return String(s).replace(/([\\;,:"])/g,'\\$1');}
+function isWifiEntry(e){return /wi-?fi|wlan|router/i.test(e.name||'')||/wi-?fi/i.test((e.tags||[]).join(' '));}
+function openWifiQR(id){
+  const e=vault.find(v=>v.id===id);if(!e)return;
+  const ssid=(e.user&&e.user.trim())?e.user.trim():e.name;
+  const pass=e.pw||'';
+  const payload=pass
+    ?`WIFI:T:WPA;S:${escWifiField(ssid)};P:${escWifiField(pass)};;`
+    :`WIFI:T:nopass;S:${escWifiField(ssid)};;`;
+  const m=CVQR.matrix(payload);
+  if(!m){toast(currentLang==='en'?'Data too long for QR!':'Dados demasiado longos para QR!');return;}
+  const canvas=document.getElementById('qr-canvas');
+  const scale=6,quiet=4;
+  const size=(m.length+quiet*2)*scale;
+  canvas.width=size;canvas.height=size;
+  canvas.style.width=Math.min(size,240)+'px';
+  canvas.style.height=Math.min(size,240)+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);
+  ctx.fillStyle='#000';
+  for(let r=0;r<m.length;r++)for(let cc=0;cc<m.length;cc++)
+    if(m[r][cc])ctx.fillRect((cc+quiet)*scale,(r+quiet)*scale,scale,scale);
+  document.getElementById('qr-title').textContent=currentLang==='en'?'📶 WiFi QR Code':'📶 QR Code do WiFi';
+  document.getElementById('qr-ssid').textContent=`📡 ${ssid}`;
+  document.getElementById('qr-hint').textContent=currentLang==='en'
+    ?'Point the phone camera at the code to connect automatically'
+    :'Aponta a câmara do telemóvel para ligar automaticamente';
+  document.getElementById('qr-close-btn').textContent=currentLang==='en'?'Close':'Fechar';
+  document.getElementById('qr-overlay').classList.add('open');
+}
+function closeQrModal(){const o=document.getElementById('qr-overlay');if(o)o.classList.remove('open');}
+
 // ══ DOCUMENT VALIDITY FILTER ══
 let currentDocValidityFilter='all';
 function setDocValidityFilter(filter){
@@ -3342,7 +3777,7 @@ function setDocValidityFilter(filter){
 
 // ══ PRESENTATION MODE ══
 let presentationMode=false;
-let realVault=null,realNotes=null,realBankCards=null,realDocuments=null;
+let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null;
 const DEMO_DATA={
   vault:[
     {id:'d1',name:'Gmail',cat:'email',user:'exemplo@gmail.com',pw:'Demo#2026!',url:'https://gmail.com',icon:'📧',fav:true,tags:['pessoal'],createdAt:Date.now()-86400000*5,pwUpdated:Date.now()-86400000*5,archived:false,order:0},
@@ -3367,8 +3802,8 @@ const DEMO_DATA={
 function enterPresentationMode(){
   if(presentationMode)return;
   presentationMode=true;
-  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];
-  vault=DEMO_DATA.vault;notes=DEMO_DATA.notes;bankCards=DEMO_DATA.bankCards;documents=DEMO_DATA.documents;
+  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];
+  vault=DEMO_DATA.vault;notes=DEMO_DATA.notes;bankCards=DEMO_DATA.bankCards;documents=DEMO_DATA.documents;trash=[];
   document.getElementById('presentation-banner').classList.add('show');
   document.getElementById('pres-label').textContent=currentLang==='en'?'PRESENTATION MODE — demo data':'MODO DE APRESENTAÇÃO — dados fictícios';
   // Offset topbar for banner
@@ -3379,8 +3814,8 @@ function enterPresentationMode(){
 function exitPresentationMode(){
   if(!presentationMode)return;
   presentationMode=false;
-  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;
-  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;
+  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;
+  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;
   document.getElementById('presentation-banner').classList.remove('show');
   document.querySelector('.topbar').style.marginTop='';
   renderAll();switchTab('dashboard');
@@ -3390,7 +3825,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -3535,6 +3970,7 @@ function openReadMode(id){
   let actHtml='';
   if(entry.pw)actHtml+=`<button class="btn btn-gold" onclick="document.getElementById('read-pw').textContent=document.getElementById('read-pw').classList.contains('masked')?'${esc(entry.pw)}':'••••••••••••';document.getElementById('read-pw').classList.toggle('masked')">${currentLang==='en'?'Show/Hide Password':'Mostrar/Esconder Password'}</button>`;
   if(entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="copyText('${esc(entry.pw)}','${t('pwCopied')}')">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
+  if(isWifiEntry(entry)&&entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
   if(entry.url)actHtml+=`<button class="btn btn-ghost" onclick="goToSiteEntry('${esc(entry.url)}','${esc(entry.pw||'')}')">${t('btnGoSite')}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();editEntry('${entry.id}')">${t('btnEdit')}</button>`;
   actions.innerHTML=actHtml;
@@ -3546,10 +3982,11 @@ function openDocPreview(id){
   const content=document.getElementById('read-content');
   const catInfo=DOC_CATS[doc.cat]||{icon:'📋'};
   const fileIcon=doc.file?getFileIcon(doc.file.name):'📎';
+  const autoIcon=getDocAutoIcon(doc);
   const expStatus=getExpiryStatus(doc.expiry);
   let html=`
     <span class="read-card-cat">${catInfo.icon} ${getDocCatLabel(doc.cat)}</span>
-    <div class="read-card-title">${fileIcon} ${esc(doc.title)}</div>`;
+    <div class="read-card-title">${autoIcon} ${esc(doc.title)}</div>`;
   if(doc.desc)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Description':'Descrição'}</span><div class="read-field-value" style="font-size:.95rem;font-family:inherit;color:var(--text-muted);line-height:1.6">${esc(doc.desc)}</div></div>`;
   if(doc.date)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Date':'Data'}</span><div class="read-field-value">${esc(doc.date)}</div></div>`;
   if(doc.expiry){
