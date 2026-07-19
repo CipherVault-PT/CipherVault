@@ -1029,7 +1029,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026</span>
+      <span>CipherVault © 2026 · v3.0</span>
     </div>
   </div>
 </div>
@@ -1282,7 +1282,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026</span>
+      <span>CipherVault © 2026 · v3.0</span>
     </div>
   </div>
   </div>
@@ -1712,6 +1712,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 
 <script>
 // ══ STATE ══
+const APP_VERSION='3.0';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4002,6 +4003,7 @@ function renderVaultInfo(){
   const bytes=estimateVaultBytes();
   const fileEst=Math.round(bytes*4/3);
   const rows=[
+    [en?'Version':'Versão','v'+APP_VERSION],
     [en?'Entries':'Entradas',`${activeN}${archN?` (+${archN} 📦)`:''}`],
     [en?'Notes':'Notas',String(notes.length)],
     [en?'Bank cards':'Cartões',String(bankCards.length)],
@@ -4744,7 +4746,37 @@ try{renderHowTo();}catch(e){console.warn('renderHowTo error:',e);}
 // ══ PWA ══
 const mf={name:'CipherVault',short_name:'CipherVault',description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:'.',display:'standalone',background_color:'#0d0f14',theme_color:'#0d0f14',orientation:'any',icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0f14'/%3E%3Crect x='156' y='256' width='200' height='176' rx='16' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Cpath d='M196 256v-80a60 60 0 0 1 120 0v80' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Ccircle cx='256' cy='336' r='20' fill='%23c9a84c'/%3E%3C/svg%3E",sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
 document.getElementById('pwa-manifest').setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
-if('serviceWorker' in navigator){const sw=`const C='cv4';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['.'])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k)))));});self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'./'}).catch(()=>{});}
+if('serviceWorker' in navigator){
+  const hadController=!!navigator.serviceWorker.controller;
+  let swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!hadController||swReloaded)return;
+    swReloaded=true;
+    const safe=!masterKey&&!document.querySelector('.modal-overlay.open');
+    if(safe){location.reload();}
+    else{
+      window.__cvUpdateReady=true;
+      toast(currentLang==='en'?'✨ Update ready — lock (Ctrl+L) to apply':'✨ Atualização pronta — bloqueia (Ctrl+L) para aplicar');
+    }
+  });
+  const storedV=(()=>{try{return localStorage.getItem('cv_sw_v');}catch(e){return null;}})();
+  if(storedV!==APP_VERSION||!navigator.serviceWorker.controller){
+    const sw=`const C='cv5';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['.']).catch(()=>{})));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(Promise.all([caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))),self.clients.claim()]));});
+self.addEventListener('fetch',e=>{const r=e.request;
+  if(r.method!=='GET'||!r.url.startsWith(self.location.origin))return;
+  e.respondWith(fetch(r).then(res=>{
+    if(res&&res.ok){const copy=res.clone();caches.open(C).then(cc=>cc.put(r,copy)).catch(()=>{});}
+    return res;
+  }).catch(()=>caches.match(r)));
+});`;
+    try{localStorage.setItem('cv_sw_v',APP_VERSION);}catch(e){}
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'./'}).catch(()=>{});
+  }
+  const _origLockApp=lockApp;
+  lockApp=function(){_origLockApp();if(window.__cvUpdateReady)setTimeout(()=>location.reload(),300);};
+}
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('pwa-banner').classList.add('show');});
 function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;dismissPWA();});}
