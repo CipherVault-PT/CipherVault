@@ -373,6 +373,34 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .fav-quick-arrow{color:var(--accent);opacity:0;transform:translateX(-4px);transition:all .18s;font-size:.85rem;}
 .fav-quick:hover .fav-quick-arrow{opacity:1;transform:translateX(0);}
 
+/* ══ 2FA ══ */
+#tab-totp{display:none;}
+#tab-totp.active{display:flex;flex:1;min-height:0;overflow-y:auto;}
+.totp-card{background:linear-gradient(150deg,rgba(255,255,255,.028),rgba(255,255,255,0) 45%),var(--card);border:1px solid var(--border);border-radius:4px;padding:16px 18px;animation:cardIn .3s ease backwards;transition:border-color .15s,transform .15s;}
+.totp-card:hover{border-color:var(--accent-dim);transform:translateY(-2px);box-shadow:0 10px 28px -10px rgba(var(--accent-rgb),.28);}
+.totp-name{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--text);}
+.totp-account{font-size:.68rem;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.totp-code-row{display:flex;align-items:center;gap:12px;margin-top:12px;}
+.totp-code{font-family:'JetBrains Mono',monospace;font-size:1.65rem;letter-spacing:4px;color:var(--accent);font-weight:600;cursor:pointer;flex:1;user-select:none;transition:opacity .15s;}
+.totp-code:hover{opacity:.8;}
+.totp-ring{flex-shrink:0;}
+.totp-ring-fg{transition:stroke-dashoffset .3s linear,stroke .3s;}
+.totp-secs{font-size:.72rem;color:var(--text-muted);min-width:26px;text-align:right;font-family:'JetBrains Mono',monospace;}
+
+/* ══ GESTOR DE CATEGORIAS ══ */
+.catmgr-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--border);font-size:.8rem;}
+.catmgr-row:last-child{border-bottom:none;}
+.catmgr-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+.catmgr-add{display:flex;gap:8px;margin-top:12px;align-items:center;}
+.catmgr-add input[type=color]{width:46px;height:40px;border:2px solid var(--border);border-radius:4px;cursor:pointer;background:var(--panel);padding:2px;flex-shrink:0;}
+
+/* ══ INFO DO COFRE ══ */
+.vinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:.76rem;}
+.vinfo-row{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;background:var(--bg);border:1px solid var(--border);border-radius:3px;}
+.vinfo-label{color:var(--text-muted);}
+.vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
+@media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
+
 /* ══ POLIMENTO VISUAL ══ */
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse 70% 45% at 15% -8%,rgba(var(--accent-rgb),.06),transparent 60%),
@@ -960,6 +988,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <button class="tab-btn" id="tab-btn-vault" onclick="switchTab('vault')">🔐 <span id="tab-vault-txt">Cofre</span></button>
     <button class="tab-btn" id="tab-btn-notes" onclick="switchTab('notes')">📝 <span id="tab-notes-txt">Notas</span></button>
     <button class="tab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Cartões</span></button>
+    <button class="tab-btn" id="tab-btn-totp" onclick="switchTab('totp')">🔢 <span id="tab-totp-txt">2FA</span></button>
     <button class="tab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
     <button class="tab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
     <button class="tab-btn" id="tab-btn-trash" onclick="switchTab('trash')">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
@@ -1094,10 +1123,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header">
         <div class="content-title" id="docs-title">Documentos</div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <select class="sort-select" id="doc-sort" onchange="setDocSort(this.value)"></select>
         <button onclick="openDocModal()" style="font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="docs-add-txt">Adicionar documento</span>
         </button>
+        </div>
       </div>
       <!-- FILTER TABS -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="docs-filter-row"></div>
@@ -1111,6 +1143,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       </div>
       <!-- DOCS GRID -->
       <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px"></div>
+    </div>
+  </div>
+
+  <!-- 2FA AUTHENTICATOR -->
+  <div id="tab-totp">
+    <div class="content" style="width:100%;overflow-y:auto">
+      <div class="content-header">
+        <div class="content-title" id="totp-title">Autenticador 2FA</div>
+        <button class="btn btn-gold" onclick="openTotpModal()" id="totp-add-btn" style="flex:0;padding:8px 16px;font-size:.6rem;white-space:nowrap">+ Adicionar 2FA</button>
+      </div>
+      <div id="totp-info" style="font-size:.72rem;color:var(--text-muted);margin-top:6px"></div>
+      <div id="totp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:14px"></div>
     </div>
   </div>
 
@@ -1321,6 +1365,24 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       </div>
     </div>
 
+    <!-- VAULT INFO -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-vaultinfo-title">📊 Info do Cofre</div>
+      <div class="vinfo-grid" id="vault-info-grid"></div>
+    </div>
+
+    <!-- CUSTOM CATEGORIES -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-cats-title">🎨 Categorias Personalizadas</div>
+      <div id="catmgr-list"></div>
+      <div class="catmgr-add">
+        <input id="catmgr-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:.95rem;padding:9px 4px;border-radius:2px;outline:none">
+        <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
+        <input type="color" id="catmgr-color" value="#4c8caf">
+        <button class="btn btn-gold" onclick="addCustomCat()" id="catmgr-add-btn" style="flex:0;padding:10px 16px">＋</button>
+      </div>
+    </div>
+
     <!-- AUTO-LOCK -->
     <div class="settings-section">
       <div class="settings-title" id="s-timeout-title">Auto-lock</div>
@@ -1335,6 +1397,30 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="closeSettings()" id="s-close-btn">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOTP MODAL -->
+<div class="modal-overlay" id="totp-overlay" onclick="if(event.target===this)closeTotpModal()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="totp-modal-title">🔢 Novo Código 2FA</div>
+    <div class="form-group">
+      <label id="tf-name-lbl">Serviço</label>
+      <input type="text" id="tf-name" placeholder="ex: Google, Steam, PayPal...">
+    </div>
+    <div class="form-group">
+      <label id="tf-account-lbl">Conta <span style="font-size:.56rem;color:var(--text-muted)">(opcional)</span></label>
+      <input type="text" id="tf-account" placeholder="ex: carlos@gmail.com">
+    </div>
+    <div class="form-group">
+      <label id="tf-secret-lbl">Segredo</label>
+      <input type="text" id="tf-secret" placeholder="Base32 (ex: JBSW Y3DP EHPK 3PXP) ou otpauth://..." autocomplete="off" spellcheck="false">
+      <div id="tf-secret-hint" style="font-size:.66rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Cola aqui a chave secreta que o site mostra ao ativar 2FA (por baixo do QR code), ou o link otpauth:// completo.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="saveTotp()" id="totp-save-btn">Guardar</button>
+      <button class="btn btn-ghost" onclick="closeTotpModal()" id="totp-cancel-btn">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1505,6 +1591,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
+let totp=[];let customCats=[];let currentDocSort='added';let lastSavedAt=null;let lastTotpPeriod=0;
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
@@ -1746,7 +1833,7 @@ async function submitOpenVault(){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];cleanOldTrash();
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];cleanOldTrash();
     failedAttempts=0;doUnlock();
   }catch{handleFailedAttempt();}
 }
@@ -1809,7 +1896,7 @@ function doUnlock(){
   },500);
 }
 function lockApp(){
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -2099,6 +2186,8 @@ function openSettings(){
   document.getElementById('s-tab-dark').classList.toggle('active',currentTheme==='dark');
   document.getElementById('s-tab-light').classList.toggle('active',currentTheme==='light');
   refreshColorPickers();
+  renderVaultInfo();
+  renderCatManager();
   document.getElementById('settings-overlay').classList.add('open');
 }
 function closeSettings(){document.getElementById('settings-overlay').classList.remove('open');}
@@ -2112,6 +2201,8 @@ function applySettingsLang(){
   s('s-dark-label',currentLang==='en'?'Dark':'Escuro');
   s('s-light-label',currentLang==='en'?'Light':'Claro');
   s('s-reset-btn',currentLang==='en'?'↺ Reset to defaults':'↺ Repor cores padrão');
+  s('s-vaultinfo-title',currentLang==='en'?'📊 Vault Info':'📊 Info do Cofre');
+  s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
   s('s-timeout-title',t('sTimeout'));
   s('s-close-btn',t('sClose'));
   s('to-0',t('toNever'));
@@ -2119,7 +2210,7 @@ function applySettingsLang(){
 
 // ══ TABS ══
 function switchTab(tab){
-  ['dashboard','vault','notes','cards','archive','docs','trash'].forEach(id=>{
+  ['dashboard','vault','notes','cards','archive','docs','totp','trash'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     const btnEl=document.getElementById('tab-btn-'+id);
     if(tabEl){tabEl.classList.remove('active');void tabEl.offsetHeight;}
@@ -2133,6 +2224,7 @@ function switchTab(tab){
   if(tab==='cards')renderBankCards();
   if(tab==='docs')renderDocs();
   if(tab==='trash')renderTrash();
+  if(tab==='totp')renderTotp();
 }
 
 // ══ LANGUAGE ══
@@ -2192,7 +2284,7 @@ function applyLangStatic(){
   // Sort options
   const so=document.getElementById('sort-select');if(so){so.options[0].text=t('sortFav');so.options[1].text=t('sortName');so.options[2].text=t('sortDate');so.options[3].text=t('sortCat');}
   // Category options
-  const fc=document.getElementById('f-cat');if(fc){const icons=['📧','🏦','🎮','💬','💼','📁'];const keys=['catEmail','catBanco','catJogo','catSocial','catTrabalho','catOutro'];Array.from(fc.options).forEach((o,i)=>{o.text=`${icons[i]} ${t(keys[i])}`;});}
+  populateCatSelect();
   // CP modal
   s('cp-title','cpTitle');h('cp-info','cpInfo');s('cp-cur-lbl','cpCur');s('cp-new-lbl','cpNew');s('cp-conf-lbl','cpConf');s('cp-save-btn','cpSave');s('cp-cancel-btn','btnCancel');
   // PwGen
@@ -2256,7 +2348,7 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderHowTo();}
+function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderTotp();renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){
@@ -2378,11 +2470,8 @@ function renderDashboard(){
   if(chartTitle)chartTitle.textContent=currentLang==='en'?'📊 Entries by category':'📊 Entradas por categoria';
   const chartEl=document.getElementById('dash-cat-chart');
   if(chartEl&&total>0){
-    const catColors={email:'#4c8caf',banco:'#4caf82',jogo:'#af7a4c',social:'#9b6ec7',trabalho:'#afa04c',outro:'#888'};
-    const catEntries=Object.entries(CATS).filter(([k])=>k!=='all').map(([key,{icon}])=>{
-      const count=active.filter(e=>e.cat===key).length;
-      return{key,icon,count,color:catColors[key]||'#888',label:getCatLabel(key)};
-    }).filter(c=>c.count>0).sort((a,b)=>b.count-a.count);
+    const catEntries=allEntryCats().map(ci=>({...ci,count:active.filter(e=>e.cat===ci.key).length}))
+      .filter(ci=>ci.count>0).sort((a,b)=>b.count-a.count);
     const max=Math.max(...catEntries.map(c=>c.count));
     chartEl.innerHTML=catEntries.map(c=>`
       <div class="cat-bar-row">
@@ -2449,14 +2538,23 @@ function renderDashboard(){
 }
 
 // ══ SIDEBAR ══
-function getCatLabel(key){const m={all:'catAll',email:'catEmail',banco:'catBanco',jogo:'catJogo',social:'catSocial',trabalho:'catTrabalho',outro:'catOutro'};return t(m[key])||key;}
+function getCatLabel(key){const cu=customCats.find(x=>x.key===key);if(cu)return cu.name;const m={all:'catAll',email:'catEmail',banco:'catBanco',jogo:'catJogo',social:'catSocial',trabalho:'catTrabalho',outro:'catOutro'};return t(m[key])||key;}
+const BUILTIN_CAT_COLORS={email:'#4c8caf',banco:'#4caf82',jogo:'#af7a4c',social:'#9b6ec7',trabalho:'#afa04c',outro:'#888888'};
+function vaultCatInfo(key){
+  if(CATS[key]&&key!=='all')return{key,icon:CATS[key].icon,label:getCatLabel(key),color:BUILTIN_CAT_COLORS[key]||'#888888',custom:false};
+  const cu=customCats.find(x=>x.key===key);
+  if(cu)return{key,icon:cu.icon||'📁',label:cu.name,color:cu.color||'#888888',custom:true};
+  return{key:'outro',icon:'📁',label:getCatLabel('outro'),color:'#888888',custom:false};
+}
+function allEntryCats(){return Object.keys(CATS).filter(k=>k!=='all').map(k=>vaultCatInfo(k)).concat(customCats.map(cu=>vaultCatInfo(cu.key)));}
 function renderSidebar(){
   const el=document.getElementById('sidebar-cats');el.innerHTML='';
   const active=vault.filter(e=>!e.archived);
   document.getElementById('sb-cats-title').textContent=t('sbCats');
-  Object.entries(CATS).forEach(([key,{icon}])=>{
+  const sideCats=[{key:'all',icon:CATS.all.icon,label:getCatLabel('all')}].concat(allEntryCats());
+  sideCats.forEach(({key,icon,label})=>{
     const count=key==='all'?active.length:active.filter(e=>e.cat===key).length;
-    el.innerHTML+=`<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" onclick="selectCat('${key}')"><span>${icon}</span><span>${getCatLabel(key)}</span><span class="cat-count">${count}</span></div>`;
+    el.innerHTML+=`<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" onclick="selectCat('${key}')"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
   });
   // Tags sidebar
   const tagsEl=document.getElementById('sidebar-tags');tagsEl.innerHTML='';
@@ -2508,11 +2606,12 @@ function renderCards(){
     const ageBadge=isOld?`<span class="pw-age-badge old">${t('pwOld')}</span>`:isRecent?`<span class="pw-age-badge recent">${t('pwRecent')}</span>`:'';
     const tagsHtml=(entry.tags||[]).map(tag=>`<span class="card-tag">${esc(tag)}</span>`).join('');
     const svcIcon=entry.icon&&entry.icon!=='⭐'?entry.icon:getServiceIcon(entry.name);
-    return `<div class="entry-card cat-${entry.cat}${entry.fav?' is-fav':''}" id="card-${entry.id}" draggable="true" ondragstart="dragStart(event,'${entry.id}')" ondragover="dragOver(event,'${entry.id}')" ondrop="dragDrop('${entry.id}')" ondragend="dragEnd()">
+    const ci=vaultCatInfo(entry.cat);
+    return `<div class="entry-card cat-${entry.cat}${entry.fav?' is-fav':''}" id="card-${entry.id}"${ci.custom?` style="border-left:3px solid ${ci.color}"`:''} draggable="true" ondragstart="dragStart(event,'${entry.id}')" ondragover="dragOver(event,'${entry.id}')" ondrop="dragDrop('${entry.id}')" ondragend="dragEnd()">
       <div class="card-top">
         <div class="card-badge-row">
           ${svcIcon?`<span class="service-icon">${svcIcon}</span>`:''}
-          <span class="card-cat-badge ${bc}">${CATS[entry.cat]?.icon||'📁'} ${cl}</span>
+          <span class="card-cat-badge" style="background:${ci.color}26;color:${ci.color}">${ci.icon} ${esc(ci.label)}</span>
           ${tagsHtml}
         </div>
         <button class="fav-btn${entry.fav?' active':''}" onclick="event.stopPropagation();toggleFav('${entry.id}')" title="${entry.fav?t('favRemove'):t('favAdd')}">${entry.fav?'⭐':'☆'}</button>
@@ -2612,7 +2711,7 @@ function onSearchInput(){
   let html=`<div style="font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">${t('globalSearchResults')}: <strong style="color:var(--accent)">${total}</strong></div>`;
   if(vaultMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">🔐 ${t('tabVault')} (${vaultMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${vaultMatches.map(e=>`<div class="entry-card" onclick="closeGlobalSearch();editEntry('${e.id}')" style="cursor:pointer"><div class="card-top"><span class="card-cat-badge badge-${e.cat}">${CATS[e.cat]?.icon||'📁'} ${getCatLabel(e.cat)}</span>${e.fav?'⭐':''}</div><div class="card-name">${esc(e.name)}</div>${e.user?`<div style="font-size:.75rem;color:var(--text-muted)">${esc(e.user)}</div>`:''}</div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${vaultMatches.map(e=>`<div class="entry-card" onclick="closeGlobalSearch();editEntry('${e.id}')" style="cursor:pointer"><div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(e.cat).color}26;color:${vaultCatInfo(e.cat).color}">${vaultCatInfo(e.cat).icon} ${esc(vaultCatInfo(e.cat).label)}</span>${e.fav?'⭐':''}</div><div class="card-name">${esc(e.name)}</div>${e.user?`<div style="font-size:.75rem;color:var(--text-muted)">${esc(e.user)}</div>`:''}</div>`).join('')}</div>`;
   }
   if(noteMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">📝 ${t('tabNotes')} (${noteMatches.length})</div>`;
@@ -2741,7 +2840,7 @@ function renderArchive(){
   if(!archived.length){grid.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg><p>${t('emptyArchive')}</p></div>`;return;}
   grid.innerHTML=archived.map(entry=>`
     <div class="entry-card" style="opacity:.8" id="arc-${entry.id}">
-      <div class="card-top"><span class="card-cat-badge badge-${entry.cat}">${CATS[entry.cat]?.icon||'📁'} ${getCatLabel(entry.cat)}</span></div>
+      <div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(entry.cat).color}26;color:${vaultCatInfo(entry.cat).color}">${vaultCatInfo(entry.cat).icon} ${esc(vaultCatInfo(entry.cat).label)}</span></div>
       <div class="card-name">${esc(entry.name)}</div>
       ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span></div></div>`:''}
       <div class="card-actions">
@@ -2756,6 +2855,7 @@ function restoreEntry(id){const e=vault.find(v=>v.id===id);if(e){logActivity('re
 function openModal(id=null){
   editingId=id;entryTags=[];entryAttachment=null;entryEmoji='⭐';
   document.getElementById('modal-title').textContent=id?t('modalEdit'):t('modalNew');
+  populateCatSelect();
   if(id){
     const e=vault.find(v=>v.id===id);
     document.getElementById('f-name').value=e.name||'';document.getElementById('f-cat').value=e.cat||'outro';
@@ -3060,16 +3160,17 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash});downloadVault({salt:Array.from(salt),payload});
+  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats});downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;closeChangePwModal();toast(t('toastPwChanged'));
 }
 
 // ══ SAVE FILE ══
 async function saveFile(){
   if(!masterKey)return;
-  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash});
+  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats});
   const container={salt:Array.from(window._salt),payload:p};
   const dateStr=new Date().toISOString().slice(0,10);
+  lastSavedAt=Date.now();
   downloadVault(container,'ciphervault.vault');
   setTimeout(()=>downloadVault(container,`ciphervault_backup_${dateStr}.vault`),400);
   toast(t('toastSaved'));markSaved();
@@ -3129,14 +3230,14 @@ function exportPDF(){
   const dateStr=now.toLocaleDateString(currentLang==='pt'?'pt-PT':'en-GB',{year:'numeric',month:'long',day:'numeric'});
   const timeStr=now.toLocaleTimeString(currentLang==='pt'?'pt-PT':'en-GB',{hour:'2-digit',minute:'2-digit'});
 
-  // Group by category
-  const cats={email:[],banco:[],jogo:[],social:[],trabalho:[],outro:[]};
-  active.forEach(e=>{if(cats[e.cat])cats[e.cat].push(e);else cats.outro.push(e);});
-  const catNames={email:'Email',banco:currentLang==='en'?'Bank':'Banco',jogo:currentLang==='en'?'Games':'Jogos',social:'Social',trabalho:currentLang==='en'?'Work':'Trabalho',outro:currentLang==='en'?'Other':'Outro'};
-  const catColors={email:'#4c8caf',banco:'#4caf82',jogo:'#af7a4c',social:'#9b6ec7',trabalho:'#afa04c',outro:'#888'};
+  // Group by category (built-ins + customs)
+  const groups=allEntryCats().map(ci=>({...ci,entries:[]}));
+  const gOutro=groups.find(g=>g.key==='outro');
+  active.forEach(e=>{(groups.find(g=>g.key===e.cat)||gOutro).entries.push(e);});
 
   let sectionsHtml='';
-  Object.entries(cats).forEach(([cat,entries])=>{
+  groups.forEach(g=>{
+    const entries=g.entries;
     if(!entries.length)return;
     const rows=entries.map((e,i)=>`
       <tr class="${i%2===0?'even':'odd'}">
@@ -3148,8 +3249,8 @@ function exportPDF(){
       </tr>`).join('');
     sectionsHtml+=`
       <div class="section">
-        <h2 style="color:${catColors[cat]};border-bottom:2px solid ${catColors[cat]};padding-bottom:6px;margin-bottom:12px">
-          ${CATS[cat]?.icon||'📁'} ${catNames[cat]} <span style="font-size:13px;color:#999;font-weight:400">(${entries.length})</span>
+        <h2 style="color:${g.color};border-bottom:2px solid ${g.color};padding-bottom:6px;margin-bottom:12px">
+          ${g.icon} ${esc(g.label)} <span style="font-size:13px;color:#999;font-weight:400">(${entries.length})</span>
         </h2>
         <table>
           <thead><tr>
@@ -3209,7 +3310,7 @@ function exportPDF(){
   <div class="stats">
     <div class="stat"><div class="stat-num">${active.length}</div><div class="stat-label">${currentLang==='en'?'Total':'Total'}</div></div>
     <div class="stat"><div class="stat-num">${active.filter(e=>e.fav).length}</div><div class="stat-label">${currentLang==='en'?'Favourites':'Favoritos'}</div></div>
-    <div class="stat"><div class="stat-num">${Object.keys(cats).filter(k=>cats[k].length>0).length}</div><div class="stat-label">${currentLang==='en'?'Categories':'Categorias'}</div></div>
+    <div class="stat"><div class="stat-num">${groups.filter(g=>g.entries.length>0).length}</div><div class="stat-label">${currentLang==='en'?'Categories':'Categorias'}</div></div>
     <div class="stat"><div class="stat-num">${notes.length}</div><div class="stat-label">${currentLang==='en'?'Notes':'Notas'}</div></div>
   </div>
   ${sectionsHtml}
@@ -3398,6 +3499,28 @@ function renderDocs(){
     if(currentDocValidityFilter==='noexpiry')return !d.expiry;
     return true;
   });
+  const sortSel=document.getElementById('doc-sort');
+  if(sortSel){
+    const opts=[
+      ['added',currentLang==='en'?'📅 Recent':'📅 Recentes'],
+      ['name',currentLang==='en'?'🔤 Name A-Z':'🔤 Nome A-Z'],
+      ['date',currentLang==='en'?'📆 Doc date':'📆 Data doc'],
+      ['expiry',currentLang==='en'?'⏰ Expiry first':'⏰ Validade']
+    ];
+    sortSel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+    sortSel.value=currentDocSort;
+  }
+  filtered.sort((a,b)=>{
+    if(currentDocSort==='name')return (a.title||'').localeCompare(b.title||'');
+    if(currentDocSort==='date')return (b.date||'').localeCompare(a.date||'');
+    if(currentDocSort==='expiry'){
+      if(!a.expiry&&!b.expiry)return 0;
+      if(!a.expiry)return 1;
+      if(!b.expiry)return -1;
+      return a.expiry.localeCompare(b.expiry);
+    }
+    return (b.createdAt||0)-(a.createdAt||0);
+  });
 
   if(!filtered.length){
     grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
@@ -3444,6 +3567,269 @@ function renderDocs(){
 }
 function setDocFilter(cat){currentDocFilter=cat;renderDocs();}
 
+// ══ 2FA / TOTP (RFC 6238 — validado contra vetores oficiais) ══
+function b32decode(s){
+  s=String(s).toUpperCase().replace(/[\s=\-]/g,'');
+  const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits=0,val=0;const out=[];
+  for(const ch of s){
+    const idx=A.indexOf(ch);
+    if(idx<0)return null;
+    val=(val<<5)|idx;bits+=5;
+    if(bits>=8){out.push((val>>>(bits-8))&0xFF);bits-=8;}
+  }
+  return out.length?new Uint8Array(out):null;
+}
+async function computeTOTP(secret,digits=6,period=30){
+  const key=b32decode(secret);
+  if(!key)return null;
+  const counter=Math.floor(Date.now()/1000/period);
+  const buf=new ArrayBuffer(8);const dv=new DataView(buf);
+  dv.setUint32(0,Math.floor(counter/4294967296));
+  dv.setUint32(4,counter>>>0);
+  const ck=await crypto.subtle.importKey('raw',key,{name:'HMAC',hash:'SHA-1'},false,['sign']);
+  const sig=new Uint8Array(await crypto.subtle.sign('HMAC',ck,buf));
+  const off=sig[sig.length-1]&0xf;
+  const bin=((sig[off]&0x7f)<<24)|(sig[off+1]<<16)|(sig[off+2]<<8)|sig[off+3];
+  return String(bin%(10**digits)).padStart(digits,'0');
+}
+function parseOtpauth(str){
+  try{
+    if(!/^otpauth:\/\//i.test(str))return null;
+    const u=new URL(str);
+    const secret=u.searchParams.get('secret')||'';
+    const issuer=u.searchParams.get('issuer')||'';
+    let label=decodeURIComponent(u.pathname.replace(/^\/+/,''));
+    let name=issuer,account='';
+    if(label.includes(':')){const parts=label.split(':');name=issuer||parts[0];account=parts.slice(1).join(':');}
+    else{account=label;if(!name)name=label;}
+    return{name:name.trim(),account:account.trim(),secret:secret.trim()};
+  }catch(e){return null;}
+}
+let editingTotpId=null;
+function openTotpModal(id=null){
+  editingTotpId=id;
+  const isEdit=!!id;
+  document.getElementById('totp-modal-title').textContent=isEdit
+    ?(currentLang==='en'?'🔢 Edit 2FA Code':'🔢 Editar Código 2FA')
+    :(currentLang==='en'?'🔢 New 2FA Code':'🔢 Novo Código 2FA');
+  document.getElementById('tf-name-lbl').textContent=currentLang==='en'?'Service':'Serviço';
+  document.getElementById('tf-account-lbl').innerHTML=(currentLang==='en'?'Account':'Conta')+' <span style="font-size:.56rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
+  document.getElementById('tf-secret-lbl').textContent=currentLang==='en'?'Secret':'Segredo';
+  document.getElementById('tf-secret-hint').textContent=currentLang==='en'
+    ?'Paste the secret key the site shows when enabling 2FA (below the QR code), or the full otpauth:// link.'
+    :'Cola aqui a chave secreta que o site mostra ao ativar 2FA (por baixo do QR code), ou o link otpauth:// completo.';
+  document.getElementById('totp-save-btn').textContent=currentLang==='en'?'Save':'Guardar';
+  document.getElementById('totp-cancel-btn').textContent=currentLang==='en'?'Cancel':'Cancelar';
+  if(isEdit){
+    const t2=totp.find(x=>x.id===id);
+    document.getElementById('tf-name').value=t2?.name||'';
+    document.getElementById('tf-account').value=t2?.account||'';
+    document.getElementById('tf-secret').value=t2?.secret||'';
+  }else{
+    ['tf-name','tf-account','tf-secret'].forEach(i=>document.getElementById(i).value='');
+  }
+  document.getElementById('totp-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('tf-name').focus(),100);
+}
+function closeTotpModal(){const o=document.getElementById('totp-overlay');if(o)o.classList.remove('open');editingTotpId=null;}
+function saveTotp(){
+  let name=document.getElementById('tf-name').value.trim();
+  let account=document.getElementById('tf-account').value.trim();
+  let secret=document.getElementById('tf-secret').value.trim();
+  const parsed=parseOtpauth(secret);
+  if(parsed){
+    secret=parsed.secret;
+    if(!name)name=parsed.name;
+    if(!account)account=parsed.account;
+  }
+  if(!name){toast(currentLang==='en'?'Service name is required!':'Nome do serviço obrigatório!');return;}
+  if(!secret||!b32decode(secret)){toast(currentLang==='en'?'Invalid secret! Must be Base32.':'Segredo inválido! Tem de ser Base32.');return;}
+  const entry={
+    id:editingTotpId||Date.now().toString(36),
+    name,account,secret:secret.toUpperCase().replace(/[\s\-]/g,''),
+    createdAt:editingTotpId?(totp.find(x=>x.id===editingTotpId)?.createdAt||Date.now()):Date.now(),
+  };
+  if(editingTotpId){const idx=totp.findIndex(x=>x.id===editingTotpId);totp[idx]=entry;}
+  else totp.push(entry);
+  logActivity(editingTotpId?'edit':'add',name,'🔢');
+  closeTotpModal();renderTotp();
+  toast(editingTotpId?(currentLang==='en'?'2FA updated!':'2FA atualizado!'):(currentLang==='en'?'2FA added!':'2FA adicionado!'));
+  markUnsaved();
+}
+function deleteTotp(id){
+  if(!confirm(currentLang==='en'?'Move this 2FA code to the recycle bin?':'Mover este código 2FA para a reciclagem?'))return;
+  const t2=totp.find(x=>x.id===id);
+  if(t2){logActivity('delete',t2.name,'🗑️');trash.unshift({type:'totp',data:t2,deletedAt:Date.now()});}
+  totp=totp.filter(x=>x.id!==id);
+  renderTotp();
+  toast(currentLang==='en'?'Moved to recycle bin 🗑️':'Movido para a reciclagem 🗑️');
+  markUnsaved();
+}
+function fmtTotpCode(code){return code?code.slice(0,3)+' '+code.slice(3):'••• •••';}
+async function refreshTotpCodes(){
+  for(const t2 of totp){
+    const code=await computeTOTP(t2.secret);
+    const el=document.getElementById('totp-code-'+t2.id);
+    if(el){el.textContent=fmtTotpCode(code);el.dataset.code=code||'';}
+  }
+}
+function copyTotpCode(id){
+  const el=document.getElementById('totp-code-'+id);
+  const code=el?.dataset.code;
+  if(code)copyText(code,currentLang==='en'?'Code copied! ✓':'Código copiado! ✓');
+}
+function renderTotp(){
+  const grid=document.getElementById('totp-grid');if(!grid)return;
+  const title=document.getElementById('totp-title');
+  if(title)title.textContent=currentLang==='en'?'2FA Authenticator':'Autenticador 2FA';
+  const addBtn=document.getElementById('totp-add-btn');
+  if(addBtn)addBtn.textContent=currentLang==='en'?'+ Add 2FA':'+ Adicionar 2FA';
+  const info=document.getElementById('totp-info');
+  if(info)info.textContent=totp.length
+    ?(currentLang==='en'?'Codes refresh every 30 seconds. Tap a code to copy it.':'Os códigos renovam a cada 30 segundos. Toca num código para copiar.')
+    :'';
+  if(!totp.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="40" height="40"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <p>${currentLang==='en'?'No 2FA codes yet. Add your first authenticator.':'Sem códigos 2FA. Adiciona o teu primeiro autenticador.'}</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=totp.map(t2=>`
+    <div class="totp-card">
+      <div class="totp-name">${esc(t2.name)}</div>
+      ${t2.account?`<div class="totp-account">${esc(t2.account)}</div>`:''}
+      <div class="totp-code-row">
+        <div class="totp-code" id="totp-code-${t2.id}" data-code="" onclick="copyTotpCode('${t2.id}')" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">••• •••</div>
+        <svg class="totp-ring" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="12" fill="none" stroke="var(--border)" stroke-width="3"/>
+          <circle class="totp-ring-fg" cx="15" cy="15" r="12" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="0" transform="rotate(-90 15 15)"/>
+        </svg>
+        <span class="totp-secs">--</span>
+      </div>
+      <div class="card-actions" style="margin-top:10px">
+        <button class="card-btn" onclick="copyTotpCode('${t2.id}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          ${currentLang==='en'?'Copy':'Copiar'}
+        </button>
+        <button class="card-btn" onclick="openTotpModal('${t2.id}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          ${t('btnEdit')}
+        </button>
+        <button class="card-btn danger" onclick="deleteTotp('${t2.id}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+          ${t('btnDel')}
+        </button>
+      </div>
+    </div>`).join('');
+  lastTotpPeriod=Math.floor(Date.now()/1000/30);
+  refreshTotpCodes();
+}
+setInterval(()=>{
+  if(!masterKey||!totp.length)return;
+  const now=Math.floor(Date.now()/1000);
+  const secs=30-(now%30);
+  document.querySelectorAll('.totp-secs').forEach(el=>el.textContent=secs+'s');
+  const off=75.4*((30-secs)/30);
+  document.querySelectorAll('.totp-ring-fg').forEach(el=>{
+    el.style.strokeDashoffset=off;
+    el.style.stroke=secs<=5?'var(--red)':'var(--accent)';
+  });
+  const period=Math.floor(now/30);
+  if(period!==lastTotpPeriod){lastTotpPeriod=period;refreshTotpCodes();}
+},1000);
+
+// ══ CATEGORIAS PERSONALIZADAS ══
+function populateCatSelect(){
+  const fc=document.getElementById('f-cat');if(!fc)return;
+  const cur=fc.value;
+  fc.innerHTML=allEntryCats().map(ci=>`<option value="${ci.key}">${ci.icon} ${esc(ci.label)}</option>`).join('');
+  if([...fc.options].some(o=>o.value===cur))fc.value=cur;
+}
+function renderCatManager(){
+  const list=document.getElementById('catmgr-list');if(!list)return;
+  const icon=document.getElementById('catmgr-icon');
+  const nameInp=document.getElementById('catmgr-name');
+  if(nameInp)nameInp.placeholder=currentLang==='en'?'Category name':'Nome da categoria';
+  if(!customCats.length){
+    list.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);padding:6px 0 2px">${currentLang==='en'?'No custom categories yet.':'Ainda sem categorias personalizadas.'}</div>`;
+    return;
+  }
+  list.innerHTML=customCats.map(cu=>{
+    const count=vault.filter(e=>e.cat===cu.key).length;
+    return `<div class="catmgr-row">
+      <span class="catmgr-dot" style="background:${cu.color}"></span>
+      <span style="font-size:1rem">${cu.icon}</span>
+      <span style="flex:1;color:var(--text)">${esc(cu.name)}</span>
+      <span style="color:var(--text-muted);font-size:.68rem">${count} ${currentLang==='en'?(count===1?'entry':'entries'):(count===1?'entrada':'entradas')}</span>
+      <button class="card-btn danger" onclick="deleteCustomCat('${cu.key}')" style="padding:5px 9px">✕</button>
+    </div>`;
+  }).join('');
+}
+function addCustomCat(){
+  const icon=(document.getElementById('catmgr-icon').value||'📁').trim()||'📁';
+  const name=document.getElementById('catmgr-name').value.trim();
+  const color=document.getElementById('catmgr-color').value||'#4c8caf';
+  if(!name){toast(currentLang==='en'?'Category name is required!':'Nome da categoria obrigatório!');return;}
+  if(allEntryCats().some(ci=>ci.label.toLowerCase()===name.toLowerCase())){
+    toast(currentLang==='en'?'That category already exists!':'Essa categoria já existe!');return;
+  }
+  customCats.push({key:'c'+Date.now().toString(36),name,icon,color});
+  document.getElementById('catmgr-name').value='';
+  document.getElementById('catmgr-icon').value='';
+  logActivity('add',name,'🎨');
+  renderCatManager();populateCatSelect();renderSidebar();renderCards();renderDashboard();
+  toast(currentLang==='en'?'Category created! ✓':'Categoria criada! ✓');
+  markUnsaved();
+}
+function deleteCustomCat(key){
+  const cu=customCats.find(x=>x.key===key);if(!cu)return;
+  const count=vault.filter(e=>e.cat===key).length;
+  const msg=count
+    ?(currentLang==='en'?`Delete "${cu.name}"? ${count} entries will move to 📁 Other.`:`Apagar "${cu.name}"? ${count} entradas passam para 📁 Outro.`)
+    :(currentLang==='en'?`Delete category "${cu.name}"?`:`Apagar a categoria "${cu.name}"?`);
+  if(!confirm(msg))return;
+  vault.forEach(e=>{if(e.cat===key)e.cat='outro';});
+  if(currentCat===key)currentCat='all';
+  customCats=customCats.filter(x=>x.key!==key);
+  logActivity('delete',cu.name,'🎨');
+  renderCatManager();populateCatSelect();renderSidebar();renderCards();renderDashboard();
+  toast(currentLang==='en'?'Category deleted.':'Categoria apagada.');
+  markUnsaved();
+}
+
+// ══ INFO DO COFRE ══
+function estimateVaultBytes(){
+  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats})]).size;}
+  catch(e){return 0;}
+}
+function renderVaultInfo(){
+  const grid=document.getElementById('vault-info-grid');if(!grid)return;
+  const en=currentLang==='en';
+  const activeN=vault.filter(e=>!e.archived).length;
+  const archN=vault.filter(e=>e.archived).length;
+  const bytes=estimateVaultBytes();
+  const fileEst=Math.round(bytes*4/3);
+  const rows=[
+    [en?'Entries':'Entradas',`${activeN}${archN?` (+${archN} 📦)`:''}`],
+    [en?'Notes':'Notas',String(notes.length)],
+    [en?'Bank cards':'Cartões',String(bankCards.length)],
+    [en?'Documents':'Documentos',String(documents.length)],
+    ['2FA',String(totp.length)],
+    [en?'Recycle bin':'Reciclagem',String(trash.length)],
+    [en?'Vault size (est.)':'Tamanho (aprox.)','~'+formatFileSize(fileEst)],
+    [en?'Last saved':'Último guardar',lastSavedAt?new Date(lastSavedAt).toLocaleTimeString(en?'en-GB':'pt-PT',{hour:'2-digit',minute:'2-digit'}):'—'],
+  ];
+  grid.innerHTML=rows.map(([l,v])=>`<div class="vinfo-row"><span class="vinfo-label">${l}</span><span class="vinfo-val">${v}</span></div>`).join('');
+  if(hasUnsaved){
+    grid.innerHTML+=`<div class="vinfo-row" style="grid-column:1/-1;border-color:var(--accent-dim)"><span class="vinfo-label" style="color:var(--accent)">⚠️ ${en?'Unsaved changes — remember to save the file!':'Alterações por guardar — lembra-te de guardar o ficheiro!'}</span></div>`;
+  }
+}
+
+// ══ ORDENAR DOCUMENTOS ══
+function setDocSort(v){currentDocSort=v;renderDocs();}
+
 // ══ RECICLAGEM ══
 const TRASH_DAYS=30;
 const TRASH_TYPE_META={
@@ -3451,12 +3837,14 @@ const TRASH_TYPE_META={
   note:{icon:'📝',label:{pt:'Nota',en:'Note'}},
   card:{icon:'💳',label:{pt:'Cartão',en:'Card'}},
   doc:{icon:'📁',label:{pt:'Documento',en:'Document'}},
+  totp:{icon:'🔢',label:{pt:'Código 2FA',en:'2FA Code'}},
 };
 function trashItemName(it){
   if(it.type==='vault')return it.data.name||'...';
   if(it.type==='note')return it.data.title||'...';
   if(it.type==='card')return it.data.bank||'...';
   if(it.type==='doc')return it.data.title||'...';
+  if(it.type==='totp')return it.data.name||'...';
   return '...';
 }
 function cleanOldTrash(){
@@ -3515,6 +3903,7 @@ function restoreTrashItem(idx){
   else if(it.type==='note')notes.push(it.data);
   else if(it.type==='card')bankCards.push(it.data);
   else if(it.type==='doc')documents.push(it.data);
+  else if(it.type==='totp')totp.push(it.data);
   logActivity('restore',trashItemName(it),'♻️');
   trash.splice(idx,1);
   renderAll();
@@ -3777,7 +4166,7 @@ function setDocValidityFilter(filter){
 
 // ══ PRESENTATION MODE ══
 let presentationMode=false;
-let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null;
+let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null,realTotp=null,realCustomCats=null;
 const DEMO_DATA={
   vault:[
     {id:'d1',name:'Gmail',cat:'email',user:'exemplo@gmail.com',pw:'Demo#2026!',url:'https://gmail.com',icon:'📧',fav:true,tags:['pessoal'],createdAt:Date.now()-86400000*5,pwUpdated:Date.now()-86400000*5,archived:false,order:0},
@@ -3797,13 +4186,17 @@ const DEMO_DATA={
   documents:[
     {id:'doc1',title:'Cartão de Cidadão',cat:'pessoal',date:'2020-01-15',expiry:'2030-01-14',desc:'Número: 12345678 9ZZ4',file:null,createdAt:Date.now()-86400000*365},
     {id:'doc2',title:'CV 2026',cat:'trabalho',date:'2026-01-01',expiry:'',desc:'Versão atualizada Janeiro 2026',file:null,createdAt:Date.now()-86400000*60},
+  ],
+  totp:[
+    {id:'t1',name:'Google',account:'exemplo@gmail.com',secret:'JBSWY3DPEHPK3PXP',createdAt:Date.now()-86400000*10},
+    {id:'t2',name:'Steam',account:'carlos_silva',secret:'GEZDGNBVGY3TQOJQ',createdAt:Date.now()-86400000*5},
   ]
 };
 function enterPresentationMode(){
   if(presentationMode)return;
   presentationMode=true;
-  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];
-  vault=DEMO_DATA.vault;notes=DEMO_DATA.notes;bankCards=DEMO_DATA.bankCards;documents=DEMO_DATA.documents;trash=[];
+  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];realTotp=[...totp];realCustomCats=[...customCats];
+  vault=DEMO_DATA.vault;notes=DEMO_DATA.notes;bankCards=DEMO_DATA.bankCards;documents=DEMO_DATA.documents;trash=[];totp=DEMO_DATA.totp;customCats=[];
   document.getElementById('presentation-banner').classList.add('show');
   document.getElementById('pres-label').textContent=currentLang==='en'?'PRESENTATION MODE — demo data':'MODO DE APRESENTAÇÃO — dados fictícios';
   // Offset topbar for banner
@@ -3814,8 +4207,8 @@ function enterPresentationMode(){
 function exitPresentationMode(){
   if(!presentationMode)return;
   presentationMode=false;
-  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;
-  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;
+  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;totp=realTotp;customCats=realCustomCats;
+  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;realTotp=null;realCustomCats=null;
   document.getElementById('presentation-banner').classList.remove('show');
   document.querySelector('.topbar').style.marginTop='';
   renderAll();switchTab('dashboard');
@@ -3825,7 +4218,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -3958,7 +4351,7 @@ function openReadMode(id){
   const content=document.getElementById('read-content');
   const catLabel=getCatLabel(entry.cat);
   let html=`
-    <span class="read-card-cat">${CATS[entry.cat]?.icon||'📁'} ${catLabel}</span>
+    <span class="read-card-cat">${vaultCatInfo(entry.cat).icon} ${esc(vaultCatInfo(entry.cat).label)}</span>
     <div class="read-card-title">${esc(entry.name)}</div>`;
   if(entry.user)html+=`<div class="read-field"><span class="read-field-label">${t('cardUser')}</span><div class="read-field-value">${esc(entry.user)}</div></div>`;
   if(entry.pw)html+=`<div class="read-field"><span class="read-field-label">${t('cardPw')}</span><div class="read-field-value masked" id="read-pw">••••••••••••</div></div>`;
