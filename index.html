@@ -397,6 +397,28 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ PASTAS DE DOCUMENTOS ══ */
+.folder-card{position:relative;overflow:hidden;--mx:50%;--my:50%;background:linear-gradient(150deg,rgba(var(--accent-rgb),.07),rgba(255,255,255,0) 55%),var(--card);border:1px solid var(--border);border-radius:4px;padding:15px 14px;cursor:pointer;transition:all .18s;animation:cardIn .3s ease backwards;display:flex;align-items:center;gap:11px;}
+.folder-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 30px -12px rgba(var(--accent-rgb),.35);}
+.folder-card::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(340px circle at var(--mx) var(--my),rgba(var(--accent-rgb),.11),transparent 62%);opacity:0;transition:opacity .3s;}
+.folder-card:hover::after{opacity:1;}
+@media(hover:none){.folder-card::after{display:none;}}
+.folder-icon{font-size:1.7rem;line-height:1;flex-shrink:0;}
+.folder-info{flex:1;min-width:0;}
+.folder-name{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);line-height:1.28;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;}
+.folder-count{font-size:.64rem;color:var(--text-muted);margin-top:3px;letter-spacing:1px;}
+.folder-menu{display:flex;gap:3px;flex-shrink:0;}
+.folder-menu .card-btn{padding:6px 7px;}
+.crumb{background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);cursor:pointer;padding:5px 9px;border-radius:3px;transition:background .15s;}
+.crumb:hover{background:rgba(var(--accent-rgb),.12);}
+.crumb.current{color:var(--text);cursor:default;font-weight:600;}
+.crumb.current:hover{background:none;}
+.crumb-sep{color:var(--text-muted);font-size:.66rem;opacity:.6;}
+.move-opt{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--border);border-radius:3px;background:var(--bg);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--text);text-align:left;transition:all .15s;width:100%;}
+.move-opt:hover{border-color:var(--accent);background:var(--card);}
+.move-opt.current{opacity:.5;cursor:default;}
+.doc-loc{font-size:.6rem;color:var(--text-muted);margin-top:3px;}
+
 /* ══ PORTA DE COFRE 3D ══ */
 #vault-door{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;perspective:1300px;background:rgba(4,6,12,.45);pointer-events:none;}
 #vault-door.show{display:flex;animation:vdFade 1.15s ease forwards;}
@@ -1066,7 +1088,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.3</span>
+      <span>CipherVault © 2026 · v4.4</span>
     </div>
   </div>
 </div>
@@ -1266,6 +1288,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="content-header">
         <div class="content-title" id="docs-title">Documentos</div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <button onclick="openFolderModal()" id="docs-newfolder-btn" style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s" onmouseenter="this.style.borderColor='var(--accent-dim)'" onmouseleave="this.style.borderColor='var(--border)'">📁+ <span id="docs-newfolder-txt">Nova pasta</span></button>
         <select class="sort-select" id="doc-sort" onchange="setDocSort(this.value)"></select>
         <button onclick="openDocModal()" style="font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1274,6 +1297,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         </div>
       </div>
       <!-- FILTER TABS -->
+      <div id="docs-breadcrumb" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:12px"></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="docs-filter-row"></div>
       <!-- VALIDITY QUICK FILTER -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="docs-validity-row">
@@ -1320,7 +1344,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.3</span>
+      <span>CipherVault © 2026 · v4.4</span>
     </div>
   </div>
   </div>
@@ -1564,6 +1588,34 @@ body::after{bottom:-32vmax;right:-24vmax;
   </div>
 </div>
 
+<!-- FOLDER MODAL -->
+<div class="modal-overlay" id="folder-overlay" onclick="if(event.target===this)closeFolderModal()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title" id="folder-modal-title">📁 Nova Pasta</div>
+    <div id="folder-parent-line" style="font-size:.66rem;color:var(--text-muted);margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="folder-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:10px 4px;border-radius:2px;outline:none">
+      <input id="folder-name" placeholder="Nome da pasta" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:11px 12px;border-radius:2px;outline:none" onkeydown="if(event.key==='Enter')saveFolder()">
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-gold" onclick="saveFolder()" id="folder-save-btn">Criar</button>
+      <button class="btn btn-ghost" onclick="closeFolderModal()" id="folder-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE DOC MODAL -->
+<div class="modal-overlay" id="move-overlay" onclick="if(event.target===this)closeMoveModal()">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title" id="move-modal-title">📂 Mover para...</div>
+    <div id="move-doc-name" style="font-size:.72rem;color:var(--text-muted);margin-bottom:12px"></div>
+    <div id="move-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeMoveModal()" id="move-cancel-btn" style="width:100%">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- SHARE QR MODAL -->
 <div class="modal-overlay" id="share-overlay" onclick="if(event.target===this)closeShareModal()">
   <div class="modal" style="max-width:420px;text-align:center">
@@ -1695,6 +1747,10 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
     <div class="form-group">
+      <label id="doc-folder-lbl">Pasta</label>
+      <select id="doc-folder"></select>
+    </div>
+    <div class="form-group">
       <label id="doc-expiry-lbl">Validade <span style="font-size:.56rem;color:var(--text-muted)">(opcional)</span></label>
       <input type="date" id="doc-expiry">
     </div>
@@ -1808,11 +1864,11 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='4.3';
+const APP_VERSION='4.4';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
-let totp=[];let customCats=[];let currentDocSort='added';let lastSavedAt=null;let lastTotpPeriod=0;
+let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let currentDocSort='added';let lastSavedAt=null;let lastTotpPeriod=0;
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
@@ -2138,7 +2194,7 @@ async function submitOpenVault(){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];cleanOldTrash();
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;cleanOldTrash();
     failedAttempts=0;doUnlock();
   }catch{handleFailedAttempt();}
 }
@@ -2211,7 +2267,7 @@ function doUnlock(){
 function lockApp(){
   if(presentationMode){exitPresentationMode();return;}
   try{closeGlobalSearch();}catch(e){}
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -2531,6 +2587,7 @@ function applySettingsLang(){
   s('s-pwa-title',currentLang==='en'?'📲 Installed App':'📲 App Instalada');
   const pwn=document.getElementById('pwa-note');if(pwn)pwn.textContent=currentLang==='en'?'The icon uses your current colors. Reinstall the app to apply the new icon/name.':'O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.';
   s('s-lockhide-lbl',currentLang==='en'?'Lock when minimised / switching apps':'Bloquear ao minimizar / mudar de app');
+  const dfl=document.getElementById('doc-folder-lbl');if(dfl)dfl.textContent=currentLang==='en'?'Folder':'Pasta';
   const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
   const ffa=document.getElementById('f-fields-add');if(ffa)ffa.textContent=(currentLang==='en'?'＋ Add field':'＋ Adicionar campo');
   s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
@@ -3110,7 +3167,7 @@ function onSearchInput(){
   }
   if(docMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">📁 ${currentLang==='en'?'Documents':'Documentos'} (${docMatches.length})</div>`;
-    html+=`<div class="cards-grid">${docMatches.map(d=>`<div class="entry-card" onclick="openDocPreview('${d.id}')" style="cursor:pointer"><div class="card-name">${esc(d.title)}</div><div style="font-size:.75rem;color:var(--text-muted)">${getDocCatLabel(d.cat)} ${d.expiry?'· '+esc(d.expiry):''}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid">${docMatches.map(d=>`<div class="entry-card" onclick="openDocPreview('${d.id}')" style="cursor:pointer"><div class="card-name">${esc(d.title)}</div><div style="font-size:.75rem;color:var(--text-muted)">${getDocCatLabel(d.cat)} ${d.expiry?'· '+esc(d.expiry):''}</div><div class="doc-loc">📍 ${esc(folderPathLabel(d.folderId||null))}</div></div>`).join('')}</div>`;
   }
   resultsEl.innerHTML=html;
 }
@@ -3552,7 +3609,7 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats});downloadVault({salt:Array.from(salt),payload});
+  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders});downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;closeChangePwModal();toast(t('toastPwChanged'));
 }
 
@@ -3560,7 +3617,7 @@ async function changeMasterPw(){
 async function saveFile(){
   if(presentationMode){toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
-  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats});
+  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders});
   const container={salt:Array.from(window._salt),payload:p};
   const json=JSON.stringify(container);
   const dateStr=new Date().toISOString().slice(0,10);
@@ -3796,11 +3853,13 @@ function openDocModal(id=null){
     document.getElementById('doc-date').value=d.date||'';
     document.getElementById('doc-expiry').value=d.expiry||'';
     document.getElementById('doc-desc').value=d.desc||'';
+    populateFolderSelect(d.folderId||'');
     if(d.file){pendingDocFile=d.file;showDocFilePreview(d.file.name,d.file.size,d.file.type);}
     else{clearDocFile();}
   }else{
     ['doc-title-input','doc-date','doc-expiry','doc-desc'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('doc-cat').value='pessoal';
+    populateFolderSelect(currentFolderId||'');
     clearDocFile();
   }
   document.getElementById('doc-overlay').classList.add('open');
@@ -3850,6 +3909,7 @@ function saveDoc(){
     date:document.getElementById('doc-date').value,
     expiry:document.getElementById('doc-expiry').value,
     desc:document.getElementById('doc-desc').value.trim(),
+    folderId:(document.getElementById('doc-folder')?.value||'')||null,
     file:pendingDocFile?{...pendingDocFile}:null,
     createdAt:editingDocId?(documents.find(d=>d.id===editingDocId)?.createdAt||Date.now()):Date.now(),
   };
@@ -3903,14 +3963,38 @@ function renderDocs(){
   const filterRow=document.getElementById('docs-filter-row');
   const allCats=['all',...Object.keys(DOC_CATS)];
   filterRow.innerHTML=allCats.map(cat=>{
-    const count=cat==='all'?documents.length:documents.filter(d=>d.cat===cat).length;
+    const scope=documents.filter(d=>(d.folderId||null)===(currentFolderId||null));
+    const count=cat==='all'?scope.length:scope.filter(d=>d.cat===cat).length;
     if(cat!=='all'&&count===0)return '';
     const label=cat==='all'?(currentLang==='en'?'All':'Todas'):getDocCatLabel(cat);
     return `<button class="doc-filter-btn${currentDocFilter===cat?' active':''}" onclick="setDocFilter('${cat}')">${cat==='all'?'📁 ':''}${label} (${count})</button>`;
   }).join('');
 
+  // Breadcrumb
+  const en=currentLang==='en';
+  const bc=document.getElementById('docs-breadcrumb');
+  if(bc){
+    const path=folderPath(currentFolderId);
+    let html=`<button class="crumb${currentFolderId?'':' current'}" ${currentFolderId?'onclick="goToFolder(null)"':''}>🏠 ${en?'Documents':'Documentos'}</button>`;
+    path.forEach((f,i)=>{
+      const isLast=i===path.length-1;
+      html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`onclick="goToFolder('${f.id}')"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
+    });
+    if(currentFolderId){
+      const cf=folderById(currentFolderId);
+      html+=`<span style="margin-left:auto;display:flex;gap:5px">
+        <button class="card-btn" onclick="openFolderModal('${currentFolderId}')" title="${en?'Rename':'Renomear'}">✏️</button>
+        <button class="card-btn danger" onclick="deleteFolder('${currentFolderId}')" title="${en?'Delete folder':'Apagar pasta'}">🗑️</button>
+      </span>`;
+    }
+    bc.innerHTML=html;
+  }
+  const nfTxt=document.getElementById('docs-newfolder-txt');
+  if(nfTxt)nfTxt.textContent=en?'New folder':'Nova pasta';
+
   const grid=document.getElementById('docs-grid');
-  const filtered2=currentDocFilter==='all'?documents:documents.filter(d=>d.cat===currentDocFilter);
+  const inFolder=documents.filter(d=>(d.folderId||null)===(currentFolderId||null));
+  const filtered2=currentDocFilter==='all'?inFolder:inFolder.filter(d=>d.cat===currentDocFilter);
   const filtered=filtered2.filter(d=>{
     if(currentDocValidityFilter==='all')return true;
     const status=getExpiryStatus(d.expiry);
@@ -3943,15 +4027,38 @@ function renderDocs(){
     return (b.createdAt||0)-(a.createdAt||0);
   });
 
-  if(!filtered.length){
+  // Subpastas da pasta atual
+  const subFolders=docFolders.filter(f=>(f.parentId||null)===(currentFolderId||null))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+  const foldersHtml=subFolders.map(f=>{
+    const cnt=folderDirectCounts(f.id);
+    const parts=[];
+    if(cnt.folders)parts.push(`${cnt.folders} ${en?(cnt.folders===1?'folder':'folders'):(cnt.folders===1?'pasta':'pastas')}`);
+    parts.push(`${cnt.docs} ${en?(cnt.docs===1?'doc':'docs'):(cnt.docs===1?'doc':'docs')}`);
+    return `<div class="folder-card" onclick="openFolder('${f.id}')" title="${esc(f.name)}">
+      <div class="folder-icon">${f.icon||'📁'}</div>
+      <div class="folder-info">
+        <div class="folder-name">${esc(f.name)}</div>
+        <div class="folder-count">${parts.join(' · ')}</div>
+      </div>
+      <div class="folder-menu">
+        <button class="card-btn" onclick="event.stopPropagation();openFolderModal('${f.id}')" title="${en?'Rename':'Renomear'}">✏️</button>
+        <button class="card-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}')" title="${en?'Delete':'Apagar'}">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  if(!filtered.length&&!subFolders.length){
     grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="40" height="40"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <p>${currentLang==='en'?'No documents yet. Click "Add document" to start.':'Sem documentos. Clica em "Adicionar documento".'}</p>
+      <p>${currentFolderId
+        ?(en?'This folder is empty. Add documents or create a subfolder.':'Esta pasta está vazia. Adiciona documentos ou cria uma subpasta.')
+        :(en?'No documents yet. Click "Add document" to start.':'Sem documentos. Clica em "Adicionar documento".')}</p>
     </div>`;
     return;
   }
 
-  grid.innerHTML=filtered.map(doc=>{
+  grid.innerHTML=foldersHtml+filtered.map(doc=>{
     const expStatus=getExpiryStatus(doc.expiry);
     const catInfo=DOC_CATS[doc.cat]||{icon:'📋'};
     const fileIcon=getDocAutoIcon(doc);
@@ -3974,6 +4081,9 @@ function renderDocs(){
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           ${currentLang==='en'?'Download':'Transferir'}
         </button>`:''}
+        <button class="card-btn" onclick="event.stopPropagation();openMoveModal('${doc.id}')">
+          📂 ${currentLang==='en'?'Move':'Mover'}
+        </button>
         <button class="card-btn" onclick="event.stopPropagation();openDocModal('${doc.id}')">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           ${t('btnEdit')}
@@ -4228,7 +4338,7 @@ function deleteCustomCat(key){
 
 // ══ INFO DO COFRE ══
 function estimateVaultBytes(){
-  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats})]).size;}
+  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders})]).size;}
   catch(e){return 0;}
 }
 function renderVaultInfo(){
@@ -4244,6 +4354,7 @@ function renderVaultInfo(){
     [en?'Notes':'Notas',String(notes.length)],
     [en?'Bank cards':'Cartões',String(bankCards.length)],
     [en?'Documents':'Documentos',String(documents.length)],
+    [en?'Folders':'Pastas',String(docFolders.length)],
     ['2FA',String(totp.length)],
     [en?'Recycle bin':'Reciclagem',String(trash.length)],
     [en?'Vault size (est.)':'Tamanho (aprox.)','~'+formatFileSize(fileEst)],
@@ -4705,6 +4816,140 @@ function emptyTrash(){
   markUnsaved();
 }
 
+// ══ PASTAS DE DOCUMENTOS ══
+let editingFolderId=null,movingDocId=null;
+function folderById(id){return docFolders.find(f=>f.id===id)||null;}
+function folderPath(id){
+  const path=[];let cur=folderById(id),guard=0;
+  while(cur&&guard++<50){path.unshift(cur);cur=cur.parentId?folderById(cur.parentId):null;}
+  return path;
+}
+function folderPathLabel(id){
+  if(!id)return currentLang==='en'?'Documents':'Documentos';
+  const p=folderPath(id);
+  if(!p.length)return currentLang==='en'?'Documents':'Documentos';
+  return p.map(f=>`${f.icon||'📁'} ${f.name}`).join(' / ');
+}
+function isDescendantFolder(candidateId,ancestorId){
+  let cur=folderById(candidateId),guard=0;
+  while(cur&&guard++<50){if(cur.id===ancestorId)return true;cur=cur.parentId?folderById(cur.parentId):null;}
+  return false;
+}
+function folderDirectCounts(id){
+  return{
+    folders:docFolders.filter(f=>f.parentId===id).length,
+    docs:documents.filter(d=>(d.folderId||null)===id).length
+  };
+}
+function openFolderModal(id=null){
+  editingFolderId=id;
+  const en=currentLang==='en';
+  const isEdit=!!id;
+  document.getElementById('folder-modal-title').textContent=isEdit
+    ?(en?'📁 Rename Folder':'📁 Renomear Pasta')
+    :(en?'📁 New Folder':'📁 Nova Pasta');
+  document.getElementById('folder-save-btn').textContent=isEdit?(en?'Save':'Guardar'):(en?'Create':'Criar');
+  document.getElementById('folder-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('folder-name').placeholder=en?'Folder name':'Nome da pasta';
+  const parentLine=document.getElementById('folder-parent-line');
+  if(isEdit){
+    const f=folderById(id);
+    document.getElementById('folder-name').value=f?.name||'';
+    document.getElementById('folder-icon').value=f?.icon||'';
+    parentLine.textContent=(en?'In: ':'Em: ')+folderPathLabel(f?.parentId||null);
+  }else{
+    document.getElementById('folder-name').value='';
+    document.getElementById('folder-icon').value='';
+    parentLine.textContent=(en?'Will be created in: ':'Será criada em: ')+folderPathLabel(currentFolderId);
+  }
+  document.getElementById('folder-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('folder-name').focus(),100);
+}
+function closeFolderModal(){document.getElementById('folder-overlay').classList.remove('open');editingFolderId=null;}
+function saveFolder(){
+  const en=currentLang==='en';
+  const name=document.getElementById('folder-name').value.trim();
+  const icon=(document.getElementById('folder-icon').value||'').trim()||'📁';
+  if(!name){toast(en?'Folder name is required!':'Nome da pasta obrigatório!');return;}
+  if(editingFolderId){
+    const f=folderById(editingFolderId);
+    if(f){f.name=name;f.icon=icon;logActivity('edit',name,'📁');}
+  }else{
+    docFolders.push({id:'f'+Date.now().toString(36),name,icon,parentId:currentFolderId});
+    logActivity('add',name,'📁');
+  }
+  closeFolderModal();renderDocs();
+  toast(editingFolderId?(en?'Folder renamed ✓':'Pasta renomeada ✓'):(en?'Folder created ✓':'Pasta criada ✓'));
+  markUnsaved();
+}
+function deleteFolder(id){
+  const en=currentLang==='en';
+  const f=folderById(id);if(!f)return;
+  const c2=folderDirectCounts(id);
+  const total=c2.docs+c2.folders;
+  const parentLabel=folderPathLabel(f.parentId||null);
+  const msg=total
+    ?(en?`Delete "${f.name}"? Its ${c2.docs} document(s) and ${c2.folders} subfolder(s) move up to ${parentLabel}.`
+        :`Apagar "${f.name}"? Os ${c2.docs} documento(s) e ${c2.folders} subpasta(s) passam para ${parentLabel}.`)
+    :(en?`Delete folder "${f.name}"?`:`Apagar a pasta "${f.name}"?`);
+  if(!confirm(msg))return;
+  documents.forEach(d=>{if((d.folderId||null)===id)d.folderId=f.parentId||null;});
+  docFolders.forEach(x=>{if(x.parentId===id)x.parentId=f.parentId||null;});
+  docFolders=docFolders.filter(x=>x.id!==id);
+  logActivity('delete',f.name,'📁');
+  renderDocs();toast(en?'Folder deleted.':'Pasta apagada.');markUnsaved();
+}
+function openFolder(id){currentFolderId=id;renderDocs();}
+function goToFolder(id){currentFolderId=id;renderDocs();}
+function populateFolderSelect(selectedId){
+  const sel=document.getElementById('doc-folder');if(!sel)return;
+  const en=currentLang==='en';
+  const opts=[`<option value="">${en?'🏠 Documents (root)':'🏠 Documentos (raiz)'}</option>`];
+  const walk=(parentId,depth)=>{
+    docFolders.filter(f=>(f.parentId||null)===parentId).forEach(f=>{
+      opts.push(`<option value="${f.id}">${'　'.repeat(depth)}${f.icon||'📁'} ${esc(f.name)}</option>`);
+      walk(f.id,depth+1);
+    });
+  };
+  walk(null,1);
+  sel.innerHTML=opts.join('');
+  sel.value=selectedId||'';
+}
+function openMoveModal(docId){
+  movingDocId=docId;
+  const en=currentLang==='en';
+  const d=documents.find(x=>x.id===docId);if(!d)return;
+  document.getElementById('move-modal-title').textContent=en?'📂 Move to...':'📂 Mover para...';
+  document.getElementById('move-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('move-doc-name').textContent=`${getDocAutoIcon(d)} ${d.title}`;
+  const cur=d.folderId||null;
+  const list=[{id:null,label:en?'🏠 Documents (root)':'🏠 Documentos (raiz)',depth:0}];
+  const walk=(parentId,depth)=>{
+    docFolders.filter(f=>(f.parentId||null)===parentId).forEach(f=>{
+      list.push({id:f.id,label:`${f.icon||'📁'} ${f.name}`,depth});
+      walk(f.id,depth+1);
+    });
+  };
+  walk(null,1);
+  document.getElementById('move-list').innerHTML=list.map(o=>{
+    const isCur=(o.id||null)===cur;
+    return `<button class="move-opt${isCur?' current':''}" ${isCur?'disabled':`onclick="confirmMoveDoc('${o.id||''}')"`}>
+      <span style="padding-left:${o.depth*14}px">${o.label}</span>
+      ${isCur?`<span style="margin-left:auto;font-size:.6rem;color:var(--text-muted)">${en?'current':'atual'}</span>`:''}
+    </button>`;
+  }).join('');
+  document.getElementById('move-overlay').classList.add('open');
+}
+function closeMoveModal(){document.getElementById('move-overlay').classList.remove('open');movingDocId=null;}
+function confirmMoveDoc(folderId){
+  const d=documents.find(x=>x.id===movingDocId);if(!d)return;
+  d.folderId=folderId||null;
+  logActivity('edit',d.title,'📂');
+  closeMoveModal();renderDocs();
+  toast((currentLang==='en'?'Moved to ':'Movido para ')+folderPathLabel(folderId||null)+' ✓');
+  markUnsaved();
+}
+
 // ══ ÍCONES AUTOMÁTICOS DE DOCUMENTOS ══
 const DOC_AUTO_ICONS=[
   [/cart[aã]o\s+de\s+cidad|citizen\s+card|\bcc\b/i,'🪪'],
@@ -4940,7 +5185,7 @@ function setDocValidityFilter(filter){
 
 // ══ PRESENTATION MODE ══
 let presentationMode=false;
-let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null,realTotp=null,realCustomCats=null;
+let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null,realTotp=null,realCustomCats=null,realDocFolders=null;
 const DEMO_DATA={
   vault:[
     {id:'d1',name:'Gmail',cat:'email',user:'exemplo@gmail.com',pw:'Demo#2026!',url:'https://gmail.com',icon:'📧',fav:true,tags:['pessoal'],createdAt:Date.now()-86400000*5,pwUpdated:Date.now()-86400000*5,archived:false,order:0},
@@ -4959,7 +5204,12 @@ const DEMO_DATA={
   ],
   documents:[
     {id:'doc1',title:'Cartão de Cidadão',cat:'pessoal',date:'2020-01-15',expiry:'2030-01-14',desc:'Número: 12345678 9ZZ4',file:null,createdAt:Date.now()-86400000*365},
-    {id:'doc2',title:'CV 2026',cat:'trabalho',date:'2026-01-01',expiry:'',desc:'Versão atualizada Janeiro 2026',file:null,createdAt:Date.now()-86400000*60},
+    {id:'doc2',title:'CV 2026',cat:'trabalho',date:'2026-01-01',expiry:'',desc:'Versão atualizada Janeiro 2026',file:null,createdAt:Date.now()-86400000*60,folderId:'fd1'},
+    {id:'doc3',title:'Fatura Cliente A',cat:'trabalho',date:'2026-06-15',expiry:'',desc:'Serviços de junho — pago',file:null,createdAt:Date.now()-86400000*20,folderId:'fd2'},
+  ],
+  docFolders:[
+    {id:'fd1',name:'Empresa',icon:'🏢',parentId:null},
+    {id:'fd2',name:'Rendimentos',icon:'💶',parentId:'fd1'},
   ],
   totp:[
     {id:'t1',name:'Google',account:'exemplo@gmail.com',secret:'JBSWY3DPEHPK3PXP',createdAt:Date.now()-86400000*10},
@@ -4971,8 +5221,8 @@ function enterPresentationMode(){
   if(presentationMode)return;
   presentationMode=true;
   demoFromLock=!masterKey;
-  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];realTotp=[...totp];realCustomCats=[...customCats];
-  vault=JSON.parse(JSON.stringify(DEMO_DATA.vault));notes=JSON.parse(JSON.stringify(DEMO_DATA.notes));bankCards=JSON.parse(JSON.stringify(DEMO_DATA.bankCards));documents=JSON.parse(JSON.stringify(DEMO_DATA.documents));trash=[];totp=JSON.parse(JSON.stringify(DEMO_DATA.totp));customCats=[];
+  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];realTotp=[...totp];realCustomCats=[...customCats];realDocFolders=[...docFolders];
+  vault=JSON.parse(JSON.stringify(DEMO_DATA.vault));notes=JSON.parse(JSON.stringify(DEMO_DATA.notes));bankCards=JSON.parse(JSON.stringify(DEMO_DATA.bankCards));documents=JSON.parse(JSON.stringify(DEMO_DATA.documents));trash=[];totp=JSON.parse(JSON.stringify(DEMO_DATA.totp));customCats=[];docFolders=JSON.parse(JSON.stringify(DEMO_DATA.docFolders||[]));currentFolderId=null;
   document.getElementById('presentation-banner').classList.add('show');
   document.getElementById('pres-label').textContent=currentLang==='en'?'DEMO MODE — sample data, nothing is saved':'MODO DEMONSTRAÇÃO — dados fictícios, nada é guardado';
   document.querySelector('.topbar').style.marginTop='44px';
@@ -4992,8 +5242,8 @@ function enterPresentationMode(){
 function exitPresentationMode(){
   if(!presentationMode)return;
   presentationMode=false;
-  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;totp=realTotp;customCats=realCustomCats;
-  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;realTotp=null;realCustomCats=null;
+  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;totp=realTotp;customCats=realCustomCats;docFolders=realDocFolders||[];currentFolderId=null;
+  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;realTotp=null;realCustomCats=null;realDocFolders=null;
   document.getElementById('presentation-banner').classList.remove('show');
   document.querySelector('.topbar').style.marginTop='';
   if(demoFromLock){
@@ -5016,7 +5266,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -5180,6 +5430,7 @@ function openDocPreview(id){
   let html=`
     <span class="read-card-cat">${catInfo.icon} ${getDocCatLabel(doc.cat)}</span>
     <div class="read-card-title">${autoIcon} ${esc(doc.title)}</div>`;
+  html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Location':'Localização'}</span><div class="read-field-value" style="font-size:.85rem">📍 ${esc(folderPathLabel(doc.folderId||null))}</div></div>`;
   if(doc.desc)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Description':'Descrição'}</span><div class="read-field-value" style="font-size:.95rem;font-family:inherit;color:var(--text-muted);line-height:1.6">${esc(doc.desc)}</div></div>`;
   if(doc.date)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Date':'Data'}</span><div class="read-field-value">${esc(doc.date)}</div></div>`;
   if(doc.expiry){
@@ -5193,7 +5444,7 @@ function openDocPreview(id){
   let actHtml='';
   if(doc.file)actHtml+=`<button class="btn btn-gold" onclick="downloadDoc('${doc.id}')">${currentLang==='en'?'⬇ Download':'⬇ Transferir'}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();switchTab('docs');setTimeout(()=>openDocModal('${doc.id}'),150)">${t('btnEdit')}</button>`;
-  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();switchTab('docs')">${currentLang==='en'?'Go to Documents':'Ver Documentos'}</button>`;
+  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();switchTab('docs');goToFolder(${doc.folderId?`'${doc.folderId}'`:'null'})">${currentLang==='en'?'Open folder':'Abrir pasta'}</button>`;
   actions.innerHTML=actHtml;
   document.getElementById('read-modal').classList.add('open');
 }
