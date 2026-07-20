@@ -320,12 +320,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .toast.show{opacity:1;transform:translateY(0);}
 
 /* PWA */
-#pwa-banner{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--accent-dim);border-radius:4px;padding:12px 16px;z-index:999;align-items:center;gap:13px;box-shadow:0 8px 32px var(--shadow);max-width:92vw;}
-#pwa-banner.show{display:flex;}
-.pwa-banner-text{font-size:.6rem;letter-spacing:1px;color:var(--text);line-height:1.5;}
-.pwa-banner-text strong{color:var(--accent);display:block;margin-bottom:2px;}
-.pwa-btn-install{font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:2px;text-transform:uppercase;padding:7px 12px;border-radius:2px;border:1px solid var(--accent);background:var(--accent);color:#0d0f14;font-weight:700;cursor:pointer;white-space:nowrap;}
-.pwa-btn-dismiss{font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:2px;text-transform:uppercase;padding:7px 12px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;white-space:nowrap;}
 
 /* CATEGORY COLOURS */
 .badge-email{background:rgba(76,140,175,.15);color:#4c8caf;}
@@ -1072,7 +1066,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.2</span>
+      <span>CipherVault © 2026 · v4.3</span>
     </div>
   </div>
 </div>
@@ -1326,7 +1320,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.2</span>
+      <span>CipherVault © 2026 · v4.3</span>
     </div>
   </div>
   </div>
@@ -1812,17 +1806,9 @@ body::after{bottom:-32vmax;right:-24vmax;
 
 <input type="file" id="csv-input-app" accept=".csv" style="position:fixed;top:-999px;left:-999px;opacity:0;width:1px;height:1px">
 <div class="toast" id="toast"></div>
-<div id="pwa-banner">
-  <div class="pwa-banner-text"><strong id="pwa-title">📲 Instalar CipherVault</strong><span id="pwa-sub">Instala como app!</span></div>
-  <div style="display:flex;gap:7px">
-    <button class="pwa-btn-install" id="pwa-install-btn" onclick="installPWA()">Instalar</button>
-    <button class="pwa-btn-dismiss" id="pwa-dismiss-btn" onclick="dismissPWA()">Agora não</button>
-  </div>
-</div>
-
 <script>
 // ══ STATE ══
-const APP_VERSION='4.2';
+const APP_VERSION='4.3';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2693,7 +2679,6 @@ function applyLangStatic(){
   s('notes-title','notesTitle');s('notes-empty-txt','notesEmpty');
   s('archive-title','archiveTitle');
   // PWA
-  s('pwa-title','pwaTitle');s('pwa-sub','pwaSub');s('pwa-install-btn','pwaInstall');s('pwa-dismiss-btn','pwaDismiss');
   // Settings
   applySettingsLang();
   // Cards
@@ -4289,19 +4274,33 @@ setInterval(()=>{
   sub2Idx++;renderSub2();
 },1900);
 let deferredInstall=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredInstall=e;
+function isStandaloneMode(){
+  return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+}
+function showInstallBtn(){
   const b=document.getElementById('pwa-install-btn');
-  if(b&&!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))b.style.display='inline-flex';
+  if(b&&!isStandaloneMode())b.style.display='inline-flex';
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredInstall=e;showInstallBtn();
 });
+// Fallback: mesmo sem o evento (ex.: cooldown do Chrome após desinstalar), o botão aparece no browser
+setTimeout(showInstallBtn,2500);
 async function promptInstall(){
-  if(!deferredInstall)return;
-  deferredInstall.prompt();
-  try{await deferredInstall.userChoice;}catch(e){}
-  deferredInstall=null;
-  const b=document.getElementById('pwa-install-btn');if(b)b.style.display='none';
+  if(deferredInstall){
+    deferredInstall.prompt();
+    try{await deferredInstall.userChoice;}catch(e){}
+    deferredInstall=null;
+    const b=document.getElementById('pwa-install-btn');if(b)b.style.display='none';
+    return;
+  }
+  // Sem evento disponível → guiar para o menu do browser
+  toast(currentLang==='en'
+    ?'Chrome: ⋮ menu → "Cast, save and share" → "Install app". (After uninstalling, Chrome hides the prompt for a while.)'
+    :'Chrome: menu ⋮ → "Transmitir, guardar e partilhar" → "Instalar aplicação". (Após desinstalar, o Chrome esconde o pedido por uns tempos.)');
 }
 window.addEventListener('appinstalled',()=>{
+  deferredInstall=null;
   const b=document.getElementById('pwa-install-btn');if(b)b.style.display='none';
   toast(currentLang==='en'?'App installed! 📲':'App instalada! 📲');
 });
@@ -5241,7 +5240,7 @@ try{refreshContinueBtn();}catch(e){}
 try{applyPrivacy();}catch(e){}
 
 // ══ PWA ══
-buildManifest();
+try{buildManifest();}catch(e){console.warn('buildManifest:',e);}
 if('serviceWorker' in navigator){
   const hadController=!!navigator.serviceWorker.controller;
   let swReloaded=false;
@@ -5273,11 +5272,6 @@ self.addEventListener('fetch',e=>{const r=e.request;
   const _origLockApp=lockApp;
   lockApp=function(){_origLockApp();if(window.__cvUpdateReady)setTimeout(()=>location.reload(),300);};
 }
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('pwa-banner').classList.add('show');});
-function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;dismissPWA();});}
-function dismissPWA(){document.getElementById('pwa-banner').classList.remove('show');}
-window.addEventListener('appinstalled',()=>{dismissPWA();toast(t('toastInstalled'));});
 </script>
 </body>
 </html>
