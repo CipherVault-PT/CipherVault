@@ -1088,7 +1088,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.4</span>
+      <span>CipherVault © 2026 · v4.5</span>
     </div>
   </div>
 </div>
@@ -1344,7 +1344,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.4</span>
+      <span>CipherVault © 2026 · v4.5</span>
     </div>
   </div>
   </div>
@@ -1864,7 +1864,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='4.4';
+const APP_VERSION='4.5';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2587,7 +2587,33 @@ function applySettingsLang(){
   s('s-pwa-title',currentLang==='en'?'📲 Installed App':'📲 App Instalada');
   const pwn=document.getElementById('pwa-note');if(pwn)pwn.textContent=currentLang==='en'?'The icon uses your current colors. Reinstall the app to apply the new icon/name.':'O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.';
   s('s-lockhide-lbl',currentLang==='en'?'Lock when minimised / switching apps':'Bloquear ao minimizar / mudar de app');
-  const dfl=document.getElementById('doc-folder-lbl');if(dfl)dfl.textContent=currentLang==='en'?'Folder':'Pasta';
+  // ── Documentos: cabeçalho, filtros, modal ──
+  const en2=currentLang==='en';
+  const setTxt=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+  setTxt('docs-title',en2?'Documents':'Documentos');
+  setTxt('docs-add-txt',en2?'Add document':'Adicionar documento');
+  setTxt('docs-newfolder-txt',en2?'New folder':'Nova pasta');
+  setTxt('vf-all-txt',en2?'All':'Todos');
+  setTxt('vf-expiring-txt',en2?'Expiring':'A expirar');
+  setTxt('vf-expired-txt',en2?'Expired':'Expirados');
+  setTxt('vf-ok-txt',en2?'Valid':'Válidos');
+  setTxt('vf-noexpiry-txt',en2?'No expiry':'Sem validade');
+  setTxt('doc-title-lbl',en2?'Title':'Título');
+  setTxt('doc-cat-lbl',en2?'Category':'Categoria');
+  setTxt('doc-date-lbl',en2?'Document date':'Data do documento');
+  setTxt('doc-desc-lbl',en2?'Description':'Descrição');
+  setTxt('doc-file-lbl',en2?'File':'Ficheiro');
+  setTxt('doc-drop-text',en2?'Click or drag the file here':'Clica ou arrasta o ficheiro aqui');
+  setTxt('doc-save-btn',en2?'Save document':'Guardar documento');
+  setTxt('doc-cancel-btn',en2?'Cancel':'Cancelar');
+  const del2=document.getElementById('doc-expiry-lbl');
+  if(del2)del2.innerHTML=(en2?'Expiry':'Validade')+' <span style="font-size:.56rem;color:var(--text-muted)">('+(en2?'optional':'opcional')+')</span>';
+  populateDocCatSelect();
+  // ── Dashboard / gerador / demo ──
+  setTxt('dash-alerts-title',en2?'Alerts & Report':'Alertas & Relatório');
+  setTxt('pwgen-len-lbl',en2?'Length:':'Comprimento:');
+  setTxt('pres-exit-btn',en2?'✕ Exit':'✕ Sair');
+  const dfl=document.getElementById('doc-folder-lbl');if(dfl)dfl.textContent=en2?'Folder':'Pasta';
   const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
   const ffa=document.getElementById('f-fields-add');if(ffa)ffa.textContent=(currentLang==='en'?'＋ Add field':'＋ Adicionar campo');
   s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
@@ -3834,6 +3860,12 @@ function formatFileSize(bytes){
   if(bytes<1024*1024)return (bytes/1024).toFixed(1)+'KB';
   return (bytes/(1024*1024)).toFixed(1)+'MB';
 }
+function populateDocCatSelect(){
+  const sel=document.getElementById('doc-cat');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=Object.entries(DOC_CATS).map(([k,v])=>`<option value="${k}">${v.icon} ${v.label[currentLang]||v.label.pt}</option>`).join('');
+  if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur;
+}
 function getDocCatLabel(cat){
   return (DOC_CATS[cat]?.label[currentLang]||cat);
 }
@@ -3853,11 +3885,14 @@ function openDocModal(id=null){
     document.getElementById('doc-date').value=d.date||'';
     document.getElementById('doc-expiry').value=d.expiry||'';
     document.getElementById('doc-desc').value=d.desc||'';
+    populateDocCatSelect();
+    document.getElementById('doc-cat').value=d.cat||'outro';
     populateFolderSelect(d.folderId||'');
     if(d.file){pendingDocFile=d.file;showDocFilePreview(d.file.name,d.file.size,d.file.type);}
     else{clearDocFile();}
   }else{
     ['doc-title-input','doc-date','doc-expiry','doc-desc'].forEach(i=>document.getElementById(i).value='');
+    populateDocCatSelect();
     document.getElementById('doc-cat').value='pessoal';
     populateFolderSelect(currentFolderId||'');
     clearDocFile();
