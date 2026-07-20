@@ -17,7 +17,7 @@
   --text:#e8e4d8;--text-muted:#6b7280;--red:#e05252;--green:#4caf82;
   --card:#131828;--shadow:rgba(0,0,0,.5);
   --accent:#c9a84c;--accent-dim:#8a6e2f;--accent-rgb:201,168,76;
-  --panel-glass:rgba(15,20,36,.72);--card-glass:rgba(19,24,40,.6);--accent2-rgb:76,140,175;
+  --panel-glass:rgba(15,20,36,.9);--card-glass:rgba(19,24,40,.85);--accent2-rgb:76,140,175;
 }
 
 /* ══ THEMES ══ */
@@ -87,7 +87,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 @keyframes appFadeIn{from{opacity:0;}to{opacity:1;}}
 
 /* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--panel-glass);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:7px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--panel-glass);position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:7px;}
 .topbar-logo{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--accent);letter-spacing:3px;}
 .topbar-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
 .topbar-actions button{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap;}
@@ -122,7 +122,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .autolock-badge{font-size:.68rem;letter-spacing:1px;padding:5px 11px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted);white-space:nowrap;}
 
 /* TABS */
-.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel-glass);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);padding:0 22px;overflow-x:auto;position:relative;}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel-glass);padding:0 22px;overflow-x:auto;position:relative;}
 .tab-indicator{position:absolute;bottom:0;left:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0;transition:transform .32s cubic-bezier(.4,0,.2,1),width .32s cubic-bezier(.4,0,.2,1),opacity .2s;opacity:0;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);}
 .tab-btn{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:2px;text-transform:uppercase;padding:11px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
 .tab-btn:hover{color:var(--text);}
@@ -132,7 +132,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .main{display:flex;flex:1;min-height:0;height:calc(100dvh - 112px);}
 
 /* SIDEBAR */
-.sidebar{width:200px;border-right:1px solid var(--border);padding:16px 0;display:flex;flex-direction:column;background:var(--panel-glass);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);flex-shrink:0;overflow-y:auto;}
+.sidebar{width:200px;border-right:1px solid var(--border);padding:16px 0;display:flex;flex-direction:column;background:var(--panel-glass);flex-shrink:0;overflow-y:auto;}
 .sidebar-section{font-size:.65rem;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);padding:0 14px 10px;margin-top:4px;}
 .cat-item{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;font-size:.82rem;color:var(--text-muted);letter-spacing:1px;transition:all .1s;border-left:2px solid transparent;}
 .cat-item:hover{color:var(--text);background:rgba(255,255,255,.02);}
@@ -254,10 +254,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .archive-layout,.vault-layout{display:flex;flex:1;min-height:0;width:100%;}
 
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(13,15,20,.88);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay{position:fixed;inset:0;background:rgba(13,15,20,.9);z-index:200;display:none;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--panel-glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:6px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:30px;animation:slideUp .2s ease;}
-@supports not (backdrop-filter:blur(1px)){.topbar,.tabs,.sidebar,.modal{background:var(--panel);}}
+.modal{background:var(--panel-glass);border:1px solid var(--border);border-radius:6px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:30px;animation:slideUp .2s ease;}
 @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .modal-title{font-family:'Playfair Display',serif;font-size:1.35rem;margin-bottom:20px;color:var(--accent);}
 .form-group{margin-bottom:14px;}
@@ -404,13 +403,47 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ PORTA DE COFRE 3D ══ */
+#vault-door{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;perspective:1300px;background:rgba(4,6,12,.45);pointer-events:none;}
+#vault-door.show{display:flex;animation:vdFade 1.15s ease forwards;}
+.vd-panel{width:min(58vmin,400px);aspect-ratio:1;border-radius:50%;position:relative;transform-origin:6% 50%;
+  background:radial-gradient(circle at 34% 30%,#39415a,#141a2b 68%);
+  border:10px solid var(--accent-dim);
+  box-shadow:0 0 90px rgba(0,0,0,.75),inset 0 0 70px rgba(0,0,0,.65),0 0 40px rgba(var(--accent-rgb),.25);}
+#vault-door.show .vd-panel{animation:vdOpen .55s ease-in .58s forwards;}
+.vd-handle{position:absolute;inset:27%;border-radius:50%;border:9px solid var(--accent);box-shadow:0 0 24px rgba(var(--accent-rgb),.5),inset 0 0 18px rgba(0,0,0,.5);}
+.vd-handle::before,.vd-handle::after{content:'';position:absolute;background:var(--accent);border-radius:5px;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);}
+.vd-handle::before{left:50%;top:-4%;bottom:-4%;width:9px;transform:translateX(-50%);}
+.vd-handle::after{top:50%;left:-4%;right:-4%;height:9px;transform:translateY(-50%);}
+#vault-door.show .vd-handle{animation:vdSpinH .55s cubic-bezier(.4,0,.3,1) .04s;}
+.vd-bolts{position:absolute;inset:6%;border-radius:50%;border:2px dashed rgba(var(--accent-rgb),.4);}
+@keyframes vdSpinH{from{transform:rotate(0);}to{transform:rotate(210deg);}}
+@keyframes vdOpen{to{transform:rotateY(-102deg);opacity:0;}}
+@keyframes vdFade{0%,80%{opacity:1;}100%{opacity:0;visibility:hidden;}}
+@media(prefers-reduced-motion:reduce){#vault-door{display:none!important;}}
+
+/* ══ PACKS DE TEMA ══ */
+.pack-chip{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--text);transition:all .18s;}
+.pack-chip:hover{border-color:var(--accent-dim);transform:translateY(-2px);}
+.pack-dots{display:flex;gap:3px;}
+.pack-dot{width:9px;height:9px;border-radius:50%;}
+
+/* ══ MODO PRIVACIDADE ══ */
+body.privacy .card-field-value,body.privacy .totp-code,body.privacy .bank-card-number,body.privacy .bank-card-holder,body.privacy .read-field-value,body.privacy #note-body,body.privacy .note-item-preview{filter:blur(6px);transition:filter .2s;}
+body.privacy .card-field-value:hover,body.privacy .totp-code:hover,body.privacy .bank-card-number:hover,body.privacy .bank-card-holder:hover,body.privacy .read-field-value:hover,body.privacy #note-body:focus,body.privacy .note-item-preview:hover{filter:none;}
+
+/* ══ LINHAS DE CAMPOS EXTRA ══ */
+.field-row{display:flex;gap:7px;margin-top:7px;align-items:center;}
+.field-row input{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.74rem;padding:9px 10px;border-radius:2px;outline:none;}
+.field-row .fr-k{width:38%;}
+.field-row .fr-v{flex:1;}
+
 /* ══ PRIMEIRA PÁGINA — upgrade ══ */
 .lock-how-card>div:first-child{transition:transform .25s;}
 .lock-how-card:hover>div:first-child{transform:translateY(-3px) scale(1.08);}
-#lock-encrypt-txt{animation:encPulse 3.5s ease-in-out infinite;}
-@keyframes encPulse{0%,100%{text-shadow:0 0 0 rgba(var(--accent-rgb),0);}50%{text-shadow:0 0 12px rgba(var(--accent-rgb),.6);}}
-.lock-card{background:var(--panel-glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);width:420px;border-radius:8px;box-shadow:0 24px 70px -24px var(--shadow);}
-@supports not (backdrop-filter:blur(1px)){.lock-card{background:var(--panel);}}
+#lock-encrypt-txt{text-shadow:0 0 10px rgba(var(--accent-rgb),.45);animation:encPulse 3.5s ease-in-out infinite;}
+@keyframes encPulse{0%,100%{opacity:.72;}50%{opacity:1;}}
+.lock-card{background:var(--panel-glass);width:420px;border-radius:8px;box-shadow:0 24px 70px -24px var(--shadow);}
 .vault-icon{position:relative;animation:pulse 3s ease-in-out infinite,lockIn .55s ease backwards;box-shadow:0 0 36px rgba(var(--accent-rgb),.16);}
 .vault-icon::before,.vault-icon::after{content:'';position:absolute;border-radius:50%;pointer-events:none;}
 .vault-icon::before{inset:-9px;border:1px dashed rgba(var(--accent-rgb),.5);animation:spinCW 26s linear infinite;}
@@ -611,7 +644,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 .welcome-skip:hover{color:var(--text);}
 
 /* ══ READ MODE ══ */
-#read-modal{position:fixed;inset:0;background:rgba(13,15,20,.95);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+#read-modal{position:fixed;inset:0;background:rgba(13,15,20,.95);z-index:500;display:none;align-items:center;justify-content:center;}
 #read-modal.open{display:flex;}
 .read-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:40px 48px;max-width:600px;width:95vw;max-height:90vh;overflow-y:auto;animation:slideUp .25s ease;}
 .read-card-title{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--text);margin-bottom:6px;}
@@ -748,7 +781,7 @@ body::after{bottom:-32vmax;right:-24vmax;
   .dash-alert{font-size:.66rem;padding:10px 12px;}
 
   /* MODALS — sobem de baixo */
-  .modal-overlay{align-items:flex-end;backdrop-filter:blur(2px);}
+  .modal-overlay{align-items:flex-end;}
   .modal{width:100%;max-width:100%;max-height:92vh;border-radius:14px 14px 0 0;
     padding:22px 16px 36px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .modal-title{font-size:1rem;margin-bottom:16px;}
@@ -836,6 +869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 </head>
 <body>
 <div id="unlock-flash"></div>
+<div id="vault-door"><div class="vd-panel"><div class="vd-handle"></div><div class="vd-bolts"></div></div></div>
 
 <!-- DRAG VAULT OVERLAY -->
 <div id="drag-overlay"><div class="drag-overlay-text" id="drag-overlay-txt">⬡ Largar para abrir cofre</div></div>
@@ -890,6 +924,14 @@ body::after{bottom:-32vmax;right:-24vmax;
 
     <!-- ESTADO 1: Botões iniciais -->
     <div id="login-state-initial">
+      <button id="l-continue-wrap" onclick="continueLastVault()" style="display:none;width:100%;margin-bottom:12px;align-items:center;gap:10px;padding:13px 16px;border-radius:6px;border:1px solid var(--accent);background:linear-gradient(150deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.05)),var(--card);cursor:pointer;font-family:inherit;color:var(--text);transition:all .2s" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">
+        <span style="font-size:1.2rem">▶️</span>
+        <span style="flex:1;text-align:left;min-width:0">
+          <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent)" id="l-continue-title">Continuar</span>
+          <span style="display:block;font-size:.66rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="l-continue-name"></span>
+        </span>
+        <span onclick="forgetLastVault(event)" title="Esquecer" style="padding:4px 8px;color:var(--text-muted);font-size:.8rem">✕</span>
+      </button>
       <div class="lock-choices">
         <button class="lock-choice gold" id="l-btn-open" onclick="startOpenVault()">
           <span class="lock-choice-icon">📂</span>
@@ -902,6 +944,7 @@ body::after{bottom:-32vmax;right:-24vmax;
           <span class="lock-choice-sub" id="l-btn-new-sub">Começar do zero — grátis e offline</span>
         </button>
       </div>
+      <button class="btn btn-ghost" id="l-demo-btn" onclick="enterPresentationMode()" style="width:100%;margin-top:12px;font-size:.6rem;padding:11px">🎭 <span id="l-demo-txt">Ver demonstração</span></button>
       <div class="new-vault-info" id="l-first-use" style="margin-top:16px">
         <strong>Primeiro uso?</strong> Clica em <strong>Criar Novo Cofre</strong> e define a tua palavra-passe.<br>
         Já tens um cofre? Clica em <strong>Abrir Cofre Existente</strong> e seleciona o ficheiro <em>.vault</em>.
@@ -913,7 +956,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <!-- Passo 1: Selecionar ficheiro -->
       <div id="open-step-file">
         <div style="font-size:.56rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px" id="l-open-title">Abrir Cofre Existente</div>
-        <div id="file-drop-zone" onclick="document.getElementById('file-input').click()" style="border:2px dashed var(--border);border-radius:4px;padding:28px;text-align:center;cursor:pointer;transition:all .2s" onmouseenter="this.style.borderColor='var(--accent-dim)'" onmouseleave="this.style.borderColor='var(--border)'">
+        <div id="file-drop-zone" onclick="pickVaultFile()" style="border:2px dashed var(--border);border-radius:4px;padding:28px;text-align:center;cursor:pointer;transition:all .2s" onmouseenter="this.style.borderColor='var(--accent-dim)'" onmouseleave="this.style.borderColor='var(--border)'">
           <div style="font-size:2rem;margin-bottom:8px">📂</div>
           <div style="font-size:.68rem;color:var(--text-muted)" id="l-file-hint">Clica para selecionar o ficheiro .vault</div>
           <div style="font-size:.58rem;color:var(--text-muted);margin-top:4px" id="l-file-hint2">ou arrasta para aqui</div>
@@ -1029,7 +1072,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v3.0</span>
+      <span>CipherVault © 2026 · v4.2</span>
     </div>
   </div>
 </div>
@@ -1069,7 +1112,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         <span id="tb-csv-txt">Exportar CSV</span>
       </button>
       <button onclick="openSettings()" title="Definições">⚙️</button>
-      <button onclick="enterPresentationMode()" title="Modo apresentação" id="pres-btn">🎭</button>
+      <button onclick="togglePrivacy()" id="privacy-btn" title="Modo privacidade">🙈</button>
       <button onclick="toggleTheme()" id="theme-btn" title="Tema">🌙</button>
       <div class="lang-switcher">
         <button class="lang-btn active" id="lang-pt" onclick="setLang('pt')">PT</button>
@@ -1159,6 +1202,7 @@ body::after{bottom:-32vmax;right:-24vmax;
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span id="tb-new-txt"> Nova entrada</span>
             </button>
+            <button class="btn btn-ghost" onclick="openQrScanner('share')" id="tb-qrimport-btn" title="Importar entrada por QR" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📥 QR</button>
             <select class="sort-select" id="sort-select" onchange="renderCards()">
               <option value="fav">⭐ Favoritos</option>
               <option value="name">A→Z</option>
@@ -1282,7 +1326,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v3.0</span>
+      <span>CipherVault © 2026 · v4.2</span>
     </div>
   </div>
   </div>
@@ -1351,6 +1395,11 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="tags-wrap" onclick="document.getElementById('tag-input').focus()">
         <div id="tag-pills" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         <input type="text" id="tag-input" class="tags-input" placeholder="+ tag" onkeydown="handleTagKey(event)">
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label id="f-fields-lbl">Campos extra <span style="font-size:.5rem;color:var(--text-muted)">(opcional)</span></label>
+        <div id="field-rows"></div>
+        <button type="button" class="btn btn-ghost" onclick="addFieldRow()" id="f-fields-add" style="width:100%;margin-top:6px;font-size:.58rem;padding:8px">＋ Adicionar campo</button>
       </div>
     </div>
     <div class="form-group">
@@ -1434,6 +1483,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <!-- COLOR PICKERS -->
     <div class="settings-section">
       <div class="settings-title" id="s-colors-title">Personalizar Cores</div>
+      <div id="pack-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
       <div class="color-picker-wrap">
 
         <div class="color-row">
@@ -1469,6 +1519,17 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
 
+    <!-- PWA CUSTOM -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-pwa-title">📲 App Instalada</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="pwa-emoji" maxlength="4" placeholder="🔒" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:9px 4px;border-radius:2px;outline:none">
+        <input id="pwa-name" maxlength="24" placeholder="CipherVault" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
+        <button class="btn btn-gold" onclick="savePwaPrefs()" id="pwa-apply-btn" style="flex:0;padding:10px 16px">✓</button>
+      </div>
+      <div id="pwa-note" style="font-size:.62rem;color:var(--text-muted);margin-top:8px;line-height:1.6">O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.</div>
+    </div>
+
     <!-- VAULT INFO -->
     <div class="settings-section">
       <div class="settings-title" id="s-vaultinfo-title">📊 Info do Cofre</div>
@@ -1490,6 +1551,10 @@ body::after{bottom:-32vmax;right:-24vmax;
     <!-- AUTO-LOCK -->
     <div class="settings-section">
       <div class="settings-title" id="s-timeout-title">Auto-lock</div>
+      <label style="display:flex;align-items:center;gap:10px;font-size:.72rem;color:var(--text);cursor:pointer;margin-bottom:12px">
+        <input type="checkbox" id="s-lockhide" onchange="setLockHide(this.checked)" style="accent-color:var(--accent);width:16px;height:16px">
+        <span id="s-lockhide-lbl">Bloquear ao minimizar / mudar de app</span>
+      </label>
       <div class="timeout-btns">
         <button class="timeout-btn" onclick="setTimeout2(1)" id="to-1">1 min</button>
         <button class="timeout-btn active" onclick="setTimeout2(5)" id="to-5">5 min</button>
@@ -1501,6 +1566,51 @@ body::after{bottom:-32vmax;right:-24vmax;
 
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="closeSettings()" id="s-close-btn">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE QR MODAL -->
+<div class="modal-overlay" id="share-overlay" onclick="if(event.target===this)closeShareModal()">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div class="modal-title" id="share-title" style="justify-content:center">🔗 Partilhar por QR</div>
+    <div id="share-step-pw">
+      <div style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px" id="share-explain">Define uma password temporária. No outro dispositivo vais lê-la o QR e escrever esta password para importar a entrada.</div>
+      <div class="form-group" style="text-align:left">
+        <label id="share-pw-lbl">Password temporária</label>
+        <input type="text" id="share-pw" placeholder="ex: banana42" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-gold" onclick="generateShareQR()" id="share-gen-btn">Gerar QR</button>
+        <button class="btn btn-ghost" onclick="closeShareModal()" id="share-cancel-btn">Cancelar</button>
+      </div>
+    </div>
+    <div id="share-step-qr" style="display:none">
+      <div style="background:#fff;padding:14px;border-radius:10px;display:inline-block;line-height:0;box-shadow:0 4px 20px rgba(0,0,0,.3)">
+        <canvas id="share-canvas"></canvas>
+      </div>
+      <div id="share-entry-name" style="font-size:.85rem;color:var(--text);margin-top:14px;font-weight:600"></div>
+      <div id="share-hint" style="font-size:.68rem;color:var(--text-muted);margin-top:8px;line-height:1.7">No outro dispositivo: Cofre → 📥 QR → aponta a câmara → escreve a password temporária.</div>
+      <div class="modal-actions" style="margin-top:16px">
+        <button class="btn btn-gold" onclick="closeShareModal()" id="share-done-btn">Concluído</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE IMPORT PASSWORD MODAL -->
+<div class="modal-overlay" id="shimport-overlay" onclick="if(event.target===this)closeShareImport()">
+  <div class="modal" style="max-width:400px;text-align:center">
+    <div class="modal-title" id="shimport-title" style="justify-content:center">📥 Importar entrada</div>
+    <div style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px" id="shimport-explain">QR lido! Escreve a password temporária definida no outro dispositivo.</div>
+    <div class="form-group" style="text-align:left">
+      <label id="shimport-pw-lbl">Password temporária</label>
+      <input type="text" id="shimport-pw" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmShareImport()">
+    </div>
+    <div id="shimport-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-top:4px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="confirmShareImport()" id="shimport-ok-btn">Importar</button>
+      <button class="btn btn-ghost" onclick="closeShareImport()" id="shimport-cancel-btn">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1712,7 +1822,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 
 <script>
 // ══ STATE ══
-const APP_VERSION='3.0';
+const APP_VERSION='4.2';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1898,8 +2008,92 @@ function t(k){return(T[currentLang]||T.pt)[k]||k;}
 
 // ══ CRYPTO ══
 async function deriveKey(pw,salt){const enc=new TextEncoder();const km=await crypto.subtle.importKey('raw',enc.encode(pw),{name:'PBKDF2'},false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
-async function encrypt(key,data){const iv=crypto.getRandomValues(new Uint8Array(12));const enc=new TextEncoder();const e=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify(data)));return{iv:Array.from(iv),data:Array.from(new Uint8Array(e))};}
-async function decrypt(key,payload){const iv=new Uint8Array(payload.iv);const d=new Uint8Array(payload.data);const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,d);return JSON.parse(new TextDecoder().decode(dec));}
+// ── Codecs assíncronos nativos (base64 fora da main thread) ──
+function u8ToB64(u8){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result.split(',')[1]);fr.onerror=rej;fr.readAsDataURL(new Blob([u8]));});}
+async function b64ToU8(s){const r=await fetch('data:application/octet-stream;base64,'+s);return new Uint8Array(await r.arrayBuffer());}
+async function gzipBytes(u8){if(typeof CompressionStream==='undefined')return null;try{const cs=new CompressionStream('gzip');const w=cs.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(cs.readable).arrayBuffer());}catch(e){return null;}}
+async function gunzipBytes(u8){const ds=new DecompressionStream('gzip');const w=ds.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(ds.readable).arrayBuffer());}
+async function encrypt(key,data){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  let bytes=new TextEncoder().encode(JSON.stringify(data));
+  const gz=await gzipBytes(bytes);
+  if(gz&&gz.length<bytes.length)bytes=gz; // magic 1f8b marca o formato
+  const e=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,bytes));
+  return{v:2,iv:await u8ToB64(iv),data:await u8ToB64(e)};
+}
+async function decrypt(key,payload){
+  const iv=Array.isArray(payload.iv)?new Uint8Array(payload.iv):await b64ToU8(payload.iv);
+  const d=Array.isArray(payload.data)?new Uint8Array(payload.data):await b64ToU8(payload.data);
+  let dec=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,d));
+  if(dec.length>2&&dec[0]===0x1f&&dec[1]===0x8b)dec=await gunzipBytes(dec);
+  return JSON.parse(new TextDecoder().decode(dec));
+}
+
+// ══ INDEXEDDB KV (handles de ficheiros) ══
+function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open('ciphervault',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbSet(k,v){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
+async function idbGet(k){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction('kv','readonly');const rq=tx.objectStore('kv').get(k);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});}
+async function idbDel(k){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').delete(k);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
+
+// ══ FILE SYSTEM ACCESS ══
+let vaultFileHandle=null;
+const FSA_OK='showOpenFilePicker' in window;
+async function refreshContinueBtn(){
+  const wrap=document.getElementById('l-continue-wrap');if(!wrap)return;
+  if(!FSA_OK){wrap.style.display='none';return;}
+  try{
+    const h=await idbGet('vaultHandle');
+    if(h){
+      wrap.style.display='flex';
+      document.getElementById('l-continue-name').textContent=h.name;
+    }else wrap.style.display='none';
+  }catch(e){wrap.style.display='none';}
+}
+async function continueLastVault(){
+  if(lockedOut)return;
+  try{
+    const h=await idbGet('vaultHandle');if(!h)return;
+    let perm=await h.queryPermission({mode:'readwrite'});
+    if(perm!=='granted')perm=await h.requestPermission({mode:'readwrite'});
+    if(perm!=='granted'){toast(currentLang==='en'?'Permission denied.':'Permissão negada.');return;}
+    vaultFileHandle=h;
+    const file=await h.getFile();
+    pendingVaultFile=file;
+    document.getElementById('login-state-initial').style.display='none';
+    document.getElementById('login-state-open').style.display='block';
+    document.getElementById('open-step-file').style.display='none';
+    document.getElementById('open-step-pw').style.display='block';
+    document.getElementById('l-file-name').textContent='📁 '+file.name;
+    document.getElementById('master-pw').value='';
+    setTimeout(()=>document.getElementById('master-pw').focus(),100);
+  }catch(e){
+    toast(currentLang==='en'?'Could not open the file.':'Não foi possível abrir o ficheiro.');
+    try{await idbDel('vaultHandle');}catch(_){}
+    refreshContinueBtn();
+  }
+}
+async function forgetLastVault(ev){
+  if(ev)ev.stopPropagation();
+  try{await idbDel('vaultHandle');}catch(e){}
+  vaultFileHandle=null;
+  refreshContinueBtn();
+  toast(currentLang==='en'?'File forgotten.':'Ficheiro esquecido.');
+}
+async function pickVaultFile(){
+  if(!FSA_OK){document.getElementById('file-input').click();return;}
+  try{
+    const[h]=await window.showOpenFilePicker({types:[{description:'CipherVault',accept:{'application/octet-stream':['.vault','.cofre']}}]});
+    vaultFileHandle=h;
+    try{await idbSet('vaultHandle',h);}catch(e){}
+    const file=await h.getFile();
+    pendingVaultFile=file;
+    document.getElementById('open-step-file').style.display='none';
+    document.getElementById('open-step-pw').style.display='block';
+    document.getElementById('l-file-name').textContent='📁 '+file.name;
+    document.getElementById('master-pw').value='';
+    setTimeout(()=>document.getElementById('master-pw').focus(),100);
+  }catch(e){/* cancelado */}
+}
 
 // ══ LOCK SCREEN ══
 function toggleField(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
@@ -2013,6 +2207,11 @@ function doUnlock(){
     // Force reflow
     void app.offsetHeight;
     app.classList.add('visible');
+    const vd=document.getElementById('vault-door');
+    if(vd&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+      vd.classList.remove('show');void vd.offsetWidth;vd.classList.add('show');
+      setTimeout(()=>vd.classList.remove('show'),1250);
+    }
     const fl=document.getElementById('unlock-flash');
     if(fl){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
     setTimeout(positionTabIndicator,80);
@@ -2024,6 +2223,8 @@ function doUnlock(){
   },500);
 }
 function lockApp(){
+  if(presentationMode){exitPresentationMode();return;}
+  try{closeGlobalSearch();}catch(e){}
   vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
@@ -2140,8 +2341,8 @@ function applyThemeColors(theme){
   root.style.setProperty('--panel',`rgb(${panelR},${panelG},${panelB})`);
   root.style.setProperty('--border',`rgb(${borderR},${borderG},${borderB})`);
   root.style.setProperty('--card',`rgb(${cardR},${cardG},${cardB})`);
-  root.style.setProperty('--panel-glass',`rgba(${panelR},${panelG},${panelB},.72)`);
-  root.style.setProperty('--card-glass',`rgba(${cardR},${cardG},${cardB},.6)`);
+  root.style.setProperty('--panel-glass',`rgba(${panelR},${panelG},${panelB},.9)`);
+  root.style.setProperty('--card-glass',`rgba(${cardR},${cardG},${cardB},.85)`);
   root.style.setProperty('--text',c.text);
   // text-muted = text at 50% opacity mix with bg
   const textR=parseInt(c.text.slice(1,3),16);
@@ -2198,6 +2399,7 @@ function applyColor(type, value){
   updatePreviewBar();
   renderPresetHighlights();
   saveThemeColors();
+  buildManifest();
 }
 
 function updatePreviewBar(){
@@ -2319,8 +2521,13 @@ function openSettings(){
   document.getElementById('s-tab-dark').classList.toggle('active',currentTheme==='dark');
   document.getElementById('s-tab-light').classList.toggle('active',currentTheme==='light');
   refreshColorPickers();
+  renderPackChips();
   renderVaultInfo();
   renderCatManager();
+  const lh=document.getElementById('s-lockhide');if(lh)lh.checked=lockHideOn;
+  const pp=getPwaPrefs();
+  const pn=document.getElementById('pwa-name');if(pn)pn.value=pp.name;
+  const pe=document.getElementById('pwa-emoji');if(pe)pe.value=pp.emoji||'';
   document.getElementById('settings-overlay').classList.add('open');
 }
 function closeSettings(){document.getElementById('settings-overlay').classList.remove('open');}
@@ -2335,6 +2542,11 @@ function applySettingsLang(){
   s('s-light-label',currentLang==='en'?'Light':'Claro');
   s('s-reset-btn',currentLang==='en'?'↺ Reset to defaults':'↺ Repor cores padrão');
   s('s-vaultinfo-title',currentLang==='en'?'📊 Vault Info':'📊 Info do Cofre');
+  s('s-pwa-title',currentLang==='en'?'📲 Installed App':'📲 App Instalada');
+  const pwn=document.getElementById('pwa-note');if(pwn)pwn.textContent=currentLang==='en'?'The icon uses your current colors. Reinstall the app to apply the new icon/name.':'O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.';
+  s('s-lockhide-lbl',currentLang==='en'?'Lock when minimised / switching apps':'Bloquear ao minimizar / mudar de app');
+  const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
+  const ffa=document.getElementById('f-fields-add');if(ffa)ffa.textContent=(currentLang==='en'?'＋ Add field':'＋ Adicionar campo');
   s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
   s('s-timeout-title',t('sTimeout'));
   s('s-close-btn',t('sClose'));
@@ -2425,6 +2637,8 @@ function applyLangStatic(){
   const osub=document.getElementById('l-btn-open-sub');if(osub)osub.textContent=currentLang==='en'?'I already have a .vault file':'Já tenho um ficheiro .vault';
   const nsub=document.getElementById('l-btn-new-sub');if(nsub)nsub.textContent=currentLang==='en'?'Start fresh — free and offline':'Começar do zero — grátis e offline';
   const pit=document.getElementById('pwa-install-txt');if(pit)pit.textContent=currentLang==='en'?'Install as app':'Instalar como app';
+  const lct=document.getElementById('l-continue-title');if(lct)lct.textContent=currentLang==='en'?'Continue':'Continuar';
+  const ldt=document.getElementById('l-demo-txt');if(ldt)ldt.textContent=currentLang==='en'?'View demo':'Ver demonstração';
   h('l-first-use','firstUseInfo');
   // New login flow labels
   const btnOpenTxt=document.getElementById('l-btn-open-txt');if(btnOpenTxt)btnOpenTxt.textContent=currentLang==='en'?'Open Existing Vault':'Abrir Cofre Existente';
@@ -2806,6 +3020,7 @@ function renderCards(){
       ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText('${esc(entry.user)}','${t('userCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.pw?`<div class="card-field"><span class="card-field-label">${t('cardPw')}</span><div class="card-field-inner"><span class="card-field-value masked" id="pw-${entry.id}">••••••••</span><button class="card-btn" onclick="togglePw('${entry.id}','${esc(entry.pw)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(entry.pw)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.url?`<div class="card-field"><span class="card-field-label">${t('cardUrl')}</span><div class="card-field-inner"><a href="${esc(entry.url)}" target="_blank" class="card-field-value" style="color:var(--accent-dim);text-decoration:none;font-size:.7rem">${esc(entry.url)}</a></div></div>`:''}
+      ${(entry.fields||[]).map(f=>`<div class="card-field"><span class="card-field-label">${esc(f.k)}</span><div class="card-field-inner"><span class="card-field-value">${esc(f.v)}</span><button class="card-btn" onclick="copyText('${esc(f.v)}','✓')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`).join('')}
       ${entry.notes?`<div class="card-field"><span class="card-field-label">${t('cardNotes')}</span><div class="card-field-inner"><span class="card-field-value" style="white-space:normal;font-size:.65rem;color:var(--text-muted)">${esc(entry.notes)}</span></div></div>`:''}
       ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i},'${esc(p)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(p)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
       <div class="card-actions">
@@ -2867,6 +3082,7 @@ function getServiceIcon(name){
 // ══ UNSAVED STATE ══
 let hasUnsaved=false;
 function markUnsaved(){
+  if(presentationMode)return;
   hasUnsaved=true;
   const btn=document.querySelector('.btn-save-file');
   if(btn)btn.classList.add('has-changes');
@@ -2885,7 +3101,8 @@ function onSearchInput(){
   const vaultMatches=vault.filter(e=>!e.archived&&(
     e.name.toLowerCase().includes(q)||(e.user||'').toLowerCase().includes(q)||
     (e.url||'').toLowerCase().includes(q)||(e.notes||'').toLowerCase().includes(q)||
-    (e.tags||[]).some(tag=>tag.toLowerCase().includes(q))
+    (e.tags||[]).some(tag=>tag.toLowerCase().includes(q))||
+    (e.fields||[]).some(f=>(f.k||'').toLowerCase().includes(q)||(f.v||'').toLowerCase().includes(q))
   ));
   const noteMatches=notes.filter(n=>(n.title||'').toLowerCase().includes(q)||(n.body||'').toLowerCase().includes(q));
   const cardMatches=bankCards.filter(c=>(c.bank||'').toLowerCase().includes(q)||(c.holder||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q));
@@ -3047,20 +3264,22 @@ function openModal(id=null){
     document.getElementById('f-user').value=e.user||'';document.getElementById('f-pw').value=e.pw||'';
     document.getElementById('f-url').value=e.url||'';document.getElementById('f-notes').value=e.notes||'';
     entryTags=[...(e.tags||[])];entryAttachment=e.attachment||null;
+    entryFields=(e.fields||[]).map(f=>({k:f.k||'',v:f.v||''}));
     entryEmoji=e.icon||'⭐';
   }else{
     ['f-name','f-user','f-pw','f-url','f-notes'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('f-cat').value='email';
+    entryFields=[];
   }
   document.getElementById('f-icon-preview').textContent=entryEmoji;
   document.getElementById('emoji-picker-wrap').style.display='none';
-  renderTagPills();updateAttachPreview();
+  renderTagPills();renderFieldRows();updateAttachPreview();
   checkPwStrength();checkDuplicate();
   document.getElementById('modal-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-name').focus(),100);
 }
 function editEntry(id){openModal(id);}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;entryTags=[];entryAttachment=null;}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;entryTags=[];entryAttachment=null;entryFields=[];}
 function saveEntry(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){alert(t('confirmDelete').replace('?','')||'Nome obrigatório!');return;}
@@ -3071,6 +3290,7 @@ function saveEntry(){
     id:editingId||Date.now().toString(36),name,cat:document.getElementById('f-cat').value,
     user:document.getElementById('f-user').value.trim(),pw,url:document.getElementById('f-url').value.trim(),
     notes:document.getElementById('f-notes').value.trim(),tags:[...entryTags],
+    fields:entryFields.map(f=>({k:f.k.trim(),v:f.v.trim()})).filter(f=>f.k||f.v),
     attachment:entryAttachment,fav:existing?existing.fav:false,archived:false,icon:entryEmoji,
     createdAt:existing?existing.createdAt:Date.now(),order:existing?existing.order:vault.length,
     pwUpdated:pwChanged?Date.now():(existing?existing.pwUpdated:Date.now()),
@@ -3339,7 +3559,9 @@ function togglePin(id){
 }
 
 // ══ CHANGE MASTER PW ══
-function openChangePwModal(){['cp-current','cp-new','cp-confirm'].forEach(id=>document.getElementById(id).value='');document.getElementById('cp-error').textContent='';document.getElementById('changepw-overlay').classList.add('open');setTimeout(()=>document.getElementById('cp-current').focus(),100);}
+function openChangePwModal(){
+  if(presentationMode){toast(currentLang==='en'?'Not available in demo mode.':'Indisponível no modo demonstração.');return;}
+  ['cp-current','cp-new','cp-confirm'].forEach(id=>document.getElementById(id).value='');document.getElementById('cp-error').textContent='';document.getElementById('changepw-overlay').classList.add('open');setTimeout(()=>document.getElementById('cp-current').focus(),100);}
 function closeChangePwModal(){document.getElementById('changepw-overlay').classList.remove('open');}
 async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
@@ -3351,16 +3573,45 @@ async function changeMasterPw(){
 
 // ══ SAVE FILE ══
 async function saveFile(){
+  if(presentationMode){toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
   const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats});
   const container={salt:Array.from(window._salt),payload:p};
+  const json=JSON.stringify(container);
   const dateStr=new Date().toISOString().slice(0,10);
   lastSavedAt=Date.now();
+  // Sem handle mas com API: escolher onde guardar (uma vez)
+  if(!vaultFileHandle&&FSA_OK){
+    try{
+      vaultFileHandle=await window.showSaveFilePicker({suggestedName:'ciphervault.vault',types:[{description:'CipherVault',accept:{'application/octet-stream':['.vault']}}]});
+      try{await idbSet('vaultHandle',vaultFileHandle);}catch(e){}
+    }catch(e){/* cancelou o picker → cai no download */}
+  }
+  if(vaultFileHandle){
+    try{
+      let perm=await vaultFileHandle.queryPermission({mode:'readwrite'});
+      if(perm!=='granted')perm=await vaultFileHandle.requestPermission({mode:'readwrite'});
+      if(perm==='granted'){
+        const w=await vaultFileHandle.createWritable();
+        await w.write(json);await w.close();
+        let bk='';
+        try{
+          if(localStorage.getItem('cv_lastbk')!==dateStr){
+            downloadVault(container,`ciphervault_backup_${dateStr}.vault`);
+            localStorage.setItem('cv_lastbk',dateStr);
+            bk=currentLang==='en'?' (+ daily backup)':' (+ backup do dia)';
+          }
+        }catch(e){}
+        toast(`💾 ${currentLang==='en'?'Saved to':'Guardado em'} ${vaultFileHandle.name}${bk} ✓`);
+        markSaved();return;
+      }
+    }catch(e){/* falhou escrita direta → fallback download */}
+  }
   downloadVault(container,'ciphervault.vault');
   setTimeout(()=>downloadVault(container,`ciphervault_backup_${dateStr}.vault`),400);
   toast(t('toastSaved'));markSaved();
 }
-window.addEventListener('beforeunload',e=>{if(hasUnsaved&&masterKey){e.preventDefault();e.returnValue=currentLang==='en'?'You have unsaved changes. Are you sure you want to leave?':'Tens alterações não guardadas. Tens a certeza que queres sair?';return e.returnValue;}});
+window.addEventListener('beforeunload',e=>{if(hasUnsaved&&masterKey&&!presentationMode){e.preventDefault();e.returnValue=currentLang==='en'?'You have unsaved changes. Are you sure you want to leave?':'Tens alterações não guardadas. Tens a certeza que queres sair?';return e.returnValue;}});
 function downloadVault(c,filename='ciphervault.vault'){
   const b=new Blob([JSON.stringify(c)],{type:'application/octet-stream'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;
@@ -3916,7 +4167,7 @@ function renderTotp(){
   refreshTotpCodes();
 }
 setInterval(()=>{
-  if(!masterKey||!totp.length||document.hidden)return;
+  if((!masterKey&&!presentationMode)||!totp.length||document.hidden)return;
   const grid=document.getElementById('totp-grid');
   if(!grid||!grid.offsetParent)return;
   const now=Math.floor(Date.now()/1000);
@@ -4055,15 +4306,222 @@ window.addEventListener('appinstalled',()=>{
   toast(currentLang==='en'?'App installed! 📲':'App instalada! 📲');
 });
 
+// ══ PACKS DE TEMA ══
+const THEME_PACKS={
+  royal:{label:'Royal',dark:{bg:'#0a0e1a',accent:'#c9a84c',text:'#e8e4d8'},light:{bg:'#f5f2ea',accent:'#8a6e2f',text:'#2a2418'}},
+  matrix:{label:'Matrix',dark:{bg:'#050d07',accent:'#2bd96b',text:'#c9f2d6'},light:{bg:'#eefaf1',accent:'#0f9d58',text:'#0c2415'}},
+  cyber:{label:'Cyberpunk',dark:{bg:'#0b0716',accent:'#ff3fb4',text:'#efe3ff'},light:{bg:'#faf0f8',accent:'#c2179b',text:'#2c1030'}},
+  oceano:{label:'Oceano',dark:{bg:'#061420',accent:'#38bdf8',text:'#dcecf5'},light:{bg:'#eef6fb',accent:'#0284c7',text:'#0c2331'}},
+  papel:{label:'Papel',dark:{bg:'#121212',accent:'#d6d2c8',text:'#eceae4'},light:{bg:'#faf9f5',accent:'#2b2b28',text:'#1c1c1a'}},
+};
+function renderPackChips(){
+  const wrap=document.getElementById('pack-chips');if(!wrap)return;
+  wrap.innerHTML=Object.entries(THEME_PACKS).map(([id,p])=>{
+    const d=p.dark;
+    return `<button type="button" class="pack-chip" onclick="applyPack('${id}')">
+      <span class="pack-dots"><span class="pack-dot" style="background:${d.bg};border:1px solid #555"></span><span class="pack-dot" style="background:${d.accent}"></span><span class="pack-dot" style="background:${d.text}"></span></span>
+      ${p.label}</button>`;
+  }).join('');
+}
+function applyPack(id){
+  const p=THEME_PACKS[id];if(!p)return;
+  themeColors.dark={...p.dark};
+  themeColors.light={...p.light};
+  saveThemeColors();
+  applyThemeColors(currentTheme);
+  refreshColorPickers();
+  buildManifest();
+  toast(`🎨 ${p.label} ✓`);
+}
+
+// ══ MODO PRIVACIDADE ══
+let privacyOn=false;
+try{privacyOn=localStorage.getItem('cv_privacy')==='1';}catch(e){}
+function applyPrivacy(){
+  document.body.classList.toggle('privacy',privacyOn);
+  const b=document.getElementById('privacy-btn');
+  if(b){b.textContent=privacyOn?'👁':'🙈';b.title=privacyOn
+    ?(currentLang==='en'?'Privacy mode ON — click to show values':'Modo privacidade ATIVO — clica para mostrar valores')
+    :(currentLang==='en'?'Privacy mode':'Modo privacidade');}
+}
+function togglePrivacy(){
+  privacyOn=!privacyOn;
+  try{localStorage.setItem('cv_privacy',privacyOn?'1':'0');}catch(e){}
+  applyPrivacy();
+  toast(privacyOn?(currentLang==='en'?'🙈 Values hidden — hover to reveal':'🙈 Valores ocultos — passa o rato para revelar')
+                 :(currentLang==='en'?'👁 Values visible':'👁 Valores visíveis'));
+}
+
+// ══ BLOQUEAR AO MINIMIZAR ══
+let lockHideOn=false,lockHideTimer=null;
+try{lockHideOn=localStorage.getItem('cv_lockhide')==='1';}catch(e){}
+function setLockHide(v){
+  lockHideOn=!!v;
+  try{localStorage.setItem('cv_lockhide',lockHideOn?'1':'0');}catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    if(lockHideOn&&masterKey&&!presentationMode){
+      clearTimeout(lockHideTimer);
+      lockHideTimer=setTimeout(()=>{if(document.hidden&&masterKey&&!presentationMode)lockApp();},1200);
+    }
+  }else clearTimeout(lockHideTimer);
+});
+
+// ══ CAMPOS PERSONALIZADOS ══
+let entryFields=[];
+function renderFieldRows(){
+  const wrap=document.getElementById('field-rows');if(!wrap)return;
+  const en=currentLang==='en';
+  wrap.innerHTML=entryFields.map((f,i)=>`<div class="field-row">
+    <input class="fr-k" placeholder="${en?'Label':'Nome'}" value="${esc(f.k)}" oninput="entryFields[${i}].k=this.value">
+    <input class="fr-v" placeholder="${en?'Value':'Valor'}" value="${esc(f.v)}" oninput="entryFields[${i}].v=this.value">
+    <button type="button" class="card-btn danger" onclick="removeFieldRow(${i})" style="padding:7px 10px">✕</button>
+  </div>`).join('');
+}
+function addFieldRow(){entryFields.push({k:'',v:''});renderFieldRows();
+  const rows=document.querySelectorAll('#field-rows .fr-k');
+  if(rows.length)rows[rows.length-1].focus();}
+function removeFieldRow(i){entryFields.splice(i,1);renderFieldRows();}
+
+// ══ PWA PERSONALIZADA ══
+function getPwaPrefs(){
+  try{const p=JSON.parse(localStorage.getItem('cv_pwa')||'null');if(p&&p.name)return p;}catch(e){}
+  return{name:'CipherVault',emoji:''};
+}
+function buildManifest(){
+  const prefs=getPwaPrefs();
+  const tc=themeColors[currentTheme]||themeColors.dark;
+  const bg=tc.bg||'#0d0f14',ac=tc.accent||'#c9a84c';
+  const encBg=encodeURIComponent(bg),encAc=encodeURIComponent(ac);
+  let inner;
+  if(prefs.emoji){
+    inner=`%3Ctext x='256' y='330' font-size='300' text-anchor='middle'%3E${encodeURIComponent(prefs.emoji)}%3C/text%3E`;
+  }else{
+    inner=`%3Crect x='156' y='256' width='200' height='176' rx='16' fill='none' stroke='${encAc}' stroke-width='24'/%3E%3Cpath d='M196 256v-80a60 60 0 0 1 120 0v80' fill='none' stroke='${encAc}' stroke-width='24'/%3E%3Ccircle cx='256' cy='336' r='20' fill='${encAc}'/%3E`;
+  }
+  const icon=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='${encBg}'/%3E${inner}%3C/svg%3E`;
+  const mf={name:prefs.name,short_name:prefs.name.slice(0,12),description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:'.',display:'standalone',background_color:bg,theme_color:bg,orientation:'any',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const link=document.getElementById('pwa-manifest');
+  if(link)link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
+}
+function savePwaPrefs(){
+  const name=(document.getElementById('pwa-name').value.trim()||'CipherVault').slice(0,24);
+  const emoji=document.getElementById('pwa-emoji').value.trim().slice(0,4);
+  try{localStorage.setItem('cv_pwa',JSON.stringify({name,emoji}));}catch(e){}
+  buildManifest();
+  toast(currentLang==='en'?'Saved! Reinstall the app to update the icon.':'Guardado! Reinstala a app para atualizar o ícone.');
+}
+
+// ══ PARTILHA POR QR ENCRIPTADO ══
+let shareEntryId=null,pendingSharePayload=null;
+async function deriveShareKey(pw,salt){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+function openShareModal(id){
+  shareEntryId=id;
+  const en=currentLang==='en';
+  document.getElementById('share-title').textContent=en?'🔗 Share via QR':'🔗 Partilhar por QR';
+  document.getElementById('share-explain').textContent=en
+    ?'Set a temporary password. On the other device you will scan this QR and type this password to import the entry.'
+    :'Define uma password temporária. No outro dispositivo vais ler o QR e escrever essa password para importar a entrada.';
+  document.getElementById('share-pw-lbl').textContent=en?'Temporary password':'Password temporária';
+  document.getElementById('share-gen-btn').textContent=en?'Generate QR':'Gerar QR';
+  document.getElementById('share-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('share-done-btn').textContent=en?'Done':'Concluído';
+  document.getElementById('share-hint').textContent=en
+    ?'On the other device: Vault → 📥 QR → point the camera → type the temporary password.'
+    :'No outro dispositivo: Cofre → 📥 QR → aponta a câmara → escreve a password temporária.';
+  document.getElementById('share-step-pw').style.display='block';
+  document.getElementById('share-step-qr').style.display='none';
+  document.getElementById('share-pw').value='';
+  document.getElementById('share-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('share-pw').focus(),100);
+}
+function closeShareModal(){document.getElementById('share-overlay').classList.remove('open');shareEntryId=null;}
+async function generateShareQR(){
+  const en=currentLang==='en';
+  const pw=document.getElementById('share-pw').value.trim();
+  if(pw.length<4){toast(en?'Password: at least 4 characters.':'Password: mínimo 4 caracteres.');return;}
+  const e=vault.find(v=>v.id===shareEntryId);if(!e)return;
+  const lite={name:e.name,user:e.user||'',pw:e.pw||'',url:e.url||'',notes:e.notes||'',tags:e.tags||[],icon:e.icon||'',cat:e.cat||'outro',fields:e.fields||[]};
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await deriveShareKey(pw,salt);
+  let bytes=new TextEncoder().encode(JSON.stringify(lite));
+  const gz=await gzipBytes(bytes);if(gz&&gz.length<bytes.length)bytes=gz;
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,bytes));
+  const packed=new Uint8Array(16+12+ct.length);
+  packed.set(salt,0);packed.set(iv,16);packed.set(ct,28);
+  const payload='CVSHARE1:'+await u8ToB64(packed);
+  const m=CVQR.matrix(payload);
+  if(!m){toast(en?'Entry too large for a QR (long notes?).':'Entrada demasiado grande para QR (notas longas?).');return;}
+  const canvas=document.getElementById('share-canvas');
+  const scale=4,quiet=4,size=(m.length+quiet*2)*scale;
+  canvas.width=size;canvas.height=size;
+  canvas.style.width=Math.min(size,260)+'px';canvas.style.height=Math.min(size,260)+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);
+  ctx.fillStyle='#000';
+  for(let r=0;r<m.length;r++)for(let cc2=0;cc2<m.length;cc2++)
+    if(m[r][cc2])ctx.fillRect((cc2+quiet)*scale,(r+quiet)*scale,scale,scale);
+  document.getElementById('share-entry-name').textContent='🔐 '+e.name;
+  document.getElementById('share-step-pw').style.display='none';
+  document.getElementById('share-step-qr').style.display='block';
+  if(e.attachment)toast(en?'Note: attachments are not included in the QR.':'Nota: anexos não vão no QR.');
+}
+function openShareImport(raw){
+  pendingSharePayload=raw;
+  const en=currentLang==='en';
+  document.getElementById('shimport-title').textContent=en?'📥 Import entry':'📥 Importar entrada';
+  document.getElementById('shimport-explain').textContent=en
+    ?'QR read! Type the temporary password set on the other device.'
+    :'QR lido! Escreve a password temporária definida no outro dispositivo.';
+  document.getElementById('shimport-pw-lbl').textContent=en?'Temporary password':'Password temporária';
+  document.getElementById('shimport-ok-btn').textContent=en?'Import':'Importar';
+  document.getElementById('shimport-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('shimport-pw').value='';
+  document.getElementById('shimport-err').textContent='';
+  document.getElementById('shimport-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('shimport-pw').focus(),100);
+}
+function closeShareImport(){document.getElementById('shimport-overlay').classList.remove('open');pendingSharePayload=null;}
+async function confirmShareImport(){
+  const en=currentLang==='en';
+  const pw=document.getElementById('shimport-pw').value.trim();
+  const errEl=document.getElementById('shimport-err');
+  if(!pw||!pendingSharePayload)return;
+  try{
+    const packed=await b64ToU8(pendingSharePayload.slice(9));
+    const salt=packed.slice(0,16),iv=packed.slice(16,28),ct=packed.slice(28);
+    const key=await deriveShareKey(pw,salt);
+    let dec=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct));
+    if(dec.length>2&&dec[0]===0x1f&&dec[1]===0x8b)dec=await gunzipBytes(dec);
+    const lite=JSON.parse(new TextDecoder().decode(dec));
+    const entry={id:Date.now().toString(36),name:lite.name||'...',user:lite.user||'',pw:lite.pw||'',url:lite.url||'',notes:lite.notes||'',tags:lite.tags||[],icon:lite.icon||'',cat:(CATS[lite.cat]||customCats.some(x=>x.key===lite.cat))?lite.cat:'outro',fields:lite.fields||[],createdAt:Date.now(),pwChangedAt:Date.now()};
+    vault.push(entry);
+    logActivity('add',entry.name,'📥');
+    closeShareImport();
+    renderAll();markUnsaved();
+    toast(en?`Imported: ${entry.name} ✓`:`Importado: ${entry.name} ✓`);
+  }catch(e){
+    errEl.textContent=en?'Wrong password or corrupted QR.':'Password errada ou QR corrompido.';
+  }
+}
+
 // ══ LEITOR DE QR (2FA) ══
-let qrScanStream=null,qrScanRAF=null,qrDetector=null;
-async function openQrScanner(){
+let qrScanStream=null,qrScanRAF=null,qrDetector=null,qrScanMode='totp';
+async function openQrScanner(mode='totp'){
+  qrScanMode=mode;
   if(!('BarcodeDetector' in window)){
     toast(currentLang==='en'?'QR scanning not supported in this browser.':'Leitura de QR não suportada neste browser.');
     return;
   }
   const en=currentLang==='en';
-  document.getElementById('qrscan-title').textContent=en?'📷 Scan QR Code':'📷 Ler QR Code';
+  document.getElementById('qrscan-title').textContent=qrScanMode==='share'
+    ?(en?'📥 Import via QR':'📥 Importar por QR')
+    :(en?'📷 Scan QR Code':'📷 Ler QR Code');
   document.getElementById('qrscan-file-btn').textContent=en?'🖼️ Read from an image':'🖼️ Ler de uma imagem';
   document.getElementById('qrscan-cancel-btn').textContent=en?'Cancel':'Cancelar';
   const status=document.getElementById('qrscan-status');
@@ -4111,6 +4569,17 @@ async function scanQrFromFile(ev){
 }
 function handleScannedQr(raw){
   const en=currentLang==='en';
+  if(qrScanMode==='share'){
+    if(!raw||!raw.startsWith('CVSHARE1:')){
+      document.getElementById('qrscan-status').textContent=en
+        ?'That QR is not a CipherVault share. Keep trying or cancel.'
+        :'Esse QR não é uma partilha CipherVault. Tenta outro ou cancela.';
+      return false;
+    }
+    closeQrScanner();
+    openShareImport(raw);
+    return true;
+  }
   const parsed=parseOtpauth(raw||'');
   if(!parsed||!parsed.secret||!b32decode(parsed.secret)){
     document.getElementById('qrscan-status').textContent=en
@@ -4286,8 +4755,8 @@ const CVQR=(function(){
     return new Poly(num,0).mod(e);
   };
   function ecPoly(n){let a=new Poly([1],0);for(let i=0;i<n;i++)a=a.mul(new Poly([1,gexp(i)],0));return a;}
-  const RS={1:[1,26,19],2:[1,44,34],3:[1,70,55],4:[1,100,80],5:[1,134,108],6:[2,86,68],7:[2,98,78],8:[2,121,97],9:[2,146,116],10:[2,86,68,2,87,69]};
-  const APOS={1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+  const RS={1:[1,26,19],2:[1,44,34],3:[1,70,55],4:[1,100,80],5:[1,134,108],6:[2,86,68],7:[2,98,78],8:[2,121,97],9:[2,146,116],10:[2,86,68,2,87,69],11:[4,101,81],12:[2,116,92,2,117,93],13:[4,133,107],14:[3,145,115,1,146,116],15:[5,109,87,1,110,88],16:[5,122,98,1,123,99],17:[1,135,107,5,136,108],18:[5,150,120,1,151,121],19:[3,141,113,4,142,114],20:[3,135,107,5,136,108],21:[4,144,116,4,145,117],22:[2,139,111,7,140,112],23:[4,151,121,5,152,122],24:[6,147,117,4,148,118],25:[8,132,106,4,133,107]};
+  const APOS={1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50],11:[6,30,54],12:[6,32,58],13:[6,34,62],14:[6,26,46,66],15:[6,26,48,70],16:[6,26,50,74],17:[6,30,54,78],18:[6,30,56,82],19:[6,30,58,86],20:[6,34,62,90],21:[6,28,50,72,94],22:[6,26,50,74,98],23:[6,30,54,78,102],24:[6,28,54,80,106],25:[6,32,58,84,110]};
   const G15b=0b10100110111,G18b=0b1111100100101,G15M=0b101010000010010;
   const bchDigit=d=>{let n=0;while(d!==0){n++;d>>>=1;}return n;};
   function bchInfo(data){let d=data<<10;while(bchDigit(d)-bchDigit(G15b)>=0)d^=G15b<<(bchDigit(d)-bchDigit(G15b));return((data<<10)|d)^G15M;}
@@ -4307,7 +4776,7 @@ const CVQR=(function(){
   function matrix(text){
     const bytes=utf8(text);
     let version=0,blocks=null;
-    for(let v=1;v<=10;v++){
+    for(let v=1;v<=25;v++){
       const raw=RS[v],bl=[];
       for(let i=0;i<raw.length;i+=3)for(let j=0;j<raw[i];j++)bl.push({total:raw[i+1],data:raw[i+2]});
       const totalData=bl.reduce((s,b)=>s+b.data,0);
@@ -4498,17 +4967,28 @@ const DEMO_DATA={
     {id:'t2',name:'Discord',account:'carlos#1234',secret:'GEZDGNBVGY3TQOJQ',createdAt:Date.now()-86400000*5},
   ]
 };
+let demoFromLock=false;
 function enterPresentationMode(){
   if(presentationMode)return;
   presentationMode=true;
+  demoFromLock=!masterKey;
   realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];realTotp=[...totp];realCustomCats=[...customCats];
-  vault=DEMO_DATA.vault;notes=DEMO_DATA.notes;bankCards=DEMO_DATA.bankCards;documents=DEMO_DATA.documents;trash=[];totp=DEMO_DATA.totp;customCats=[];
+  vault=JSON.parse(JSON.stringify(DEMO_DATA.vault));notes=JSON.parse(JSON.stringify(DEMO_DATA.notes));bankCards=JSON.parse(JSON.stringify(DEMO_DATA.bankCards));documents=JSON.parse(JSON.stringify(DEMO_DATA.documents));trash=[];totp=JSON.parse(JSON.stringify(DEMO_DATA.totp));customCats=[];
   document.getElementById('presentation-banner').classList.add('show');
-  document.getElementById('pres-label').textContent=currentLang==='en'?'PRESENTATION MODE — demo data':'MODO DE APRESENTAÇÃO — dados fictícios';
-  // Offset topbar for banner
+  document.getElementById('pres-label').textContent=currentLang==='en'?'DEMO MODE — sample data, nothing is saved':'MODO DEMONSTRAÇÃO — dados fictícios, nada é guardado';
   document.querySelector('.topbar').style.marginTop='44px';
-  renderAll();switchTab('dashboard');
-  toast(currentLang==='en'?'Presentation mode — showing demo data':'Modo apresentação — a mostrar dados fictícios');
+  renderAll();
+  switchTab('dashboard');
+  if(demoFromLock){
+    const lockScreen=document.getElementById('lock-screen');
+    const app=document.getElementById('app');
+    lockScreen.style.display='none';
+    app.style.display='';
+    app.classList.remove('visible');void app.offsetHeight;
+    app.classList.add('visible');
+    setTimeout(positionTabIndicator,120);
+  }
+  toast(currentLang==='en'?'Demo mode — explore freely!':'Modo demonstração — explora à vontade!');
 }
 function exitPresentationMode(){
   if(!presentationMode)return;
@@ -4517,6 +4997,19 @@ function exitPresentationMode(){
   realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;realTotp=null;realCustomCats=null;
   document.getElementById('presentation-banner').classList.remove('show');
   document.querySelector('.topbar').style.marginTop='';
+  if(demoFromLock){
+    demoFromLock=false;
+    hasUnsaved=false;
+    try{closeGlobalSearch();}catch(e){}
+    const app=document.getElementById('app');
+    app.classList.remove('visible');
+    app.style.display='none';
+    const lockScreen=document.getElementById('lock-screen');
+    lockScreen.style.display='flex';
+    lockScreen.style.opacity='1';
+    backToInitial();
+    return;
+  }
   renderAll();switchTab('dashboard');
   toast(currentLang==='en'?'Back to your real data ✓':'De volta aos teus dados reais ✓');
 }
@@ -4524,7 +5017,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -4664,6 +5157,7 @@ function openReadMode(id){
   if(entry.url)html+=`<div class="read-field"><span class="read-field-label">${t('cardUrl')}</span><div class="read-field-value" style="font-size:.9rem;color:var(--accent-dim)">${esc(entry.url)}</div></div>`;
   if(entry.notes)html+=`<div class="read-field"><span class="read-field-label">${t('cardNotes')}</span><div class="read-field-value" style="font-size:.95rem;font-family:inherit;color:var(--text-muted)">${esc(entry.notes)}</div></div>`;
   if((entry.tags||[]).length)html+=`<div class="read-field"><span class="read-field-label">Tags</span><div style="display:flex;gap:6px;flex-wrap:wrap">${entry.tags.map(tag=>`<span class="card-tag" style="font-size:.68rem;padding:4px 10px">${esc(tag)}</span>`).join('')}</div></div>`;
+  (entry.fields||[]).forEach(f=>{html+=`<div class="read-field"><span class="read-field-label">${esc(f.k)}</span><div class="read-field-value">${esc(f.v)}</div></div>`;});
   content.innerHTML=html;
   const actions=document.getElementById('read-actions');
   let actHtml='';
@@ -4671,6 +5165,7 @@ function openReadMode(id){
   if(entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="copyText('${esc(entry.pw)}','${t('pwCopied')}')">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
   if(isWifiEntry(entry)&&entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
   if(entry.url)actHtml+=`<button class="btn btn-ghost" onclick="goToSiteEntry('${esc(entry.url)}','${esc(entry.pw||'')}')">${t('btnGoSite')}</button>`;
+  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();openShareModal('${entry.id}')">🔗 ${currentLang==='en'?'Share QR':'Partilhar QR'}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();editEntry('${entry.id}')">${t('btnEdit')}</button>`;
   actions.innerHTML=actHtml;
   document.getElementById('read-modal').classList.add('open');
@@ -4742,10 +5237,11 @@ try{
   applyThemeColors(currentTheme);
 }catch(e){console.warn('applyThemeColors error:',e);}
 try{renderHowTo();}catch(e){console.warn('renderHowTo error:',e);}
+try{refreshContinueBtn();}catch(e){}
+try{applyPrivacy();}catch(e){}
 
 // ══ PWA ══
-const mf={name:'CipherVault',short_name:'CipherVault',description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:'.',display:'standalone',background_color:'#0d0f14',theme_color:'#0d0f14',orientation:'any',icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0f14'/%3E%3Crect x='156' y='256' width='200' height='176' rx='16' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Cpath d='M196 256v-80a60 60 0 0 1 120 0v80' fill='none' stroke='%23c9a84c' stroke-width='24'/%3E%3Ccircle cx='256' cy='336' r='20' fill='%23c9a84c'/%3E%3C/svg%3E",sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
-document.getElementById('pwa-manifest').setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
+buildManifest();
 if('serviceWorker' in navigator){
   const hadController=!!navigator.serviceWorker.controller;
   let swReloaded=false;
