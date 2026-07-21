@@ -397,6 +397,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ LINKS DE DESBLOQUEIO ══ */
+.unlock-link{background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--text-muted);cursor:pointer;padding:7px 9px;border-radius:3px;transition:color .15s,background .15s;}
+.unlock-link:hover{color:var(--accent);background:rgba(var(--accent-rgb),.09);}
+.link-sep{color:var(--text-muted);opacity:.35;font-size:.6rem;}
+
 /* ══ REDES WIFI ══ */
 #tabs-wifi{margin-left:auto;display:flex;gap:6px;align-items:center;padding-left:16px;flex-shrink:0;align-self:center;}
 #tabs-wifi .wifi-chip{padding:6px 12px;font-size:.6rem;border-radius:14px;}
@@ -1013,27 +1018,27 @@ body::after{bottom:-32vmax;right:-24vmax;
         <div id="l-file-name" style="font-size:.78rem;color:var(--accent);margin-bottom:18px;padding:8px 12px;background:rgba(var(--accent-rgb),.08);border-radius:2px;border:1px solid var(--accent-dim)"></div>
         <div id="quick-unlock" style="display:none;margin-bottom:18px">
           <button class="btn btn-gold" id="bio-btn" onclick="doBioUnlock()" style="display:none;width:100%;padding:14px;font-size:.68rem">👆 <span id="bio-btn-txt">Desbloquear com biometria</span></button>
-          <div id="pin-entry" style="display:none;margin-top:10px">
+          <div id="pin-entry" style="display:none">
             <label style="display:block;font-size:.54rem;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px" id="l-pin-label">PIN rápido</label>
             <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="off"
               style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:16px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);outline:none"
               oninput="onPinInput()">
             <div id="pin-err" style="font-size:.66rem;color:var(--red);min-height:16px;margin-top:6px;text-align:center"></div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:16px;color:var(--text-muted);font-size:.56rem;letter-spacing:2px;text-transform:uppercase">
-            <span style="flex:1;height:1px;background:var(--border)"></span><span id="quick-or">ou</span><span style="flex:1;height:1px;background:var(--border)"></span>
+        </div>
+        <div id="master-entry" style="display:none">
+          <label style="display:block;font-size:.54rem;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px" id="l-master-label">Palavra-passe mestra</label>
+          <div class="lock-input-wrap">
+            <input type="password" id="master-pw" placeholder="••••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')submitOpenVault()">
+            <button class="toggle-pw" onclick="toggleField('master-pw')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
+          <button class="btn btn-gold" onclick="submitOpenVault()" id="l-unlock-btn" style="width:100%;margin-top:14px">🔓 Desbloquear</button>
         </div>
-        <label style="display:block;font-size:.54rem;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px" id="l-master-label">Palavra-passe mestra</label>
-        <div class="lock-input-wrap">
-          <input type="password" id="master-pw" placeholder="••••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')submitOpenVault()">
-          <button class="toggle-pw" onclick="toggleField('master-pw')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
+        <div id="unlock-links" style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px"></div>
         <div class="lock-actions" style="margin-top:14px">
-          <button class="btn btn-gold" onclick="submitOpenVault()" id="l-unlock-btn">🔓 Desbloquear</button>
-          <button class="btn btn-ghost" onclick="backToFileStep()" id="l-change-file-btn">📂 Outro ficheiro</button>
+          <button class="btn btn-ghost" onclick="backToFileStep()" id="l-change-file-btn" style="width:100%">📂 Outro ficheiro</button>
         </div>
       </div>
     </div>
@@ -1128,7 +1133,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.0</span>
+      <span>CipherVault © 2026 · v5.1</span>
     </div>
   </div>
 </div>
@@ -1390,7 +1395,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.0</span>
+      <span>CipherVault © 2026 · v5.1</span>
     </div>
   </div>
   </div>
@@ -1600,6 +1605,10 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-ghost" id="pin-cfg-btn" onclick="openPinSetup()" style="flex:1;min-width:150px;padding:11px">🔢 <span id="pin-cfg-txt">Configurar PIN</span></button>
         <button class="btn btn-ghost" id="bio-cfg-btn" onclick="doBioSetup()" style="flex:1;min-width:150px;padding:11px">👆 <span id="bio-cfg-txt">Ativar biometria</span></button>
+      </div>
+      <div id="pin-dur-row" style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <span id="pin-dur-lbl" style="font-size:.7rem;color:var(--text);white-space:nowrap">Validade do PIN</span>
+        <select id="pin-dur" class="sort-select" onchange="setPinDuration(this.value)" style="flex:1"></select>
       </div>
       <div id="quick-note" style="font-size:.62rem;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
     </div>
@@ -1989,7 +1998,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='5.0';
+const APP_VERSION='5.1';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2232,7 +2241,7 @@ async function continueLastVault(){
     document.getElementById('open-step-pw').style.display='block';
     document.getElementById('l-file-name').textContent='📁 '+file.name;
     document.getElementById('master-pw').value='';
-    refreshQuickUnlock();setTimeout(()=>document.getElementById('master-pw').focus(),100);
+    refreshQuickUnlock(true);
   }catch(e){
     toast(currentLang==='en'?'Could not open the file.':'Não foi possível abrir o ficheiro.');
     try{await idbDel('vaultHandle');}catch(_){}
@@ -2258,12 +2267,20 @@ async function pickVaultFile(){
     document.getElementById('open-step-pw').style.display='block';
     document.getElementById('l-file-name').textContent='📁 '+file.name;
     document.getElementById('master-pw').value='';
-    refreshQuickUnlock();setTimeout(()=>document.getElementById('master-pw').focus(),100);
+    refreshQuickUnlock(true);
   }catch(e){/* cancelado */}
 }
 
 // ══ DESBLOQUEIO RÁPIDO (PIN 24h + biometria WebAuthn PRF) ══
-const PIN_HOURS=24,PIN_MAX_TRIES=5,PIN_ITER=600000;
+const PIN_MAX_TRIES=5,PIN_ITER=600000;
+const PIN_DURATIONS={'1':1,'7':7,'30':30,'never':null};
+function pinDurationKey(){try{return localStorage.getItem('cv_pin_days')||'30';}catch(e){return '30';}}
+function pinDurationMs(){const d=PIN_DURATIONS[pinDurationKey()];return d===null||d===undefined?null:d*86400000;}
+function pinExpiryFromNow(){const ms=pinDurationMs();return ms===null?null:Date.now()+ms;}
+function pinDurationLabel(k){
+  const en=currentLang==='en';
+  return{'1':en?'1 day':'1 dia','7':en?'7 days':'7 dias','30':en?'30 days':'30 dias','never':en?'Never expires':'Sem expirar'}[k]||k;
+}
 function bytesToArr(u8){return Array.from(u8);}
 function arrToBytes(a){return new Uint8Array(a);}
 async function pinKeyFrom(pin,salt){
@@ -2288,7 +2305,7 @@ async function savePinUnlock(pin){
   const salt=crypto.getRandomValues(new Uint8Array(16));
   const key=await pinKeyFrom(pin,salt);
   const w=await wrapSecret(key,masterPwRaw);
-  await idbSet('qu_pin',{salt:bytesToArr(salt),iv:w.iv,wrapped:w.wrapped,expiresAt:Date.now()+PIN_HOURS*3600000,tries:0});
+  await idbSet('qu_pin',{salt:bytesToArr(salt),iv:w.iv,wrapped:w.wrapped,expiresAt:pinExpiryFromNow(),tries:0});
   pinEnabledFlag(true);
   return true;
 }
@@ -2296,7 +2313,7 @@ async function getPinRec(){
   try{
     const rec=await idbGet('qu_pin');
     if(!rec)return null;
-    if(Date.now()>rec.expiresAt){await idbDel('qu_pin');return null;}
+    if(rec.expiresAt&&Date.now()>rec.expiresAt){await idbDel('qu_pin');return null;}
     return rec;
   }catch(e){return null;}
 }
@@ -2306,7 +2323,7 @@ async function tryPin(pin){
   try{
     const key=await pinKeyFrom(pin,arrToBytes(rec.salt));
     const pw=await unwrapSecret(key,rec);
-    rec.tries=0;await idbSet('qu_pin',rec);
+    rec.tries=0;rec.expiresAt=pinExpiryFromNow();await idbSet('qu_pin',rec);
     return{pw};
   }catch(e){
     rec.tries=(rec.tries||0)+1;
@@ -2378,33 +2395,68 @@ async function tryBio(){
     return{pw:await unwrapSecret(key,rec)};
   }catch(e){return{err:'failed'};}
 }
+async function touchPinExpiry(){
+  try{
+    const rec=await idbGet('qu_pin');
+    if(!rec)return;
+    rec.expiresAt=pinExpiryFromNow();
+    await idbSet('qu_pin',rec);
+  }catch(e){}
+}
+async function setPinDuration(v){
+  try{localStorage.setItem('cv_pin_days',v);}catch(e){}
+  await touchPinExpiry();
+  renderQuickSettings();
+  const en=currentLang==='en';
+  toast((en?'PIN validity: ':'Validade do PIN: ')+pinDurationLabel(v));
+}
 async function clearBioUnlock(){try{await idbDel('qu_bio');}catch(e){}}
 async function clearQuickUnlock(){await clearPinUnlock();await clearBioUnlock();}
 
 // ── UI do ecrã de login ──
-async function refreshQuickUnlock(){
-  const wrap=document.getElementById('quick-unlock');if(!wrap)return;
-  const en=currentLang==='en';
-  const bioBtn=document.getElementById('bio-btn');
-  const pinEntry=document.getElementById('pin-entry');
-  let any=false;
+let unlockMode='master',quickAvail={bio:false,pin:false};
+async function refreshQuickUnlock(auto){
+  if(!document.getElementById('quick-unlock'))return;
   let bioRec=null;
   try{bioRec=await idbGet('qu_bio');}catch(e){}
-  if(bioRec&&await bioSupported()){
-    bioBtn.style.display='block';
-    document.getElementById('bio-btn-txt').textContent=en?'Unlock with biometrics':'Desbloquear com biometria';
-    any=true;
-  }else if(bioBtn)bioBtn.style.display='none';
-  const pinRec=await getPinRec();
-  if(pinRec){
-    pinEntry.style.display='block';
-    document.getElementById('l-pin-label').textContent=en?'Quick PIN':'PIN rápido';
-    document.getElementById('pin-input').value='';
-    document.getElementById('pin-err').textContent='';
-    any=true;
-  }else if(pinEntry)pinEntry.style.display='none';
-  const orEl=document.getElementById('quick-or');if(orEl)orEl.textContent=en?'or':'ou';
-  wrap.style.display=any?'block':'none';
+  quickAvail.bio=!!bioRec&&await bioSupported();
+  quickAvail.pin=!!(await getPinRec());
+  unlockMode=quickAvail.bio?'bio':(quickAvail.pin?'pin':'master');
+  applyUnlockMode(auto===true);
+}
+function applyUnlockMode(autoBio){
+  const en=currentLang==='en';
+  const q=document.getElementById('quick-unlock');
+  const bioBtn=document.getElementById('bio-btn');
+  const pinEntry=document.getElementById('pin-entry');
+  const masterEntry=document.getElementById('master-entry');
+  const links=document.getElementById('unlock-links');
+  if(!q||!bioBtn||!pinEntry||!masterEntry||!links)return;
+  bioBtn.style.display=unlockMode==='bio'?'block':'none';
+  pinEntry.style.display=unlockMode==='pin'?'block':'none';
+  masterEntry.style.display=unlockMode==='master'?'block':'none';
+  q.style.display=(unlockMode==='bio'||unlockMode==='pin')?'block':'none';
+  const bt=document.getElementById('bio-btn-txt');
+  if(bt)bt.textContent=en?'Unlock with biometrics':'Desbloquear com biometria';
+  const pl=document.getElementById('l-pin-label');
+  if(pl)pl.textContent=en?'Enter your PIN':'Introduz o teu PIN';
+  const parts=[];
+  if(unlockMode!=='bio'&&quickAvail.bio)parts.push(`<button class="unlock-link" onclick="setUnlockMode('bio')">👆 ${en?'Use biometrics':'Usar biometria'}</button>`);
+  if(unlockMode!=='pin'&&quickAvail.pin)parts.push(`<button class="unlock-link" onclick="setUnlockMode('pin')">🔢 ${en?'Enter PIN':'Aceder com PIN'}</button>`);
+  if(unlockMode!=='master')parts.push(`<button class="unlock-link" onclick="setUnlockMode('master')">🔑 ${en?'Recover access':'Recuperar acesso'}</button>`);
+  links.innerHTML=parts.join('<span class="link-sep">·</span>');
+  links.style.display=parts.length?'flex':'none';
+  if(unlockMode==='pin'){
+    const pi=document.getElementById('pin-input');
+    if(pi){pi.value='';const pe=document.getElementById('pin-err');if(pe)pe.textContent='';setTimeout(()=>pi.focus(),120);}
+  }
+  if(unlockMode==='master')setTimeout(()=>{const mp=document.getElementById('master-pw');if(mp)mp.focus();},120);
+  if(unlockMode==='bio'&&autoBio)setTimeout(()=>doBioUnlock(true),420);
+}
+function setUnlockMode(m){
+  unlockMode=m;
+  applyUnlockMode(false);
+  if(m==='bio')doBioUnlock(false);
 }
 async function onPinInput(){
   const el=document.getElementById('pin-input');
@@ -2421,14 +2473,20 @@ async function onPinInput(){
   }
   if(res.gone){err.textContent=en?'PIN expired. Use the master password.':'O PIN expirou. Usa a chave mestra.';setTimeout(refreshQuickUnlock,1600);return;}
   err.textContent=(en?'Wrong PIN. ':'PIN errado. ')+(en?`${res.left} attempt(s) left.`:`Restam ${res.left} tentativa(s).`);
+  setTimeout(()=>{const pi=document.getElementById('pin-input');if(pi)pi.focus();},60);
 }
-async function doBioUnlock(){
+let bioBusy=false;
+async function doBioUnlock(isAuto){
+  if(bioBusy||unlockMode!=='bio')return;
+  bioBusy=true;
   const en=currentLang==='en';
-  const res=await tryBio();
-  if(res.pw){submitOpenVault(res.pw);return;}
-  if(res.gone){refreshQuickUnlock();return;}
-  if(res.err==='cancelled')return;
-  toast(en?'Biometrics failed — use the master password.':'Biometria falhou — usa a chave mestra.');
+  try{
+    const res=await tryBio();
+    if(res.pw){submitOpenVault(res.pw);return;}
+    if(res.gone){refreshQuickUnlock();return;}
+    if(res.err==='cancelled')return;
+    toast(en?'Biometrics failed. Try again or use the PIN.':'Biometria falhou. Tenta outra vez ou usa o PIN.');
+  }finally{bioBusy=false;}
 }
 
 // ── Configuração (Definições) ──
@@ -2437,8 +2495,8 @@ function openPinSetup(renew){
   if(!masterPwRaw){toast(en?'Open the vault first.':'Abre o cofre primeiro.');return;}
   document.getElementById('pinsetup-title').textContent=en?'🔢 Quick PIN':'🔢 PIN Rápido';
   document.getElementById('pinsetup-intro').textContent=renew
-    ?(en?`Your PIN expired. Set it again to use it for the next ${PIN_HOURS}h.`:`O teu PIN expirou. Define-o outra vez para as próximas ${PIN_HOURS}h.`)
-    :(en?`A 4-digit PIN to reopen this vault on this device for ${PIN_HOURS}h. After that, the master password is required again.`:`Um PIN de 4 dígitos para reabrir este cofre neste dispositivo durante ${PIN_HOURS}h. Depois disso, volta a ser preciso a chave mestra.`);
+    ?(en?'Your PIN expired. Set it again to keep using it on this device.':'O teu PIN expirou. Define-o outra vez para continuares a usá-lo neste dispositivo.')
+    :(en?`A 4-digit PIN to reopen this vault on this device (${pinDurationLabel(pinDurationKey()).toLowerCase()}). The master password always works as a fallback.`:`Um PIN de 4 dígitos para reabrir este cofre neste dispositivo (${pinDurationLabel(pinDurationKey()).toLowerCase()}). A chave mestra funciona sempre como alternativa.`);
   document.getElementById('ps-pin1-lbl').textContent=en?'PIN (4 digits)':'PIN (4 dígitos)';
   document.getElementById('ps-pin2-lbl').textContent=en?'Confirm PIN':'Confirmar PIN';
   document.getElementById('ps-ok-btn').textContent=en?'Enable':'Ativar';
@@ -2462,7 +2520,7 @@ async function confirmPinSetup(){
   const ok=await savePinUnlock(p1);
   if(!ok){err.textContent=en?'Could not save the PIN.':'Não foi possível guardar o PIN.';return;}
   closePinSetup();renderQuickSettings();
-  toast(en?`PIN active for ${PIN_HOURS}h ✓`:`PIN ativo durante ${PIN_HOURS}h ✓`);
+  toast(en?'PIN enabled ✓':'PIN ativado ✓');
 }
 async function doBioSetup(){
   const en=currentLang==='en';
@@ -2494,8 +2552,16 @@ async function renderQuickSettings(){
   const bioOk=await bioSupported();
   const lines=[];
   if(pinRec){
-    const hrs=Math.max(0,Math.round((pinRec.expiresAt-Date.now())/3600000));
-    lines.push(`🔢 <strong style="color:var(--accent)">${en?'PIN active':'PIN ativo'}</strong> — ${en?`expires in ~${hrs}h`:`expira em ~${hrs}h`}`);
+    let when;
+    if(!pinRec.expiresAt)when=en?'no expiry':'sem expirar';
+    else{
+      const ms=Math.max(0,pinRec.expiresAt-Date.now());
+      const days=Math.floor(ms/86400000);
+      when=days>=1
+        ?(en?`${days} day(s) left`:`faltam ${days} dia(s)`)
+        :(en?`~${Math.max(1,Math.round(ms/3600000))}h left`:`faltam ~${Math.max(1,Math.round(ms/3600000))}h`);
+    }
+    lines.push(`🔢 <strong style="color:var(--accent)">${en?'PIN active':'PIN ativo'}</strong> — ${when}`);
   }else lines.push(`🔢 ${en?'PIN not set':'PIN não configurado'}`);
   if(bioRec)lines.push(`👆 <strong style="color:var(--accent)">${en?'Biometrics active':'Biometria ativa'}</strong> ${en?'on this device':'neste dispositivo'}`);
   else lines.push(`👆 ${bioOk?(en?'Biometrics available — not enabled':'Biometria disponível — por ativar'):(en?'No biometric sensor here':'Sem sensor biométrico aqui')}`);
@@ -2504,6 +2570,15 @@ async function renderQuickSettings(){
   const bcb=document.getElementById('bio-cfg-btn');
   document.getElementById('bio-cfg-txt').textContent=bioRec?(en?'Remove biometrics':'Remover biometria'):(en?'Enable biometrics':'Ativar biometria');
   if(bcb)bcb.style.opacity=(bioOk||bioRec)?'1':'.5';
+  const durSel=document.getElementById('pin-dur');
+  if(durSel){
+    durSel.innerHTML=Object.keys(PIN_DURATIONS).map(k=>`<option value="${k}">${pinDurationLabel(k)}</option>`).join('');
+    durSel.value=pinDurationKey();
+  }
+  const durLbl=document.getElementById('pin-dur-lbl');
+  if(durLbl)durLbl.textContent=en?'PIN validity':'Validade do PIN';
+  const durRow=document.getElementById('pin-dur-row');
+  if(durRow)durRow.style.display=pinRec?'flex':'none';
   document.getElementById('quick-note').textContent=en
     ?'Stored only in this browser, encrypted. The master password is always required on new devices and after the PIN expires.'
     :'Guardado só neste browser, encriptado. A chave mestra continua sempre a ser precisa em dispositivos novos e depois de o PIN expirar.';
@@ -2559,7 +2634,7 @@ function onFileSelected(e){
   document.getElementById('open-step-pw').style.display='block';
   document.getElementById('l-file-name').textContent='📁 '+file.name;
   document.getElementById('master-pw').value='';
-  refreshQuickUnlock();setTimeout(()=>document.getElementById('master-pw').focus(),100);
+  refreshQuickUnlock(true);
   e.target.value='';
 }
 async function submitOpenVault(pwArg){
@@ -2574,7 +2649,7 @@ async function submitOpenVault(pwArg){
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
     vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];cleanOldTrash();
-    failedAttempts=0;doUnlock();maybePromptPinRenew();
+    failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
   }catch{
     if(quick){
       await clearQuickUnlock();
@@ -2672,6 +2747,8 @@ function lockApp(){
   // Close any open modals
   document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
   document.getElementById('welcome-screen').classList.remove('show');
+  const pwStep=document.getElementById('open-step-pw');
+  if(pwStep&&pwStep.style.display!=='none')refreshQuickUnlock(false);
 }
 
 // ══ AUTO-LOCK ══
@@ -6241,7 +6318,7 @@ document.addEventListener('drop',e=>{
     document.getElementById('open-step-file').style.display='none';
     document.getElementById('open-step-pw').style.display='block';
     document.getElementById('l-file-name').textContent='📁 '+file.name;
-    refreshQuickUnlock();setTimeout(()=>document.getElementById('master-pw').focus(),100);
+    refreshQuickUnlock(true);
   }
 });
 
