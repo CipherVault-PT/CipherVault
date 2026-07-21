@@ -397,6 +397,26 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ REDES WIFI ══ */
+#tabs-wifi{margin-left:auto;display:flex;gap:6px;align-items:center;padding-left:16px;flex-shrink:0;align-self:center;}
+#tabs-wifi .wifi-chip{padding:6px 12px;font-size:.6rem;border-radius:14px;}
+#tabs-wifi .wifi-chip svg{display:none;}
+@media(max-width:1000px){#tabs-wifi .wifi-chip:not(.add){display:none;}#tabs-wifi .wifi-chip.add span{display:none;}}
+.wifi-chip{display:flex;align-items:center;gap:7px;padding:11px 15px;border-radius:22px;border:1px solid var(--border);background:linear-gradient(150deg,rgba(var(--accent-rgb),.08),transparent 60%),var(--card);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:1px;color:var(--text);transition:all .18s;}
+.wifi-chip:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 22px -10px rgba(var(--accent-rgb),.4);}
+.wifi-chip.add{border-style:dashed;color:var(--text-muted);}
+.wifi-chip.add:hover{color:var(--accent);}
+.wifi-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--border);border-radius:3px;background:var(--bg);}
+.wifi-row-name{flex:1;min-width:0;}
+.wifi-row-title{font-size:.8rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wifi-row-ssid{font-size:.62rem;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ══ ARRASTAR FICHEIROS ══ */
+#drop-overlay{position:fixed;inset:0;z-index:9997;display:none;align-items:center;justify-content:center;background:rgba(6,9,16,.82);}
+#drop-overlay.show{display:flex;animation:dropIn .18s ease;}
+@keyframes dropIn{from{opacity:0;}to{opacity:1;}}
+.drop-box{text-align:center;padding:44px 56px;border:3px dashed var(--accent);border-radius:14px;background:rgba(var(--accent-rgb),.07);pointer-events:none;max-width:88vw;}
+
 /* ══ PASTAS DE DOCUMENTOS ══ */
 .folder-card{position:relative;overflow:hidden;--mx:50%;--my:50%;background:linear-gradient(150deg,rgba(var(--accent-rgb),.07),rgba(255,255,255,0) 55%),var(--card);border:1px solid var(--border);border-radius:4px;padding:15px 14px;cursor:pointer;transition:all .18s;animation:cardIn .3s ease backwards;display:flex;align-items:center;gap:11px;}
 .folder-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 30px -12px rgba(var(--accent-rgb),.35);}
@@ -885,6 +905,13 @@ body::after{bottom:-32vmax;right:-24vmax;
 </head>
 <body>
 <div id="unlock-flash"></div>
+<div id="drop-overlay">
+  <div class="drop-box">
+    <div style="font-size:3rem;line-height:1">📥</div>
+    <div id="drop-title" style="font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-top:12px">Larga para adicionar</div>
+    <div id="drop-sub" style="font-size:.68rem;color:var(--text-muted);margin-top:6px"></div>
+  </div>
+</div>
 <div id="vault-door"><div class="vd-panel"><div class="vd-handle"></div><div class="vd-bolts"></div></div></div>
 
 <!-- DRAG VAULT OVERLAY -->
@@ -1088,7 +1115,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.5</span>
+      <span>CipherVault © 2026 · v4.9</span>
     </div>
   </div>
 </div>
@@ -1118,6 +1145,9 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button onclick="exportPDF()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <span id="tb-pdf-txt">Exportar PDF</span>
+      </button>
+      <button onclick="openEmergencyKit()" id="tb-kit-btn">
+        🆘 <span id="tb-kit-txt">Kit emergência</span>
       </button>
       <button onclick="openChangePwModal()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -1154,6 +1184,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <button class="tab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
     <button class="tab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
     <button class="tab-btn" id="tab-btn-trash" onclick="switchTab('trash')">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
+    <div id="tabs-wifi"></div>
     <div class="tab-indicator" id="tab-indicator"></div>
   </div>
 
@@ -1218,6 +1249,7 @@ body::after{bottom:-32vmax;right:-24vmax;
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span id="tb-new-txt"> Nova entrada</span>
             </button>
+            <button class="btn btn-ghost" onclick="openFolderModal(null,'vault')" id="vault-newfolder-btn" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📁+ <span id="vault-newfolder-txt">Nova pasta</span></button>
             <button class="btn btn-ghost" onclick="openQrScanner('share')" id="tb-qrimport-btn" title="Importar entrada por QR" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📥 QR</button>
             <select class="sort-select" id="sort-select" onchange="renderCards()">
               <option value="fav">⭐ Favoritos</option>
@@ -1231,6 +1263,7 @@ body::after{bottom:-32vmax;right:-24vmax;
             </div>
           </div>
         </div>
+        <div id="vault-breadcrumb" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:12px"></div>
         <div class="cards-grid" id="cards-grid"></div>
       </div>
     </div>
@@ -1344,7 +1377,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v4.5</span>
+      <span>CipherVault © 2026 · v4.9</span>
     </div>
   </div>
   </div>
@@ -1380,6 +1413,16 @@ body::after{bottom:-32vmax;right:-24vmax;
           <option value="trabalho">💼 Trabalho</option>
           <option value="outro">📁 Outro</option>
         </select>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.72rem;color:var(--text);text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="f-wifi" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+        <span id="f-wifi-lbl">📶 É uma rede WiFi (gera QR para partilhar)</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label id="f-folder-lbl">Pasta</label>
+      <select id="entry-folder"></select>
     </div>
     <div class="form-group">
       <label id="f-user-lbl">Utilizador / Email</label>
@@ -1705,6 +1748,43 @@ body::after{bottom:-32vmax;right:-24vmax;
   </div>
 </div>
 
+<!-- WIFI MANAGER MODAL -->
+<div class="modal-overlay" id="wifimgr-overlay" onclick="if(event.target===this)closeWifiManager()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="wifimgr-title">📶 Redes WiFi</div>
+    <div id="wifimgr-intro" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-bottom:14px">Guardadas à parte das tuas passwords. Clica numa rede para gerar o QR que as visitas leem com a câmara.</div>
+    <div id="wifimgr-list" style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px"></div>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div id="wifimgr-form-title" style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px">Adicionar rede</div>
+      <div class="form-group" style="margin-bottom:9px">
+        <label id="wf-name-lbl">Nome <span style="font-size:.56rem;color:var(--text-muted)">(ex: Casa, Escritório)</span></label>
+        <input type="text" id="wf-name" placeholder="Casa">
+      </div>
+      <div class="form-group" style="margin-bottom:9px">
+        <label id="wf-ssid-lbl">Nome da rede (SSID)</label>
+        <input type="text" id="wf-ssid" placeholder="MEO-A1B2C3" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="form-group" style="margin-bottom:9px">
+        <label id="wf-pw-lbl">Password da rede</label>
+        <input type="text" id="wf-pw" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.72rem;color:var(--text);text-transform:none;letter-spacing:0">
+          <input type="checkbox" id="wf-open" onchange="document.getElementById('wf-pw').disabled=this.checked" style="accent-color:var(--accent);width:16px;height:16px">
+          <span id="wf-open-lbl">Rede aberta (sem password)</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-gold" onclick="saveWifiNet()" id="wf-save-btn" style="flex:1">Guardar rede</button>
+        <button class="btn btn-ghost" onclick="resetWifiForm()" id="wf-clear-btn" style="flex:0;padding:11px 16px">✕</button>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeWifiManager()" id="wifimgr-close-btn" style="width:100%">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- WIFI QR MODAL -->
 <div class="modal-overlay" id="qr-overlay" onclick="if(event.target===this)closeQrModal()">
   <div class="modal" style="max-width:380px;text-align:center">
@@ -1864,11 +1944,11 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='4.5';
+const APP_VERSION='4.9';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
-let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let currentDocSort='added';let lastSavedAt=null;let lastTotpPeriod=0;
+let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let currentDocSort='added';let lastSavedAt=null;let lastTotpPeriod=0;
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
@@ -2194,7 +2274,7 @@ async function submitOpenVault(){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;cleanOldTrash();
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];cleanOldTrash();
     failedAttempts=0;doUnlock();
   }catch{handleFailedAttempt();}
 }
@@ -2267,7 +2347,7 @@ function doUnlock(){
 function lockApp(){
   if(presentationMode){exitPresentationMode();return;}
   try{closeGlobalSearch();}catch(e){}
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -2614,6 +2694,11 @@ function applySettingsLang(){
   setTxt('pwgen-len-lbl',en2?'Length:':'Comprimento:');
   setTxt('pres-exit-btn',en2?'✕ Exit':'✕ Sair');
   const dfl=document.getElementById('doc-folder-lbl');if(dfl)dfl.textContent=en2?'Folder':'Pasta';
+  setTxt('f-folder-lbl',en2?'Folder':'Pasta');
+  setTxt('f-wifi-lbl',en2?'📶 This is a WiFi network (generates a shareable QR)':'📶 É uma rede WiFi (gera QR para partilhar)');
+  setTxt('vault-newfolder-txt',en2?'New folder':'Nova pasta');
+  setTxt('tb-kit-txt',en2?'Emergency kit':'Kit emergência');
+  renderWifiBar();
   const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
   const ffa=document.getElementById('f-fields-add');if(ffa)ffa.textContent=(currentLang==='en'?'＋ Add field':'＋ Adicionar campo');
   s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
@@ -2814,7 +2899,7 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderTotp();renderHowTo();}
+function renderAll(){renderWifiBar();renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderTotp();renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){
@@ -2915,6 +3000,7 @@ function renderDashboard(){
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
 
   // ── FAVORITOS ──
+  renderWifiBar();
   const favList=active.filter(e=>e.fav).slice(0,8);
   const favsWrap=document.getElementById('dash-favs-wrap');
   const favsTitle=document.getElementById('dash-favs-title');
@@ -3050,12 +3136,15 @@ function renderCards(){
   const q=document.getElementById('search-input').value.toLowerCase();
   const sortVal=document.getElementById('sort-select').value;
   const now=Date.now();
+  const vFilterActive=!!q||!!currentTag||currentCat!=='all';
   let filtered=vault.filter(e=>!e.archived).filter(e=>{
     const matchCat=currentCat==='all'||e.cat===currentCat;
     const matchTag=!currentTag||(e.tags||[]).includes(currentTag);
     const matchQ=!q||e.name.toLowerCase().includes(q)||(e.user||'').toLowerCase().includes(q);
-    return matchCat&&matchTag&&matchQ;
+    const matchFolder=vFilterActive||(e.folderId||null)===(currentVaultFolderId||null);
+    return matchCat&&matchTag&&matchQ&&matchFolder;
   });
+  renderVaultBreadcrumb(vFilterActive);
   filtered.sort((a,b)=>{
     if(sortVal==='fav'){if(b.fav!==a.fav)return(b.fav?1:0)-(a.fav?1:0);return(a.order||0)-(b.order||0);}
     if(sortVal==='name')return a.name.localeCompare(b.name);
@@ -3065,8 +3154,28 @@ function renderCards(){
   });
   const grid=document.getElementById('cards-grid');
   grid.classList.toggle('compact',currentView==='compact');
-  if(!filtered.length){grid.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><p>${t('emptyState')}</p></div>`;return;}
-  grid.innerHTML=filtered.map(entry=>{
+  const enV=currentLang==='en';
+  const activeAll=vault.filter(e=>!e.archived);
+  const vSubFolders=vFilterActive?[]:vaultFolders.filter(f=>(f.parentId||null)===(currentVaultFolderId||null)).sort((a,b)=>a.name.localeCompare(b.name));
+  const vFoldersHtml=vSubFolders.map(f=>{
+    const cnt=folderDirectCounts(f.id,vaultFolders,activeAll);
+    const parts=[];
+    if(cnt.folders)parts.push(`${cnt.folders} ${enV?(cnt.folders===1?'folder':'folders'):(cnt.folders===1?'pasta':'pastas')}`);
+    parts.push(`${cnt.docs} ${enV?(cnt.docs===1?'entry':'entries'):(cnt.docs===1?'entrada':'entradas')}`);
+    return `<div class="folder-card" onclick="openVaultFolder('${f.id}')" title="${esc(f.name)}">
+      <div class="folder-icon">${f.icon||'📁'}</div>
+      <div class="folder-info"><div class="folder-name">${esc(f.name)}</div><div class="folder-count">${parts.join(' · ')}</div></div>
+      <div class="folder-menu">
+        <button class="card-btn" onclick="event.stopPropagation();openFolderModal('${f.id}','vault')" title="${enV?'Rename':'Renomear'}">✏️</button>
+        <button class="card-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}','vault')" title="${enV?'Delete':'Apagar'}">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+  if(!filtered.length&&!vSubFolders.length){
+    grid.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><p>${currentVaultFolderId&&!vFilterActive?(enV?'This folder is empty.':'Esta pasta está vazia.'):t('emptyState')}</p></div>`;
+    return;
+  }
+  grid.innerHTML=vFoldersHtml+filtered.map(entry=>{
     const bc=`badge-${entry.cat}`,cl=getCatLabel(entry.cat);
     const isOld=entry.pwUpdated&&(now-entry.pwUpdated)>180*86400000;
     const isRecent=entry.pwUpdated&&(now-entry.pwUpdated)<30*86400000;
@@ -3084,6 +3193,7 @@ function renderCards(){
         <button class="fav-btn${entry.fav?' active':''}" onclick="event.stopPropagation();toggleFav('${entry.id}')" title="${entry.fav?t('favRemove'):t('favAdd')}">${entry.fav?'⭐':'☆'}</button>
       </div>
       <div class="card-name">${esc(entry.name)}</div>${ageBadge}
+      ${vFilterActive&&entry.folderId?`<div class="doc-loc">📍 ${esc(scopePathLabel(entry.folderId,'vault'))}</div>`:''}
       ${entry.attachment?`<img class="card-attachment" src="${entry.attachment}" alt="anexo">`:''}
       ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText('${esc(entry.user)}','${t('userCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.pw?`<div class="card-field"><span class="card-field-label">${t('cardPw')}</span><div class="card-field-inner"><span class="card-field-value masked" id="pw-${entry.id}">••••••••</span><button class="card-btn" onclick="togglePw('${entry.id}','${esc(entry.pw)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(entry.pw)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
@@ -3093,9 +3203,10 @@ function renderCards(){
       ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i},'${esc(p)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(p)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
       <div class="card-actions">
         ${entry.url?`<button class="card-btn" onclick="event.stopPropagation();goToSiteEntry('${esc(entry.url)}','${esc(entry.pw)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${t('btnGoSite')}</button>`:''}
-        ${isWifiEntry(entry)&&entry.pw?`<button class="card-btn" onclick="event.stopPropagation();openWifiQR('${entry.id}')">📶 QR</button>`:''}
+        ${isWifiEntry(entry)?`<button class="card-btn" onclick="event.stopPropagation();openWifiQR('${entry.id}')">📶 QR</button>`:''}
         <button class="card-btn" onclick="event.stopPropagation();openReadMode('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${t('btnRead')}</button>
         <button class="card-btn" onclick="event.stopPropagation();editEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
+        <button class="card-btn" onclick="event.stopPropagation();openMoveModal('${entry.id}','vault')">📂 ${currentLang==='en'?'Move':'Mover'}</button>
         <button class="card-btn" onclick="event.stopPropagation();archiveEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> ${t('btnArchive')}</button>
         <button class="card-btn danger" onclick="event.stopPropagation();deleteEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
       </div>
@@ -3333,10 +3444,14 @@ function openModal(id=null){
     document.getElementById('f-url').value=e.url||'';document.getElementById('f-notes').value=e.notes||'';
     entryTags=[...(e.tags||[])];entryAttachment=e.attachment||null;
     entryFields=(e.fields||[]).map(f=>({k:f.k||'',v:f.v||''}));
+    populateEntryFolderSelect(e.folderId||'');
+    const wf=document.getElementById('f-wifi');if(wf)wf.checked=isWifiEntry(e);
     entryEmoji=e.icon||'⭐';
   }else{
     ['f-name','f-user','f-pw','f-url','f-notes'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('f-cat').value='email';
+    populateEntryFolderSelect(currentVaultFolderId||'');
+    const wf2=document.getElementById('f-wifi');if(wf2)wf2.checked=false;
     entryFields=[];
   }
   document.getElementById('f-icon-preview').textContent=entryEmoji;
@@ -3359,6 +3474,8 @@ function saveEntry(){
     user:document.getElementById('f-user').value.trim(),pw,url:document.getElementById('f-url').value.trim(),
     notes:document.getElementById('f-notes').value.trim(),tags:[...entryTags],
     fields:entryFields.map(f=>({k:f.k.trim(),v:f.v.trim()})).filter(f=>f.k||f.v),
+    folderId:(document.getElementById('entry-folder')?.value||'')||null,
+    isWifi:!!document.getElementById('f-wifi')?.checked,
     attachment:entryAttachment,fav:existing?existing.fav:false,archived:false,icon:entryEmoji,
     createdAt:existing?existing.createdAt:Date.now(),order:existing?existing.order:vault.length,
     pwUpdated:pwChanged?Date.now():(existing?existing.pwUpdated:Date.now()),
@@ -3635,7 +3752,7 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders});downloadVault({salt:Array.from(salt),payload});
+  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets});downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;closeChangePwModal();toast(t('toastPwChanged'));
 }
 
@@ -3643,7 +3760,7 @@ async function changeMasterPw(){
 async function saveFile(){
   if(presentationMode){toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
-  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders});
+  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets});
   const container={salt:Array.from(window._salt),payload:p};
   const json=JSON.stringify(container);
   const dateStr=new Date().toISOString().slice(0,10);
@@ -4066,7 +4183,7 @@ function renderDocs(){
   const subFolders=docFolders.filter(f=>(f.parentId||null)===(currentFolderId||null))
     .sort((a,b)=>a.name.localeCompare(b.name));
   const foldersHtml=subFolders.map(f=>{
-    const cnt=folderDirectCounts(f.id);
+    const cnt=folderDirectCounts(f.id,docFolders,documents);
     const parts=[];
     if(cnt.folders)parts.push(`${cnt.folders} ${en?(cnt.folders===1?'folder':'folders'):(cnt.folders===1?'pasta':'pastas')}`);
     parts.push(`${cnt.docs} ${en?(cnt.docs===1?'doc':'docs'):(cnt.docs===1?'doc':'docs')}`);
@@ -4373,7 +4490,7 @@ function deleteCustomCat(key){
 
 // ══ INFO DO COFRE ══
 function estimateVaultBytes(){
-  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders})]).size;}
+  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets})]).size;}
   catch(e){return 0;}
 }
 function renderVaultInfo(){
@@ -4389,7 +4506,8 @@ function renderVaultInfo(){
     [en?'Notes':'Notas',String(notes.length)],
     [en?'Bank cards':'Cartões',String(bankCards.length)],
     [en?'Documents':'Documentos',String(documents.length)],
-    [en?'Folders':'Pastas',String(docFolders.length)],
+    [en?'Folders':'Pastas',String(docFolders.length+vaultFolders.length)],
+    ['WiFi',String(wifiNets.length)],
     ['2FA',String(totp.length)],
     [en?'Recycle bin':'Reciclagem',String(trash.length)],
     [en?'Vault size (est.)':'Tamanho (aprox.)','~'+formatFileSize(fileEst)],
@@ -4852,17 +4970,28 @@ function emptyTrash(){
 }
 
 // ══ PASTAS DE DOCUMENTOS ══
-let editingFolderId=null,movingDocId=null;
-function folderById(id){return docFolders.find(f=>f.id===id)||null;}
-function folderPath(id){
-  const path=[];let cur=folderById(id),guard=0;
-  while(cur&&guard++<50){path.unshift(cur);cur=cur.parentId?folderById(cur.parentId):null;}
+let editingFolderId=null,movingDocId=null,folderScope='doc',movingKind='doc';
+function scopeFolderArr(s){return (s||folderScope)==='vault'?vaultFolders:docFolders;}
+function scopeItems(s){return (s||folderScope)==='vault'?vault:documents;}
+function scopeCurrentFolder(s){return (s||folderScope)==='vault'?currentVaultFolderId:currentFolderId;}
+function scopeRootLabel(s){return (s||folderScope)==='vault'?(currentLang==='en'?'Vault':'Cofre'):(currentLang==='en'?'Documents':'Documentos');}
+function scopePathLabel(id,s){return folderPathLabel(id,scopeFolderArr(s),scopeRootLabel(s));}
+function rerenderScope(s){
+  if((s||folderScope)==='vault'){renderSidebar();renderCards();renderDashboard();}
+  else renderDocs();
+}
+function folderById(id,arr){return (arr||docFolders).find(f=>f.id===id)||null;}
+function folderPath(id,arr){
+  const list=arr||docFolders;
+  const path=[];let cur=folderById(id,list),guard=0;
+  while(cur&&guard++<50){path.unshift(cur);cur=cur.parentId?folderById(cur.parentId,list):null;}
   return path;
 }
-function folderPathLabel(id){
-  if(!id)return currentLang==='en'?'Documents':'Documentos';
-  const p=folderPath(id);
-  if(!p.length)return currentLang==='en'?'Documents':'Documentos';
+function folderPathLabel(id,arr,rootLabel){
+  const root=rootLabel||(currentLang==='en'?'Documents':'Documentos');
+  if(!id)return root;
+  const p=folderPath(id,arr);
+  if(!p.length)return root;
   return p.map(f=>`${f.icon||'📁'} ${f.name}`).join(' / ');
 }
 function isDescendantFolder(candidateId,ancestorId){
@@ -4870,13 +4999,15 @@ function isDescendantFolder(candidateId,ancestorId){
   while(cur&&guard++<50){if(cur.id===ancestorId)return true;cur=cur.parentId?folderById(cur.parentId):null;}
   return false;
 }
-function folderDirectCounts(id){
+function folderDirectCounts(id,arr,items){
+  const list=arr||docFolders,its=items||documents;
   return{
-    folders:docFolders.filter(f=>f.parentId===id).length,
-    docs:documents.filter(d=>(d.folderId||null)===id).length
+    folders:list.filter(f=>(f.parentId||null)===(id||null)).length,
+    docs:its.filter(d=>(d.folderId||null)===(id||null)).length
   };
 }
-function openFolderModal(id=null){
+function openFolderModal(id=null,scope='doc'){
+  folderScope=scope;
   editingFolderId=id;
   const en=currentLang==='en';
   const isEdit=!!id;
@@ -4888,14 +5019,14 @@ function openFolderModal(id=null){
   document.getElementById('folder-name').placeholder=en?'Folder name':'Nome da pasta';
   const parentLine=document.getElementById('folder-parent-line');
   if(isEdit){
-    const f=folderById(id);
+    const f=folderById(id,scopeFolderArr());
     document.getElementById('folder-name').value=f?.name||'';
     document.getElementById('folder-icon').value=f?.icon||'';
-    parentLine.textContent=(en?'In: ':'Em: ')+folderPathLabel(f?.parentId||null);
+    parentLine.textContent=(en?'In: ':'Em: ')+scopePathLabel(f?.parentId||null);
   }else{
     document.getElementById('folder-name').value='';
     document.getElementById('folder-icon').value='';
-    parentLine.textContent=(en?'Will be created in: ':'Será criada em: ')+folderPathLabel(currentFolderId);
+    parentLine.textContent=(en?'Will be created in: ':'Será criada em: ')+scopePathLabel(scopeCurrentFolder());
   }
   document.getElementById('folder-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('folder-name').focus(),100);
@@ -4906,33 +5037,37 @@ function saveFolder(){
   const name=document.getElementById('folder-name').value.trim();
   const icon=(document.getElementById('folder-icon').value||'').trim()||'📁';
   if(!name){toast(en?'Folder name is required!':'Nome da pasta obrigatório!');return;}
+  const arr=scopeFolderArr();
   if(editingFolderId){
-    const f=folderById(editingFolderId);
+    const f=folderById(editingFolderId,arr);
     if(f){f.name=name;f.icon=icon;logActivity('edit',name,'📁');}
   }else{
-    docFolders.push({id:'f'+Date.now().toString(36),name,icon,parentId:currentFolderId});
+    arr.push({id:'f'+Date.now().toString(36),name,icon,parentId:scopeCurrentFolder()});
     logActivity('add',name,'📁');
   }
-  closeFolderModal();renderDocs();
+  const sc=folderScope;
+  closeFolderModal();rerenderScope(sc);
   toast(editingFolderId?(en?'Folder renamed ✓':'Pasta renomeada ✓'):(en?'Folder created ✓':'Pasta criada ✓'));
   markUnsaved();
 }
-function deleteFolder(id){
+function deleteFolder(id,scope='doc'){
   const en=currentLang==='en';
-  const f=folderById(id);if(!f)return;
-  const c2=folderDirectCounts(id);
+  const arr=scopeFolderArr(scope),items=scopeItems(scope);
+  const f=folderById(id,arr);if(!f)return;
+  const c2=folderDirectCounts(id,arr,items);
   const total=c2.docs+c2.folders;
-  const parentLabel=folderPathLabel(f.parentId||null);
+  const parentLabel=scopePathLabel(f.parentId||null,scope);
   const msg=total
     ?(en?`Delete "${f.name}"? Its ${c2.docs} document(s) and ${c2.folders} subfolder(s) move up to ${parentLabel}.`
         :`Apagar "${f.name}"? Os ${c2.docs} documento(s) e ${c2.folders} subpasta(s) passam para ${parentLabel}.`)
     :(en?`Delete folder "${f.name}"?`:`Apagar a pasta "${f.name}"?`);
   if(!confirm(msg))return;
-  documents.forEach(d=>{if((d.folderId||null)===id)d.folderId=f.parentId||null;});
-  docFolders.forEach(x=>{if(x.parentId===id)x.parentId=f.parentId||null;});
-  docFolders=docFolders.filter(x=>x.id!==id);
+  items.forEach(d=>{if((d.folderId||null)===id)d.folderId=f.parentId||null;});
+  arr.forEach(x=>{if(x.parentId===id)x.parentId=f.parentId||null;});
+  if(scope==='vault'){vaultFolders=vaultFolders.filter(x=>x.id!==id);if(currentVaultFolderId===id)currentVaultFolderId=f.parentId||null;}
+  else{docFolders=docFolders.filter(x=>x.id!==id);if(currentFolderId===id)currentFolderId=f.parentId||null;}
   logActivity('delete',f.name,'📁');
-  renderDocs();toast(en?'Folder deleted.':'Pasta apagada.');markUnsaved();
+  rerenderScope(scope);toast(en?'Folder deleted.':'Pasta apagada.');markUnsaved();
 }
 function openFolder(id){currentFolderId=id;renderDocs();}
 function goToFolder(id){currentFolderId=id;renderDocs();}
@@ -4950,17 +5085,22 @@ function populateFolderSelect(selectedId){
   sel.innerHTML=opts.join('');
   sel.value=selectedId||'';
 }
-function openMoveModal(docId){
-  movingDocId=docId;
+function openMoveModal(id,kind='doc'){
+  movingDocId=id;movingKind=kind;
   const en=currentLang==='en';
-  const d=documents.find(x=>x.id===docId);if(!d)return;
+  const arr=kind==='vault'?vaultFolders:docFolders;
+  const item=kind==='vault'?vault.find(x=>x.id===id):documents.find(x=>x.id===id);
+  if(!item)return;
   document.getElementById('move-modal-title').textContent=en?'📂 Move to...':'📂 Mover para...';
   document.getElementById('move-cancel-btn').textContent=en?'Cancel':'Cancelar';
-  document.getElementById('move-doc-name').textContent=`${getDocAutoIcon(d)} ${d.title}`;
-  const cur=d.folderId||null;
-  const list=[{id:null,label:en?'🏠 Documents (root)':'🏠 Documentos (raiz)',depth:0}];
+  document.getElementById('move-doc-name').textContent=kind==='vault'
+    ?`${item.icon&&item.icon!=='⭐'?item.icon:'🔐'} ${item.name}`
+    :`${getDocAutoIcon(item)} ${item.title}`;
+  const cur=item.folderId||null;
+  const rootLbl=kind==='vault'?(en?'🏠 Vault (root)':'🏠 Cofre (raiz)'):(en?'🏠 Documents (root)':'🏠 Documentos (raiz)');
+  const list=[{id:null,label:rootLbl,depth:0}];
   const walk=(parentId,depth)=>{
-    docFolders.filter(f=>(f.parentId||null)===parentId).forEach(f=>{
+    arr.filter(f=>(f.parentId||null)===parentId).forEach(f=>{
       list.push({id:f.id,label:`${f.icon||'📁'} ${f.name}`,depth});
       walk(f.id,depth+1);
     });
@@ -4977,12 +5117,184 @@ function openMoveModal(docId){
 }
 function closeMoveModal(){document.getElementById('move-overlay').classList.remove('open');movingDocId=null;}
 function confirmMoveDoc(folderId){
-  const d=documents.find(x=>x.id===movingDocId);if(!d)return;
-  d.folderId=folderId||null;
-  logActivity('edit',d.title,'📂');
-  closeMoveModal();renderDocs();
-  toast((currentLang==='en'?'Moved to ':'Movido para ')+folderPathLabel(folderId||null)+' ✓');
+  const kind=movingKind;
+  const item=kind==='vault'?vault.find(x=>x.id===movingDocId):documents.find(x=>x.id===movingDocId);
+  if(!item)return;
+  item.folderId=folderId||null;
+  logActivity('edit',kind==='vault'?item.name:item.title,'📂');
+  closeMoveModal();
+  rerenderScope(kind);
+  toast((currentLang==='en'?'Moved to ':'Movido para ')+scopePathLabel(folderId||null,kind)+' ✓');
   markUnsaved();
+}
+
+// ══ KIT DE EMERGÊNCIA ══
+function openEmergencyKit(){
+  const en=currentLang==='en';
+  const url=location.origin+location.pathname;
+  const now=new Date().toLocaleDateString(en?'en-GB':'pt-PT',{year:'numeric',month:'long',day:'numeric'});
+  const L=en?{
+    title:'EMERGENCY KIT',app:'CipherVault — encrypted personal vault',
+    intro:'This sheet explains how to open my encrypted vault. Keep it somewhere safe — it does NOT contain the master password.',
+    s1:'1. What this is',
+    p1:'I keep my passwords, documents, bank cards and 2FA codes inside a single encrypted file named <b>ciphervault.vault</b>. The file is useless without the master password: it is protected with AES-256-GCM encryption. No company or server holds a copy — it exists only where I saved it.',
+    s2:'2. Where the file is',
+    p2:'Write here every place a copy is kept (drive, external disk, cloud folder):',
+    s3:'3. How to open it',
+    p3:'On any computer or phone with a browser:',
+    st1:'Open this address:',
+    st2:'Click <b>“Open Vault”</b>.',
+    st3:'Select the <b>.vault</b> file.',
+    st4:'Type the master password and confirm.',
+    note:'No internet is needed after the page loads once. Nothing is uploaded anywhere.',
+    s4:'4. Master password',
+    p4:'Write it by hand below, or store this sheet next to where it is written. Never save it on a computer.',
+    warn:'⚠️ Without the master password there is NO recovery. Nobody — not even the app creators — can open the file.',
+    gen:'Generated on',keep:'Keep this sheet with important documents.',print:'Print'
+  }:{
+    title:'KIT DE EMERGÊNCIA',app:'CipherVault — cofre pessoal encriptado',
+    intro:'Esta folha explica como abrir o meu cofre encriptado. Guarda-a em lugar seguro — NÃO contém a palavra-passe mestra.',
+    s1:'1. O que é isto',
+    p1:'Guardo as minhas passwords, documentos, cartões bancários e códigos 2FA dentro de um único ficheiro encriptado chamado <b>ciphervault.vault</b>. O ficheiro é inútil sem a palavra-passe mestra: está protegido com encriptação AES-256-GCM. Nenhuma empresa ou servidor tem cópia — só existe onde eu o guardei.',
+    s2:'2. Onde está o ficheiro',
+    p2:'Escreve aqui todos os sítios onde existe uma cópia (pen, disco externo, pasta na cloud):',
+    s3:'3. Como abrir',
+    p3:'Em qualquer computador ou telemóvel com browser:',
+    st1:'Abrir este endereço:',
+    st2:'Clicar em <b>“Abrir Cofre”</b>.',
+    st3:'Selecionar o ficheiro <b>.vault</b>.',
+    st4:'Escrever a palavra-passe mestra e confirmar.',
+    note:'Não é preciso internet depois de a página abrir uma vez. Nada é enviado para lado nenhum.',
+    s4:'4. Palavra-passe mestra',
+    p4:'Escreve-a à mão em baixo, ou guarda esta folha junto ao sítio onde ela está escrita. Nunca a guardes num computador.',
+    warn:'⚠️ Sem a palavra-passe mestra NÃO há recuperação. Ninguém — nem os criadores da app — consegue abrir o ficheiro.',
+    gen:'Gerado a',keep:'Guarda esta folha junto aos documentos importantes.',print:'Imprimir'
+  };
+  const line='<div style="border-bottom:1px solid #999;height:26px;margin:9px 0"></div>';
+  const html=`<!DOCTYPE html><html lang="${en?'en':'pt'}"><head><meta charset="UTF-8"><title>${L.title} — CipherVault</title>
+<style>
+ @page{size:A4;margin:16mm}
+ *{box-sizing:border-box}
+ body{font-family:Georgia,'Times New Roman',serif;color:#111;background:#fff;margin:0;padding:26px;line-height:1.55;font-size:12.5pt}
+ .wrap{max-width:760px;margin:0 auto}
+ .hd{border-bottom:3px solid #111;padding-bottom:12px;margin-bottom:18px}
+ h1{margin:0;font-size:23pt;letter-spacing:1px}
+ .sub{font-size:10.5pt;color:#555;margin-top:4px}
+ .intro{background:#f3f3f0;border-left:4px solid #111;padding:11px 14px;font-size:11pt;margin-bottom:20px}
+ h2{font-size:13pt;margin:20px 0 7px;border-bottom:1px solid #bbb;padding-bottom:4px}
+ p{margin:7px 0}
+ ol{margin:7px 0 7px 20px;padding:0}
+ li{margin:5px 0}
+ .url{font-family:'Courier New',monospace;font-size:12pt;font-weight:bold;background:#f3f3f0;padding:7px 10px;display:inline-block;margin-top:5px;border:1px solid #ccc;word-break:break-all}
+ .note{font-size:10pt;color:#555;font-style:italic;margin-top:7px}
+ .pwbox{border:2px dashed #111;padding:16px;margin-top:10px;min-height:62px}
+ .warn{background:#fff4f4;border:2px solid #c00;padding:11px 14px;margin-top:20px;font-size:11pt;font-weight:bold;color:#900}
+ .ft{margin-top:26px;border-top:1px solid #bbb;padding-top:9px;font-size:9.5pt;color:#666;display:flex;justify-content:space-between;gap:12px}
+ .pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui,sans-serif;font-size:13px;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
+ @media print{.pbtn{display:none}body{padding:0}}
+</style></head><body>
+<button class="pbtn" onclick="window.print()">🖨️ ${L.print}</button>
+<div class="wrap">
+  <div class="hd"><h1>🆘 ${L.title}</h1><div class="sub">${L.app}</div></div>
+  <div class="intro">${L.intro}</div>
+  <h2>${L.s1}</h2><p>${L.p1}</p>
+  <h2>${L.s2}</h2><p>${L.p2}</p>${line}${line}${line}
+  <h2>${L.s3}</h2><p>${L.p3}</p>
+  <ol>
+    <li>${L.st1}<br><span class="url">${esc(url)}</span></li>
+    <li>${L.st2}</li><li>${L.st3}</li><li>${L.st4}</li>
+  </ol>
+  <p class="note">${L.note}</p>
+  <h2>${L.s4}</h2><p>${L.p4}</p><div class="pwbox"></div>
+  <div class="warn">${L.warn}</div>
+  <div class="ft"><span>${L.gen} ${now}</span><span>${L.keep}</span></div>
+</div></body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast(en?'Allow pop-ups to open the kit.':'Permite pop-ups para abrir o kit.');return;}
+  w.document.write(html);w.document.close();
+  toast(en?'Emergency kit ready — print it 🖨️':'Kit de emergência pronto — imprime 🖨️');
+}
+
+// ══ ARRASTAR FICHEIROS PARA A JANELA ══
+let dragDepth=0;
+function dropAllowed(){
+  return !!masterKey&&!presentationMode&&!document.querySelector('.modal-overlay.open');
+}
+function showDropOverlay(){
+  const o=document.getElementById('drop-overlay');if(!o)return;
+  const en=currentLang==='en';
+  document.getElementById('drop-title').textContent=en?'Drop to add document':'Larga para adicionar documento';
+  document.getElementById('drop-sub').textContent=(en?'Into: ':'Em: ')+folderPathLabel(currentFolderId,docFolders);
+  o.classList.add('show');
+}
+function hideDropOverlay(){dragDepth=0;const o=document.getElementById('drop-overlay');if(o)o.classList.remove('show');}
+window.addEventListener('dragenter',e=>{
+  if(!dropAllowed()||!e.dataTransfer||![...e.dataTransfer.types].includes('Files'))return;
+  e.preventDefault();dragDepth++;showDropOverlay();
+});
+window.addEventListener('dragover',e=>{
+  if(!dropAllowed()||!e.dataTransfer||![...e.dataTransfer.types].includes('Files'))return;
+  e.preventDefault();e.dataTransfer.dropEffect='copy';
+});
+window.addEventListener('dragleave',e=>{
+  if(!document.getElementById('drop-overlay')?.classList.contains('show'))return;
+  dragDepth--;if(dragDepth<=0)hideDropOverlay();
+});
+window.addEventListener('drop',e=>{
+  const o=document.getElementById('drop-overlay');
+  if(!o||!o.classList.contains('show'))return;
+  e.preventDefault();hideDropOverlay();
+  const file=e.dataTransfer?.files?.[0];if(!file)return;
+  const en=currentLang==='en';
+  if(file.size>12*1024*1024){toast(en?'File too large (max ~12 MB).':'Ficheiro demasiado grande (máx. ~12 MB).');return;}
+  switchTab('docs');
+  openDocModal();
+  const base=file.name.replace(/\.[^.]+$/,'');
+  const ti=document.getElementById('doc-title-input');if(ti)ti.value=base;
+  readDocFile(file);
+  if(e.dataTransfer.files.length>1)toast(en?'Only the first file was added.':'Só o primeiro ficheiro foi adicionado.');
+});
+
+// ══ PASTAS DO COFRE ══
+function openVaultFolder(id){currentVaultFolderId=id;renderCards();}
+function goToVaultFolder(id){currentVaultFolderId=id;currentCat='all';currentTag='';
+  const ct=document.getElementById('content-title');if(ct)ct.textContent=t('allEntries');
+  renderSidebar();renderCards();}
+function renderVaultBreadcrumb(filterActive){
+  const bc=document.getElementById('vault-breadcrumb');if(!bc)return;
+  const en=currentLang==='en';
+  const nf=document.getElementById('vault-newfolder-txt');if(nf)nf.textContent=en?'New folder':'Nova pasta';
+  if(filterActive){
+    bc.innerHTML=`<span style="font-size:.66rem;color:var(--text-muted)">🔎 ${en?'Showing matches from all folders':'A mostrar resultados de todas as pastas'}</span>`;
+    return;
+  }
+  const path=folderPath(currentVaultFolderId,vaultFolders);
+  let html=`<button class="crumb${currentVaultFolderId?'':' current'}" ${currentVaultFolderId?'onclick="goToVaultFolder(null)"':''}>🏠 ${en?'Vault':'Cofre'}</button>`;
+  path.forEach((f,i)=>{
+    const isLast=i===path.length-1;
+    html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`onclick="goToVaultFolder('${f.id}')"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
+  });
+  if(currentVaultFolderId){
+    html+=`<span style="margin-left:auto;display:flex;gap:5px">
+      <button class="card-btn" onclick="openFolderModal('${currentVaultFolderId}','vault')" title="${en?'Rename':'Renomear'}">✏️</button>
+      <button class="card-btn danger" onclick="deleteFolder('${currentVaultFolderId}','vault')" title="${en?'Delete folder':'Apagar pasta'}">🗑️</button>
+    </span>`;
+  }
+  bc.innerHTML=html;
+}
+function populateEntryFolderSelect(selectedId){
+  const sel=document.getElementById('entry-folder');if(!sel)return;
+  const en=currentLang==='en';
+  const opts=[`<option value="">${en?'🏠 Vault (root)':'🏠 Cofre (raiz)'}</option>`];
+  const walk=(parentId,depth)=>{
+    vaultFolders.filter(f=>(f.parentId||null)===parentId).forEach(f=>{
+      opts.push(`<option value="${f.id}">${'　'.repeat(depth)}${f.icon||'📁'} ${esc(f.name)}</option>`);
+      walk(f.id,depth+1);
+    });
+  };
+  walk(null,1);
+  sel.innerHTML=opts.join('');
+  sel.value=selectedId||'';
 }
 
 // ══ ÍCONES AUTOMÁTICOS DE DOCUMENTOS ══
@@ -5175,13 +5487,115 @@ const CVQR=(function(){
   return {matrix};
 })();
 
+// ══ REDES WIFI (guardadas à parte das passwords) ══
+function renderWifiBar(){
+  const wrap=document.getElementById('tabs-wifi');if(!wrap)return;
+  const en=currentLang==='en';
+  const chips=wifiNets.slice(0,4).map(n=>`<button class="wifi-chip" onclick="openWifiNetQR('${n.id}')" title="${(en?'Share WiFi: ':'Partilhar WiFi: ')+esc(n.ssid)}">📶 ${esc(n.name||n.ssid)}</button>`).join('');
+  const manageLbl=wifiNets.length?(en?'Manage':'Gerir'):(en?'Add WiFi':'Add WiFi');
+  wrap.innerHTML=chips+`<button class="wifi-chip add" onclick="openWifiManager()" title="${en?'Manage WiFi networks':'Gerir redes WiFi'}">${wifiNets.length?'⚙️':'📶＋'} <span>${manageLbl}</span></button>`;
+}
+function openWifiManager(){
+  const en=currentLang==='en';
+  document.getElementById('wifimgr-title').textContent=en?'📶 WiFi Networks':'📶 Redes WiFi';
+  document.getElementById('wifimgr-intro').textContent=en
+    ?'Stored separately from your passwords. Tap a network to generate the QR your guests scan with their camera.'
+    :'Guardadas à parte das tuas passwords. Clica numa rede para gerar o QR que as visitas leem com a câmara.';
+  document.getElementById('wf-name-lbl').innerHTML=(en?'Label':'Nome')+' <span style="font-size:.56rem;color:var(--text-muted)">('+(en?'e.g. Home, Office':'ex: Casa, Escritório')+')</span>';
+  document.getElementById('wf-ssid-lbl').textContent=en?'Network name (SSID)':'Nome da rede (SSID)';
+  document.getElementById('wf-pw-lbl').textContent=en?'Network password':'Password da rede';
+  document.getElementById('wf-open-lbl').textContent=en?'Open network (no password)':'Rede aberta (sem password)';
+  document.getElementById('wifimgr-close-btn').textContent=en?'Close':'Fechar';
+  resetWifiForm();
+  renderWifiList();
+  document.getElementById('wifimgr-overlay').classList.add('open');
+}
+function closeWifiManager(){document.getElementById('wifimgr-overlay').classList.remove('open');editingWifiId=null;}
+function renderWifiList(){
+  const list=document.getElementById('wifimgr-list');if(!list)return;
+  const en=currentLang==='en';
+  if(!wifiNets.length){
+    list.innerHTML=`<div style="font-size:.7rem;color:var(--text-muted);text-align:center;padding:10px 0">${en?'No networks saved yet.':'Ainda sem redes guardadas.'}</div>`;
+    return;
+  }
+  list.innerHTML=wifiNets.map(n=>`<div class="wifi-row">
+    <span style="font-size:1.1rem">📶</span>
+    <div class="wifi-row-name">
+      <div class="wifi-row-title">${esc(n.name||n.ssid)}</div>
+      <div class="wifi-row-ssid">${esc(n.ssid)}${n.sec==='nopass'?' · '+(en?'open':'aberta'):''}</div>
+    </div>
+    <button class="card-btn" onclick="openWifiNetQR('${n.id}')" title="QR">📷</button>
+    <button class="card-btn" onclick="editWifiNet('${n.id}')" title="${en?'Edit':'Editar'}">✏️</button>
+    <button class="card-btn danger" onclick="deleteWifiNet('${n.id}')" title="${en?'Delete':'Apagar'}">🗑️</button>
+  </div>`).join('');
+}
+function resetWifiForm(){
+  editingWifiId=null;
+  const en=currentLang==='en';
+  ['wf-name','wf-ssid','wf-pw'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const op=document.getElementById('wf-open');if(op)op.checked=false;
+  const pw=document.getElementById('wf-pw');if(pw)pw.disabled=false;
+  const ft=document.getElementById('wifimgr-form-title');if(ft)ft.textContent=en?'Add network':'Adicionar rede';
+  const sb=document.getElementById('wf-save-btn');if(sb)sb.textContent=en?'Save network':'Guardar rede';
+}
+function editWifiNet(id){
+  const n=wifiNets.find(x=>x.id===id);if(!n)return;
+  editingWifiId=id;
+  const en=currentLang==='en';
+  document.getElementById('wf-name').value=n.name||'';
+  document.getElementById('wf-ssid').value=n.ssid||'';
+  document.getElementById('wf-pw').value=n.pw||'';
+  const op=document.getElementById('wf-open');
+  op.checked=n.sec==='nopass';
+  document.getElementById('wf-pw').disabled=op.checked;
+  document.getElementById('wifimgr-form-title').textContent=en?'Edit network':'Editar rede';
+  document.getElementById('wf-save-btn').textContent=en?'Save changes':'Guardar alterações';
+  document.getElementById('wf-ssid').focus();
+}
+function saveWifiNet(){
+  const en=currentLang==='en';
+  const name=document.getElementById('wf-name').value.trim();
+  const ssid=document.getElementById('wf-ssid').value.trim();
+  const isOpen=document.getElementById('wf-open').checked;
+  const pw=isOpen?'':document.getElementById('wf-pw').value;
+  if(!ssid){toast(en?'Network name (SSID) is required!':'Nome da rede (SSID) obrigatório!');return;}
+  if(!isOpen&&!pw){toast(en?'Enter the password or tick "open network".':'Escreve a password ou marca "rede aberta".');return;}
+  if(editingWifiId){
+    const n=wifiNets.find(x=>x.id===editingWifiId);
+    if(n){n.name=name;n.ssid=ssid;n.pw=pw;n.sec=isOpen?'nopass':'WPA';}
+    logActivity('edit',name||ssid,'📶');
+  }else{
+    wifiNets.push({id:'w'+Date.now().toString(36),name,ssid,pw,sec:isOpen?'nopass':'WPA'});
+    logActivity('add',name||ssid,'📶');
+  }
+  resetWifiForm();renderWifiList();renderWifiBar();
+  toast(en?'Network saved ✓':'Rede guardada ✓');
+  markUnsaved();
+}
+function deleteWifiNet(id){
+  const n=wifiNets.find(x=>x.id===id);if(!n)return;
+  const en=currentLang==='en';
+  if(!confirm(en?`Delete "${n.name||n.ssid}"?`:`Apagar "${n.name||n.ssid}"?`))return;
+  wifiNets=wifiNets.filter(x=>x.id!==id);
+  logActivity('delete',n.name||n.ssid,'📶');
+  if(editingWifiId===id)resetWifiForm();
+  renderWifiList();renderWifiBar();
+  toast(en?'Network deleted.':'Rede apagada.');
+  markUnsaved();
+}
+
 // ══ WIFI QR ══
 function escWifiField(s){return String(s).replace(/([\\;,:"])/g,'\\$1');}
-function isWifiEntry(e){return /wi-?fi|wlan|router/i.test(e.name||'')||/wi-?fi/i.test((e.tags||[]).join(' '));}
+function isWifiEntry(e){if(e.isWifi===true)return true;if(e.isWifi===false)return false;return /wi-?fi|wlan|router|hotspot|\bssid\b|\bmodem\b|\brede\b|\bnetwork\b/i.test(e.name||'')||/wi-?fi|rede/i.test((e.tags||[]).join(' '));}
 function openWifiQR(id){
   const e=vault.find(v=>v.id===id);if(!e)return;
-  const ssid=(e.user&&e.user.trim())?e.user.trim():e.name;
-  const pass=e.pw||'';
+  showWifiQR((e.user&&e.user.trim())?e.user.trim():e.name,e.pw||'');
+}
+function openWifiNetQR(netId){
+  const n=wifiNets.find(x=>x.id===netId);if(!n)return;
+  showWifiQR(n.ssid,n.sec==='nopass'?'':(n.pw||''),n.name);
+}
+function showWifiQR(ssid,pass,label){
   const payload=pass
     ?`WIFI:T:WPA;S:${escWifiField(ssid)};P:${escWifiField(pass)};;`
     :`WIFI:T:nopass;S:${escWifiField(ssid)};;`;
@@ -5199,7 +5613,7 @@ function openWifiQR(id){
   for(let r=0;r<m.length;r++)for(let cc=0;cc<m.length;cc++)
     if(m[r][cc])ctx.fillRect((cc+quiet)*scale,(r+quiet)*scale,scale,scale);
   document.getElementById('qr-title').textContent=currentLang==='en'?'📶 WiFi QR Code':'📶 QR Code do WiFi';
-  document.getElementById('qr-ssid').textContent=`📡 ${ssid}`;
+  document.getElementById('qr-ssid').textContent=`📡 ${ssid}`+(label&&label!==ssid?`  ·  ${label}`:'');
   document.getElementById('qr-hint').textContent=currentLang==='en'
     ?'Point the phone camera at the code to connect automatically'
     :'Aponta a câmara do telemóvel para ligar automaticamente';
@@ -5220,7 +5634,7 @@ function setDocValidityFilter(filter){
 
 // ══ PRESENTATION MODE ══
 let presentationMode=false;
-let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null,realTotp=null,realCustomCats=null,realDocFolders=null;
+let realVault=null,realNotes=null,realBankCards=null,realDocuments=null,realTrash=null,realTotp=null,realCustomCats=null,realDocFolders=null,realVaultFolders=null,realWifiNets=null;
 const DEMO_DATA={
   vault:[
     {id:'d1',name:'Gmail',cat:'email',user:'exemplo@gmail.com',pw:'Demo#2026!',url:'https://gmail.com',icon:'📧',fav:true,tags:['pessoal'],createdAt:Date.now()-86400000*5,pwUpdated:Date.now()-86400000*5,archived:false,order:0},
@@ -5242,6 +5656,12 @@ const DEMO_DATA={
     {id:'doc2',title:'CV 2026',cat:'trabalho',date:'2026-01-01',expiry:'',desc:'Versão atualizada Janeiro 2026',file:null,createdAt:Date.now()-86400000*60,folderId:'fd1'},
     {id:'doc3',title:'Fatura Cliente A',cat:'trabalho',date:'2026-06-15',expiry:'',desc:'Serviços de junho — pago',file:null,createdAt:Date.now()-86400000*20,folderId:'fd2'},
   ],
+  vaultFolders:[
+    {id:'vf1',name:'Trabalho',icon:'💼',parentId:null},
+  ],
+  wifiNets:[
+    {id:'w1',name:'Casa',ssid:'CasaSilva_5G',pw:'ExemploDemo2026',sec:'WPA'},
+  ],
   docFolders:[
     {id:'fd1',name:'Empresa',icon:'🏢',parentId:null},
     {id:'fd2',name:'Rendimentos',icon:'💶',parentId:'fd1'},
@@ -5256,8 +5676,8 @@ function enterPresentationMode(){
   if(presentationMode)return;
   presentationMode=true;
   demoFromLock=!masterKey;
-  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];realTotp=[...totp];realCustomCats=[...customCats];realDocFolders=[...docFolders];
-  vault=JSON.parse(JSON.stringify(DEMO_DATA.vault));notes=JSON.parse(JSON.stringify(DEMO_DATA.notes));bankCards=JSON.parse(JSON.stringify(DEMO_DATA.bankCards));documents=JSON.parse(JSON.stringify(DEMO_DATA.documents));trash=[];totp=JSON.parse(JSON.stringify(DEMO_DATA.totp));customCats=[];docFolders=JSON.parse(JSON.stringify(DEMO_DATA.docFolders||[]));currentFolderId=null;
+  realVault=[...vault];realNotes=[...notes];realBankCards=[...bankCards];realDocuments=[...documents];realTrash=[...trash];realTotp=[...totp];realCustomCats=[...customCats];realDocFolders=[...docFolders];realVaultFolders=[...vaultFolders];realWifiNets=[...wifiNets];
+  vault=JSON.parse(JSON.stringify(DEMO_DATA.vault));notes=JSON.parse(JSON.stringify(DEMO_DATA.notes));bankCards=JSON.parse(JSON.stringify(DEMO_DATA.bankCards));documents=JSON.parse(JSON.stringify(DEMO_DATA.documents));trash=[];totp=JSON.parse(JSON.stringify(DEMO_DATA.totp));customCats=[];docFolders=JSON.parse(JSON.stringify(DEMO_DATA.docFolders||[]));currentFolderId=null;vaultFolders=JSON.parse(JSON.stringify(DEMO_DATA.vaultFolders||[]));currentVaultFolderId=null;wifiNets=JSON.parse(JSON.stringify(DEMO_DATA.wifiNets||[]));
   document.getElementById('presentation-banner').classList.add('show');
   document.getElementById('pres-label').textContent=currentLang==='en'?'DEMO MODE — sample data, nothing is saved':'MODO DEMONSTRAÇÃO — dados fictícios, nada é guardado';
   document.querySelector('.topbar').style.marginTop='44px';
@@ -5277,8 +5697,8 @@ function enterPresentationMode(){
 function exitPresentationMode(){
   if(!presentationMode)return;
   presentationMode=false;
-  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;totp=realTotp;customCats=realCustomCats;docFolders=realDocFolders||[];currentFolderId=null;
-  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;realTotp=null;realCustomCats=null;realDocFolders=null;
+  vault=realVault;notes=realNotes;bankCards=realBankCards;documents=realDocuments;trash=realTrash;totp=realTotp;customCats=realCustomCats;docFolders=realDocFolders||[];currentFolderId=null;vaultFolders=realVaultFolders||[];currentVaultFolderId=null;wifiNets=realWifiNets||[];
+  realVault=null;realNotes=null;realBankCards=null;realDocuments=null;realTrash=null;realTotp=null;realCustomCats=null;realDocFolders=null;realVaultFolders=null;realWifiNets=null;
   document.getElementById('presentation-banner').classList.remove('show');
   document.querySelector('.topbar').style.marginTop='';
   if(demoFromLock){
@@ -5301,7 +5721,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -5447,7 +5867,7 @@ function openReadMode(id){
   let actHtml='';
   if(entry.pw)actHtml+=`<button class="btn btn-gold" onclick="document.getElementById('read-pw').textContent=document.getElementById('read-pw').classList.contains('masked')?'${esc(entry.pw)}':'••••••••••••';document.getElementById('read-pw').classList.toggle('masked')">${currentLang==='en'?'Show/Hide Password':'Mostrar/Esconder Password'}</button>`;
   if(entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="copyText('${esc(entry.pw)}','${t('pwCopied')}')">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
-  if(isWifiEntry(entry)&&entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
+  if(isWifiEntry(entry))actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
   if(entry.url)actHtml+=`<button class="btn btn-ghost" onclick="goToSiteEntry('${esc(entry.url)}','${esc(entry.pw||'')}')">${t('btnGoSite')}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();openShareModal('${entry.id}')">🔗 ${currentLang==='en'?'Share QR':'Partilhar QR'}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();editEntry('${entry.id}')">${t('btnEdit')}</button>`;
