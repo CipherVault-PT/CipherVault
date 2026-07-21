@@ -145,8 +145,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .content-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;}
 .content-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--text);}
 .header-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
-.search-wrap{position:relative;}
-.search-wrap input{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:9px 13px 9px 32px;border-radius:2px;outline:none;width:190px;transition:border-color .2s;}
+.search-wrap{position:relative;flex:1;max-width:320px;min-width:150px;}
+.search-wrap input{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:9px 34px 9px 32px;border-radius:2px;outline:none;width:190px;transition:border-color .2s;}
+#search-clear{position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:6px 8px;font-size:.8rem;line-height:1;border-radius:3px;transition:color .15s,background .15s;}
+#search-clear:hover{color:var(--accent);background:rgba(var(--accent-rgb),.1);}
 .search-wrap input:focus{border-color:var(--accent-dim);}
 .search-wrap svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);width:12px;height:12px;}
 .sort-select{background:var(--panel);border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;padding:9px 12px;border-radius:2px;outline:none;cursor:pointer;appearance:none;}
@@ -749,9 +751,9 @@ body::after{bottom:-32vmax;right:-24vmax;
   #app.visible{display:flex;flex-direction:column;}
 
   /* TOPBAR — esconde textos, só ícones */
-  .topbar{padding:8px 10px;gap:5px;flex-wrap:nowrap;overflow-x:auto;}
-  .topbar-logo{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--accent);letter-spacing:3px;}
-  .topbar-actions{gap:4px;flex-wrap:nowrap;flex-shrink:0;}
+  .topbar{padding:8px 10px;gap:5px 6px;flex-wrap:wrap;overflow-x:visible;}
+  .topbar-logo{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--accent);letter-spacing:1px;flex:0 0 auto;white-space:nowrap;}
+  .topbar-actions{gap:4px;flex-wrap:nowrap;flex:1 1 auto;min-width:0;overflow-x:auto;justify-content:flex-end;-webkit-overflow-scrolling:touch;}
   .topbar-actions button span{display:none;}
   .topbar-actions button{padding:7px 9px;font-size:.7rem;letter-spacing:0;flex-shrink:0;}
   .topbar-actions button svg{width:14px;height:14px;}
@@ -792,8 +794,9 @@ body::after{bottom:-32vmax;right:-24vmax;
   .content-header{flex-direction:column;align-items:stretch;gap:8px;margin-bottom:10px;}
   .content-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--text);}
   .header-controls{justify-content:space-between;flex-wrap:wrap;gap:6px;}
-  .search-wrap{flex:1;min-width:0;}
-  .search-wrap input{width:100%;font-size:.72rem;}
+  .search-wrap{flex:1 0 100%;max-width:none;min-width:0;order:99;}
+  .search-wrap input{width:100%;font-size:.8rem;padding:11px 44px 11px 32px;}
+  #search-clear{padding:11px 14px;font-size:1.05rem;}
 
   /* CARDS */
   .cards-grid{grid-template-columns:1fr;gap:8px;}
@@ -1133,7 +1136,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.1</span>
+      <span>CipherVault © 2026 · v5.3</span>
     </div>
   </div>
 </div>
@@ -1147,9 +1150,10 @@ body::after{bottom:-32vmax;right:-24vmax;
 
   <div class="topbar">
     <div class="topbar-logo">⬡ CIPHERVAULT</div>
-    <div class="search-wrap" style="flex:1;max-width:320px;">
+    <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="search-input" placeholder="Pesquisar em tudo..." id="search-placeholder" oninput="onSearchInput()" style="width:100%">
+      <input type="text" id="search-input" placeholder="Pesquisar em tudo..." oninput="onSearchInput()" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Escape'){closeGlobalSearch();this.blur();}" style="width:100%">
+      <button id="search-clear" onclick="closeGlobalSearch()" title="Limpar" style="display:none">✕</button>
     </div>
     <div class="topbar-actions">
       <button onclick="document.getElementById('csv-input-app').click()">
@@ -1395,7 +1399,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.1</span>
+      <span>CipherVault © 2026 · v5.3</span>
     </div>
   </div>
   </div>
@@ -1998,7 +2002,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='5.1';
+const APP_VERSION='5.3';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -3085,6 +3089,7 @@ function applySettingsLang(){
   setTxt('f-wifi-lbl',en2?'📶 This is a WiFi network (generates a shareable QR)':'📶 É uma rede WiFi (gera QR para partilhar)');
   setTxt('vault-newfolder-txt',en2?'New folder':'Nova pasta');
   setTxt('tb-kit-txt',en2?'Emergency kit':'Kit emergência');
+  const scb=document.getElementById('search-clear');if(scb)scb.title=en2?'Clear':'Limpar';
   renderWifiBar();
   try{renderQuickSettings();}catch(e){}
   const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
@@ -3660,7 +3665,10 @@ function markSaved(){
   if(btn)btn.classList.remove('has-changes');
 }
 function onSearchInput(){
-  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  const si=document.getElementById('search-input');
+  const q=si.value.toLowerCase().trim();
+  const clr=document.getElementById('search-clear');
+  if(clr)clr.style.display=si.value?'block':'none';
   const resultsEl=document.getElementById('global-search-results');
   const mainEl=document.querySelector('.main');
   if(!q){resultsEl.style.display='none';if(mainEl)mainEl.style.display='';return;}
@@ -3697,10 +3705,15 @@ function onSearchInput(){
   resultsEl.innerHTML=html;
 }
 function closeGlobalSearch(){
-  document.getElementById('search-input').value='';
-  document.getElementById('global-search-results').style.display='none';
+  const si=document.getElementById('search-input');
+  if(si){si.value='';si.blur();}
+  const clr=document.getElementById('search-clear');
+  if(clr)clr.style.display='none';
+  const resEl=document.getElementById('global-search-results');
+  if(resEl){resEl.style.display='none';resEl.innerHTML='';}
   const mainEl=document.querySelector('.main');
   if(mainEl)mainEl.style.display='';
+  window.scrollTo({top:0,behavior:'instant'});
 }
 function scrollToCard(id){
   const el=document.getElementById('card-'+id);
