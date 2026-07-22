@@ -403,6 +403,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ COFRE 2FA ══ */
+.t2-lock{display:flex;flex-direction:column;align-items:center;text-align:center;padding:44px 20px;border:1px solid var(--border);border-radius:10px;background:var(--card-glass);margin-top:14px;}
+.t2-lock-title{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--text);margin-top:14px;}
+.t2-lock-sub{font-size:.74rem;color:var(--text-muted);line-height:1.7;margin-top:8px;max-width:420px;}
+.rc-display{font-family:'JetBrains Mono',monospace;font-size:1.15rem;letter-spacing:3px;color:var(--accent);background:var(--bg);border:2px dashed var(--accent-dim);border-radius:6px;padding:18px 12px;text-align:center;word-break:break-all;margin:14px 0;}
+@media(max-width:768px){.rc-display{font-size:.92rem;letter-spacing:1px;padding:14px 8px;}.t2-lock{padding:30px 14px;}}
+
 /* ══ LINKS DE DESBLOQUEIO ══ */
 .unlock-link{background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--text-muted);cursor:pointer;padding:7px 9px;border-radius:3px;transition:color .15s,background .15s;}
 .unlock-link:hover{color:var(--accent);background:rgba(var(--accent-rgb),.09);}
@@ -794,6 +801,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     flex-direction:row;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
     padding:6px 8px;flex-wrap:nowrap;min-height:unset;height:auto;gap:4px;}
   .sidebar-section{display:none;}
+  #sidebar-cats{display:flex;flex-direction:row;flex-wrap:nowrap;gap:5px;}
   .cat-item{flex-direction:row;padding:6px 12px;border-left:none;border-bottom:none;
     white-space:nowrap;font-size:.58rem;gap:5px;border-radius:20px;
     flex-shrink:0;border:1px solid var(--border);}
@@ -805,7 +813,9 @@ body::after{bottom:-32vmax;right:-24vmax;
   /* CONTENT — scroll vertical */
   .content{padding:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
   .content-header{flex-direction:column;align-items:stretch;gap:8px;margin-bottom:10px;}
-  .content-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--text);}
+  .content-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);}
+  .content-header .btn,.content-header button{padding:9px 12px;font-size:.56rem;}
+  .view-toggle{flex-shrink:0;}
   .header-controls{justify-content:space-between;flex-wrap:wrap;gap:6px;}
   .search-wrap{flex:1 0 100%;max-width:none;min-width:0;order:99;}
   .search-wrap input{width:100%;font-size:.8rem;padding:11px 44px 11px 32px;}
@@ -813,6 +823,9 @@ body::after{bottom:-32vmax;right:-24vmax;
 
   /* CARDS */
   .cards-grid{grid-template-columns:1fr;gap:8px;}
+  .empty-state{padding:28px 14px;}
+  .empty-state svg{width:32px;height:32px;}
+  #totp-grid{grid-template-columns:1fr!important;}
   .entry-card{padding:14px;cursor:default;}
   .card-name{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--text);margin-bottom:11px;}
   .card-field-value{font-size:.75rem;}
@@ -1053,6 +1066,7 @@ body::after{bottom:-32vmax;right:-24vmax;
           <button class="btn btn-gold" onclick="submitOpenVault()" id="l-unlock-btn" style="width:100%;margin-top:14px">🔓 Desbloquear</button>
         </div>
         <div id="unlock-links" style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px"></div>
+        <div id="l-version" style="text-align:center;font-size:.56rem;color:var(--text-muted);letter-spacing:2px;margin-top:14px;opacity:.7"></div>
         <div class="lock-actions" style="margin-top:14px">
           <button class="btn btn-ghost" onclick="backToFileStep()" id="l-change-file-btn" style="width:100%">📂 Outro ficheiro</button>
         </div>
@@ -1149,7 +1163,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.8</span>
+      <span>CipherVault © 2026 · v6.4</span>
     </div>
   </div>
 </div>
@@ -1177,6 +1191,10 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button onclick="document.getElementById('csv-input-app').click()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span id="tb-import-txt">Importar CSV</span>
+      </button>
+      <button onclick="downloadBackupNow()" id="tb-backup-btn">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span id="tb-backup-txt">Descarregar cópia</span>
       </button>
       <button onclick="exportPDF()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1388,9 +1406,37 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header">
         <div class="content-title" id="totp-title">Autenticador 2FA</div>
-        <button class="btn btn-gold" onclick="openTotpModal()" id="totp-add-btn" style="flex:0;padding:8px 16px;font-size:.6rem;white-space:nowrap">+ Adicionar 2FA</button>
+        <button class="btn btn-gold" onclick="openTotpModal()" id="totp-add-btn" style="flex:0 0 auto;padding:8px 16px;font-size:.6rem;white-space:nowrap">+ Adicionar 2FA</button>
+        <button class="btn btn-ghost" onclick="open2faManager()" id="totp-shield-btn" style="flex:0 0 auto;padding:8px 14px;font-size:.6rem;white-space:nowrap">🛡️ <span id="totp-shield-txt">Proteção</span></button>
       </div>
       <div id="totp-info" style="font-size:.72rem;color:var(--text-muted);margin-top:6px"></div>
+      <div id="totp-locked" style="display:none">
+        <div class="t2-lock">
+          <div style="font-size:2.6rem;line-height:1">🔒</div>
+          <div class="t2-lock-title" id="t2-lock-title">Cofre 2FA protegido</div>
+          <div class="t2-lock-sub" id="t2-lock-sub">Os teus códigos estão encriptados com uma chave separada da chave mestra.</div>
+          <button class="btn btn-gold" id="t2-bio-btn" onclick="do2faBioUnlock()" style="display:none;width:100%;max-width:300px;padding:14px;margin-top:18px">👆 <span id="t2-bio-txt">Abrir com biometria</span></button>
+          <div id="t2-pin-wrap" style="display:none;margin-top:16px;width:100%;max-width:240px">
+            <input type="password" id="t2-pin-input" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off" oninput="on2faPinInput()"
+              style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:16px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none">
+          </div>
+          <div id="t2-rec-wrap" style="display:none;margin-top:16px;width:100%;max-width:360px">
+            <input type="text" id="t2-rec-input" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" oninput="on2faRecInput()" onkeydown="if(event.key==='Enter')do2faRecoveryUnlock()"
+              style="width:100%;text-align:center;font-size:.95rem;letter-spacing:2px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none;text-transform:uppercase">
+            <button class="btn btn-gold" onclick="do2faRecoveryUnlock()" id="t2-rec-btn" style="width:100%;margin-top:10px;padding:12px">Abrir cofre 2FA</button>
+          </div>
+          <div id="t2-err" style="font-size:.7rem;color:var(--red);min-height:18px;margin-top:10px;text-align:center"></div>
+          <div id="t2-links" style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
+        </div>
+      </div>
+      <div id="totp-setup" style="display:none">
+        <div class="t2-lock">
+          <div style="font-size:2.4rem;line-height:1">🛡️</div>
+          <div class="t2-lock-title" id="t2-setup-title">Protege o teu cofre 2FA</div>
+          <div class="t2-lock-sub" id="t2-setup-sub">Fecha este separador com um PIN próprio e uma chave que a palavra-passe mestra não abre.</div>
+          <button class="btn btn-gold" onclick="open2faSetup()" id="t2-setup-btn" style="max-width:300px;width:100%;padding:14px;margin-top:18px">Ativar proteção</button>
+        </div>
+      </div>
       <div id="totp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:14px"></div>
     </div>
   </div>
@@ -1400,7 +1446,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header">
         <div class="content-title" id="trash-title">Reciclagem</div>
-        <button class="btn btn-ghost" onclick="emptyTrash()" id="trash-empty-btn" style="flex:0;padding:8px 16px;font-size:.62rem;white-space:nowrap;display:none">🗑️ Esvaziar tudo</button>
+        <button class="btn btn-ghost" onclick="emptyTrash()" id="trash-empty-btn" style="flex:0 0 auto;padding:8px 16px;font-size:.62rem;white-space:nowrap;display:none">🗑️ Esvaziar tudo</button>
       </div>
       <div id="trash-info" style="font-size:.72rem;color:var(--text-muted);margin-top:6px"></div>
       <div id="trash-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:14px"></div>
@@ -1415,7 +1461,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.8</span>
+      <span>CipherVault © 2026 · v6.4</span>
     </div>
   </div>
   </div>
@@ -1639,7 +1685,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input id="pwa-emoji" maxlength="4" placeholder="🔒" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:9px 4px;border-radius:2px;outline:none">
         <input id="pwa-name" maxlength="24" placeholder="CipherVault" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
-        <button class="btn btn-gold" onclick="savePwaPrefs()" id="pwa-apply-btn" style="flex:0;padding:10px 16px">✓</button>
+        <button class="btn btn-gold" onclick="savePwaPrefs()" id="pwa-apply-btn" style="flex:0 0 auto;padding:10px 16px">✓</button>
       </div>
       <div id="pwa-note" style="font-size:.62rem;color:var(--text-muted);margin-top:8px;line-height:1.6">O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.</div>
     </div>
@@ -1658,7 +1704,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         <input id="catmgr-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:.95rem;padding:9px 4px;border-radius:2px;outline:none">
         <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
         <input type="color" id="catmgr-color" value="#4c8caf">
-        <button class="btn btn-gold" onclick="addCustomCat()" id="catmgr-add-btn" style="flex:0;padding:10px 16px">＋</button>
+        <button class="btn btn-gold" onclick="addCustomCat()" id="catmgr-add-btn" style="flex:0 0 auto;padding:10px 16px">＋</button>
       </div>
     </div>
 
@@ -1801,6 +1847,60 @@ body::after{bottom:-32vmax;right:-24vmax;
   </div>
 </div>
 
+<!-- 2FA SETUP MODAL -->
+<div class="modal-overlay" id="t2setup-overlay" onclick="if(event.target===this)close2faSetup()">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title" id="t2setup-title">🛡️ Proteger o cofre 2FA</div>
+    <div id="t2setup-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
+    <div class="form-group">
+      <label id="t2s-pin1-lbl">PIN do separador 2FA (4 dígitos)</label>
+      <input type="password" id="t2s-pin1" inputmode="numeric" maxlength="4" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace">
+    </div>
+    <div class="form-group">
+      <label id="t2s-pin2-lbl">Confirmar PIN</label>
+      <input type="password" id="t2s-pin2" inputmode="numeric" maxlength="4" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" onkeydown="if(event.key==='Enter')confirm2faSetup()">
+    </div>
+    <div id="t2s-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="confirm2faSetup()" id="t2s-ok-btn">Ativar</button>
+      <button class="btn btn-ghost" onclick="close2faSetup()" id="t2s-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2FA RECOVERY CODE MODAL -->
+<div class="modal-overlay" id="t2rec-overlay" onclick="event.stopPropagation()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="t2rec-title">🔑 Código de recuperação</div>
+    <div id="t2rec-intro" style="font-size:.74rem;color:var(--text);line-height:1.7"></div>
+    <div class="rc-display" id="t2rec-code">----</div>
+    <div id="t2rec-warn" style="font-size:.7rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="copyRecoveryCode()" id="t2rec-copy" style="flex:1;min-width:120px;padding:11px">📋 Copiar</button>
+      <button class="btn btn-ghost" onclick="printRecoveryCode()" id="t2rec-print" style="flex:1;min-width:120px;padding:11px">🖨️ Imprimir</button>
+    </div>
+    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.72rem;color:var(--text);line-height:1.5;margin-top:16px">
+      <input type="checkbox" id="t2rec-ack" onchange="document.getElementById('t2rec-done').disabled=!this.checked" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;margin-top:2px">
+      <span id="t2rec-ack-lbl">Guardei o código num sítio seguro</span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="closeRecoveryModal()" id="t2rec-done" disabled style="width:100%">Concluído</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2FA MANAGER MODAL -->
+<div class="modal-overlay" id="t2mgr-overlay" onclick="if(event.target===this)close2faManager()">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title" id="t2mgr-title">🛡️ Proteção do cofre 2FA</div>
+    <div id="t2mgr-status" style="font-size:.74rem;color:var(--text-muted);line-height:1.8;margin-bottom:16px"></div>
+    <div id="t2mgr-actions" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="close2faManager()" id="t2mgr-close" style="width:100%">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- LEGACY MODAL -->
 <div class="modal-overlay" id="legacy-overlay" onclick="if(event.target===this)closeLegacyModal()">
   <div class="modal" style="max-width:480px">
@@ -1882,7 +1982,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-gold" onclick="saveWifiNet()" id="wf-save-btn" style="flex:1">Guardar rede</button>
-        <button class="btn btn-ghost" onclick="resetWifiForm()" id="wf-clear-btn" style="flex:0;padding:11px 16px">✕</button>
+        <button class="btn btn-ghost" onclick="resetWifiForm()" id="wf-clear-btn" style="flex:0 0 auto;padding:11px 16px">✕</button>
       </div>
     </div>
     <div class="modal-actions" style="margin-top:16px">
@@ -2050,11 +2150,15 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='5.8';
+const APP_VERSION='6.4';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
-let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let legacyNote='';let legacyOwner='';let currentDocSort='added';let lastSavedAt=null;let totpCounters={};
+let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let legacyNote='';let legacyOwner='';
+let totpEnc=null,totpRecWrap=null,totpKey=null,totpUnlocked=false;
+const VAULT_FMT=2;
+const KNOWN_KEYS=['fmt','vault','notes','bankCards','activityLog','documents','trash','totp','customCats','docFolders','vaultFolders','wifiNets','legacyNote','legacyOwner','totpEnc','totpRecWrap'];
+let payloadExtras={},vaultReadOnly=false;let currentDocSort='added';let lastSavedAt=null;let totpCounters={};
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
@@ -2642,6 +2746,447 @@ async function maybePromptPinRenew(){
   setTimeout(()=>{if(masterKey&&!presentationMode)openPinSetup(true);},1200);
 }
 
+// ══ COFRE 2FA — CHAVE INDEPENDENTE DA CHAVE MESTRA ══
+const RC_ALPHABET='23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+const T2_MAX_TRIES=5,T2_PIN_ITER=600000,T2_REC_ITER=210000;
+function genRecoveryCode(){
+  const b=crypto.getRandomValues(new Uint8Array(20));
+  let s='';
+  for(let i=0;i<20;i++)s+=RC_ALPHABET[b[i]&31];
+  return s.match(/.{4}/g).join('-');
+}
+function rcNormalize(s){
+  return String(s||'').toUpperCase().split('').filter(ch=>RC_ALPHABET.includes(ch)).join('');
+}
+function rcValid(s){return rcNormalize(s).length===20;}
+async function deriveRecKey(code,salt){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode('cv2fa-rec:'+rcNormalize(code)),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:T2_REC_ITER,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function derive2faPinKey(pin,salt){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode('cv2fa-pin:'+pin),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:T2_PIN_ITER,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function importTotpKey(b64){
+  return crypto.subtle.importKey('raw',await b64ToU8(b64),{name:'AES-GCM'},false,['encrypt','decrypt']);
+}
+async function encryptTotpArray(){
+  if(!totpKey)return totpEnc;
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const bytes=new TextEncoder().encode(JSON.stringify(totp));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},totpKey,bytes));
+  return{v:1,iv:await u8ToB64(iv),data:await u8ToB64(ct)};
+}
+async function decryptTotpArray(key,blob){
+  if(!blob)return [];
+  const iv=await b64ToU8(blob.iv),ct=await b64ToU8(blob.data);
+  const out=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+  const arr=JSON.parse(new TextDecoder().decode(out));
+  return Array.isArray(arr)?arr:[];
+}
+// ── Ativar a proteção ──
+async function setup2faVault(pin){
+  const raw=crypto.getRandomValues(new Uint8Array(32));
+  const rawB64=await u8ToB64(raw);
+  totpKey=await importTotpKey(rawB64);
+  const code=genRecoveryCode();
+  const rSalt=crypto.getRandomValues(new Uint8Array(16));
+  const rKey=await deriveRecKey(code,rSalt);
+  const rw=await wrapSecret(rKey,rawB64);
+  totpRecWrap={salt:bytesToArr(rSalt),iv:rw.iv,wrapped:rw.wrapped};
+  totpEnc=await encryptTotpArray();
+  totpUnlocked=true;
+  session2faRaw=rawB64;
+  if(pin)await set2faPin(pin,rawB64);
+  markUnsaved();
+  return code;
+}
+async function set2faPin(pin,rawB64){
+  if(!rawB64){
+    if(!totpKey)return false;
+    rawB64=session2faRaw;
+  }
+  if(!rawB64)return false;
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const key=await derive2faPinKey(pin,salt);
+  const w=await wrapSecret(key,rawB64);
+  await idbSet('t2_pin',{salt:bytesToArr(salt),iv:w.iv,wrapped:w.wrapped,tries:0});
+  return true;
+}
+let session2faRaw=null;
+// ── Abrir ──
+async function open2faWithPin(pin){
+  let rec;try{rec=await idbGet('t2_pin');}catch(e){rec=null;}
+  if(!rec)return{gone:true};
+  try{
+    const key=await derive2faPinKey(pin,arrToBytes(rec.salt));
+    const rawB64=await unwrapSecret(key,rec);
+    rec.tries=0;await idbSet('t2_pin',rec);
+    return await finish2faUnlock(rawB64);
+  }catch(e){
+    rec.tries=(rec.tries||0)+1;
+    if(rec.tries>=T2_MAX_TRIES){await idbDel('t2_pin');return{blocked:true};}
+    await idbSet('t2_pin',rec);
+    return{left:T2_MAX_TRIES-rec.tries};
+  }
+}
+async function open2faWithRecovery(code){
+  if(!totpRecWrap)return{err:true};
+  if(!rcValid(code))return{invalid:true};
+  try{
+    const key=await deriveRecKey(code,arrToBytes(totpRecWrap.salt));
+    const rawB64=await unwrapSecret(key,totpRecWrap);
+    return await finish2faUnlock(rawB64);
+  }catch(e){return{wrong:true};}
+}
+async function open2faWithBio(){
+  let rec;try{rec=await idbGet('t2_bio');}catch(e){rec=null;}
+  if(!rec)return{gone:true};
+  let prf;
+  try{prf=await prfEval(rec.credId,rec.salt);}
+  catch(e){return{err:e&&e.name==='NotAllowedError'?'cancelled':'failed'};}
+  if(!prf)return{err:'failed'};
+  try{
+    const key=await prfToKey(prf);
+    const rawB64=await unwrapSecret(key,rec);
+    return await finish2faUnlock(rawB64);
+  }catch(e){return{err:'failed'};}
+}
+async function set2faBio(){
+  if(!session2faRaw)return{err:'locked'};
+  if(!await bioSupported())return{err:'unsupported'};
+  let cred;
+  try{
+    cred=await navigator.credentials.create({publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      rp:{name:'CipherVault 2FA',id:location.hostname},
+      user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'CipherVault-2FA',displayName:'CipherVault 2FA'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000,extensions:{prf:{}}
+    }});
+  }catch(e){return{err:e&&e.name==='NotAllowedError'?'cancelled':'create'};}
+  if(!cred)return{err:'create'};
+  const ext=cred.getClientExtensionResults?.();
+  if(ext&&ext.prf&&ext.prf.enabled===false)return{err:'noprf'};
+  const credId=bytesToArr(new Uint8Array(cred.rawId));
+  const salt=bytesToArr(crypto.getRandomValues(new Uint8Array(32)));
+  let prf;
+  try{prf=await prfEval(credId,salt);}catch(e){return{err:'noprf'};}
+  if(!prf)return{err:'noprf'};
+  const key=await prfToKey(prf);
+  const w=await wrapSecret(key,session2faRaw);
+  await idbSet('t2_bio',{credId,salt,iv:w.iv,wrapped:w.wrapped});
+  return{ok:true};
+}
+async function finish2faUnlock(rawB64){
+  totpKey=await importTotpKey(rawB64);
+  session2faRaw=rawB64;
+  totp=await decryptTotpArray(totpKey,totpEnc);
+  totpUnlocked=true;
+  return{ok:true};
+}
+function lock2faVault(){
+  totp=[];totpKey=null;totpUnlocked=false;session2faRaw=null;
+}
+async function clear2faDevice(){
+  try{await idbDel('t2_pin');}catch(e){}
+  try{await idbDel('t2_bio');}catch(e){}
+}
+async function check2faMismatch(){
+  try{
+    if(totpRecWrap)return;
+    const hasDev=(await idbGet('t2_pin'))||(await idbGet('t2_bio'));
+    if(!hasDev)return;
+    const en=currentLang==='en';
+    setTimeout(()=>{
+      alert(en
+        ?'⚠️ This device remembers a protected 2FA vault, but the file you just opened has no protection.\n\nThis usually means the file is an older copy — the one you saved after enabling protection may be somewhere else (check your Downloads folder).\n\nNothing was deleted from this file.'
+        :'⚠️ Este dispositivo tem memória de um cofre 2FA protegido, mas o ficheiro que acabaste de abrir não tem proteção nenhuma.\n\nNormalmente isto significa que este ficheiro é uma cópia mais antiga — o que gravaste depois de ativar a proteção pode estar noutro sítio (vê as Transferências).\n\nNada foi apagado deste ficheiro.');
+    },900);
+  }catch(e){}
+}
+function checkVaultFormat(){
+  if(!vaultReadOnly)return;
+  const en=currentLang==='en';
+  setTimeout(()=>{
+    alert(en
+      ?'⚠️ This vault was saved by a NEWER version of CipherVault.\n\nSaving from here would delete data this version does not understand. Saving is disabled until you update the app (reload the page twice).'
+      :'⚠️ Este cofre foi gravado por uma versão MAIS RECENTE do CipherVault.\n\nGravar a partir daqui apagaria dados que esta versão não entende. A gravação fica bloqueada até atualizares a app (recarrega a página duas vezes).');
+  },700);
+}
+async function has2faPin(){try{return !!(await idbGet('t2_pin'));}catch(e){return false;}}
+async function has2faBio(){try{return !!(await idbGet('t2_bio'));}catch(e){return false;}}
+
+// ══ COFRE 2FA — INTERFACE ══
+let t2Mode='pin',t2PendingCode=null,t2ReviewMode=false;
+function t2Err(msg){const e=document.getElementById('t2-err');if(e)e.textContent=msg||'';}
+async function render2faGate(){
+  const lockedEl=document.getElementById('totp-locked');
+  if(!lockedEl)return;
+  const en=currentLang==='en';
+  const setupEl=document.getElementById('totp-setup');
+  const grid=document.getElementById('totp-grid');
+  const addBtn=document.getElementById('totp-add-btn');
+  const info=document.getElementById('totp-info');
+  const shield=document.getElementById('totp-shield-btn');
+  const isProtected=!!totpRecWrap;
+  const locked=isProtected&&!totpUnlocked;
+  lockedEl.style.display=locked?'block':'none';
+  if(setupEl)setupEl.style.display=(!isProtected&&!presentationMode)?'block':'none';
+  if(grid)grid.style.display=locked?'none':'grid';
+  if(addBtn)addBtn.style.display=locked?'none':'';
+  if(info)info.style.display=locked?'none':'';
+  if(shield)shield.style.display=presentationMode?'none':'';
+  const st=document.getElementById('totp-shield-txt');
+  if(st)st.textContent=en?'Protection':'Proteção';
+  const sTitle=document.getElementById('t2-setup-title');
+  if(sTitle)sTitle.textContent=en?'Protect your 2FA vault':'Protege o teu cofre 2FA';
+  const sSub=document.getElementById('t2-setup-sub');
+  if(sSub)sSub.textContent=en
+    ?'Close this tab behind its own PIN, with a key the master password cannot open.'
+    :'Fecha este separador com um PIN próprio e uma chave que a palavra-passe mestra não abre.';
+  const sBtn=document.getElementById('t2-setup-btn');
+  if(sBtn)sBtn.textContent=en?'Enable protection':'Ativar proteção';
+  if(locked)await render2faUnlockPanel(true);
+}
+async function render2faUnlockPanel(reset){
+  const en=currentLang==='en';
+  const hasBio=(await has2faBio())&&(await bioSupported());
+  const hasPin=await has2faPin();
+  if(reset)t2Mode=hasBio?'bio':(hasPin?'pin':'rec');
+  if(t2Mode==='bio'&&!hasBio)t2Mode=hasPin?'pin':'rec';
+  if(t2Mode==='pin'&&!hasPin)t2Mode=hasBio?'bio':'rec';
+  document.getElementById('t2-lock-title').textContent=en?'2FA vault protected':'Cofre 2FA protegido';
+  document.getElementById('t2-lock-sub').textContent=en
+    ?'Your codes are encrypted with a key separate from the master password.'
+    :'Os teus códigos estão encriptados com uma chave separada da chave mestra.';
+  document.getElementById('t2-bio-txt').textContent=en?'Open with biometrics':'Abrir com biometria';
+  document.getElementById('t2-rec-btn').textContent=en?'Open 2FA vault':'Abrir cofre 2FA';
+  document.getElementById('t2-bio-btn').style.display=t2Mode==='bio'?'block':'none';
+  document.getElementById('t2-pin-wrap').style.display=t2Mode==='pin'?'block':'none';
+  document.getElementById('t2-rec-wrap').style.display=t2Mode==='rec'?'block':'none';
+  if(reset)t2Err('');
+  const parts=[];
+  if(t2Mode!=='bio'&&hasBio)parts.push(`<button class="unlock-link" onclick="set2faMode('bio')">👆 ${en?'Use biometrics':'Usar biometria'}</button>`);
+  if(t2Mode!=='pin'&&hasPin)parts.push(`<button class="unlock-link" onclick="set2faMode('pin')">🔢 ${en?'Enter PIN':'Introduzir PIN'}</button>`);
+  if(t2Mode!=='rec')parts.push(`<button class="unlock-link" onclick="set2faMode('rec')">🔑 ${en?'Recovery code':'Código de recuperação'}</button>`);
+  document.getElementById('t2-links').innerHTML=parts.join('<span class="link-sep">·</span>');
+  if(t2Mode==='pin'){const i=document.getElementById('t2-pin-input');if(i){i.value='';setTimeout(()=>i.focus(),120);}}
+  if(t2Mode==='rec'){const i=document.getElementById('t2-rec-input');if(i&&reset)i.value='';}
+}
+function set2faMode(m){t2Mode=m;t2Err('');render2faUnlockPanel(false);}
+async function on2faPinInput(){
+  const el=document.getElementById('t2-pin-input');
+  el.value=el.value.replace(/\D/g,'');
+  if(el.value.length!==4)return;
+  const pin=el.value;el.value='';
+  const en=currentLang==='en';
+  const res=await open2faWithPin(pin);
+  if(res.ok){after2faUnlock();return;}
+  if(res.blocked){t2Err(en?'Too many attempts. Use the recovery code.':'Demasiadas tentativas. Usa o código de recuperação.');t2Mode='rec';render2faUnlockPanel(false);return;}
+  if(res.gone){t2Mode='rec';render2faUnlockPanel(true);return;}
+  t2Err((en?'Wrong PIN. ':'PIN errado. ')+(en?`${res.left} left.`:`Restam ${res.left}.`));
+  setTimeout(()=>{const i=document.getElementById('t2-pin-input');if(i)i.focus();},60);
+}
+async function do2faBioUnlock(){
+  const en=currentLang==='en';
+  const res=await open2faWithBio();
+  if(res.ok){after2faUnlock();return;}
+  if(res.gone){render2faUnlockPanel(true);return;}
+  if(res.err==='cancelled')return;
+  t2Err(en?'Biometrics failed. Try the PIN.':'Biometria falhou. Tenta o PIN.');
+}
+function on2faRecInput(){
+  const el=document.getElementById('t2-rec-input');
+  const raw=rcNormalize(el.value).slice(0,20);
+  el.value=raw.length?raw.match(/.{1,4}/g).join('-'):'';
+}
+async function do2faRecoveryUnlock(){
+  const en=currentLang==='en';
+  const code=document.getElementById('t2-rec-input').value;
+  if(!rcValid(code)){t2Err(en?'The code must have 20 characters.':'O código tem de ter 20 caracteres.');return;}
+  const res=await open2faWithRecovery(code);
+  if(res.ok){after2faUnlock();return;}
+  t2Err(en?'Wrong recovery code.':'Código de recuperação errado.');
+}
+function after2faUnlock(){
+  t2Err('');
+  renderTotp();
+  toast(currentLang==='en'?'2FA vault open ✓':'Cofre 2FA aberto ✓');
+}
+// ── Configuração ──
+function open2faSetup(){
+  const en=currentLang==='en';
+  if(presentationMode){toast(en?'Not available in demo mode.':'Indisponível no modo demonstração.');return;}
+  document.getElementById('t2setup-title').textContent=en?'🛡️ Protect the 2FA vault':'🛡️ Proteger o cofre 2FA';
+  document.getElementById('t2setup-intro').textContent=en
+    ?'Choose a PIN for this device. You will then get a recovery code — the only other way in, and the only one that works on a new device.'
+    :'Escolhe um PIN para este dispositivo. A seguir recebes um código de recuperação — a única outra forma de entrar, e a única que funciona num dispositivo novo.';
+  document.getElementById('t2s-pin1-lbl').textContent=en?'2FA tab PIN (4 digits)':'PIN do separador 2FA (4 dígitos)';
+  document.getElementById('t2s-pin2-lbl').textContent=en?'Confirm PIN':'Confirmar PIN';
+  document.getElementById('t2s-ok-btn').textContent=en?'Enable':'Ativar';
+  document.getElementById('t2s-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  ['t2s-pin1','t2s-pin2'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('t2s-err').textContent='';
+  document.getElementById('t2setup-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('t2s-pin1').focus(),100);
+}
+function close2faSetup(){document.getElementById('t2setup-overlay').classList.remove('open');t2SetupMode='new';}
+async function confirm2faSetup(){
+  const en=currentLang==='en';
+  const p1=document.getElementById('t2s-pin1').value.replace(/\D/g,'');
+  const p2=document.getElementById('t2s-pin2').value.replace(/\D/g,'');
+  const err=document.getElementById('t2s-err');
+  if(p1.length!==4){err.textContent=en?'The PIN must have 4 digits.':'O PIN tem de ter 4 dígitos.';return;}
+  if(p1!==p2){err.textContent=en?'The PINs do not match.':'Os PINs não coincidem.';return;}
+  if(pinEnabledFlag()){
+    const rec=await getPinRec();
+    if(rec){
+      try{
+        const k=await pinKeyFrom(p1,arrToBytes(rec.salt));
+        await unwrapSecret(k,rec);
+        if(!confirm(en?'That is the same PIN you use to open the app. Using a different one is safer. Continue anyway?':'Esse é o mesmo PIN que usas para abrir a app. Usar um diferente é mais seguro. Continuar mesmo assim?'))return;
+      }catch(e){}
+    }
+  }
+  err.textContent='';
+  if(t2SetupMode==='change'){
+    const ok=await set2faPin(p1);
+    t2SetupMode='new';
+    close2faSetup();
+    toast(ok?(en?'PIN updated ✓':'PIN atualizado ✓'):(en?'Could not save the PIN.':'Não foi possível guardar o PIN.'));
+    return;
+  }
+  const code=await setup2faVault(p1);
+  close2faSetup();
+  renderTotp();
+  showRecoveryModal(code,false);
+  try{await saveFile();}catch(e){}
+}
+// ── Código de recuperação ──
+function showRecoveryModal(code,isReview){
+  const en=currentLang==='en';
+  t2PendingCode=code;t2ReviewMode=!!isReview;
+  document.getElementById('t2rec-title').textContent=en?'🔑 Recovery code':'🔑 Código de recuperação';
+  document.getElementById('t2rec-intro').textContent=isReview
+    ?(en?'This is your current recovery code. It opens the 2FA vault on any device.':'Este é o teu código de recuperação atual. Abre o cofre 2FA em qualquer dispositivo.')
+    :(en?'Protection is on. Write this code down now — it is the only way into the 2FA vault on a new device.':'Proteção ativada. Escreve este código agora — é a única forma de entrar no cofre 2FA num dispositivo novo.');
+  document.getElementById('t2rec-code').textContent=code;
+  document.getElementById('t2rec-warn').innerHTML=en
+    ?'Keep it on paper, away from the vault file. The master password does <b>not</b> open the 2FA vault.'
+    :'Guarda-o em papel, longe do ficheiro do cofre. A palavra-passe mestra <b>não</b> abre o cofre 2FA.';
+  document.getElementById('t2rec-copy').textContent=en?'📋 Copy':'📋 Copiar';
+  document.getElementById('t2rec-print').textContent=en?'🖨️ Print':'🖨️ Imprimir';
+  document.getElementById('t2rec-ack-lbl').textContent=en?'I saved the code somewhere safe':'Guardei o código num sítio seguro';
+  document.getElementById('t2rec-done').textContent=en?'Done':'Concluído';
+  const ack=document.getElementById('t2rec-ack');
+  ack.checked=!!isReview;
+  document.getElementById('t2rec-done').disabled=!isReview;
+  document.getElementById('t2rec-overlay').classList.add('open');
+}
+function closeRecoveryModal(){
+  document.getElementById('t2rec-overlay').classList.remove('open');
+  t2PendingCode=null;
+}
+function copyRecoveryCode(){
+  if(t2PendingCode)copyText(t2PendingCode,currentLang==='en'?'Code copied ✓':'Código copiado ✓');
+}
+function printRecoveryCode(){
+  if(!t2PendingCode)return;
+  const en=currentLang==='en';
+  const now=new Date().toLocaleDateString(en?'en-GB':'pt-PT',{year:'numeric',month:'long',day:'numeric'});
+  const html=`<!DOCTYPE html><html lang="${en?'en':'pt'}"><head><meta charset="UTF-8"><title>${en?'2FA recovery code':'Código de recuperação 2FA'}</title>
+<style>@page{size:A4;margin:20mm}body{font-family:Georgia,serif;color:#111;padding:30px;line-height:1.6}
+h1{font-size:19pt;border-bottom:2px solid #111;padding-bottom:8px}
+.code{font-family:'Courier New',monospace;font-size:20pt;font-weight:bold;letter-spacing:3px;border:2px dashed #111;padding:22px;text-align:center;margin:22px 0}
+.w{background:#fff4f4;border:2px solid #c00;padding:11px 14px;color:#900;font-weight:bold;font-size:11pt}
+.pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
+@media print{.pbtn{display:none}body{padding:0}}</style></head><body>
+<button class="pbtn" onclick="window.print()">🖨️ ${en?'Print':'Imprimir'}</button>
+<h1>${en?'2FA recovery code — CipherVault':'Código de recuperação 2FA — CipherVault'}</h1>
+<p>${en?'This code opens the 2FA vault (verification codes) on any device. It is independent from the master password.':'Este código abre o cofre 2FA (códigos de verificação) em qualquer dispositivo. É independente da palavra-passe mestra.'}</p>
+<div class="code">${esc(t2PendingCode)}</div>
+<div class="w">⚠️ ${en?'Without this code and without the device PIN, the 2FA codes cannot be recovered. Not even the master password opens them.':'Sem este código e sem o PIN do dispositivo, os códigos 2FA não podem ser recuperados. Nem a palavra-passe mestra os abre.'}</div>
+<p style="margin-top:22px;font-size:10pt;color:#666">${en?'Generated on':'Gerado a'} ${now}</p>
+</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast(en?'Allow pop-ups to print.':'Permite pop-ups para imprimir.');return;}
+  w.document.write(html);w.document.close();
+}
+
+// ══ COFRE 2FA — GESTOR ══
+let t2SetupMode='new';
+function open2faManager(){render2faManager();document.getElementById('t2mgr-overlay').classList.add('open');}
+function close2faManager(){document.getElementById('t2mgr-overlay').classList.remove('open');}
+async function render2faManager(){
+  const en=currentLang==='en';
+  document.getElementById('t2mgr-title').textContent=en?'🛡️ 2FA vault protection':'🛡️ Proteção do cofre 2FA';
+  document.getElementById('t2mgr-close').textContent=en?'Close':'Fechar';
+  const isProt=!!totpRecWrap, hasPin=await has2faPin(), hasBio=await has2faBio(), bioOk=await bioSupported();
+  const S=[],A=[];
+  const btn=(fn,label,danger)=>`<button class="btn ${danger?'btn-ghost':'btn-ghost'}" onclick="${fn}" style="width:100%;padding:12px;text-align:left;justify-content:flex-start${danger?';color:var(--red);border-color:var(--red)':''}">${label}</button>`;
+  if(!isProt){
+    S.push(en?'The 2FA vault is <b>not protected</b> — codes are encrypted with the master password only.':'O cofre 2FA <b>não está protegido</b> — os códigos estão encriptados apenas com a chave mestra.');
+    A.push(btn('close2faManager();open2faSetup()','🛡️ '+(en?'Enable protection':'Ativar proteção')));
+  }else if(!totpUnlocked){
+    S.push(en?'Protected and closed. Open the vault first to manage it.':'Protegido e fechado. Abre o cofre primeiro para o gerires.');
+  }else{
+    S.push('🛡️ <b style="color:var(--accent)">'+(en?'Protected':'Protegido')+'</b> — '+(en?'independent key':'chave independente'));
+    S.push('🔢 '+(hasPin?(en?'PIN set on this device':'PIN definido neste dispositivo'):(en?'No PIN on this device':'Sem PIN neste dispositivo')));
+    S.push('👆 '+(hasBio?(en?'Biometrics active here':'Biometria ativa aqui'):(bioOk?(en?'Biometrics available':'Biometria disponível'):(en?'No biometric sensor here':'Sem sensor biométrico aqui'))));
+    A.push(btn('regen2faRecovery()','🔑 '+(en?'New recovery code':'Novo código de recuperação')));
+    A.push(btn('change2faPin()','🔢 '+(hasPin?(en?'Change PIN':'Alterar PIN'):(en?'Set PIN':'Definir PIN'))));
+    if(bioOk||hasBio)A.push(btn('toggle2faBio()','👆 '+(hasBio?(en?'Remove biometrics':'Remover biometria'):(en?'Enable biometrics':'Ativar biometria'))));
+    A.push(btn('disable2faProtection()','⚠️ '+(en?'Disable protection':'Desativar proteção'),true));
+  }
+  document.getElementById('t2mgr-status').innerHTML=S.join('<br>');
+  document.getElementById('t2mgr-actions').innerHTML=A.join('');
+}
+async function regen2faRecovery(){
+  const en=currentLang==='en';
+  if(!session2faRaw)return;
+  if(!confirm(en?'A new code will be generated and the old one stops working. Continue?':'Vai ser gerado um código novo e o antigo deixa de funcionar. Continuar?'))return;
+  const code=genRecoveryCode();
+  const rSalt=crypto.getRandomValues(new Uint8Array(16));
+  const rKey=await deriveRecKey(code,rSalt);
+  const rw=await wrapSecret(rKey,session2faRaw);
+  totpRecWrap={salt:bytesToArr(rSalt),iv:rw.iv,wrapped:rw.wrapped};
+  markUnsaved();
+  close2faManager();
+  showRecoveryModal(code,false);
+}
+function change2faPin(){
+  t2SetupMode='change';
+  close2faManager();
+  open2faSetup();
+}
+async function toggle2faBio(){
+  const en=currentLang==='en';
+  if(await has2faBio()){
+    if(!confirm(en?'Remove biometric access to the 2FA vault on this device?':'Remover o acesso por biometria ao cofre 2FA neste dispositivo?'))return;
+    try{await idbDel('t2_bio');}catch(e){}
+    render2faManager();toast(en?'Biometrics removed.':'Biometria removida.');return;
+  }
+  toast(en?'Confirm with your biometrics...':'Confirma com a tua biometria...');
+  const res=await set2faBio();
+  if(res.ok){render2faManager();toast(en?'Biometrics enabled ✓':'Biometria ativada ✓');return;}
+  if(res.err==='cancelled')return;
+  if(res.err==='noprf'){toast(en?'This device cannot encrypt via biometrics.':'Este dispositivo não consegue encriptar por biometria.');try{await idbDel('t2_bio');}catch(e){}return;}
+  toast(en?'Could not enable biometrics.':'Não foi possível ativar a biometria.');
+}
+async function disable2faProtection(){
+  const en=currentLang==='en';
+  if(!totpUnlocked)return;
+  if(!confirm(en?'The 2FA codes go back to being protected by the master password only. Continue?':'Os códigos 2FA voltam a ficar protegidos apenas pela chave mestra. Continuar?'))return;
+  totpRecWrap=null;totpEnc=null;totpKey=null;session2faRaw=null;totpUnlocked=false;
+  await clear2faDevice();
+  markUnsaved();
+  close2faManager();
+  renderTotp();
+  toast(en?'Protection disabled.':'Proteção desativada.');
+}
+
 // ══ LOCK SCREEN ══
 function toggleField(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
 
@@ -2700,7 +3245,14 @@ async function submitOpenVault(pwArg){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';cleanOldTrash();
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';
+  totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
+  totp=totpRecWrap?[]:(data.totp||[]);cleanOldTrash();
+  payloadExtras={};
+  Object.keys(data).forEach(k=>{if(!KNOWN_KEYS.includes(k))payloadExtras[k]=data[k];});
+  vaultReadOnly=(Number(data.fmt)||1)>VAULT_FMT;
+  check2faMismatch();
+  checkVaultFormat();
     failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
   }catch{
     if(quick){
@@ -2783,7 +3335,7 @@ function doUnlock(){
 function lockApp(){
   if(presentationMode){exitPresentationMode();return;}
   try{closeGlobalSearch();}catch(e){}
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];legacyNote='';legacyOwner='';masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];legacyNote='';legacyOwner='';totpEnc=null;totpRecWrap=null;totpKey=null;totpUnlocked=false;session2faRaw=null;payloadExtras={};vaultReadOnly=false;masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -3138,6 +3690,7 @@ function applySettingsLang(){
   setTxt('vault-newfolder-txt',en2?'New folder':'Nova pasta');
   setTxt('tb-kit-txt',en2?'Digital Legacy':'Herança Digital');
   const scb=document.getElementById('search-clear');if(scb)scb.title=en2?'Clear':'Limpar';
+  setTxt('tb-backup-txt',en2?'Download backup':'Descarregar cópia');
   setTxt('tb-settings-txt',en2?'Settings':'Definições');
   setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo privacidade');
   setTxt('tb-theme-txt',en2?'Light / dark theme':'Tema claro/escuro');
@@ -4205,15 +4758,51 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner});downloadVault({salt:Array.from(salt),payload});
+  if(totpUnlocked)totpEnc=await encryptTotpArray();
+  const payload=await encrypt(key,vaultPayload());downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;clearQuickUnlock();closeChangePwModal();toast(t('toastPwChanged'));
 }
 
 // ══ SAVE FILE ══
+function vaultPayload(){
+  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner};
+  if(totpRecWrap){
+    base.totpEnc=totpEnc;
+    base.totpRecWrap=totpRecWrap;
+  }else{
+    base.totp=totp;
+  }
+  return Object.assign({},payloadExtras,base);
+}
+async function downloadBackupNow(){
+  const en=currentLang==='en';
+  if(presentationMode){toast(en?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
+  if(!masterKey){toast(en?'Open the vault first.':'Abre o cofre primeiro.');return;}
+  if(vaultReadOnly){alert(en?'Blocked: vault from a newer app version.':'Bloqueado: cofre de uma versão mais recente da app.');return;}
+  try{
+    if(totpUnlocked)totpEnc=await encryptTotpArray();
+    const p=await encrypt(masterKey,vaultPayload());
+    const container={salt:Array.from(window._salt),payload:p};
+    const d=new Date();
+    const pad=n=>String(n).padStart(2,'0');
+    const stamp=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+    downloadVault(container,`ciphervault_backup_${stamp}.vault`);
+    toast(en?'Backup downloaded ✓':'Cópia descarregada ✓');
+  }catch(e){
+    toast(en?'Could not create the backup.':'Não foi possível criar a cópia.');
+  }
+}
 async function saveFile(){
   if(presentationMode){toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
-  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner});
+  if(vaultReadOnly){
+    alert(currentLang==='en'
+      ?'Saving is blocked: this vault comes from a newer version of the app. Update CipherVault first.'
+      :'Gravação bloqueada: este cofre vem de uma versão mais recente da app. Atualiza o CipherVault primeiro.');
+    return;
+  }
+  if(totpUnlocked)totpEnc=await encryptTotpArray();
+  const p=await encrypt(masterKey,vaultPayload());
   const container={salt:Array.from(window._salt),payload:p};
   const json=JSON.stringify(container);
   const dateStr=new Date().toISOString().slice(0,10);
@@ -4247,7 +4836,12 @@ async function saveFile(){
   }
   downloadVault(container,'ciphervault.vault');
   setTimeout(()=>downloadVault(container,`ciphervault_backup_${dateStr}.vault`),400);
-  toast(t('toastSaved'));markSaved();
+  markSaved();
+  if(FSA_OK&&vaultFileHandle){
+    alert(currentLang==='en'
+      ?'⚠️ Could not write to your .vault file directly (permission denied or file moved).\n\nA copy was downloaded to your Downloads folder instead. Your original file was NOT updated — replace it with the downloaded copy, or use "Open Vault" to pick it again.'
+      :'⚠️ Não foi possível escrever diretamente no teu ficheiro .vault (permissão negada ou ficheiro movido).\n\nFoi descarregada uma cópia para as Transferências. O teu ficheiro original NÃO foi atualizado — substitui-o pela cópia descarregada, ou usa "Abrir Cofre" para o escolher outra vez.');
+  }else toast(t('toastSaved'));
 }
 window.addEventListener('beforeunload',e=>{if(hasUnsaved&&masterKey&&!presentationMode){e.preventDefault();e.returnValue=currentLang==='en'?'You have unsaved changes. Are you sure you want to leave?':'Tens alterações não guardadas. Tens a certeza que queres sair?';return e.returnValue;}});
 function downloadVault(c,filename='ciphervault.vault'){
@@ -4847,6 +5441,7 @@ function copyTotpCode(id){
 }
 function renderTotp(){
   const grid=document.getElementById('totp-grid');if(!grid)return;
+  render2faGate();
   const title=document.getElementById('totp-title');
   if(title)title.textContent=currentLang==='en'?'2FA Authenticator':'Autenticador 2FA';
   const addBtn=document.getElementById('totp-add-btn');
@@ -4856,6 +5451,7 @@ function renderTotp(){
     ?(currentLang==='en'?'Codes refresh every 30 seconds. Tap a code to copy it.':'Os códigos renovam a cada 30 segundos. Toca num código para copiar.')
     :'';
   if(!totp.length){
+    if(totpRecWrap&&!totpUnlocked){grid.innerHTML='';return;}
     grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="40" height="40"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <p>${currentLang==='en'?'No 2FA codes yet. Add your first authenticator.':'Sem códigos 2FA. Adiciona o teu primeiro autenticador.'}</p>
@@ -4978,7 +5574,7 @@ function deleteCustomCat(key){
 
 // ══ INFO DO COFRE ══
 function estimateVaultBytes(){
-  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner})]).size;}
+  try{return new Blob([JSON.stringify(vaultPayload())]).size;}
   catch(e){return 0;}
 }
 function renderVaultInfo(){
@@ -6370,7 +6966,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
@@ -6592,6 +7188,7 @@ try{
 }catch(e){console.warn('applyThemeColors error:',e);}
 try{renderHowTo();}catch(e){console.warn('renderHowTo error:',e);}
 try{refreshContinueBtn();}catch(e){}
+try{const lv=document.getElementById('l-version');if(lv)lv.textContent='v'+APP_VERSION;}catch(e){}
 try{applyPrivacy();}catch(e){}
 
 // ══ PWA ══
