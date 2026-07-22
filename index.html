@@ -149,6 +149,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 #tb-secondary{display:contents;}
 #tb-more{display:none;}
 .menu-only{display:none;}
+.legacy-lang-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),.13);}
 .search-wrap input{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:9px 34px 9px 32px;border-radius:2px;outline:none;width:190px;transition:border-color .2s;}
 #search-clear{position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:6px 8px;font-size:.8rem;line-height:1;border-radius:3px;transition:color .15s,background .15s;}
 #search-clear:hover{color:var(--accent);background:rgba(var(--accent-rgb),.1);}
@@ -1148,7 +1149,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.4</span>
+      <span>CipherVault © 2026 · v5.8</span>
     </div>
   </div>
 </div>
@@ -1181,8 +1182,8 @@ body::after{bottom:-32vmax;right:-24vmax;
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <span id="tb-pdf-txt">Exportar PDF</span>
       </button>
-      <button onclick="openEmergencyKit()" id="tb-kit-btn">
-        🆘 <span id="tb-kit-txt">Kit emergência</span>
+      <button onclick="openLegacyModal()" id="tb-kit-btn">
+        📜 <span id="tb-kit-txt">Herança Digital</span>
       </button>
       <button onclick="openChangePwModal()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -1414,7 +1415,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v5.4</span>
+      <span>CipherVault © 2026 · v5.8</span>
     </div>
   </div>
   </div>
@@ -1800,6 +1801,38 @@ body::after{bottom:-32vmax;right:-24vmax;
   </div>
 </div>
 
+<!-- LEGACY MODAL -->
+<div class="modal-overlay" id="legacy-overlay" onclick="if(event.target===this)closeLegacyModal()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title" id="legacy-title">📜 Herança Digital</div>
+    <div id="legacy-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
+    <div class="form-group">
+      <label id="legacy-lang-lbl">Idioma do documento</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn btn-ghost legacy-lang-btn" id="legacy-lang-pt" onclick="setLegacyLang('pt')" style="flex:1;padding:11px">🇵🇹 Português</button>
+        <button type="button" class="btn btn-ghost legacy-lang-btn" id="legacy-lang-en" onclick="setLegacyLang('en')" style="flex:1;padding:11px">🇬🇧 English</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label id="legacy-owner-lbl">O teu nome (aparece na folha)</label>
+      <input type="text" id="legacy-owner" maxlength="60" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label id="legacy-msg-lbl">Mensagem pessoal (opcional)</label>
+      <textarea id="legacy-msg" rows="5" style="resize:vertical"></textarea>
+    </div>
+    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.72rem;color:var(--text);line-height:1.5">
+      <input type="checkbox" id="legacy-pwbox" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;margin-top:2px">
+      <span id="legacy-pwbox-lbl">Incluir espaço para escrever a palavra-passe nesta folha</span>
+    </label>
+    <div id="legacy-pwwarn" style="font-size:.64rem;color:var(--text-muted);line-height:1.6;margin-top:8px;padding-left:26px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="generateLegacyDoc()" id="legacy-gen-btn">Gerar folha</button>
+      <button class="btn btn-ghost" onclick="closeLegacyModal()" id="legacy-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- PIN SETUP MODAL -->
 <div class="modal-overlay" id="pinsetup-overlay" onclick="if(event.target===this)closePinSetup()">
   <div class="modal" style="max-width:380px;text-align:center">
@@ -2017,11 +2050,11 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='5.4';
+const APP_VERSION='5.8';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
-let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let currentDocSort='added';let lastSavedAt=null;let lastTotpPeriod=0;
+let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let legacyNote='';let legacyOwner='';let currentDocSort='added';let lastSavedAt=null;let totpCounters={};
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
@@ -2667,7 +2700,7 @@ async function submitOpenVault(pwArg){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];cleanOldTrash();
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';cleanOldTrash();
     failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
   }catch{
     if(quick){
@@ -2750,7 +2783,7 @@ function doUnlock(){
 function lockApp(){
   if(presentationMode){exitPresentationMode();return;}
   try{closeGlobalSearch();}catch(e){}
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];legacyNote='';legacyOwner='';masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -3103,7 +3136,7 @@ function applySettingsLang(){
   setTxt('f-folder-lbl',en2?'Folder':'Pasta');
   setTxt('f-wifi-lbl',en2?'📶 This is a WiFi network (generates a shareable QR)':'📶 É uma rede WiFi (gera QR para partilhar)');
   setTxt('vault-newfolder-txt',en2?'New folder':'Nova pasta');
-  setTxt('tb-kit-txt',en2?'Emergency kit':'Kit emergência');
+  setTxt('tb-kit-txt',en2?'Digital Legacy':'Herança Digital');
   const scb=document.getElementById('search-clear');if(scb)scb.title=en2?'Clear':'Limpar';
   setTxt('tb-settings-txt',en2?'Settings':'Definições');
   setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo privacidade');
@@ -4172,7 +4205,7 @@ async function changeMasterPw(){
   const cur=document.getElementById('cp-current').value,np=document.getElementById('cp-new').value,cf=document.getElementById('cp-confirm').value,err=document.getElementById('cp-error');
   if(cur!==masterPwRaw){err.textContent=t('cpErrWrong');return;}if(np.length<4){err.textContent=t('cpErrShort');return;}if(np!==cf){err.textContent=t('cpErrMatch');return;}if(np===cur){err.textContent=t('cpErrSame');return;}
   const salt=crypto.getRandomValues(new Uint8Array(16)),key=await deriveKey(np,salt);
-  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets});downloadVault({salt:Array.from(salt),payload});
+  const payload=await encrypt(key,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner});downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;clearQuickUnlock();closeChangePwModal();toast(t('toastPwChanged'));
 }
 
@@ -4180,7 +4213,7 @@ async function changeMasterPw(){
 async function saveFile(){
   if(presentationMode){toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
-  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets});
+  const p=await encrypt(masterKey,{vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner});
   const container={salt:Array.from(window._salt),payload:p};
   const json=JSON.stringify(container);
   const dateStr=new Date().toISOString().slice(0,10);
@@ -4683,14 +4716,21 @@ function b32decode(s){
   }
   return out.length?new Uint8Array(out):null;
 }
-async function computeTOTP(secret,digits=6,period=30){
+const OTP_ALGOS={'SHA1':'SHA-1','SHA-1':'SHA-1','SHA256':'SHA-256','SHA-256':'SHA-256','SHA512':'SHA-512','SHA-512':'SHA-512'};
+function otpAlgo(a){return OTP_ALGOS[String(a||'SHA1').toUpperCase().replace(/\s/g,'')]||null;}
+async function computeTOTP(secret,digits,period,algorithm,fixedCounter){
+  digits=digits||6;period=period||30;
+  const hash=otpAlgo(algorithm);
+  if(!hash)return null;
   const key=b32decode(secret);
   if(!key)return null;
-  const counter=Math.floor(Date.now()/1000/period);
+  const counter=(fixedCounter===undefined||fixedCounter===null)
+    ?Math.floor(Date.now()/1000/period)
+    :Number(fixedCounter);
   const buf=new ArrayBuffer(8);const dv=new DataView(buf);
   dv.setUint32(0,Math.floor(counter/4294967296));
   dv.setUint32(4,counter>>>0);
-  const ck=await crypto.subtle.importKey('raw',key,{name:'HMAC',hash:'SHA-1'},false,['sign']);
+  const ck=await crypto.subtle.importKey('raw',key,{name:'HMAC',hash},false,['sign']);
   const sig=new Uint8Array(await crypto.subtle.sign('HMAC',ck,buf));
   const off=sig[sig.length-1]&0xf;
   const bin=((sig[off]&0x7f)<<24)|(sig[off+1]<<16)|(sig[off+2]<<8)|sig[off+3];
@@ -4702,11 +4742,16 @@ function parseOtpauth(str){
     const u=new URL(str);
     const secret=u.searchParams.get('secret')||'';
     const issuer=u.searchParams.get('issuer')||'';
+    const type=(u.host||u.pathname.split('/')[0]||'totp').toLowerCase().includes('hotp')?'hotp':'totp';
+    const algorithm=u.searchParams.get('algorithm')||'SHA1';
+    const digits=parseInt(u.searchParams.get('digits')||'6',10);
+    const period=parseInt(u.searchParams.get('period')||'30',10);
+    const counter=u.searchParams.get('counter');
     let label=decodeURIComponent(u.pathname.replace(/^\/+/,''));
     let name=issuer,account='';
     if(label.includes(':')){const parts=label.split(':');name=issuer||parts[0];account=parts.slice(1).join(':');}
     else{account=label;if(!name)name=label;}
-    return{name:name.trim(),account:account.trim(),secret:secret.trim()};
+    return{name:name.trim(),account:account.trim(),secret:secret.trim(),type,algorithm,digits:(digits>=6&&digits<=10)?digits:6,period:(period>0&&period<=300)?period:30,counter:counter!==null?parseInt(counter,10)||0:null};
   }catch(e){return null;}
 }
 let editingTotpId=null;
@@ -4745,16 +4790,25 @@ function saveTotp(){
   let account=document.getElementById('tf-account').value.trim();
   let secret=document.getElementById('tf-secret').value.trim();
   const parsed=parseOtpauth(secret);
+  let type='totp',algorithm='SHA1',digits=6,period=30,counter=null;
   if(parsed){
     secret=parsed.secret;
     if(!name)name=parsed.name;
     if(!account)account=parsed.account;
+    type=parsed.type;algorithm=parsed.algorithm;digits=parsed.digits;period=parsed.period;counter=parsed.counter;
+    if(!otpAlgo(algorithm)){
+      toast(currentLang==='en'
+        ?`This service uses ${algorithm}, which this app cannot generate.`
+        :`Este serviço usa ${algorithm}, que esta app não consegue gerar.`);
+      return;
+    }
   }
   if(!name){toast(currentLang==='en'?'Service name is required!':'Nome do serviço obrigatório!');return;}
   if(!secret||!b32decode(secret)){toast(currentLang==='en'?'Invalid secret! Must be Base32.':'Segredo inválido! Tem de ser Base32.');return;}
   const entry={
     id:editingTotpId||Date.now().toString(36),
     name,account,secret:secret.toUpperCase().replace(/[\s\-]/g,''),
+    type,algorithm,digits,period,counter,
     createdAt:editingTotpId?(totp.find(x=>x.id===editingTotpId)?.createdAt||Date.now()):Date.now(),
   };
   if(editingTotpId){const idx=totp.findIndex(x=>x.id===editingTotpId);totp[idx]=entry;}
@@ -4773,12 +4827,17 @@ function deleteTotp(id){
   toast(currentLang==='en'?'Moved to recycle bin 🗑️':'Movido para a reciclagem 🗑️');
   markUnsaved();
 }
-function fmtTotpCode(code){return code?code.slice(0,3)+' '+code.slice(3):'••• •••';}
+function fmtTotpCode(code,digits){
+  digits=digits||6;
+  if(!code)return '•'.repeat(Math.ceil(digits/2))+' '+'•'.repeat(Math.floor(digits/2));
+  const h=Math.ceil(code.length/2);
+  return code.slice(0,h)+' '+code.slice(h);
+}
 async function refreshTotpCodes(){
   for(const t2 of totp){
-    const code=await computeTOTP(t2.secret);
+    const code=await computeTOTP(t2.secret,t2.digits,t2.period,t2.algorithm,t2.type==='hotp'?(t2.counter||0):null);
     const el=document.getElementById('totp-code-'+t2.id);
-    if(el){el.textContent=fmtTotpCode(code);el.dataset.code=code||'';}
+    if(el){el.textContent=fmtTotpCode(code,t2.digits);el.dataset.code=code||'';}
   }
 }
 function copyTotpCode(id){
@@ -4808,12 +4867,12 @@ function renderTotp(){
       <div class="totp-name">${esc(t2.name)}</div>
       ${t2.account?`<div class="totp-account">${esc(t2.account)}</div>`:''}
       <div class="totp-code-row">
-        <div class="totp-code" id="totp-code-${t2.id}" data-code="" onclick="copyTotpCode('${t2.id}')" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">••• •••</div>
+        <div class="totp-code" id="totp-code-${t2.id}" data-code="" onclick="copyTotpCode('${t2.id}')" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">${fmtTotpCode(null,t2.digits)}</div>
         <svg class="totp-ring" width="30" height="30" viewBox="0 0 30 30">
           <circle cx="15" cy="15" r="12" fill="none" stroke="var(--border)" stroke-width="3"/>
-          <circle class="totp-ring-fg" cx="15" cy="15" r="12" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="0" transform="rotate(-90 15 15)"/>
+          <circle class="totp-ring-fg" id="totp-ring-${t2.id}" cx="15" cy="15" r="12" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="0" transform="rotate(-90 15 15)"/>
         </svg>
-        <span class="totp-secs">--</span>
+        <span class="totp-secs" id="totp-secs-${t2.id}">--</span>
       </div>
       <div class="card-actions" style="margin-top:10px">
         <button class="card-btn" onclick="copyTotpCode('${t2.id}')">
@@ -4830,7 +4889,7 @@ function renderTotp(){
         </button>
       </div>
     </div>`).join('');
-  lastTotpPeriod=Math.floor(Date.now()/1000/30);
+  totpCounters={};
   refreshTotpCodes();
 }
 setInterval(()=>{
@@ -4838,15 +4897,24 @@ setInterval(()=>{
   const grid=document.getElementById('totp-grid');
   if(!grid||!grid.offsetParent)return;
   const now=Math.floor(Date.now()/1000);
-  const secs=30-(now%30);
-  document.querySelectorAll('.totp-secs').forEach(el=>el.textContent=secs+'s');
-  const off=75.4*((30-secs)/30);
-  document.querySelectorAll('.totp-ring-fg').forEach(el=>{
-    el.style.strokeDashoffset=off;
-    el.style.stroke=secs<=5?'var(--red)':'var(--accent)';
-  });
-  const period=Math.floor(now/30);
-  if(period!==lastTotpPeriod){lastTotpPeriod=period;refreshTotpCodes();}
+  let needRefresh=false;
+  for(const t2 of totp){
+    const per=t2.period||30;
+    const isH=t2.type==='hotp';
+    const secs=per-(now%per);
+    const s=document.getElementById('totp-secs-'+t2.id);
+    if(s)s.textContent=isH?'#'+(t2.counter||0):secs+'s';
+    const r=document.getElementById('totp-ring-'+t2.id);
+    if(r&&!isH){
+      r.style.strokeDashoffset=75.4*((per-secs)/per);
+      r.style.stroke=secs<=5?'var(--red)':'var(--accent)';
+    }
+    if(!isH){
+      const cnt=Math.floor(now/per);
+      if(totpCounters[t2.id]!==cnt){totpCounters[t2.id]=cnt;needRefresh=true;}
+    }
+  }
+  if(needRefresh)refreshTotpCodes();
 },1000);
 
 // ══ CATEGORIAS PERSONALIZADAS ══
@@ -4910,7 +4978,7 @@ function deleteCustomCat(key){
 
 // ══ INFO DO COFRE ══
 function estimateVaultBytes(){
-  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets})]).size;}
+  try{return new Blob([JSON.stringify({vault,notes,bankCards,activityLog,documents,trash,totp,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner})]).size;}
   catch(e){return 0;}
 }
 function renderVaultInfo(){
@@ -5569,91 +5637,231 @@ document.addEventListener('click',e=>{
   closeTopMenu();
 });
 
-// ══ KIT DE EMERGÊNCIA ══
-function openEmergencyKit(){
+// ══ HERANÇA DIGITAL ══
+function qrDataUrl(text,scale,quiet){
+  try{
+    const m=CVQR.matrix(text);
+    if(!m)return null;
+    const cv=document.createElement('canvas');
+    const size=(m.length+quiet*2)*scale;
+    cv.width=size;cv.height=size;
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);
+    ctx.fillStyle='#000';
+    for(let r=0;r<m.length;r++)for(let cc=0;cc<m.length;cc++)
+      if(m[r][cc])ctx.fillRect((cc+quiet)*scale,(r+quiet)*scale,scale,scale);
+    return cv.toDataURL('image/png');
+  }catch(e){return null;}
+}
+let legacyLang='pt';
+function setLegacyLang(l){legacyLang=l;renderLegacyLang();}
+function renderLegacyLang(){
+  ['pt','en'].forEach(l=>{
+    const b=document.getElementById('legacy-lang-'+l);
+    if(b)b.classList.toggle('active',legacyLang===l);
+  });
+}
+function openLegacyModal(){
   const en=currentLang==='en';
+  if(!masterKey&&!presentationMode){toast(en?'Open the vault first.':'Abre o cofre primeiro.');return;}
+  document.getElementById('legacy-title').textContent=en?'📜 Digital Legacy':'📜 Herança Digital';
+  document.getElementById('legacy-intro').textContent=en
+    ?'A sheet to print and keep for the people you trust. It explains how to reach everything in your vault — without containing the master password itself.'
+    :'Uma folha para imprimires e guardares para quem confias. Explica como chegar a tudo o que está no cofre — sem conter a palavra-passe mestra.';
+  document.getElementById('legacy-lang-lbl').textContent=en?'Document language':'Idioma do documento';
+  legacyLang=currentLang;renderLegacyLang();
+  document.getElementById('legacy-owner-lbl').textContent=en?'Your name (appears on the sheet)':'O teu nome (aparece na folha)';
+  document.getElementById('legacy-msg-lbl').textContent=en?'Personal message (optional)':'Mensagem pessoal (opcional)';
+  document.getElementById('legacy-msg').placeholder=en
+    ?'Anything you want them to read: practical notes, what matters most, or simply a few words.'
+    :'O que quiseres que leiam: notas práticas, o que é mais importante, ou apenas algumas palavras.';
+  document.getElementById('legacy-pwbox-lbl').textContent=en
+    ?'Include a space to write the master password on this sheet'
+    :'Incluir espaço para escrever a palavra-passe nesta folha';
+  document.getElementById('legacy-pwwarn').textContent=en
+    ?'Recommended off: keep the sheet and the password in separate places. Whoever finds the sheet alone can open nothing.'
+    :'Recomendado desligado: guarda a folha e a palavra-passe em sítios separados. Quem encontrar só a folha não abre nada.';
+  document.getElementById('legacy-gen-btn').textContent=en?'Generate sheet':'Gerar folha';
+  document.getElementById('legacy-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('legacy-msg').value=presentationMode?'':(legacyNote||'');
+  document.getElementById('legacy-owner').value=presentationMode?'':(legacyOwner||'');
+  document.getElementById('legacy-overlay').classList.add('open');
+}
+function closeLegacyModal(){document.getElementById('legacy-overlay').classList.remove('open');}
+function generateLegacyDoc(){
+  const en=currentLang==='en';
+  const den=legacyLang==='en';
+  const msg=document.getElementById('legacy-msg').value.trim();
+  const owner=document.getElementById('legacy-owner').value.trim();
+  const withPwBox=document.getElementById('legacy-pwbox').checked;
+  if(!presentationMode&&(msg!==legacyNote||owner!==legacyOwner)){
+    legacyNote=msg;legacyOwner=owner;markUnsaved();
+  }
   const url=location.origin+location.pathname;
-  const now=new Date().toLocaleDateString(en?'en-GB':'pt-PT',{year:'numeric',month:'long',day:'numeric'});
-  const L=en?{
-    title:'EMERGENCY KIT',app:'CipherVault — encrypted personal vault',
-    intro:'This sheet explains how to open my encrypted vault. Keep it somewhere safe — it does NOT contain the master password.',
+  const qr=qrDataUrl(url,4,3);
+  const now=new Date().toLocaleDateString(den?'en-GB':'pt-PT',{year:'numeric',month:'long',day:'numeric'});
+  const nActive=vault.filter(e=>!e.archived).length;
+  const inv=[
+    [nActive,den?'accounts and passwords':'contas e palavras-passe'],
+    [documents.length,den?'documents':'documentos'],
+    [bankCards.length,den?'bank cards':'cartões bancários'],
+    [totp.length,den?'verification codes (2FA)':'códigos de verificação (2FA)'],
+    [notes.length,den?'secure notes':'notas seguras'],
+    [wifiNets.length,den?'WiFi networks':'redes WiFi'],
+  ].filter(x=>x[0]>0);
+  const line=n=>`<div class="wl"></div>`.repeat(n);
+  const L=den?{
+    title:'DIGITAL LEGACY',
+    sub:'How to reach everything kept in the digital vault',
+    of:'Vault of',
+    intro:'If you are reading this, you need to get into my digital vault. Everything you need is explained below, step by step. Take your time — nothing here expires in a hurry.',
     s1:'1. What this is',
-    p1:'I keep my passwords, documents, bank cards and 2FA codes inside a single encrypted file named <b>ciphervault.vault</b>. The file is useless without the master password: it is protected with AES-256-GCM encryption. No company or server holds a copy — it exists only where I saved it.',
-    s2:'2. Where the file is',
-    p2:'Write here every place a copy is kept (drive, external disk, cloud folder):',
-    s3:'3. How to open it',
-    p3:'On any computer or phone with a browser:',
-    st1:'Open this address:',
-    st2:'Click <b>“Open Vault”</b>.',
-    st3:'Select the <b>.vault</b> file.',
+    p1:'All my accounts, passwords, documents, bank cards and verification codes are inside a single encrypted file named <b>ciphervault.vault</b>. The file is protected with AES-256-GCM encryption: without the master password it is unreadable, and no company or server holds a copy. It exists only where I saved it.',
+    s2:'2. What you will find inside',
+    s3:'3. Where the file is',
+    p3:'Every place a copy is kept — drive, external disk, cloud folder:',
+    s4:'4. How to open it',
+    p4:'On any computer or phone with a web browser:',
+    st1:'Open this address (or scan the code with the phone camera):',
+    st2:'Tap <b>“Open Vault”</b>.',
+    st3:'Choose the <b>.vault</b> file.',
     st4:'Type the master password and confirm.',
-    note:'No internet is needed after the page loads once. Nothing is uploaded anywhere.',
-    s4:'4. Master password',
-    p4:'Write it by hand below, or store this sheet next to where it is written. Never save it on a computer.',
-    warn:'⚠️ Without the master password there is NO recovery. Nobody — not even the app creators — can open the file.',
-    gen:'Generated on',keep:'Keep this sheet with important documents.',print:'Print'
+    note:'No internet is needed after the page has loaded once, and nothing is ever uploaded anywhere.',
+    s5:'5. IMPORTANT — 6-digit codes (two-step verification)',
+    p5:'Many accounts ask for a <b>6-digit code</b> after the password. Those codes may be in three different places:<br><br>&bull; <b>Inside this vault</b>, in the <b>2FA</b> tab — copy the number shown next to the account. It changes every 30 seconds, which is normal.<br>&bull; In a <b>phone app</b>, such as Google Authenticator or Microsoft Authenticator.<br>&bull; By <b>SMS</b>, sent to my mobile number.<br><br>If an account asks for a code and it is not in the vault, look in those apps on my phone.<br><br><b>Do not cancel my phone number or SIM card until everything is sorted out</b> — without it you lose access to every account that sends codes by SMS.',
+    s6:'6. Suggested order',
+    o1:'<b>Banks, insurance and anything financial</b> — the most time-sensitive.',
+    o2:'<b>Documents</b> — ID, licences, contracts, all in the Documents tab.',
+    o3:'<b>Subscriptions</b> — cancel what keeps charging every month.',
+    o4:'<b>Email accounts</b> — these unlock password resets everywhere else.',
+    o5:'<b>Social accounts</b> — close or memorialise them last, there is no rush.',
+    s7:'7. Master password',
+    pwOn:'Write it here by hand:',
+    pwOff:'It is <b>not written on this sheet</b>, on purpose. It is kept separately — I told you where, or it is with the person I named. Without it nothing here can be opened.',
+    s8:'A message from me',
+    s9:'Copies of this sheet',
+    p9:'Who has a copy, and where the vault backups are:',
+    warn:'⚠️ Without the master password there is no recovery. Nobody — not even the people who built the app — can open this file. Keep the sheet somewhere safe and dry.',
+    gen:'Generated on',
+    stale:'If the master password was changed after this date, this sheet is out of date — ask for a new one.',
+    print:'Print'
   }:{
-    title:'KIT DE EMERGÊNCIA',app:'CipherVault — cofre pessoal encriptado',
-    intro:'Esta folha explica como abrir o meu cofre encriptado. Guarda-a em lugar seguro — NÃO contém a palavra-passe mestra.',
+    title:'HERANÇA DIGITAL',
+    sub:'Como chegar a tudo o que está guardado no cofre digital',
+    of:'Cofre de',
+    intro:'Se estás a ler isto, precisas de entrar no meu cofre digital. Está tudo explicado aqui em baixo, passo a passo. Vai com calma — nada disto tem pressa.',
     s1:'1. O que é isto',
-    p1:'Guardo as minhas passwords, documentos, cartões bancários e códigos 2FA dentro de um único ficheiro encriptado chamado <b>ciphervault.vault</b>. O ficheiro é inútil sem a palavra-passe mestra: está protegido com encriptação AES-256-GCM. Nenhuma empresa ou servidor tem cópia — só existe onde eu o guardei.',
-    s2:'2. Onde está o ficheiro',
-    p2:'Escreve aqui todos os sítios onde existe uma cópia (pen, disco externo, pasta na cloud):',
-    s3:'3. Como abrir',
-    p3:'Em qualquer computador ou telemóvel com browser:',
-    st1:'Abrir este endereço:',
+    p1:'Todas as minhas contas, palavras-passe, documentos, cartões bancários e códigos de verificação estão dentro de um único ficheiro encriptado chamado <b>ciphervault.vault</b>. O ficheiro está protegido com encriptação AES-256-GCM: sem a palavra-passe mestra é ilegível, e nenhuma empresa ou servidor tem cópia. Só existe onde eu o guardei.',
+    s2:'2. O que vais encontrar lá dentro',
+    s3:'3. Onde está o ficheiro',
+    p3:'Todos os sítios onde existe uma cópia — pen, disco externo, pasta na nuvem:',
+    s4:'4. Como abrir',
+    p4:'Em qualquer computador ou telemóvel com browser:',
+    st1:'Abrir este endereço (ou apontar a câmara do telemóvel ao código):',
     st2:'Clicar em <b>“Abrir Cofre”</b>.',
-    st3:'Selecionar o ficheiro <b>.vault</b>.',
+    st3:'Escolher o ficheiro <b>.vault</b>.',
     st4:'Escrever a palavra-passe mestra e confirmar.',
-    note:'Não é preciso internet depois de a página abrir uma vez. Nada é enviado para lado nenhum.',
-    s4:'4. Palavra-passe mestra',
-    p4:'Escreve-a à mão em baixo, ou guarda esta folha junto ao sítio onde ela está escrita. Nunca a guardes num computador.',
-    warn:'⚠️ Sem a palavra-passe mestra NÃO há recuperação. Ninguém — nem os criadores da app — consegue abrir o ficheiro.',
-    gen:'Gerado a',keep:'Guarda esta folha junto aos documentos importantes.',print:'Imprimir'
+    note:'Não é preciso internet depois de a página abrir uma vez, e nada é enviado para lado nenhum.',
+    s5:'5. IMPORTANTE — códigos de 6 dígitos (verificação em dois passos)',
+    p5:'Muitas contas pedem um <b>código de 6 dígitos</b> depois da palavra-passe. Esses códigos podem estar em três sítios diferentes:<br><br>&bull; <b>Dentro deste cofre</b>, no separador <b>2FA</b> — copia o número que aparece ao lado da conta. Muda a cada 30 segundos, o que é normal.<br>&bull; Numa <b>app do telemóvel</b>, como o Google Authenticator ou o Microsoft Authenticator.<br>&bull; Por <b>SMS</b>, enviado para o meu número de telemóvel.<br><br>Se uma conta pedir código e ele não estiver no cofre, procura nessas apps do meu telemóvel.<br><br><b>Não canceles o meu número de telemóvel nem o cartão SIM antes de teres tudo resolvido</b> — sem ele perdes o acesso a todas as contas que enviam código por SMS.',
+    s6:'6. Ordem sugerida',
+    o1:'<b>Bancos, seguros e tudo o que envolve dinheiro</b> — o mais urgente.',
+    o2:'<b>Documentos</b> — cartão de cidadão, cartas, contratos, no separador Documentos.',
+    o3:'<b>Subscrições</b> — cancelar o que continua a cobrar todos os meses.',
+    o4:'<b>Contas de email</b> — são elas que permitem recuperar tudo o resto.',
+    o5:'<b>Redes sociais</b> — encerrar ou memorizar no fim, sem pressa nenhuma.',
+    s7:'7. Palavra-passe mestra',
+    pwOn:'Escreve aqui à mão:',
+    pwOff:'<b>Não está escrita nesta folha</b>, de propósito. Está guardada à parte — eu disse-te onde, ou está com a pessoa que indiquei. Sem ela, nada disto se abre.',
+    s8:'Uma mensagem minha',
+    s9:'Cópias desta folha',
+    p9:'Quem tem cópia, e onde estão as cópias de segurança do cofre:',
+    warn:'⚠️ Sem a palavra-passe mestra não há recuperação possível. Ninguém — nem quem criou a app — consegue abrir este ficheiro. Guarda a folha em sítio seguro e seco.',
+    gen:'Gerada a',
+    stale:'Se a palavra-passe mestra foi alterada depois desta data, esta folha está desatualizada — pede uma nova.',
+    print:'Imprimir'
   };
-  const line='<div style="border-bottom:1px solid #999;height:26px;margin:9px 0"></div>';
-  const html=`<!DOCTYPE html><html lang="${en?'en':'pt'}"><head><meta charset="UTF-8"><title>${L.title} — CipherVault</title>
+  const invHtml=inv.length
+    ? `<ul class="inv">${inv.map(([n,lbl])=>`<li><b>${n}</b> ${lbl}</li>`).join('')}</ul>`
+    : '';
+  const html=`<!DOCTYPE html><html lang="${den?'en':'pt'}"><head><meta charset="UTF-8"><title>${L.title} — CipherVault</title>
 <style>
- @page{size:A4;margin:16mm}
+ @page{size:A4;margin:15mm}
  *{box-sizing:border-box}
- body{font-family:Georgia,'Times New Roman',serif;color:#111;background:#fff;margin:0;padding:26px;line-height:1.55;font-size:12.5pt}
+ body{font-family:Georgia,'Times New Roman',serif;color:#111;background:#fff;margin:0;padding:24px;line-height:1.55;font-size:12pt}
  .wrap{max-width:760px;margin:0 auto}
- .hd{border-bottom:3px solid #111;padding-bottom:12px;margin-bottom:18px}
- h1{margin:0;font-size:23pt;letter-spacing:1px}
+ .hd{border-bottom:3px solid #111;padding-bottom:11px;margin-bottom:16px}
+ h1{margin:0;font-size:22pt;letter-spacing:1px}
  .sub{font-size:10.5pt;color:#555;margin-top:4px}
- .intro{background:#f3f3f0;border-left:4px solid #111;padding:11px 14px;font-size:11pt;margin-bottom:20px}
- h2{font-size:13pt;margin:20px 0 7px;border-bottom:1px solid #bbb;padding-bottom:4px}
- p{margin:7px 0}
- ol{margin:7px 0 7px 20px;padding:0}
- li{margin:5px 0}
- .url{font-family:'Courier New',monospace;font-size:12pt;font-weight:bold;background:#f3f3f0;padding:7px 10px;display:inline-block;margin-top:5px;border:1px solid #ccc;word-break:break-all}
- .note{font-size:10pt;color:#555;font-style:italic;margin-top:7px}
- .pwbox{border:2px dashed #111;padding:16px;margin-top:10px;min-height:62px}
- .warn{background:#fff4f4;border:2px solid #c00;padding:11px 14px;margin-top:20px;font-size:11pt;font-weight:bold;color:#900}
- .ft{margin-top:26px;border-top:1px solid #bbb;padding-top:9px;font-size:9.5pt;color:#666;display:flex;justify-content:space-between;gap:12px}
+ .owner{font-size:11pt;color:#333;margin-top:6px}
+ .intro{background:#f3f3f0;border-left:4px solid #111;padding:11px 14px;font-size:11pt;margin-bottom:18px;font-style:italic}
+ h2{font-size:12.5pt;margin:18px 0 6px;border-bottom:1px solid #bbb;padding-bottom:3px;page-break-after:avoid}
+ p{margin:6px 0}
+ ol,ul{margin:6px 0 6px 20px;padding:0}
+ li{margin:4px 0}
+ ul.inv{list-style:none;margin-left:0;display:flex;flex-wrap:wrap;gap:6px 10px}
+ ul.inv li{border:1px solid #ccc;border-radius:14px;padding:4px 12px;font-size:10.5pt;background:#fafaf8}
+ .qrbox{display:flex;gap:16px;align-items:center;border:1px solid #ddd;padding:12px;border-radius:6px;background:#fafaf8;margin-top:7px}
+ .qrbox img{width:112px;height:112px;display:block}
+ .url{font-family:'Courier New',monospace;font-size:11pt;font-weight:bold;word-break:break-all}
+ .note{font-size:10pt;color:#555;font-style:italic;margin-top:6px}
+ .alert{background:#fffaf0;border:2px solid #b8860b;padding:11px 14px;margin-top:8px;font-size:11pt}
+ .wl{border-bottom:1px solid #999;height:25px;margin:8px 0}
+ .pwbox{border:2px dashed #111;padding:15px;margin-top:8px;min-height:56px}
+ .pwnote{border:1px solid #bbb;padding:11px 14px;margin-top:8px;background:#fafaf8;font-size:11pt}
+ .msg{border:1px solid #bbb;border-left:4px solid #666;padding:12px 15px;margin-top:8px;white-space:pre-wrap;font-size:11.5pt;background:#fdfdfb}
+ .warn{background:#fff4f4;border:2px solid #c00;padding:11px 14px;margin-top:18px;font-size:10.5pt;font-weight:bold;color:#900}
+ .ft{margin-top:20px;border-top:1px solid #bbb;padding-top:8px;font-size:9.5pt;color:#666}
  .pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui,sans-serif;font-size:13px;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
  @media print{.pbtn{display:none}body{padding:0}}
 </style></head><body>
 <button class="pbtn" onclick="window.print()">🖨️ ${L.print}</button>
 <div class="wrap">
-  <div class="hd"><h1>🆘 ${L.title}</h1><div class="sub">${L.app}</div></div>
+  <div class="hd">
+    <h1>📜 ${L.title}</h1>
+    <div class="sub">${L.sub}</div>
+    ${owner?`<div class="owner">${L.of} <b>${esc(owner)}</b></div>`:''}
+  </div>
   <div class="intro">${L.intro}</div>
+
   <h2>${L.s1}</h2><p>${L.p1}</p>
-  <h2>${L.s2}</h2><p>${L.p2}</p>${line}${line}${line}
-  <h2>${L.s3}</h2><p>${L.p3}</p>
+
+  ${invHtml?`<h2>${L.s2}</h2>${invHtml}`:''}
+
+  <h2>${L.s3}</h2><p>${L.p3}</p>${line(3)}
+
+  <h2>${L.s4}</h2><p>${L.p4}</p>
   <ol>
-    <li>${L.st1}<br><span class="url">${esc(url)}</span></li>
+    <li>${L.st1}
+      <div class="qrbox">
+        ${qr?`<img src="${qr}" alt="QR">`:''}
+        <span class="url">${esc(url)}</span>
+      </div>
+    </li>
     <li>${L.st2}</li><li>${L.st3}</li><li>${L.st4}</li>
   </ol>
   <p class="note">${L.note}</p>
-  <h2>${L.s4}</h2><p>${L.p4}</p><div class="pwbox"></div>
+
+  <h2>${L.s5}</h2><div class="alert">${L.p5}</div>
+
+  <h2>${L.s6}</h2>
+  <ol><li>${L.o1}</li><li>${L.o2}</li><li>${L.o3}</li><li>${L.o4}</li><li>${L.o5}</li></ol>
+
+  <h2>${L.s7}</h2>
+  ${withPwBox?`<p>${L.pwOn}</p><div class="pwbox"></div>`:`<div class="pwnote">${L.pwOff}</div>`}
+
+  ${msg?`<h2>${L.s8}</h2><div class="msg">${esc(msg)}</div>`:''}
+
+  <h2>${L.s9}</h2><p>${L.p9}</p>${line(3)}
+
   <div class="warn">${L.warn}</div>
-  <div class="ft"><span>${L.gen} ${now}</span><span>${L.keep}</span></div>
+  <div class="ft">${L.gen} ${now} · ${L.stale}</div>
 </div></body></html>`;
   const w=window.open('','_blank');
-  if(!w){toast(en?'Allow pop-ups to open the kit.':'Permite pop-ups para abrir o kit.');return;}
+  if(!w){toast(en?'Allow pop-ups to open the sheet.':'Permite pop-ups para abrir a folha.');return;}
   w.document.write(html);w.document.close();
-  toast(en?'Emergency kit ready — print it 🖨️':'Kit de emergência pronto — imprime 🖨️');
+  closeLegacyModal();
+  toast(en?'Sheet ready — print it 🖨️':'Folha pronta — imprime 🖨️');
 }
 
 // ══ ARRASTAR FICHEIROS PARA A JANELA ══
@@ -6162,7 +6370,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
