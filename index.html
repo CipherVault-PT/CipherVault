@@ -1163,7 +1163,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v6.4</span>
+      <span>CipherVault © 2026 · v6.6</span>
     </div>
   </div>
 </div>
@@ -1461,7 +1461,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v6.4</span>
+      <span>CipherVault © 2026 · v6.6</span>
     </div>
   </div>
   </div>
@@ -2150,7 +2150,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='6.4';
+const APP_VERSION='6.6';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2811,23 +2811,32 @@ async function set2faPin(pin,rawB64){
   const key=await derive2faPinKey(pin,salt);
   const w=await wrapSecret(key,rawB64);
   await idbSet('t2_pin',{salt:bytesToArr(salt),iv:w.iv,wrapped:w.wrapped,tries:0});
-  return true;
+  const check=await idbGet('t2_pin');
+  return !!(check&&check.wrapped);
 }
 let session2faRaw=null;
 // ── Abrir ──
 async function open2faWithPin(pin){
   let rec;try{rec=await idbGet('t2_pin');}catch(e){rec=null;}
   if(!rec)return{gone:true};
+  let rawB64=null;
+  // Fase 1 — só validar o PIN. Um erro AQUI é mesmo PIN errado.
   try{
     const key=await derive2faPinKey(pin,arrToBytes(rec.salt));
-    const rawB64=await unwrapSecret(key,rec);
-    rec.tries=0;await idbSet('t2_pin',rec);
-    return await finish2faUnlock(rawB64);
+    rawB64=await unwrapSecret(key,rec);
   }catch(e){
     rec.tries=(rec.tries||0)+1;
     if(rec.tries>=T2_MAX_TRIES){await idbDel('t2_pin');return{blocked:true};}
     await idbSet('t2_pin',rec);
     return{left:T2_MAX_TRIES-rec.tries};
+  }
+  // PIN correto: repõe o contador antes de mais nada
+  try{rec.tries=0;await idbSet('t2_pin',rec);}catch(e){}
+  // Fase 2 — decifrar. Um erro aqui NÃO é culpa do PIN e nunca o apaga.
+  try{
+    return await finish2faUnlock(rawB64);
+  }catch(e){
+    return{decryptFailed:true};
   }
 }
 async function open2faWithRecovery(code){
@@ -2974,6 +2983,11 @@ async function render2faUnlockPanel(reset){
   document.getElementById('t2-links').innerHTML=parts.join('<span class="link-sep">·</span>');
   if(t2Mode==='pin'){const i=document.getElementById('t2-pin-input');if(i){i.value='';setTimeout(()=>i.focus(),120);}}
   if(t2Mode==='rec'){const i=document.getElementById('t2-rec-input');if(i&&reset)i.value='';}
+  if(!hasPin&&!hasBio){
+    document.getElementById('t2-lock-sub').textContent=en
+      ?'This browser has no PIN saved for the 2FA vault. Use the recovery code — you can set a PIN right after.'
+      :'Este browser não tem PIN guardado para o cofre 2FA. Usa o código de recuperação — podes definir um PIN logo a seguir.';
+  }
 }
 function set2faMode(m){t2Mode=m;t2Err('');render2faUnlockPanel(false);}
 async function on2faPinInput(){
@@ -2986,6 +3000,10 @@ async function on2faPinInput(){
   if(res.ok){after2faUnlock();return;}
   if(res.blocked){t2Err(en?'Too many attempts. Use the recovery code.':'Demasiadas tentativas. Usa o código de recuperação.');t2Mode='rec';render2faUnlockPanel(false);return;}
   if(res.gone){t2Mode='rec';render2faUnlockPanel(true);return;}
+  if(res.decryptFailed){
+    t2Err(en?'PIN correct, but the 2FA data could not be read. Use the recovery code.':'PIN correto, mas não foi possível ler os dados 2FA. Usa o código de recuperação.');
+    return;
+  }
   t2Err((en?'Wrong PIN. ':'PIN errado. ')+(en?`${res.left} left.`:`Restam ${res.left}.`));
   setTimeout(()=>{const i=document.getElementById('t2-pin-input');if(i)i.focus();},60);
 }
@@ -3014,19 +3032,37 @@ function after2faUnlock(){
   t2Err('');
   renderTotp();
   toast(currentLang==='en'?'2FA vault open ✓':'Cofre 2FA aberto ✓');
+  offerDevicePin();
+}
+async function offerDevicePin(){
+  if(presentationMode||!totpUnlocked)return;
+  if(await has2faPin())return;
+  if(await has2faBio())return;
+  const en=currentLang==='en';
+  setTimeout(()=>{
+    if(!totpUnlocked)return;
+    t2SetupMode='change';
+    open2faSetup(true);
+  },700);
 }
 // ── Configuração ──
-function open2faSetup(){
+function open2faSetup(isDeviceOnly){
   const en=currentLang==='en';
   if(presentationMode){toast(en?'Not available in demo mode.':'Indisponível no modo demonstração.');return;}
-  document.getElementById('t2setup-title').textContent=en?'🛡️ Protect the 2FA vault':'🛡️ Proteger o cofre 2FA';
-  document.getElementById('t2setup-intro').textContent=en
-    ?'Choose a PIN for this device. You will then get a recovery code — the only other way in, and the only one that works on a new device.'
-    :'Escolhe um PIN para este dispositivo. A seguir recebes um código de recuperação — a única outra forma de entrar, e a única que funciona num dispositivo novo.';
+  const devOnly=!!isDeviceOnly||t2SetupMode==='change';
+  document.getElementById('t2setup-title').textContent=devOnly
+    ?(en?'🔢 PIN for this device':'🔢 PIN para este dispositivo')
+    :(en?'🛡️ Protect the 2FA vault':'🛡️ Proteger o cofre 2FA');
+  document.getElementById('t2setup-intro').textContent=devOnly
+    ?(en?'This device has no PIN yet, so it asks for the recovery code every time. Set a PIN and it will open with 4 digits from now on.'
+        :'Este dispositivo ainda não tem PIN, por isso pede sempre o código de recuperação. Define um PIN e passa a abrir com 4 dígitos.')
+    :(en?'Choose a PIN for this device. You will then get a recovery code — the only other way in, and the only one that works on a new device.'
+        :'Escolhe um PIN para este dispositivo. A seguir recebes um código de recuperação — a única outra forma de entrar, e a única que funciona num dispositivo novo.');
   document.getElementById('t2s-pin1-lbl').textContent=en?'2FA tab PIN (4 digits)':'PIN do separador 2FA (4 dígitos)';
   document.getElementById('t2s-pin2-lbl').textContent=en?'Confirm PIN':'Confirmar PIN';
   document.getElementById('t2s-ok-btn').textContent=en?'Enable':'Ativar';
-  document.getElementById('t2s-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('t2s-cancel-btn').textContent=devOnly?(en?'Later':'Mais tarde'):(en?'Cancel':'Cancelar');
+  document.getElementById('t2s-ok-btn').textContent=devOnly?(en?'Set PIN':'Definir PIN'):(en?'Enable':'Ativar');
   ['t2s-pin1','t2s-pin2'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('t2s-err').textContent='';
   document.getElementById('t2setup-overlay').classList.add('open');
@@ -3055,7 +3091,8 @@ async function confirm2faSetup(){
     const ok=await set2faPin(p1);
     t2SetupMode='new';
     close2faSetup();
-    toast(ok?(en?'PIN updated ✓':'PIN atualizado ✓'):(en?'Could not save the PIN.':'Não foi possível guardar o PIN.'));
+    if(ok)toast(en?'PIN saved on this device ✓':'PIN guardado neste dispositivo ✓');
+    else alert(en?'The PIN could NOT be saved in this browser. Check that site data is not blocked.':'O PIN NÃO ficou guardado neste browser. Verifica se os dados do site não estão bloqueados.');
     return;
   }
   const code=await setup2faVault(p1);
@@ -3130,7 +3167,10 @@ async function render2faManager(){
     S.push(en?'The 2FA vault is <b>not protected</b> — codes are encrypted with the master password only.':'O cofre 2FA <b>não está protegido</b> — os códigos estão encriptados apenas com a chave mestra.');
     A.push(btn('close2faManager();open2faSetup()','🛡️ '+(en?'Enable protection':'Ativar proteção')));
   }else if(!totpUnlocked){
-    S.push(en?'Protected and closed. Open the vault first to manage it.':'Protegido e fechado. Abre o cofre primeiro para o gerires.');
+    S.push(en?'🛡️ <b style="color:var(--accent)">Protected</b> and closed.':'🛡️ <b style="color:var(--accent)">Protegido</b> e fechado.');
+    S.push('🔢 '+(hasPin?(en?'PIN saved on this device':'PIN guardado neste dispositivo'):(en?'<b style="color:var(--red)">No PIN on this device</b>':'<b style="color:var(--red)">Sem PIN neste dispositivo</b>')));
+    S.push('👆 '+(hasBio?(en?'Biometrics saved here':'Biometria guardada aqui'):(en?'No biometrics here':'Sem biometria aqui')));
+    S.push('<span style="font-size:.9em;opacity:.8">'+(en?'Open the vault to manage it.':'Abre o cofre para o gerires.')+'</span>');
   }else{
     S.push('🛡️ <b style="color:var(--accent)">'+(en?'Protected':'Protegido')+'</b> — '+(en?'independent key':'chave independente'));
     S.push('🔢 '+(hasPin?(en?'PIN set on this device':'PIN definido neste dispositivo'):(en?'No PIN on this device':'Sem PIN neste dispositivo')));
