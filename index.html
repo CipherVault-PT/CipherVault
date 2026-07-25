@@ -403,6 +403,33 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ ARQUIVO POR SECÇÕES ══ */
+.archive-section{margin-bottom:26px;}
+.archive-section-head{display:flex;align-items:center;justify-content:space-between;font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--border);}
+.archive-count{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:2px 10px;font-size:.64rem;color:var(--accent);}
+.archive-section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+@media(max-width:768px){.archive-section-grid{grid-template-columns:1fr;}}
+
+/* ══ CENTRAL DE RENOVAÇÕES ══ */
+.renewal-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--card);transition:border-color .15s;cursor:pointer;}
+.renewal-row:hover{border-color:var(--accent-dim);}
+.renewal-row.expired{border-left:3px solid var(--red);}
+.renewal-row.soon{border-left:3px solid var(--accent);}
+.renewal-row.ok{border-left:3px solid var(--green);}
+.renewal-icon{font-size:1.3rem;flex-shrink:0;width:26px;text-align:center;}
+.renewal-body{flex:1;min-width:0;}
+.renewal-name{font-size:.86rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.renewal-meta{font-size:.62rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:1px;}
+.renewal-when{font-size:.72rem;font-family:'JetBrains Mono',monospace;text-align:right;flex-shrink:0;}
+.renewal-when.expired{color:var(--red);}
+.renewal-when.soon{color:var(--accent);}
+.renewal-when.ok{color:var(--text-muted);}
+.renewal-date{font-size:.56rem;color:var(--text-muted);margin-top:2px;}
+.renewal-filter-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:1px;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all .15s;}
+.renewal-filter-btn:hover{border-color:var(--accent-dim);color:var(--text);}
+.renewal-filter-btn.active{background:rgba(var(--accent-rgb),.15);border-color:var(--accent);color:var(--accent);}
+.renewal-empty{font-size:.72rem;color:var(--text-muted);text-align:center;padding:18px;font-style:italic;}
+
 /* ══ COFRE 2FA ══ */
 .t2-lock{display:flex;flex-direction:column;align-items:center;text-align:center;padding:44px 20px;border:1px solid var(--border);border-radius:10px;background:var(--card-glass);margin-top:14px;}
 .t2-lock-title{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--text);margin-top:14px;}
@@ -1044,7 +1071,8 @@ body::after{bottom:-32vmax;right:-24vmax;
       <!-- Passo 2: Inserir password -->
       <div id="open-step-pw" style="display:none">
         <div style="font-size:.56rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px" id="l-file-chosen-label">Ficheiro carregado</div>
-        <div id="l-file-name" style="font-size:.78rem;color:var(--accent);margin-bottom:18px;padding:8px 12px;background:rgba(var(--accent-rgb),.08);border-radius:2px;border:1px solid var(--accent-dim)"></div>
+        <div id="l-file-name" style="font-size:.78rem;color:var(--accent);margin-bottom:10px;padding:8px 12px;background:rgba(var(--accent-rgb),.08);border-radius:2px;border:1px solid var(--accent-dim)"></div>
+        <div id="l-file-meta" style="display:none;font-size:.62rem;color:var(--text-muted);margin-bottom:18px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;line-height:1.9"></div>
         <div id="quick-unlock" style="display:none;margin-bottom:18px">
           <button class="btn btn-gold" id="bio-btn" onclick="doBioUnlock()" style="display:none;width:100%;padding:14px;font-size:.68rem">👆 <span id="bio-btn-txt">Desbloquear com biometria</span></button>
           <div id="pin-entry" style="display:none">
@@ -1163,7 +1191,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v6.6</span>
+      <span>CipherVault © 2026 · v7.0</span>
     </div>
   </div>
 </div>
@@ -1263,6 +1291,14 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="dash-section-title" id="dash-alerts-title">Alertas &amp; Relatório</div>
       <div class="dash-alerts" id="dash-alerts"></div>
 
+      <div id="dash-renewals-wrap" style="margin-top:22px;display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div class="dash-section-title" id="dash-renewals-title" style="margin:0">📅 Renovações</div>
+          <div id="renewal-filter" style="display:flex;gap:4px"></div>
+        </div>
+        <div id="dash-renewals"></div>
+      </div>
+
       <div id="dash-favs-wrap" style="margin-top:18px;display:none">
         <div class="dash-section-title" id="dash-favs-title">⭐ Favoritos</div>
         <div id="dash-favs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px"></div>
@@ -1342,6 +1378,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         <div class="note-char-count" id="note-char-count" style="display:none"></div>
         <div class="note-actions" id="ne-actions" style="display:none">
           <button class="btn btn-gold" onclick="saveNote()" id="ne-save-btn" style="flex:1">Guardar nota</button>
+          <button class="btn btn-ghost" onclick="archiveCurrentNote()" id="ne-archive-btn">📦 Arquivar</button>
           <button class="btn btn-ghost" onclick="deleteCurrentNote()" id="ne-del-btn">Apagar nota</button>
         </div>
       </div>
@@ -1461,7 +1498,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v6.6</span>
+      <span>CipherVault © 2026 · v7.0</span>
     </div>
   </div>
   </div>
@@ -2150,7 +2187,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='6.6';
+const APP_VERSION='7.0';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2381,6 +2418,37 @@ async function refreshContinueBtn(){
     }else wrap.style.display='none';
   }catch(e){wrap.style.display='none';}
 }
+async function showFileMeta(file){
+  const el=document.getElementById('l-file-meta');
+  if(!el||!file)return;
+  const en=currentLang==='en';
+  const rows=[];
+  // Data de modificação
+  if(file.lastModified){
+    const d=new Date(file.lastModified);
+    const diff=Date.now()-file.lastModified;
+    const days=Math.floor(diff/86400000);
+    const hrs=Math.floor(diff/3600000);
+    let ago;
+    if(days>=1)ago=en?`${days} day(s) ago`:`há ${days} dia(s)`;
+    else if(hrs>=1)ago=en?`${hrs}h ago`:`há ${hrs}h`;
+    else ago=en?'less than 1h ago':'há menos de 1h';
+    const stamp=d.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString(en?'en-GB':'pt-PT',{hour:'2-digit',minute:'2-digit'});
+    rows.push(`<div>🕐 ${en?'Last saved':'Última gravação'}: <b style="color:var(--text)">${ago}</b> <span style="opacity:.6">· ${stamp}</span></div>`);
+    // Aviso se for antigo
+    if(days>=30)rows.push(`<div style="color:var(--accent)">⚠️ ${en?'This copy is over a month old.':'Esta cópia tem mais de um mês.'}</div>`);
+  }
+  // Tamanho + versão de formato (lê o container sem decifrar)
+  rows.push(`<div>📦 ${en?'Size':'Tamanho'}: <b style="color:var(--text)">${Math.round(file.size/1024)} KB</b></div>`);
+  try{
+    const txt=await file.text();
+    const obj=JSON.parse(txt);
+    const fmt=obj&&obj.payload&&obj.payload.v?obj.payload.v:1;
+    if(fmt>2)rows.push(`<div style="color:var(--red)">⚠️ ${en?'Saved by a newer app version.':'Gravado por uma versão mais recente da app.'}</div>`);
+  }catch(e){}
+  el.innerHTML=rows.join('');
+  el.style.display='block';
+}
 async function continueLastVault(){
   if(lockedOut)return;
   try{
@@ -2397,6 +2465,7 @@ async function continueLastVault(){
     document.getElementById('open-step-pw').style.display='block';
     document.getElementById('l-file-name').textContent='📁 '+file.name;
     document.getElementById('master-pw').value='';
+    showFileMeta(file);
     refreshQuickUnlock(true);
   }catch(e){
     toast(currentLang==='en'?'Could not open the file.':'Não foi possível abrir o ficheiro.');
@@ -3259,6 +3328,7 @@ function startNewVault(){
 }
 function backToFileStep(){
   pendingVaultFile=null;
+  const fm=document.getElementById('l-file-meta');if(fm)fm.style.display='none';
   document.getElementById('open-step-file').style.display='block';
   document.getElementById('open-step-pw').style.display='none';
   document.getElementById('lock-error').textContent='';
@@ -3271,6 +3341,7 @@ function onFileSelected(e){
   document.getElementById('open-step-pw').style.display='block';
   document.getElementById('l-file-name').textContent='📁 '+file.name;
   document.getElementById('master-pw').value='';
+  showFileMeta(file);
   refreshQuickUnlock(true);
   e.target.value='';
 }
@@ -4037,6 +4108,7 @@ function renderDashboard(){
   });
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
 
+  renderRenewals();
   // ── FAVORITOS ──
   renderWifiBar();
   const favList=active.filter(e=>e.fav).slice(0,8);
@@ -4462,21 +4534,93 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 // ══ ARCHIVE ══
 function renderArchive(){
-  const archived=vault.filter(e=>e.archived);
   const grid=document.getElementById('archive-grid');
-  if(!archived.length){grid.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg><p>${t('emptyArchive')}</p></div>`;return;}
-  grid.innerHTML=archived.map(entry=>`
-    <div class="entry-card" style="opacity:.8" id="arc-${entry.id}">
-      <div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(entry.cat).color}26;color:${vaultCatInfo(entry.cat).color}">${vaultCatInfo(entry.cat).icon} ${esc(vaultCatInfo(entry.cat).label)}</span></div>
-      <div class="card-name">${esc(entry.name)}</div>
-      ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span></div></div>`:''}
-      <div class="card-actions">
-        <button class="card-btn" onclick="restoreEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg> ${t('btnRestore')}</button>
-        <button class="card-btn danger" onclick="deleteEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
-      </div>
-    </div>`).join('');
+  const en=currentLang==='en';
+  const aVault=vault.filter(e=>e.archived);
+  const aDocs=documents.filter(d=>d.archived);
+  const aCards=bankCards.filter(cd=>cd.archived);
+  const aNotes=notes.filter(n=>n.archived);
+  const total=aVault.length+aDocs.length+aCards.length+aNotes.length;
+  if(!total){grid.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg><p>${t('emptyArchive')}</p></div>`;return;}
+  const restoreSvg='<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>';
+  const delSvg='<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+  let html='';
+  const section=(icon,label,count,cardsHtml)=>`
+    <div class="archive-section">
+      <div class="archive-section-head"><span>${icon} ${label}</span><span class="archive-count">${count}</span></div>
+      <div class="archive-section-grid">${cardsHtml}</div>
+    </div>`;
+  // Contas / passwords
+  if(aVault.length){
+    const cards=aVault.map(e=>`
+      <div class="entry-card" style="opacity:.85" id="arc-${e.id}">
+        <div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(e.cat).color}26;color:${vaultCatInfo(e.cat).color}">${vaultCatInfo(e.cat).icon} ${esc(vaultCatInfo(e.cat).label)}</span></div>
+        <div class="card-name">${esc(e.name)}</div>
+        ${e.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(e.user)}</span></div></div>`:''}
+        <div class="card-actions">
+          <button class="card-btn" onclick="restoreEntry('${e.id}')">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" onclick="deleteEntry('${e.id}')">${delSvg} ${t('btnDel')}</button>
+        </div>
+      </div>`).join('');
+    html+=section('🔐',en?'Accounts / passwords':'Contas / palavras-passe',aVault.length,cards);
+  }
+  // Documentos
+  if(aDocs.length){
+    const cards=aDocs.map(d=>`
+      <div class="entry-card" style="opacity:.85">
+        <div class="card-name">${d.icon||'📄'} ${esc(d.title||'')}</div>
+        ${d.expiry?`<div class="card-field"><span class="card-field-label">${en?'Expiry':'Validade'}</span><div class="card-field-inner"><span class="card-field-value">${esc(d.expiry)}</span></div></div>`:''}
+        <div class="card-actions">
+          <button class="card-btn" onclick="restoreDoc('${d.id}')">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" onclick="deleteDoc('${d.id}')">${delSvg} ${t('btnDel')}</button>
+        </div>
+      </div>`).join('');
+    html+=section('📁',en?'Documents':'Documentos',aDocs.length,cards);
+  }
+  // Cartões
+  if(aCards.length){
+    const cards=aCards.map(cd=>`
+      <div class="entry-card" style="opacity:.85">
+        <div class="card-name">💳 ${esc(cd.name||cd.bank||'')}</div>
+        ${cd.expiry?`<div class="card-field"><span class="card-field-label">${en?'Valid thru':'Validade'}</span><div class="card-field-inner"><span class="card-field-value">${esc(cd.expiry)}</span></div></div>`:''}
+        <div class="card-actions">
+          <button class="card-btn" onclick="restoreCard('${cd.id}')">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" onclick="deleteCard('${cd.id}')">${delSvg} ${t('btnDel')}</button>
+        </div>
+      </div>`).join('');
+    html+=section('💳',en?'Bank cards':'Cartões bancários',aCards.length,cards);
+  }
+  // Notas
+  if(aNotes.length){
+    const cards=aNotes.map(n=>`
+      <div class="entry-card" style="opacity:.85">
+        <div class="card-name">📝 ${esc(n.title||(en?'Untitled note':'Nota sem título'))}</div>
+        ${n.body?`<div style="font-size:.62rem;color:var(--text-muted);padding:6px 2px;line-height:1.5">${esc(n.body.slice(0,60))}${n.body.length>60?'…':''}</div>`:''}
+        <div class="card-actions">
+          <button class="card-btn" onclick="restoreNote('${n.id}')">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" onclick="deleteNoteById('${n.id}')">${delSvg} ${t('btnDel')}</button>
+        </div>
+      </div>`).join('');
+    html+=section('📝',en?'Notes':'Notas',aNotes.length,cards);
+  }
+  grid.innerHTML=html;
+}
+function deleteNoteById(id){
+  const en=currentLang==='en';
+  if(!confirm(en?'Move this note to the recycle bin?':'Mover esta nota para a reciclagem?'))return;
+  const n=notes.find(x=>x.id===id);
+  if(n){logActivity('delete',n.title||'Nota','🗑️');trash.unshift({type:'note',data:n,deletedAt:Date.now()});}
+  notes=notes.filter(x=>x.id!==id);
+  renderAll();toast(en?'Moved to recycle bin 🗑️':'Movido para a reciclagem 🗑️');markUnsaved();
 }
 function restoreEntry(id){const e=vault.find(v=>v.id===id);if(e){logActivity('restore',e.name,'♻️');delete e.archived;renderAll();toast(t('toastRestored'));markUnsaved();}}
+function archiveDoc(id){const d=documents.find(x=>x.id===id);if(d){logActivity('archive',d.title,'📦');d.archived=true;renderAll();toast(t('toastArchived'));markUnsaved();}}
+function restoreDoc(id){const d=documents.find(x=>x.id===id);if(d){logActivity('restore',d.title,'♻️');delete d.archived;renderAll();toast(t('toastRestored'));markUnsaved();}}
+function archiveCard(id){const cd=bankCards.find(x=>x.id===id);if(cd){logActivity('archive',cd.name,'📦');cd.archived=true;renderAll();toast(t('toastArchived'));markUnsaved();}}
+function restoreCard(id){const cd=bankCards.find(x=>x.id===id);if(cd){logActivity('restore',cd.name,'♻️');delete cd.archived;renderAll();toast(t('toastRestored'));markUnsaved();}}
+function archiveNote(id){const n=notes.find(x=>x.id===id);if(n){logActivity('archive',n.title||'Nota','📦');n.archived=true;if(editingNoteId===id){editingNoteId=null;hideNoteEditor();}renderAll();toast(t('toastArchived'));markUnsaved();}}
+function archiveCurrentNote(){if(editingNoteId)archiveNote(editingNoteId);}
+function restoreNote(id){const n=notes.find(x=>x.id===id);if(n){logActivity('restore',n.title||'Nota','♻️');delete n.archived;renderAll();toast(t('toastRestored'));markUnsaved();}}
 
 // ══ ENTRY MODAL ══
 function openModal(id=null){
@@ -4622,11 +4766,11 @@ function usePwGen(){document.getElementById('f-pw').value=document.getElementByI
 function renderNotesList(){
   const el=document.getElementById('notes-list-items');el.innerHTML='';
   const titleEl=document.getElementById('notes-title');if(titleEl)titleEl.textContent=t('notesTitle');
-  if(!notes.length){
+  if(!notes.filter(n=>!n.archived).length){
     el.innerHTML=`<div style="padding:14px;font-size:.62rem;color:var(--text-muted);text-align:center">${t('notesEmpty')}</div>`;
     hideNoteEditor();return;
   }
-  notes.forEach(note=>{
+  notes.filter(n=>!n.archived).forEach(note=>{
     const div=document.createElement('div');
     div.className=`note-item${editingNoteId===note.id?' active':''}`;
     div.innerHTML=`<div class="note-item-title">${esc(note.title||'...')}</div><div class="note-item-preview">${esc((note.body||'').slice(0,40))}</div>`;
@@ -4652,6 +4796,8 @@ function showNoteEditor(note){
   if(counter){counter.style.display='block';counter.textContent=`${(note.body||'').length} ${currentLang==='en'?'characters':'caracteres'}`;}
   document.getElementById('ne-save-btn').textContent=t('btnSaveNote');
   document.getElementById('ne-del-btn').textContent=t('btnDelNote');
+  const arcBtn=document.getElementById('ne-archive-btn');
+  if(arcBtn)arcBtn.textContent='📦 '+t('btnArchive');
 }
 function newNote(){
   const note={id:Date.now().toString(36),title:'',body:'',createdAt:Date.now()};
@@ -4744,11 +4890,12 @@ function deleteCard(id){
 }
 function renderBankCards(){
   const grid=document.getElementById('cards-grid-area');
-  if(!bankCards.length){
+  const activeCards=bankCards.filter(cd=>!cd.archived);
+  if(!activeCards.length){
     grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><p>${t('cardEmpty')}</p></div>`;
     return;
   }
-  grid.innerHTML=bankCards.map(card=>{
+  grid.innerHTML=activeCards.map(card=>{
     const typeLabels=t('cardTypeLabels');
     const maskedNum=card.number?card.number.replace(/\d(?=\d{4})/g,'•'):'•••• •••• •••• ••••';
     return `<div class="bank-card-wrap">
@@ -4775,6 +4922,7 @@ function renderBankCards(){
           <button class="card-btn" id="pin-btn-${card.id}" onclick="togglePin('${card.id}')" style="margin-left:auto">👁️</button>
         </div>`:''}
         <button class="card-btn" onclick="openCardModal('${card.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
+        <button class="card-btn" onclick="archiveCard('${card.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> ${t('btnArchive')}</button>
         <button class="card-btn danger" onclick="deleteCard('${card.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
       </div>
       ${card.notes?`<div style="font-size:.62rem;color:var(--text-muted);padding:8px 2px;line-height:1.5">${esc(card.notes)}</div>`:''}
@@ -5188,6 +5336,93 @@ function downloadDoc(id){
   }
 }
 
+function cardExpiryToDate(mmYY){
+  if(!mmYY||!/^\d{2}\/\d{2}$/.test(mmYY))return null;
+  const [mm,yy]=mmYY.split('/').map(Number);
+  if(mm<1||mm>12)return null;
+  // Cartões expiram no último dia do mês indicado
+  return new Date(2000+yy,mm,0);
+}
+let renewalWindow=90;
+function setRenewalWindow(days){renewalWindow=days;renderRenewals();}
+function renderRenewals(){
+  const wrap=document.getElementById('dash-renewals-wrap');
+  if(!wrap)return;
+  const en=currentLang==='en';
+  const title=document.getElementById('dash-renewals-title');
+  if(title)title.textContent=en?'📅 Renewals':'📅 Renovações';
+  const items=[];
+  documents.forEach(d=>{
+    if(!d.expiry)return;
+    const st=getExpiryStatus(d.expiry);
+    if(!st)return;
+    items.push({name:d.title||(en?'Document':'Documento'),icon:d.icon||'📄',
+      kind:en?'Document':'Documento',date:new Date(d.expiry),iso:d.expiry,status:st,
+      go:()=>{switchTab('docs');}});
+  });
+  bankCards.forEach(cd=>{
+    const dt=cardExpiryToDate(cd.expiry);
+    if(!dt)return;
+    const iso=dt.toISOString().slice(0,10);
+    const st=getExpiryStatus(iso);
+    if(!st)return;
+    items.push({name:cd.name||(en?'Card':'Cartão'),icon:'💳',
+      kind:en?'Bank card':'Cartão bancário',date:dt,iso,status:st,
+      go:()=>{switchTab('cards');}});
+  });
+  // Nada com validade em lado nenhum → esconde a secção por completo
+  if(!items.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  // Botões de janela temporal
+  const windows=[[90,en?'90 days':'90 dias'],[180,en?'6 months':'6 meses'],[365,en?'1 year':'1 ano'],[0,en?'All':'Tudo']];
+  const fb=document.getElementById('renewal-filter');
+  if(fb)fb.innerHTML=windows.map(([d,lbl])=>`<button class="renewal-filter-btn ${renewalWindow===d?'active':''}" onclick="setRenewalWindow(${d})">${lbl}</button>`).join('');
+  // Filtra pela janela escolhida (0 = tudo)
+  const soon=items.filter(i=>renewalWindow===0||i.status.days<=renewalWindow).sort((a,b)=>a.date-b.date);
+  if(!soon.length){
+    document.getElementById('dash-renewals').innerHTML=`<div class="renewal-empty">${en?`Nothing expiring within this period. Everything is valid further out.`:`Nada a expirar neste período. Está tudo válido para lá disso.`}</div>`;
+    return;
+  }
+  const fmt=dt=>dt.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short',year:'numeric'});
+  const humanDur=n=>{
+    // Prazos curtos: dias soltos são mais claros que "1 mês 15 dias"
+    if(n<60){const dLbl=en?(n===1?'day':'days'):(n===1?'dia':'dias');return `${n} ${dLbl}`;}
+    // n em dias → "2 anos 3 meses", "5 meses"
+    const years=Math.floor(n/365);
+    const rem=n-years*365;
+    const months=Math.floor(rem/30);
+    const days=rem-months*30;
+    const yLbl=en?(years===1?'year':'years'):(years===1?'ano':'anos');
+    const mLbl=en?(months===1?'month':'months'):(months===1?'mês':'meses');
+    const dLbl=en?(days===1?'day':'days'):(days===1?'dia':'dias');
+    if(years>0)return months>0?`${years} ${yLbl} ${months} ${mLbl}`:`${years} ${yLbl}`;
+    if(months>0)return days>0?`${months} ${mLbl} ${days} ${dLbl}`:`${months} ${mLbl}`;
+    return `${n} ${dLbl}`;
+  };
+  const whenLabel=st=>{
+    const a=Math.abs(st.days);
+    if(st.days===0)return en?'today':'hoje';
+    if(st.days<0)return en?`${humanDur(a)} ago`:`há ${humanDur(a)}`;
+    return en?`in ${humanDur(a)}`:`em ${humanDur(a)}`;
+  };
+  document.getElementById('dash-renewals').innerHTML=soon.map((i,idx)=>`
+    <div class="renewal-row ${i.status.cls}" onclick="_renewalGo(${idx})">
+      <span class="renewal-icon">${i.icon}</span>
+      <div class="renewal-body">
+        <div class="renewal-name">${esc(i.name)}</div>
+        <div class="renewal-meta">${i.kind}</div>
+      </div>
+      <div class="renewal-when">
+        <div class="${i.status.cls}">${whenLabel(i.status)}</div>
+        <div class="renewal-date">${fmt(i.date)}</div>
+      </div>
+    </div>`).join('');
+  window._renewalItems=soon;
+}
+function _renewalGo(idx){
+  const it=(window._renewalItems||[])[idx];
+  if(it&&it.go)it.go();
+}
 function getExpiryStatus(expiry){
   if(!expiry)return null;
   const exp=new Date(expiry);const now=new Date();
@@ -5202,7 +5437,7 @@ function renderDocs(){
   const filterRow=document.getElementById('docs-filter-row');
   const allCats=['all',...Object.keys(DOC_CATS)];
   filterRow.innerHTML=allCats.map(cat=>{
-    const scope=documents.filter(d=>(d.folderId||null)===(currentFolderId||null));
+    const scope=documents.filter(d=>!d.archived&&(d.folderId||null)===(currentFolderId||null));
     const count=cat==='all'?scope.length:scope.filter(d=>d.cat===cat).length;
     if(cat!=='all'&&count===0)return '';
     const label=cat==='all'?(currentLang==='en'?'All':'Todas'):getDocCatLabel(cat);
@@ -5232,7 +5467,7 @@ function renderDocs(){
   if(nfTxt)nfTxt.textContent=en?'New folder':'Nova pasta';
 
   const grid=document.getElementById('docs-grid');
-  const inFolder=documents.filter(d=>(d.folderId||null)===(currentFolderId||null));
+  const inFolder=documents.filter(d=>!d.archived&&(d.folderId||null)===(currentFolderId||null));
   const filtered2=currentDocFilter==='all'?inFolder:inFolder.filter(d=>d.cat===currentDocFilter);
   const filtered=filtered2.filter(d=>{
     if(currentDocValidityFilter==='all')return true;
@@ -5327,6 +5562,7 @@ function renderDocs(){
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           ${t('btnEdit')}
         </button>
+        <button class="card-btn" onclick="event.stopPropagation();archiveDoc('${doc.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> ${t('btnArchive')}</button>
         <button class="card-btn danger" onclick="event.stopPropagation();deleteDoc('${doc.id}')">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
           ${t('btnDel')}
@@ -7215,6 +7451,7 @@ document.addEventListener('drop',e=>{
     document.getElementById('open-step-file').style.display='none';
     document.getElementById('open-step-pw').style.display='block';
     document.getElementById('l-file-name').textContent='📁 '+file.name;
+    showFileMeta(file);
     refreshQuickUnlock(true);
   }
 });
