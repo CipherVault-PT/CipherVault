@@ -64,7 +64,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .toggle-pw:hover{color:var(--accent);}
 .lock-hint{font-size:.72rem;color:var(--text-muted);margin-top:6px;}
 .lock-actions{display:flex;gap:10px;margin-top:22px;}
-.btn{font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;padding:12px 18px;border-radius:2px;border:1px solid;cursor:pointer;transition:all .15s;flex:1;}
+.btn{font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;padding:12px 18px;border-radius:2px;border:1px solid;cursor:pointer;transition:all .15s;flex:0 1 auto;}
 .btn-gold{background:var(--accent);border-color:var(--accent);color:#0d0f14;font-weight:700;}
 .btn-gold:hover{opacity:.9;}
 .btn-ghost{background:transparent;border-color:var(--border);color:var(--text-muted);}
@@ -156,7 +156,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 #search-clear:hover{color:var(--accent);background:rgba(var(--accent-rgb),.1);}
 .search-wrap input:focus{border-color:var(--accent-dim);}
 .search-wrap svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);width:12px;height:12px;}
-.sort-select{background:var(--panel);border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.72rem;padding:9px 12px;border-radius:2px;outline:none;cursor:pointer;appearance:none;}
+.sort-select{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.72rem;padding:9px 30px 9px 12px;border-radius:2px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.sort-select option{background:var(--panel);color:var(--text);}
 .view-toggle{display:flex;gap:0;background:var(--panel);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
 .view-btn{background:none;border:none;cursor:pointer;font-size:.9rem;padding:5px 9px;color:var(--text-muted);transition:all .15s;}
 .view-btn.active{background:var(--accent);color:#0d0f14;}
@@ -283,6 +284,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .dup-warn{font-size:.74rem;color:var(--red);margin-top:4px;display:none;}
 .dup-warn.show{display:block;}
 .modal-actions{display:flex;gap:9px;margin-top:20px;}
+.modal-actions>.btn{flex:1 1 0;}
+.note-actions>.btn{flex:0 1 auto;}
+.note-actions>.btn:first-child{flex:1 1 auto;}
 
 /* TAGS INPUT */
 .tags-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:2px;min-height:40px;cursor:text;}
@@ -403,6 +407,31 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-label{color:var(--text-muted);}
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
+
+/* ══ DASHBOARD — CARTÕES EXPANSÍVEIS ══ */
+.dash-cards{display:flex;flex-direction:column;gap:12px;}
+.dcard{border:1px solid var(--border);border-radius:12px;background:var(--panel);overflow:hidden;transition:border-color .18s;}
+.dcard.open{border-color:var(--accent-dim);}
+.dcard-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;background:none;border:0;cursor:pointer;color:var(--text);text-align:left;transition:background .15s;}
+.dcard-head:hover{background:rgba(var(--accent-rgb),.05);}
+.dcard-head-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.dcard-icon{font-size:1.15rem;flex-shrink:0;}
+.dcard-title{font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dcard-head-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.dcard-badge{font-size:.62rem;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:12px;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);}
+.dcard-badge.warn{background:rgba(224,82,82,.15);border-color:var(--red);color:var(--red);}
+.dcard-badge.ok{background:rgba(63,185,80,.13);border-color:var(--green);color:var(--green);}
+.dcard-badge:empty{display:none;}
+.dcard-chevron{font-size:.85rem;color:var(--text-muted);transition:transform .22s;}
+.dcard.open .dcard-chevron{transform:rotate(180deg);}
+.dcard-body{max-height:0;overflow:hidden;transition:max-height .28s ease;}
+.dcard-body>*{padding:0 18px 18px;}
+.dcard.open .dcard-body{max-height:1600px;overflow-y:auto;}
+
+/* ══ RENOVAÇÕES — cabeçalho bonito ══ */
+.renewals-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.renewals-title{font-size:.9rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:600;}
+.renewals-filter{display:flex;gap:5px;flex-wrap:wrap;}
 
 /* ══ CÓPIAS DE SEGURANÇA ══ */
 .snap-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--border);border-radius:8px;background:var(--card);}
@@ -1221,7 +1250,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v7.6</span>
+      <span>CipherVault © 2026 · v7.9</span>
     </div>
   </div>
 </div>
@@ -1318,9 +1347,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         </div>
         <div class="dash-grid" id="dash-stats"></div>
       </div>
-      <div class="dash-section-title" id="dash-alerts-title">Alertas &amp; Relatório</div>
-      <div class="dash-alerts" id="dash-alerts"></div>
-
+      <!-- BOTÃO VERIFICAR FUGAS -->
       <div id="breach-panel" style="margin-top:20px">
         <div style="display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap">
           <button class="breach-cta" id="breach-btn" onclick="checkBreaches()">🛡️ <span id="breach-btn-txt">Verificar fugas de passwords</span></button>
@@ -1332,35 +1359,56 @@ body::after{bottom:-32vmax;right:-24vmax;
         <div id="breach-results" style="margin-top:12px"></div>
       </div>
 
-      <div id="dash-renewals-wrap" style="margin-top:22px;display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-          <div class="dash-section-title" id="dash-renewals-title" style="margin:0">📅 Renovações</div>
-          <div id="renewal-filter" style="display:flex;gap:4px"></div>
+      <!-- RENOVAÇÕES (destaque próprio, sempre visível se houver) -->
+      <div id="dash-renewals-wrap" style="margin-top:24px;display:none">
+        <div class="renewals-head">
+          <div class="renewals-title" id="dash-renewals-title">📅 Renovações</div>
+          <div id="renewal-filter" class="renewals-filter"></div>
         </div>
         <div id="dash-renewals"></div>
       </div>
 
-      <div id="dash-favs-wrap" style="margin-top:18px;display:none">
-        <div class="dash-section-title" id="dash-favs-title">⭐ Favoritos</div>
-        <div id="dash-favs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px"></div>
-      </div>
+      <!-- CARTÕES EXPANSÍVEIS -->
+      <div class="dash-cards" style="margin-top:24px">
+        <div class="dcard" id="dcard-alerts">
+          <button class="dcard-head" onclick="toggleDashCard('alerts')">
+            <span class="dcard-head-left"><span class="dcard-icon">🔔</span><span class="dcard-title" id="dcard-alerts-title">Alertas & Relatório</span></span>
+            <span class="dcard-head-right"><span class="dcard-badge" id="alerts-badge"></span><span class="dcard-chevron">▾</span></span>
+          </button>
+          <div class="dcard-body" id="dcard-alerts-body"><div class="dash-alerts" id="dash-alerts"></div></div>
+        </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px" id="dash-bottom-grid">
-        <!-- CATEGORY CHART -->
-        <div>
-          <div class="dash-section-title" id="dash-chart-title">📊 Entradas por categoria</div>
-          <div id="dash-cat-chart" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div class="dcard" id="dcard-favs" style="display:none">
+          <button class="dcard-head" onclick="toggleDashCard('favs')">
+            <span class="dcard-head-left"><span class="dcard-icon">⭐</span><span class="dcard-title" id="dcard-favs-title">Favoritos</span></span>
+            <span class="dcard-head-right"><span class="dcard-badge" id="favs-badge"></span><span class="dcard-chevron">▾</span></span>
+          </button>
+          <div class="dcard-body" id="dcard-favs-body"><div id="dash-favs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px"></div></div>
         </div>
-        <!-- OLDEST PASSWORDS -->
-        <div>
-          <div class="dash-section-title" id="dash-oldest-title">⏳ Passwords mais antigas</div>
-          <div id="dash-oldest-list" style="display:flex;flex-direction:column;gap:6px"></div>
+
+        <div class="dcard" id="dcard-cats">
+          <button class="dcard-head" onclick="toggleDashCard('cats')">
+            <span class="dcard-head-left"><span class="dcard-icon">📊</span><span class="dcard-title" id="dcard-cats-title">Entradas por categoria</span></span>
+            <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
+          </button>
+          <div class="dcard-body" id="dcard-cats-body"><div id="dash-cat-chart" style="display:flex;flex-direction:column;gap:6px"></div></div>
         </div>
-      </div>
-      <!-- ACTIVITY LOG -->
-      <div style="margin-top:14px">
-        <div class="dash-section-title" id="dash-activity-title">📋 Atividade recente</div>
-        <div id="dash-activity-list" style="display:flex;flex-direction:column;gap:6px"></div>
+
+        <div class="dcard" id="dcard-oldest">
+          <button class="dcard-head" onclick="toggleDashCard('oldest')">
+            <span class="dcard-head-left"><span class="dcard-icon">⏳</span><span class="dcard-title" id="dcard-oldest-title">Passwords mais antigas</span></span>
+            <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
+          </button>
+          <div class="dcard-body" id="dcard-oldest-body"><div id="dash-oldest-list" style="display:flex;flex-direction:column;gap:6px"></div></div>
+        </div>
+
+        <div class="dcard" id="dcard-activity">
+          <button class="dcard-head" onclick="toggleDashCard('activity')">
+            <span class="dcard-head-left"><span class="dcard-icon">📋</span><span class="dcard-title" id="dcard-activity-title">Atividade recente</span></span>
+            <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
+          </button>
+          <div class="dcard-body" id="dcard-activity-body"><div id="dash-activity-list" style="display:flex;flex-direction:column;gap:6px"></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1376,11 +1424,11 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
       <div class="content">
         <div class="content-header">
-          <div class="content-title" id="content-title">Todas as Entradas</div>
+          <div class="content-title" id="content-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Todas as Entradas</div>
           <div class="header-controls">
-            <button class="btn btn-gold" onclick="openModal()" style="padding:8px 14px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              <span id="tb-new-txt"> Nova entrada</span>
+            <button class="btn btn-gold" onclick="openModal()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span id="tb-new-txt">Nova entrada</span>
             </button>
             <button class="btn btn-ghost" onclick="openFolderModal(null,'vault')" id="vault-newfolder-btn" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📁+ <span id="vault-newfolder-txt">Nova pasta</span></button>
             <button class="btn btn-ghost" onclick="openQrScanner('share')" id="tb-qrimport-btn" title="Importar entrada por QR" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📥 QR</button>
@@ -1539,7 +1587,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v7.6</span>
+      <span>CipherVault © 2026 · v7.9</span>
     </div>
   </div>
   </div>
@@ -1759,7 +1807,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
       <div id="pin-dur-row" style="display:flex;align-items:center;gap:10px;margin-top:12px">
         <span id="pin-dur-lbl" style="font-size:.7rem;color:var(--text);white-space:nowrap">Validade do PIN</span>
-        <select id="pin-dur" class="sort-select" onchange="setPinDuration(this.value)" style="flex:1"></select>
+        <select id="pin-dur" class="sort-select" onchange="setPinDuration(this.value)" style="flex:1;min-width:140px"></select>
       </div>
       <div id="quick-note" style="font-size:.62rem;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
     </div>
@@ -2248,7 +2296,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='7.6';
+const APP_VERSION='7.9';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4181,15 +4229,31 @@ function renderDashboard(){
     else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:doc.expiry});
   });
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
+  // Badge do cartão de alertas: nº de problemas (ou ✓ se tudo bem)
+  const problems=alerts.filter(a=>a.type==='danger'||a.type==='warn').length;
+  const aBadge=document.getElementById('alerts-badge');
+  if(aBadge){
+    if(problems>0){aBadge.textContent=problems;aBadge.className='dcard-badge warn';}
+    else{aBadge.textContent='✓';aBadge.className='dcard-badge ok';}
+  }
+  // Títulos dos cartões (traduzidos)
+  const dcEn=currentLang==='en';
+  const setT=(id,pt,en)=>{const el=document.getElementById(id);if(el)el.textContent=dcEn?en:pt;};
+  setT('dcard-alerts-title','Alertas & Relatório','Alerts & Report');
+  setT('dcard-favs-title','Favoritos','Favourites');
+  setT('dcard-cats-title','Entradas por categoria','Entries by category');
+  setT('dcard-oldest-title','Passwords mais antigas','Oldest passwords');
+  setT('dcard-activity-title','Atividade recente','Recent activity');
 
   renderRenewals();
+  applyDashCardStates();
   refreshBreachButton();
   // ── FAVORITOS ──
   renderWifiBar();
   const favList=active.filter(e=>e.fav).slice(0,8);
-  const favsWrap=document.getElementById('dash-favs-wrap');
-  const favsTitle=document.getElementById('dash-favs-title');
-  if(favsTitle)favsTitle.textContent=currentLang==='en'?'⭐ Favourites':'⭐ Favoritos';
+  const favsWrap=document.getElementById('dcard-favs');
+  const favBadge=document.getElementById('favs-badge');
+  if(favBadge)favBadge.textContent=favList.length||'';
   if(favsWrap){
     favsWrap.style.display=favList.length?'block':'none';
     const favsEl=document.getElementById('dash-favs');
@@ -5864,6 +5928,24 @@ setInterval(()=>{
   }
   if(needRefresh)refreshTotpCodes();
 },1000);
+
+// ══ DASHBOARD — CARTÕES EXPANSÍVEIS ══
+function toggleDashCard(key){
+  const card=document.getElementById('dcard-'+key);
+  if(!card)return;
+  const open=card.classList.toggle('open');
+  try{localStorage.setItem('cv_dcard_'+key,open?'1':'0');}catch(e){}
+}
+function applyDashCardStates(){
+  // Todos fechados por omissão (escolha do utilizador)
+  ['alerts','favs','cats','oldest','activity'].forEach(key=>{
+    const card=document.getElementById('dcard-'+key);
+    if(!card)return;
+    let open=false;
+    try{open=localStorage.getItem('cv_dcard_'+key)==='1';}catch(e){}
+    card.classList.toggle('open',open);
+  });
+}
 
 // ══ ROTAÇÃO DE CÓPIAS (instantâneos locais encriptados) ══
 const SNAP_KEEP=5;
