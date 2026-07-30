@@ -145,6 +145,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .content-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;}
 .content-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--text);}
 .header-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.header-controls>.btn{flex-shrink:0;}
 .search-wrap{position:relative;flex:1;max-width:320px;min-width:150px;}
 #tb-secondary{display:contents;}
 #tb-more{display:none;}
@@ -402,6 +403,35 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-label{color:var(--text-muted);}
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
+
+/* ══ CÓPIAS DE SEGURANÇA ══ */
+.snap-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--border);border-radius:8px;background:var(--card);}
+.snap-item.latest{border-left:3px solid var(--accent);}
+.snap-body{flex:1;min-width:0;}
+.snap-when{font-size:.82rem;color:var(--text);}
+.snap-meta{font-size:.6rem;color:var(--text-muted);margin-top:3px;text-transform:uppercase;letter-spacing:1px;}
+.snap-restore{background:none;border:1px solid var(--accent-dim);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;padding:8px 14px;border-radius:5px;cursor:pointer;transition:all .15s;flex-shrink:0;text-transform:uppercase;}
+.snap-restore:hover{background:rgba(var(--accent-rgb),.15);}
+
+/* ══ VERIFICAÇÃO DE FUGAS ══ */
+.breach-cta{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:linear-gradient(135deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.06));border:1px solid var(--accent);border-radius:26px;cursor:pointer;white-space:nowrap;transition:transform .18s,box-shadow .18s,background .18s;animation:breachGlow 2.6s ease-in-out infinite;}
+.breach-cta:hover{transform:translateY(-2px);background:linear-gradient(135deg,rgba(var(--accent-rgb),.26),rgba(var(--accent-rgb),.12));box-shadow:0 10px 30px -8px rgba(var(--accent-rgb),.6);animation:none;}
+.breach-cta:active{transform:translateY(0);}
+.breach-cta:disabled{opacity:.6;cursor:default;animation:none;}
+@keyframes breachGlow{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.35);}50%{box-shadow:0 0 0 8px rgba(var(--accent-rgb),0);}}
+.breach-help{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--border);color:var(--text-muted);font-size:.7rem;cursor:help;flex-shrink:0;transition:all .15s;}
+.breach-help:hover,.breach-help:focus{border-color:var(--accent);color:var(--accent);outline:none;}
+.breach-tip{position:absolute;bottom:calc(100% + 12px);left:-8px;width:330px;max-width:min(330px,86vw);background:var(--panel);border:1px solid var(--accent-dim);border-radius:8px;padding:13px 15px;font-size:.68rem;line-height:1.65;color:var(--text);text-align:left;letter-spacing:0;text-transform:none;box-shadow:0 14px 40px rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s;z-index:200;pointer-events:none;}
+.breach-tip::after{content:'';position:absolute;top:100%;left:12px;border:6px solid transparent;border-top-color:var(--accent-dim);}
+.breach-help:hover .breach-tip,.breach-help:focus .breach-tip{opacity:1;visibility:visible;}
+.breach-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;background:var(--card);}
+.breach-row.pwned{border-left:3px solid var(--red);}
+.breach-row-body{flex:1;min-width:0;}
+.breach-row-name{font-size:.84rem;color:var(--text);}
+.breach-row-meta{font-size:.62rem;color:var(--red);margin-top:2px;text-transform:uppercase;letter-spacing:1px;}
+.breach-summary{padding:12px 15px;border-radius:8px;margin-bottom:10px;font-size:.78rem;line-height:1.6;}
+.breach-summary.clean{background:rgba(63,185,80,.12);border:1px solid var(--green);}
+.breach-summary.dirty{background:rgba(229,83,75,.12);border:1px solid var(--red);}
 
 /* ══ ARQUIVO POR SECÇÕES ══ */
 .archive-section{margin-bottom:26px;}
@@ -1191,7 +1221,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v7.0</span>
+      <span>CipherVault © 2026 · v7.6</span>
     </div>
   </div>
 </div>
@@ -1291,6 +1321,17 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="dash-section-title" id="dash-alerts-title">Alertas &amp; Relatório</div>
       <div class="dash-alerts" id="dash-alerts"></div>
 
+      <div id="breach-panel" style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap">
+          <button class="breach-cta" id="breach-btn" onclick="checkBreaches()">🛡️ <span id="breach-btn-txt">Verificar fugas de passwords</span></button>
+          <span class="breach-help" tabindex="0">?
+            <span class="breach-tip" id="breach-tip"></span>
+          </span>
+        </div>
+        <div id="breach-status" style="font-size:.7rem;color:var(--text-muted);text-align:center;margin-top:8px"></div>
+        <div id="breach-results" style="margin-top:12px"></div>
+      </div>
+
       <div id="dash-renewals-wrap" style="margin-top:22px;display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
           <div class="dash-section-title" id="dash-renewals-title" style="margin:0">📅 Renovações</div>
@@ -1337,7 +1378,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         <div class="content-header">
           <div class="content-title" id="content-title">Todas as Entradas</div>
           <div class="header-controls">
-            <button class="btn btn-gold" onclick="openModal()" style="padding:8px 14px;font-size:.56rem;letter-spacing:2px;white-space:nowrap">
+            <button class="btn btn-gold" onclick="openModal()" style="padding:8px 14px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span id="tb-new-txt"> Nova entrada</span>
             </button>
@@ -1498,7 +1539,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v7.0</span>
+      <span>CipherVault © 2026 · v7.6</span>
     </div>
   </div>
   </div>
@@ -1701,6 +1742,13 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
 
+    <!-- SNAPSHOTS -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-snap-title">💾 Cópias de Segurança</div>
+      <div id="snap-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
+      <button class="btn btn-ghost" id="snap-open-btn" onclick="openSnapshotModal()" style="width:100%;padding:11px">⏳ <span id="snap-open-txt">Ver e restaurar cópias</span></button>
+    </div>
+
     <!-- QUICK UNLOCK -->
     <div class="settings-section">
       <div class="settings-title" id="s-quick-title">🔓 Desbloqueio Rápido</div>
@@ -1880,6 +1928,19 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="saveTotp()" id="totp-save-btn">Guardar</button>
       <button class="btn btn-ghost" onclick="closeTotpModal()" id="totp-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SNAPSHOTS MODAL -->
+<div class="modal-overlay" id="snap-overlay" onclick="if(event.target===this)closeSnapshotModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title" id="snap-title">💾 Cópias de Segurança</div>
+    <div id="snap-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
+    <div id="snap-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div class="modal-actions" style="flex-direction:column;gap:8px">
+      <button class="btn btn-ghost" onclick="clearSnapshotsConfirm()" id="snap-clear-btn" style="width:100%;color:var(--red);border-color:var(--red)">🗑️ <span id="snap-clear-txt">Apagar todas as cópias</span></button>
+      <button class="btn btn-ghost" onclick="closeSnapshotModal()" id="snap-close-btn" style="width:100%">Fechar</button>
     </div>
   </div>
 </div>
@@ -2187,7 +2248,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='7.0';
+const APP_VERSION='7.6';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2767,6 +2828,18 @@ async function doBioSetup(){
     await clearBioUnlock();return;
   }
   toast(en?'Could not enable biometrics.':'Não foi possível ativar a biometria.');
+}
+async function renderSnapshotSettings(){
+  const en=currentLang==='en';
+  const t1=document.getElementById('s-snap-title');
+  if(t1)t1.textContent=en?'💾 Backups':'💾 Cópias de Segurança';
+  const ot=document.getElementById('snap-open-txt');
+  if(ot)ot.textContent=en?'View & restore snapshots':'Ver e restaurar cópias';
+  const list=await getSnapshots();
+  const desc=document.getElementById('snap-desc');
+  if(desc)desc.textContent=en
+    ?`${list.length} of ${SNAP_KEEP} snapshots kept on this device, encrypted. A new one is saved each time you save the vault.`
+    :`${list.length} de ${SNAP_KEEP} cópias guardadas neste dispositivo, encriptadas. É criada uma nova sempre que gravas o cofre.`;
 }
 async function renderQuickSettings(){
   const st=document.getElementById('quick-status');if(!st)return;
@@ -3746,6 +3819,7 @@ function openSettings(){
   refreshColorPickers();
   renderPackChips();
   renderQuickSettings();
+  renderSnapshotSettings();
   renderVaultInfo();
   renderCatManager();
   const lh=document.getElementById('s-lockhide');if(lh)lh.checked=lockHideOn;
@@ -4109,6 +4183,7 @@ function renderDashboard(){
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
 
   renderRenewals();
+  refreshBreachButton();
   // ── FAVORITOS ──
   renderWifiBar();
   const favList=active.filter(e=>e.fav).slice(0,8);
@@ -4995,6 +5070,7 @@ async function saveFile(){
   const json=JSON.stringify(container);
   const dateStr=new Date().toISOString().slice(0,10);
   lastSavedAt=Date.now();
+  pushSnapshot(container);
   // Sem handle mas com API: escolher onde guardar (uma vez)
   if(!vaultFileHandle&&FSA_OK){
     try{
@@ -5788,6 +5864,198 @@ setInterval(()=>{
   }
   if(needRefresh)refreshTotpCodes();
 },1000);
+
+// ══ ROTAÇÃO DE CÓPIAS (instantâneos locais encriptados) ══
+const SNAP_KEEP=5;
+async function pushSnapshot(container){
+  try{
+    let list=await idbGet('cv_snapshots');
+    if(!Array.isArray(list))list=[];
+    const active=vault.filter(e=>!e.archived).length;
+    list.unshift({
+      at:Date.now(),
+      container,
+      meta:{entries:active,docs:documents.length,cards:bankCards.length,notes:notes.filter(n=>!n.archived).length,protected2fa:!!totpRecWrap}
+    });
+    // Não guardar duplicados exatos seguidos (mesma gravação repetida)
+    if(list.length>1&&JSON.stringify(list[0].container)===JSON.stringify(list[1].container))list.shift();
+    if(list.length>SNAP_KEEP)list=list.slice(0,SNAP_KEEP);
+    await idbSet('cv_snapshots',list);
+  }catch(e){/* best-effort: nunca bloqueia a gravação */}
+}
+async function getSnapshots(){
+  try{const l=await idbGet('cv_snapshots');return Array.isArray(l)?l:[];}catch(e){return [];}
+}
+async function clearSnapshots(){try{await idbDel('cv_snapshots');}catch(e){}}
+async function openSnapshotModal(){
+  const en=currentLang==='en';
+  document.getElementById('snap-title').textContent=en?'💾 Backups':'💾 Cópias de Segurança';
+  document.getElementById('snap-intro').textContent=en
+    ?`The app keeps the last ${SNAP_KEEP} snapshots automatically, each time you save — encrypted, on this device only. If something goes wrong, roll back to any of them.`
+    :`A app guarda automaticamente as últimas ${SNAP_KEEP} cópias, sempre que gravas — encriptadas, só neste dispositivo. Se algo correr mal, volta a qualquer uma delas.`;
+  document.getElementById('snap-clear-txt').textContent=en?'Delete all snapshots':'Apagar todas as cópias';
+  document.getElementById('snap-close-btn').textContent=en?'Close':'Fechar';
+  await renderSnapshotList();
+  document.getElementById('snap-overlay').classList.add('open');
+}
+function closeSnapshotModal(){document.getElementById('snap-overlay').classList.remove('open');}
+async function renderSnapshotList(){
+  const en=currentLang==='en';
+  const list=await getSnapshots();
+  const el=document.getElementById('snap-list');
+  if(!list.length){
+    el.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);text-align:center;padding:16px">${en?'No snapshots yet. They are created each time you save.':'Ainda sem cópias. São criadas sempre que gravas.'}</div>`;
+    return;
+  }
+  el.innerHTML=list.map((s,i)=>{
+    const d=new Date(s.at);
+    const when=d.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString(en?'en-GB':'pt-PT',{hour:'2-digit',minute:'2-digit'});
+    const m=s.meta||{};
+    const bits=[`${m.entries||0} ${en?'accounts':'contas'}`];
+    if(m.docs)bits.push(`${m.docs} ${en?'docs':'docs'}`);
+    if(m.cards)bits.push(`${m.cards} ${en?'cards':'cartões'}`);
+    if(m.notes)bits.push(`${m.notes} ${en?'notes':'notas'}`);
+    if(m.protected2fa)bits.push('🛡️ 2FA');
+    return `<div class="snap-item ${i===0?'latest':''}">
+      <span style="font-size:1.2rem">${i===0?'🟢':'💾'}</span>
+      <div class="snap-body">
+        <div class="snap-when">${when}${i===0?` · <span style="color:var(--accent);font-size:.66rem">${en?'most recent':'mais recente'}</span>`:''}</div>
+        <div class="snap-meta">${bits.join(' · ')}</div>
+      </div>
+      <button class="snap-restore" onclick="restoreSnapshot(${i})">${en?'Restore':'Restaurar'}</button>
+    </div>`;
+  }).join('');
+}
+async function clearSnapshotsConfirm(){
+  const en=currentLang==='en';
+  if(!confirm(en?'Delete all saved snapshots? This cannot be undone.':'Apagar todas as cópias guardadas? Isto não pode ser desfeito.'))return;
+  await clearSnapshots();
+  await renderSnapshotList();
+  toast(en?'Snapshots deleted.':'Cópias apagadas.');
+}
+async function restoreSnapshot(idx){
+  const en=currentLang==='en';
+  const list=await getSnapshots();
+  const snap=list[idx];
+  if(!snap){toast(en?'Snapshot not found.':'Cópia não encontrada.');return;}
+  if(!masterKey){toast(en?'Open the vault first.':'Abre o cofre primeiro.');return;}
+  // Decifrar o instantâneo com a chave mestra ATUAL (o salt está no container)
+  let data;
+  try{
+    const salt=new Uint8Array(snap.container.salt);
+    const key=await deriveKey(masterPwRaw,salt);
+    data=await decrypt(key,snap.container.payload);
+  }catch(e){
+    alert(en?'Could not open this snapshot with the current master password. It may be from before a password change.':'Não foi possível abrir esta cópia com a palavra-passe atual. Pode ser de antes de uma mudança de palavra-passe.');
+    return;
+  }
+  const when=new Date(snap.at).toLocaleString(en?'en-GB':'pt-PT');
+  if(!confirm(en
+    ?`Restore the vault to the snapshot from ${when}?\n\nYour current state will be replaced (but a fresh snapshot is kept, so this is reversible).`
+    :`Restaurar o cofre para a cópia de ${when}?\n\nO estado atual será substituído (mas fica guardada uma cópia nova, por isso é reversível).`))return;
+  // Guardar primeiro o estado atual, para o restauro ser reversível
+  try{
+    if(totpUnlocked)totpEnc=await encryptTotpArray();
+    const cur=await encrypt(masterKey,vaultPayload());
+    await pushSnapshot({salt:Array.from(window._salt),payload:cur});
+  }catch(e){}
+  // Aplicar os dados do instantâneo
+  vault=data.vault||[];notes=data.notes||[];bankCards=data.bankCards||[];
+  activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];
+  customCats=data.customCats||[];docFolders=data.docFolders||[];vaultFolders=data.vaultFolders||[];
+  wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';
+  totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
+  totp=totpRecWrap?[]:(data.totp||[]);
+  payloadExtras={};
+  Object.keys(data).forEach(k=>{if(!KNOWN_KEYS.includes(k))payloadExtras[k]=data[k];});
+  currentFolderId=null;currentVaultFolderId=null;
+  logActivity('restore',en?'Snapshot restored':'Cópia restaurada','⏳');
+  markUnsaved();
+  closeSnapshotModal();
+  renderAll();
+  toast(en?'Vault restored ✓ — save to keep it.':'Cofre restaurado ✓ — grava para manter.');
+}
+
+// ══ VERIFICAÇÃO DE FUGAS (Have I Been Pwned — k-anonymity) ══
+async function sha1Hex(str){
+  const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function renderBreachTip(){
+  const en=currentLang==='en';
+  const tip=document.getElementById('breach-tip');
+  if(tip)tip.innerHTML=en
+    ? `<b>Is this safe?</b> Yes — your password never leaves your device.<br><br>The app turns it into a one-way fingerprint and sends only the <b>first 5 characters</b>:<br><span style="display:block;font-family:monospace;font-size:.6rem;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:10px 11px;margin:9px 0;line-height:1.8">Your password:&nbsp;&nbsp;<b style="color:var(--text)">password</b><br>Full hash:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="opacity:.55">5BAA61E4C9B93F…</span><br>What is <b style="color:var(--accent)">SENT</b>:&nbsp;<b style="color:var(--accent)">5BAA6</b> <span style="opacity:.5">← only this</span><br>What <b style="color:var(--green)">STAYS</b>:&nbsp;<span style="opacity:.55">1E4C9B93F…</span> <span style="opacity:.5">← never sent</span></span>Those 5 characters match <b>hundreds</b> of different passwords, so no one can tell which is yours — and a fingerprint can't be turned back into a password. Same method used by 1Password and Firefox.`
+    : `<b>Isto é seguro?</b> Sim — a tua password nunca sai do teu dispositivo.<br><br>A app transforma-a numa impressão digital de sentido único e envia só os <b>primeiros 5 caracteres</b>:<br><span style="display:block;font-family:monospace;font-size:.6rem;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:10px 11px;margin:9px 0;line-height:1.8">A tua password:&nbsp;&nbsp;<b style="color:var(--text)">password</b><br>Hash completo:&nbsp;&nbsp;&nbsp;<span style="opacity:.55">5BAA61E4C9B93F…</span><br>O que <b style="color:var(--accent)">SAI</b>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b style="color:var(--accent)">5BAA6</b> <span style="opacity:.5">← só isto</span><br>O que <b style="color:var(--green)">FICA</b>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="opacity:.55">1E4C9B93F…</span> <span style="opacity:.5">← nunca sai</span></span>Esses 5 caracteres correspondem a <b>centenas</b> de passwords diferentes, por isso ninguém sabe qual é a tua — e uma impressão digital não pode ser revertida para a password. É o mesmo método do 1Password e do Firefox.`;
+  const bt=document.getElementById('breach-btn-txt');
+  if(bt)bt.textContent=en?'Check for password breaches':'Verificar fugas de passwords';
+}
+async function checkBreaches(){
+  const en=currentLang==='en';
+  const btn=document.getElementById('breach-btn');
+  const status=document.getElementById('breach-status');
+  const out=document.getElementById('breach-results');
+  if(!navigator.onLine){
+    status.textContent=en?'⚠️ No connection — this check needs the internet.':'⚠️ Sem ligação — esta verificação precisa de internet.';
+    return;
+  }
+  const active=vault.filter(e=>!e.archived&&e.pw);
+  if(!active.length){status.textContent=en?'No passwords to check.':'Sem passwords para verificar.';return;}
+  btn.disabled=true;
+  out.innerHTML='';
+  const uniquePws=[...new Set(active.map(e=>e.pw))];
+  const pwCount={};
+  let done=0,failed=0;
+  const breached=[];
+  for(const pw of uniquePws){
+    status.textContent=(en?'Checking… ':'A verificar… ')+`${done+1}/${uniquePws.length}`;
+    try{
+      const hash=await sha1Hex(pw);
+      const prefix=hash.slice(0,5),suffix=hash.slice(5);
+      const ctrl=new AbortController();
+      const timer=setTimeout(()=>ctrl.abort(),8000);
+      const resp=await fetch('https://api.pwnedpasswords.com/range/'+prefix,{signal:ctrl.signal});
+      clearTimeout(timer);
+      if(!resp.ok)throw new Error('http');
+      const text=await resp.text();
+      const line=text.split('\n').find(l=>l.split(':')[0].trim().toUpperCase()===suffix);
+      pwCount[pw]=line?parseInt(line.split(':')[1].trim(),10)||0:0;
+    }catch(e){failed++;pwCount[pw]=-1;}
+    done++;
+  }
+  // Reunir por entrada
+  active.forEach(e=>{
+    const n=pwCount[e.pw];
+    if(n>0)breached.push({name:e.name,count:n});
+  });
+  breached.sort((a,b)=>b.count-a.count);
+  const okCount=active.length-breached.length-active.filter(e=>pwCount[e.pw]===-1).length;
+  let html='';
+  if(breached.length){
+    html+=`<div class="breach-summary dirty"><b>⚠️ ${breached.length} ${en?'password(s) found in known breaches':'password(s) encontradas em fugas conhecidas'}</b><br>${en?'Change these as soon as you can — reusing them is risky.':'Muda estas assim que puderes — reutilizá-las é arriscado.'}</div>`;
+    html+=breached.map(b=>`<div class="breach-row pwned"><span style="font-size:1.1rem">🚨</span><div class="breach-row-body"><div class="breach-row-name">${esc(b.name)}</div><div class="breach-row-meta">${en?'seen in':'vista em'} ${b.count.toLocaleString(en?'en':'pt')} ${en?'breaches':'fugas'}</div></div></div>`).join('');
+  }else if(failed<uniquePws.length){
+    html+=`<div class="breach-summary clean"><b>✅ ${en?'No breaches found':'Nenhuma fuga encontrada'}</b><br>${en?`None of your ${active.length} passwords appear in known breaches.`:`Nenhuma das tuas ${active.length} passwords aparece em fugas conhecidas.`}</div>`;
+  }
+  if(failed>0)html+=`<div style="font-size:.68rem;color:var(--text-muted);margin-top:6px">${failed} ${en?'password(s) could not be checked (connection issue).':'password(s) não puderam ser verificadas (problema de ligação).'}</div>`;
+  out.innerHTML=html;
+  status.textContent=en?`Done · ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:`Concluído · ${new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}`;
+  btn.disabled=false;
+}
+function refreshBreachButton(){
+  const en=currentLang==='en';
+  const btn=document.getElementById('breach-btn');
+  const status=document.getElementById('breach-status');
+  if(!btn)return;
+  renderBreachTip();
+  if(!navigator.onLine){
+    btn.style.opacity='.5';
+    if(status)status.textContent=en?'Offline — needs internet':'Offline — precisa de internet';
+  }else{
+    btn.style.opacity='1';
+    if(status&&status.textContent.includes(en?'Offline':'Offline'))status.textContent='';
+  }
+}
 
 // ══ CATEGORIAS PERSONALIZADAS ══
 function populateCatSelect(){
@@ -7242,7 +7510,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();closeSnapshotModal();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
