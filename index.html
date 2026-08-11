@@ -216,9 +216,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .card-field-label{font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent-dim);font-weight:500;}
 .card-field-value{font-size:.92rem;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .card-field-value.masked{letter-spacing:4px;}
-.pw-age-badge{font-size:.65rem;letter-spacing:1px;padding:3px 8px;border-radius:10px;margin-bottom:8px;display:inline-block;}
+.pw-age-badge{font-size:.65rem;letter-spacing:1px;padding:3px 8px;border-radius:10px;display:inline-block;}
 .pw-age-badge.old{background:rgba(224,82,82,.15);color:var(--red);}
 .pw-age-badge.recent{background:rgba(76,175,130,.15);color:var(--green);}
+.pw-age-badge.weak{background:rgba(224,82,82,.2);color:var(--red);font-weight:600;}
+.pw-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.pw-badges:empty{display:none;}
 .card-btn{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .1s;display:flex;align-items:center;gap:3px;}
 .card-btn:hover{border-color:var(--accent-dim);color:var(--text);}
 .card-btn.danger:hover{border-color:var(--red);color:var(--red);}
@@ -407,6 +410,49 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-label{color:var(--text-muted);}
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
+
+/* ══ EXPORTAÇÃO SELETIVA ══ */
+.export-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .12s;font-size:.76rem;color:var(--text);}
+.export-row:hover{border-color:var(--accent-dim);}
+.export-row.on{border-color:var(--accent);background:rgba(var(--accent-rgb),.06);}
+
+/* ══ RECUPERAÇÃO 2FA ══ */
+.totp-recovery{margin:8px 0;padding:8px 0;border-top:1px solid var(--border);}
+.totp-recovery-toggle{font-size:.66rem;color:var(--accent);cursor:pointer;letter-spacing:1px;user-select:none;}
+.totp-recovery-toggle:hover{opacity:.8;}
+.totp-recovery-pre{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:10px;margin:8px 0;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto;}
+
+/* ══ LEMBRETES / NAVEGAÇÃO ══ */
+.oldest-item.clickable{cursor:pointer;border-radius:6px;padding:4px 6px;margin:0 -6px;transition:background .15s;}
+.oldest-item.clickable:hover{background:rgba(var(--accent-rgb),.06);}
+.oldest-arrow{margin-left:auto;color:var(--text-muted);font-family:'JetBrains Mono',monospace;opacity:0;transition:opacity .15s;}
+.oldest-item.clickable:hover .oldest-arrow{opacity:1;}
+.oldest-nudge{font-size:.56rem;color:var(--red);margin-left:8px;padding:1px 6px;background:rgba(224,82,82,.12);border-radius:8px;}
+@keyframes entryFlash{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0);}30%{box-shadow:0 0 0 3px rgba(var(--accent-rgb),.5);}}
+.entry-flash{animation:entryFlash 1.6s ease;border-color:var(--accent)!important;}
+
+/* ══ ENTRADAS DUPLICADAS ══ */
+.dash-alert.clickable{cursor:pointer;transition:border-color .15s,background .15s;}
+.dash-alert.clickable:hover{border-color:var(--accent);background:rgba(var(--accent-rgb),.05);}
+.dash-alert-cta{font-size:.62rem;color:var(--accent);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;margin-left:auto;padding-left:12px;}
+.dedupe-group{border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.dedupe-group-head{font-size:.66rem;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.dedupe-entry{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--border);}
+.dedupe-entry:first-of-type{border-top:0;}
+
+/* ══ FORÇA DA PALAVRA-PASSE ══ */
+.pwbar{display:flex;gap:5px;margin-top:10px;}
+.pwbar-seg{flex:1;height:5px;border-radius:3px;background:var(--border);transition:background .2s;}
+.pwbar-seg.weak{background:var(--red);}
+.pwbar-seg.medium{background:#e0a020;}
+.pwbar-seg.good{background:#7cc040;}
+.pwbar-seg.great{background:var(--green);}
+.pwbar-label{font-size:.66rem;margin-top:7px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.pwbar-label.weak{color:var(--red);}
+.pwbar-label.medium{color:#e0a020;}
+.pwbar-label.good{color:#7cc040;}
+.pwbar-label.great{color:var(--green);}
+.pwbar-tip{font-size:.66rem;color:var(--text-muted);margin-top:5px;line-height:1.5;}
 
 /* ══ DASHBOARD — CARTÕES EXPANSÍVEIS ══ */
 .dash-cards{display:flex;flex-direction:column;gap:12px;}
@@ -1166,11 +1212,12 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div style="margin-bottom:12px">
         <label style="display:block;font-size:.54rem;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px" id="l-new-pw-label">Escolhe uma palavra-passe</label>
         <div class="lock-input-wrap">
-          <input type="password" id="new-pw1" placeholder="••••••••••" autocomplete="new-password" oninput="checkNewPwMatch()">
+          <input type="password" id="new-pw1" placeholder="••••••••••" autocomplete="new-password" oninput="checkNewPwMatch();renderPwStrength('new-pw1','new-pw-strength')">
           <button class="toggle-pw" onclick="toggleField('new-pw1')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
+        <div id="new-pw-strength" style="display:none"></div>
       </div>
       <div style="margin-bottom:14px">
         <label style="display:block;font-size:.54rem;letter-spacing:4px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px" id="l-conf-pw-label">Confirma a palavra-passe</label>
@@ -1250,7 +1297,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v7.9</span>
+      <span>CipherVault © 2026 · v8.0</span>
     </div>
   </div>
 </div>
@@ -1587,7 +1634,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>CipherVault © 2026 · v7.9</span>
+      <span>CipherVault © 2026 · v8.0</span>
     </div>
   </div>
   </div>
@@ -1698,7 +1745,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="modal-title" id="cp-title">🔑 Alterar Palavra-passe Mestra</div>
     <div id="cp-info" style="font-size:.6rem;color:var(--text-muted);margin-bottom:16px;line-height:1.7">Será gerado um novo <strong style="color:var(--accent)">ciphervault.vault</strong>. Substitui o antigo na pen!</div>
     <div class="form-group"><label id="cp-cur-lbl">Palavra-passe atual</label><div class="lock-input-wrap"><input type="password" id="cp-current" autocomplete="off"><button class="toggle-pw" onclick="toggleField('cp-current')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-    <div class="form-group"><label id="cp-new-lbl">Nova palavra-passe</label><div class="lock-input-wrap"><input type="password" id="cp-new" autocomplete="off"><button class="toggle-pw" onclick="toggleField('cp-new')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+    <div class="form-group"><label id="cp-new-lbl">Nova palavra-passe</label><div class="lock-input-wrap"><input type="password" id="cp-new" autocomplete="off" oninput="renderPwStrength('cp-new','cp-new-strength')"><button class="toggle-pw" onclick="toggleField('cp-new')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div id="cp-new-strength" style="display:none"></div></div>
     <div class="form-group"><label id="cp-conf-lbl">Confirmar nova</label><div class="lock-input-wrap"><input type="password" id="cp-confirm" autocomplete="off"><button class="toggle-pw" onclick="toggleField('cp-confirm')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
     <div class="lock-error" id="cp-error"></div>
     <div class="modal-actions" style="margin-top:12px">
@@ -1788,6 +1835,13 @@ body::after{bottom:-32vmax;right:-24vmax;
 
         <button class="btn btn-ghost" onclick="resetColors()" id="s-reset-btn" style="margin-top:4px;font-size:.65rem">↺ Repor cores padrão</button>
       </div>
+    </div>
+
+    <!-- EXPORTAÇÃO SELETIVA -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-export-title">📤 Partilhar entradas selecionadas</div>
+      <div id="export-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
+      <button class="btn btn-ghost" id="export-open-btn" onclick="openSelectiveExport()" style="width:100%;padding:11px">📤 <span id="export-open-txt">Escolher e exportar</span></button>
     </div>
 
     <!-- SNAPSHOTS -->
@@ -1973,9 +2027,49 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
       <div id="tf-secret-hint" style="font-size:.66rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Cola aqui a chave secreta que o site mostra ao ativar 2FA (por baixo do QR code), ou o link otpauth:// completo.</div>
     </div>
+    <div class="form-group">
+      <label id="tf-recovery-lbl">🔑 Códigos de recuperação <span style="font-size:.5rem;color:var(--text-muted)">(opcional)</span></label>
+      <textarea id="tf-recovery" rows="3" placeholder="Cola aqui os códigos de recuperação que o serviço te deu (um por linha)" style="font-family:'JetBrains Mono',monospace;font-size:.72rem"></textarea>
+      <div id="tf-recovery-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Muitos serviços dão códigos de emergência para o caso de perderes o telemóvel. Guarda-os aqui, dentro do cofre 2FA protegido.</div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="saveTotp()" id="totp-save-btn">Guardar</button>
       <button class="btn btn-ghost" onclick="closeTotpModal()" id="totp-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORTAÇÃO SELETIVA MODAL -->
+<div class="modal-overlay" id="export-overlay" onclick="if(event.target===this)closeSelectiveExport()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="export-title">📤 Partilhar entradas selecionadas</div>
+    <div id="export-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-ghost" onclick="exportSelectAll(true)" id="export-all-btn" style="flex:1;padding:9px;font-size:.6rem">Selecionar todas</button>
+      <button class="btn btn-ghost" onclick="exportSelectAll(false)" id="export-none-btn" style="flex:1;padding:9px;font-size:.6rem">Limpar</button>
+    </div>
+    <div id="export-list" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto;margin-bottom:14px;padding-right:4px"></div>
+    <div class="form-group">
+      <label id="export-pw-lbl">Palavra-passe para o ficheiro exportado</label>
+      <input type="password" id="export-pw" autocomplete="new-password" placeholder="••••••••">
+      <div id="export-pw-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6"></div>
+    </div>
+    <div id="export-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
+    <div class="modal-actions" style="flex-direction:column;gap:8px">
+      <button class="btn btn-gold" onclick="doSelectiveExport()" id="export-do-btn" style="width:100%">📤 Exportar (<span id="export-count">0</span>)</button>
+      <button class="btn btn-ghost" onclick="closeSelectiveExport()" id="export-close-btn" style="width:100%">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEDUPE MODAL -->
+<div class="modal-overlay" id="dedupe-overlay" onclick="if(event.target===this)closeDedupeModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="dedupe-title">👥 Entradas duplicadas</div>
+    <div id="dedupe-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
+    <div id="dedupe-list" style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDedupeModal()" id="dedupe-close" style="width:100%">Fechar</button>
     </div>
   </div>
 </div>
@@ -2296,7 +2390,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='7.9';
+const APP_VERSION='8.0';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2333,7 +2427,7 @@ const T={
     catAll:'Todas',catEmail:'Email',catBanco:'Banco',catJogo:'Jogo',catSocial:'Social',catTrabalho:'Trabalho',catOutro:'Outro',
     dashTotal:'Total',dashWeak:'Fracas',dashDups:'Repetidas',dashOld:'Antigas',dashFavs:'Favoritos',
     alertEmpty:'O teu cofre está vazio.',alertEmptySub:'Clica em "Nova entrada" para começar.',
-    alertWeak:'password(s) fraca(s) detetada(s).',alertCommon:'conta(s) com passwords muito comuns!',alertDups:'conta(s) com passwords repetidas.',alertOld:'password(s) com mais de 6 meses.',
+    alertWeak:'password(s) fraca(s) detetada(s).',alertCommon:'conta(s) com passwords muito comuns!',alertDups:'conta(s) com passwords repetidas.',alertOld:'password(s) com mais de 6 meses.',alertDupEntries:'entrada(s) duplicada(s).',
     alertGood:'Tudo em ordem! O teu cofre está seguro.',alertGoodSub:'Continua assim.',
     scoreLabels:['Crítico','Fraco','Razoável','Bom','Excelente'],
     modalNew:'Nova Entrada',modalEdit:'Editar Entrada',
@@ -2417,7 +2511,7 @@ const T={
     catAll:'All',catEmail:'Email',catBanco:'Bank',catJogo:'Game',catSocial:'Social',catTrabalho:'Work',catOutro:'Other',
     dashTotal:'Total',dashWeak:'Weak',dashDups:'Repeated',dashOld:'Old',dashFavs:'Favourites',
     alertEmpty:'Your vault is empty.',alertEmptySub:'Click "New entry" to get started.',
-    alertWeak:'weak password(s) detected.',alertCommon:'account(s) with very common passwords!',alertDups:'account(s) with repeated passwords.',alertOld:'password(s) not updated in over 6 months.',
+    alertWeak:'weak password(s) detected.',alertCommon:'account(s) with very common passwords!',alertDups:'account(s) with repeated passwords.',alertOld:'password(s) not updated in over 6 months.',alertDupEntries:'duplicate entr(y/ies).',
     alertGood:'All good! Your vault is secure.',alertGoodSub:'Keep it up.',
     scoreLabels:['Critical','Weak','Fair','Good','Excellent'],
     modalNew:'New Entry',modalEdit:'Edit Entry',
@@ -2876,6 +2970,15 @@ async function doBioSetup(){
     await clearBioUnlock();return;
   }
   toast(en?'Could not enable biometrics.':'Não foi possível ativar a biometria.');
+}
+function renderExportSettings(){
+  const en=currentLang==='en';
+  const t1=document.getElementById('s-export-title');
+  if(t1)t1.textContent=en?'📤 Share selected entries':'📤 Partilhar entradas selecionadas';
+  const ot=document.getElementById('export-open-txt');
+  if(ot)ot.textContent=en?'Choose & export':'Escolher e exportar';
+  const desc=document.getElementById('export-desc');
+  if(desc)desc.textContent=en?'Export a few entries as their own encrypted file — to give family or a colleague only what they need.':'Exporta algumas entradas como um ficheiro encriptado próprio — para dares à família ou a um colega só o que precisam.';
 }
 async function renderSnapshotSettings(){
   const en=currentLang==='en';
@@ -3868,6 +3971,7 @@ function openSettings(){
   renderPackChips();
   renderQuickSettings();
   renderSnapshotSettings();
+  renderExportSettings();
   renderVaultInfo();
   renderCatManager();
   const lh=document.getElementById('s-lockhide');if(lh)lh.checked=lockHideOn;
@@ -3930,6 +4034,8 @@ function applySettingsLang(){
   const tbm=document.getElementById('tb-more');if(tbm)tbm.title=en2?'More options':'Mais opções';
   renderWifiBar();
   try{renderQuickSettings();}catch(e){}
+  const trl=document.getElementById('tf-recovery-lbl');if(trl)trl.innerHTML='🔑 '+(currentLang==='en'?'Recovery codes':'Códigos de recuperação')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
+  const trh=document.getElementById('tf-recovery-hint');if(trh)trh.textContent=currentLang==='en'?'Many services give backup codes in case you lose your phone. Store them here, inside the protected 2FA vault.':'Muitos serviços dão códigos de emergência para o caso de perderes o telemóvel. Guarda-os aqui, dentro do cofre 2FA protegido.';
   const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
   const ffa=document.getElementById('f-fields-add');if(ffa)ffa.textContent=(currentLang==='en'?'＋ Add field':'＋ Adicionar campo');
   s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
@@ -4209,7 +4315,13 @@ function renderDashboard(){
   if(common.length>0){const names=common.map(e=>e.name).join(', ');alerts.push({type:'danger',icon:'🚨',text:`${common.length} ${t('alertCommon')}`,sub:names});}
   if(dups>0){const names=active.filter(e=>e.pw&&pwMap[e.pw]>1).map(e=>e.name).join(', ');alerts.push({type:'danger',icon:'🔁',text:`${dups} ${t('alertDups')}`,sub:names});}
   if(old>0){const names=active.filter(e=>e.pwUpdated&&(now-e.pwUpdated)>180*86400000).map(e=>e.name).join(', ');alerts.push({type:'warn',icon:'⏰',text:`${old} ${t('alertOld')}`,sub:names});}
-  if(weak===0&&common.length===0&&dups===0&&old===0&&total>0)alerts.push({type:'good',icon:'✅',text:t('alertGood'),sub:t('alertGoodSub')});
+  // Entradas duplicadas (mesmo nome + utilizador) — típico de importações repetidas
+  const dupEntries=findDuplicateEntries();
+  if(dupEntries.length>0){
+    const names=dupEntries.map(g=>g.name).join(', ');
+    alerts.push({type:'warn',icon:'👥',text:`${dupEntries.length} ${t('alertDupEntries')}`,sub:names,action:'dedupe'});
+  }
+  if(weak===0&&common.length===0&&dups===0&&old===0&&dupEntries.length===0&&total>0)alerts.push({type:'good',icon:'✅',text:t('alertGood'),sub:t('alertGoodSub')});
   // Card expiry alerts
   const now2=new Date();  bankCards.forEach(card=>{
     if(!card.expiry||card.expiry.length<5)return;
@@ -4228,7 +4340,7 @@ function renderDashboard(){
     if(status.cls==='expired')alerts.push({type:'danger',icon:'📁',text:`${esc(doc.title)}: ${currentLang==='en'?'Document expired!':'Documento expirado!'}`,sub:doc.expiry});
     else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:doc.expiry});
   });
-  document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}"><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div></div>`).join('');
+  document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}${a.action?' clickable':''}"${a.action==='dedupe'?' onclick="openDedupeModal()"':''}><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div>${a.action==='dedupe'?`<span class="dash-alert-cta">${currentLang==='en'?'Fix →':'Resolver →'}</span>`:''}</div>`).join('');
   // Badge do cartão de alertas: nº de problemas (ou ✓ se tudo bem)
   const problems=alerts.filter(a=>a.type==='danger'||a.type==='warn').length;
   const aBadge=document.getElementById('alerts-badge');
@@ -4302,13 +4414,15 @@ function renderDashboard(){
     if(!withDates.length){
       oldestList.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);padding:10px 0">${currentLang==='en'?'No data yet.':'Sem dados ainda.'}</div>`;
     } else {
+      const enO=currentLang==='en';
       oldestList.innerHTML=withDates.map(e=>{
         const days=Math.floor((Date.now()-e.pwUpdated)/86400000);
-
         const dc=days>180?'color:var(--red)':days>90?'color:var(--accent)':'color:var(--green)';
-        return `<div class="oldest-item">
+        const nudge=days>180?`<span class="oldest-nudge">${enO?'consider changing':'considera trocar'}</span>`:'';
+        return `<div class="oldest-item clickable" onclick="goToEntry('${e.id}')" title="${enO?'Open entry':'Abrir entrada'}">
           <div class="oldest-days" style="${dc}">${days}</div>
-          <div><div class="oldest-name">${esc(e.name)}</div><div class="oldest-label">${currentLang==='en'?'days without update':'dias sem atualizar'}</div></div>
+          <div style="flex:1;min-width:0"><div class="oldest-name">${esc(e.name)}</div><div class="oldest-label">${enO?'days without update':'dias sem atualizar'}${nudge}</div></div>
+          <span class="oldest-arrow">→</span>
         </div>`;
       }).join('');
     }
@@ -4429,6 +4543,8 @@ function renderCards(){
     const isOld=entry.pwUpdated&&(now-entry.pwUpdated)>180*86400000;
     const isRecent=entry.pwUpdated&&(now-entry.pwUpdated)<30*86400000;
     const ageBadge=isOld?`<span class="pw-age-badge old">${t('pwOld')}</span>`:isRecent?`<span class="pw-age-badge recent">${t('pwRecent')}</span>`:'';
+    const isWeak=entry.pw&&getPwScore(entry.pw)<2;
+    const weakBadge=isWeak?`<span class="pw-age-badge weak" title="${currentLang==='en'?'Weak password':'Password fraca'}">⚠️ ${currentLang==='en'?'Weak':'Fraca'}</span>`:'';
     const tagsHtml=(entry.tags||[]).map(tag=>`<span class="card-tag">${esc(tag)}</span>`).join('');
     const svcIcon=entry.icon&&entry.icon!=='⭐'?entry.icon:getServiceIcon(entry.name);
     const ci=vaultCatInfo(entry.cat);
@@ -4441,7 +4557,7 @@ function renderCards(){
         </div>
         <button class="fav-btn${entry.fav?' active':''}" onclick="event.stopPropagation();toggleFav('${entry.id}')" title="${entry.fav?t('favRemove'):t('favAdd')}">${entry.fav?'⭐':'☆'}</button>
       </div>
-      <div class="card-name">${esc(entry.name)}</div>${ageBadge}
+      <div class="card-name">${esc(entry.name)}</div><div class="pw-badges">${weakBadge}${ageBadge}</div>
       ${vFilterActive&&entry.folderId?`<div class="doc-loc">📍 ${esc(scopePathLabel(entry.folderId,'vault'))}</div>`:''}
       ${entry.attachment?`<img class="card-attachment" src="${entry.attachment}" alt="anexo">`:''}
       ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText('${esc(entry.user)}','${t('userCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
@@ -4867,6 +4983,146 @@ function checkPwStrength(){
   }
   const lvls=[{w:'15%',c:'#e05252',k:'pwVeryWeak'},{w:'30%',c:'#e08852',k:'pwWeak'},{w:'55%',c:'#e0c852',k:'pwMedium'},{w:'80%',c:'#82c852',k:'pwGood'},{w:'100%',c:'#4caf82',k:'pwStrong'}];
   const lvl=lvls[Math.min(score,4)];bar.style.width=lvl.w;bar.style.background=lvl.c;lbl.textContent=t(lvl.k);lbl.style.color=lvl.c;
+}
+function goToEntry(id){
+  const e=vault.find(v=>v.id===id);
+  if(!e)return;
+  if(e.archived){delete e.archived;markUnsaved();}
+  currentVaultFolderId=e.folderId||null;
+  switchTab('vault');
+  setTimeout(()=>{
+    const card=document.getElementById('card-'+id);
+    if(card){
+      card.scrollIntoView({behavior:'smooth',block:'center'});
+      card.classList.add('entry-flash');
+      setTimeout(()=>card.classList.remove('entry-flash'),1600);
+    }
+  },200);
+}
+let exportSelection=new Set();
+function openSelectiveExport(){
+  const en=currentLang==='en';
+  exportSelection=new Set();
+  document.getElementById('export-title').textContent=en?'📤 Share selected entries':'📤 Partilhar entradas selecionadas';
+  document.getElementById('export-intro').textContent=en
+    ?'Pick the entries to include. They are exported as their own encrypted .vault file with a password you choose — perfect for handing a few accounts to family without sharing everything.'
+    :'Escolhe as entradas a incluir. Serão exportadas como um ficheiro .vault encriptado próprio, com uma palavra-passe à tua escolha — ideal para dar algumas contas à família sem partilhar tudo.';
+  document.getElementById('export-all-btn').textContent=en?'Select all':'Selecionar todas';
+  document.getElementById('export-none-btn').textContent=en?'Clear':'Limpar';
+  document.getElementById('export-pw-lbl').textContent=en?'Password for the exported file':'Palavra-passe para o ficheiro exportado';
+  document.getElementById('export-pw-hint').textContent=en?'Whoever receives the file needs this password to open it. Choose a strong one and share it separately.':'Quem receber o ficheiro precisa desta palavra-passe para o abrir. Escolhe uma forte e partilha-a à parte.';
+  document.getElementById('export-close-btn').textContent=en?'Close':'Fechar';
+  document.getElementById('export-pw').value='';
+  document.getElementById('export-err').textContent='';
+  renderExportList();
+  updateExportCount();
+  document.getElementById('export-overlay').classList.add('open');
+}
+function closeSelectiveExport(){document.getElementById('export-overlay').classList.remove('open');}
+function renderExportList(){
+  const en=currentLang==='en';
+  const items=vault.filter(e=>!e.archived).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const el=document.getElementById('export-list');
+  if(!items.length){el.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);text-align:center;padding:16px">${en?'No entries to export.':'Sem entradas para exportar.'}</div>`;return;}
+  el.innerHTML=items.map(e=>{
+    const ci=vaultCatInfo(e.cat);
+    const on=exportSelection.has(e.id);
+    return `<label class="export-row ${on?'on':''}">
+      <input type="checkbox" ${on?'checked':''} onchange="toggleExportEntry('${e.id}')" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+      <span style="flex-shrink:0">${ci.icon}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name||'')}</span>
+      <span style="font-size:.6rem;color:var(--text-muted);white-space:nowrap">${esc(e.user||'')}</span>
+    </label>`;
+  }).join('');
+}
+function toggleExportEntry(id){
+  if(exportSelection.has(id))exportSelection.delete(id);else exportSelection.add(id);
+  const items=vault.filter(e=>!e.archived);
+  renderExportList();updateExportCount();
+}
+function exportSelectAll(all){
+  exportSelection=new Set(all?vault.filter(e=>!e.archived).map(e=>e.id):[]);
+  renderExportList();updateExportCount();
+}
+function updateExportCount(){
+  const el=document.getElementById('export-count');
+  if(el)el.textContent=exportSelection.size;
+}
+async function doSelectiveExport(){
+  const en=currentLang==='en';
+  const err=document.getElementById('export-err');
+  const pw=document.getElementById('export-pw').value;
+  if(!exportSelection.size){err.textContent=en?'Select at least one entry.':'Seleciona pelo menos uma entrada.';return;}
+  if(pw.length<4){err.textContent=en?'Choose a password (4+ characters).':'Escolhe uma palavra-passe (4+ caracteres).';return;}
+  err.textContent='';
+  const chosen=vault.filter(e=>exportSelection.has(e.id)).map(e=>{
+    const{id,name,cat,user,pw,url,notes,tags,fields,icon}=e;
+    return{id,name,cat,user,pw,url,notes,tags,fields,icon,fav:false,archived:false,createdAt:Date.now(),order:0};
+  });
+  try{
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const key=await deriveKey(pw,salt);
+    // Mini-cofre: só entradas escolhidas, mesmo formato do .vault normal
+    const payloadObj={fmt:VAULT_FMT,vault:chosen,notes:[],bankCards:[],activityLog:[],documents:[],trash:[],customCats:[],docFolders:[],vaultFolders:[],wifiNets:[],legacyNote:'',legacyOwner:'',totp:[]};
+    const payload=await encrypt(key,payloadObj);
+    const container={salt:Array.from(salt),payload};
+    const d=new Date();const pad=n=>String(n).padStart(2,'0');
+    const stamp=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    downloadVault(container,`ciphervault_partilha_${stamp}.vault`);
+    toast(en?`Exported ${chosen.length} entries ✓`:`Exportadas ${chosen.length} entradas ✓`);
+    closeSelectiveExport();
+  }catch(e){
+    err.textContent=en?'Export failed. Try again.':'A exportação falhou. Tenta de novo.';
+  }
+}
+function findDuplicateEntries(){
+  // Agrupa entradas ativas por (nome+utilizador) normalizado; devolve grupos com 2+
+  const groups={};
+  vault.filter(e=>!e.archived).forEach(e=>{
+    const key=((e.name||'').trim().toLowerCase())+'|'+((e.user||'').trim().toLowerCase());
+    if(!key.trim()||key==='|')return;
+    (groups[key]=groups[key]||[]).push(e);
+  });
+  return Object.values(groups).filter(g=>g.length>1).map(g=>({name:g[0].name||'(sem nome)',user:g[0].user||'',entries:g}));
+}
+function openDedupeModal(){
+  const en=currentLang==='en';
+  const groups=findDuplicateEntries();
+  if(!groups.length){toast(en?'No duplicates found.':'Sem duplicados.');return;}
+  document.getElementById('dedupe-title').textContent=en?'👥 Duplicate entries':'👥 Entradas duplicadas';
+  document.getElementById('dedupe-intro').textContent=en
+    ?'These entries share the same name and username. Keep one of each and remove the extras (they go to the recycle bin).'
+    :'Estas entradas têm o mesmo nome e utilizador. Mantém uma de cada e remove as repetidas (vão para a reciclagem).';
+  document.getElementById('dedupe-close').textContent=en?'Close':'Fechar';
+  renderDedupeList();
+  document.getElementById('dedupe-overlay').classList.add('open');
+}
+function closeDedupeModal(){document.getElementById('dedupe-overlay').classList.remove('open');}
+function renderDedupeList(){
+  const en=currentLang==='en';
+  const groups=findDuplicateEntries();
+  const el=document.getElementById('dedupe-list');
+  if(!groups.length){el.innerHTML=`<div style="font-size:.74rem;color:var(--text-muted);text-align:center;padding:16px">${en?'No duplicates left ✓':'Sem duplicados ✓'}</div>`;return;}
+  el.innerHTML=groups.map(g=>{
+    const rows=g.entries.map((e,i)=>{
+      const cat=vaultCatInfo(e.cat);
+      const when=e.pwUpdated?new Date(e.pwUpdated).toLocaleDateString(en?'en-GB':'pt-PT'):'—';
+      return `<div class="dedupe-entry">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.78rem;color:var(--text)">${cat.icon} ${esc(e.name||'')} ${i===0?`<span style="color:var(--green);font-size:.6rem">· ${en?'keep':'manter'}</span>`:''}</div>
+          <div style="font-size:.62rem;color:var(--text-muted);margin-top:2px">${esc(e.user||'—')} · ${en?'updated':'atualizada'} ${when}</div>
+        </div>
+        ${i>0?`<button class="snap-restore" style="border-color:var(--red);color:var(--red)" onclick="removeDuplicate('${e.id}')">${en?'Remove':'Remover'}</button>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="dedupe-group"><div class="dedupe-group-head">${esc(g.name)} — ${g.entries.length}×</div>${rows}</div>`;
+  }).join('');
+}
+function removeDuplicate(id){
+  const e=vault.find(v=>v.id===id);
+  if(e){logActivity('delete',e.name,'🗑️');trash.unshift({type:'vault',data:e,deletedAt:Date.now()});vault=vault.filter(v=>v.id!==id);}
+  markUnsaved();renderDedupeList();renderAll();
+  toast(currentLang==='en'?'Duplicate removed':'Duplicado removido');
 }
 function checkDuplicate(){
   const pw=document.getElementById('f-pw').value,warn=document.getElementById('dup-warn');
@@ -5766,6 +6022,7 @@ function parseOtpauth(str){
 }
 let editingTotpId=null;
 function openTotpModal(id=null){
+  setTimeout(()=>{const r=document.getElementById('tf-recovery');if(r){const e=id?totp.find(x=>x.id===id):null;r.value=e&&e.recovery?e.recovery:'';}},0);
   editingTotpId=id;
   const isEdit=!!id;
   document.getElementById('totp-modal-title').textContent=isEdit
@@ -5819,6 +6076,7 @@ function saveTotp(){
     id:editingTotpId||Date.now().toString(36),
     name,account,secret:secret.toUpperCase().replace(/[\s\-]/g,''),
     type,algorithm,digits,period,counter,
+    recovery:(document.getElementById('tf-recovery')?.value||'').trim(),
     createdAt:editingTotpId?(totp.find(x=>x.id===editingTotpId)?.createdAt||Date.now()):Date.now(),
   };
   if(editingTotpId){const idx=totp.findIndex(x=>x.id===editingTotpId);totp[idx]=entry;}
@@ -5855,6 +6113,10 @@ function copyTotpCode(id){
   const code=el?.dataset.code;
   if(code)copyText(code,currentLang==='en'?'Code copied! ✓':'Código copiado! ✓');
 }
+function toggleTotpRecovery(id){
+  const el=document.getElementById('totp-rec-'+id);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
 function renderTotp(){
   const grid=document.getElementById('totp-grid');if(!grid)return;
   render2faGate();
@@ -5878,6 +6140,7 @@ function renderTotp(){
     <div class="totp-card">
       <div class="totp-name">${esc(t2.name)}</div>
       ${t2.account?`<div class="totp-account">${esc(t2.account)}</div>`:''}
+      ${t2.recovery?`<div class="totp-recovery"><span class="totp-recovery-toggle" onclick="toggleTotpRecovery('${t2.id}')">🔑 ${currentLang==='en'?'Recovery codes':'Códigos de recuperação'} ▾</span><div class="totp-recovery-body" id="totp-rec-${t2.id}" style="display:none"><pre class="totp-recovery-pre">${esc(t2.recovery)}</pre><button class="card-btn" onclick="copyText(${JSON.stringify(t2.recovery)}.replace(/\\n/g,String.fromCharCode(10)),'${currentLang==='en'?'Copied':'Copiado'}')">📋 ${currentLang==='en'?'Copy all':'Copiar tudo'}</button></div></div>`:''}
       <div class="totp-code-row">
         <div class="totp-code" id="totp-code-${t2.id}" data-code="" onclick="copyTotpCode('${t2.id}')" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">${fmtTotpCode(null,t2.digits)}</div>
         <svg class="totp-ring" width="30" height="30" viewBox="0 0 30 30">
@@ -5928,6 +6191,59 @@ setInterval(()=>{
   }
   if(needRefresh)refreshTotpCodes();
 },1000);
+
+// ══ FORÇA DA PALAVRA-PASSE MESTRA ══
+function assessMasterPw(pw){
+  // Devolve {score:0-4, label, cls, tip, entropyBits}
+  const en=currentLang==='en';
+  if(!pw)return{score:0,label:'',cls:'',tip:'',bits:0};
+  let pool=0;
+  if(/[a-z]/.test(pw))pool+=26;
+  if(/[A-Z]/.test(pw))pool+=26;
+  if(/[0-9]/.test(pw))pool+=10;
+  if(/[^a-zA-Z0-9]/.test(pw))pool+=32;
+  const bits=pw.length*Math.log2(pool||1);
+  const onlyDigits=/^[0-9]+$/.test(pw);
+  const onlyLower=/^[a-z]+$/.test(pw);
+  // Padrões óbvios
+  const seq=/0123|1234|2345|3456|4567|5678|6789|abcd|qwer|asdf|zxcv/i.test(pw);
+  const repeated=/^(.)\1+$/.test(pw)||/(.)\1{3,}/.test(pw);
+  let score,label,cls,tip;
+  if(onlyDigits){
+    score=pw.length>=16?2:1;
+    cls=pw.length>=16?'medium':'weak';
+    label=en?'Digits only':'Só números';
+    tip=en?'Only numbers — cracks fast even if long. Add letters.':'Só números — quebra-se depressa mesmo sendo longa. Adiciona letras.';
+  }else if(bits<40){
+    score=1;cls='weak';label=en?'Weak':'Fraca';
+    tip=en?'Too short or simple. Make it longer and mix character types.':'Curta ou simples demais. Torna-a mais longa e mistura tipos de caracteres.';
+  }else if(bits<60){
+    score=2;cls='medium';label=en?'Fair':'Razoável';
+    tip=en?'Decent. Adding length or symbols makes it much stronger.':'Aceitável. Mais comprimento ou símbolos torna-a muito mais forte.';
+  }else if(bits<78){
+    score=3;cls='good';label=en?'Strong':'Forte';
+    tip=en?'Good password — hard to crack.':'Boa palavra-passe — difícil de quebrar.';
+  }else{
+    score=4;cls='great';label=en?'Excellent':'Excelente';
+    tip=en?'Excellent — would take centuries to crack.':'Excelente — levaria séculos a quebrar.';
+  }
+  // Penalizações por padrão óbvio
+  if((seq||repeated)&&score>1){
+    score=1;cls='weak';label=en?'Predictable':'Previsível';
+    tip=en?'Contains an obvious pattern (like 1234 or repeats). Avoid it.':'Tem um padrão óbvio (como 1234 ou repetições). Evita-o.';
+  }
+  return{score,label,cls,tip,bits:Math.round(bits)};
+}
+function renderPwStrength(inputId,barId){
+  const inp=document.getElementById(inputId);
+  const box=document.getElementById(barId);
+  if(!inp||!box)return;
+  const r=assessMasterPw(inp.value);
+  if(!inp.value){box.style.display='none';return;}
+  box.style.display='block';
+  const segs=[1,2,3,4].map(n=>`<span class="pwbar-seg ${n<=r.score?r.cls:''}"></span>`).join('');
+  box.innerHTML=`<div class="pwbar">${segs}</div><div class="pwbar-label ${r.cls}">${r.label}${r.bits?` · ${r.bits} bits`:''}</div><div class="pwbar-tip">${r.tip}</div>`;
+}
 
 // ══ DASHBOARD — CARTÕES EXPANSÍVEIS ══
 function toggleDashCard(key){
@@ -7592,7 +7908,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();closeSnapshotModal();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();closeSnapshotModal();closeDedupeModal();closeSelectiveExport();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
