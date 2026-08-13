@@ -40,6 +40,8 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
 [data-theme="light"] #bg-net{opacity:.28;}
 #lock-screen,.app-shell,.topbar,.tabs{position:relative;z-index:1;}
 @media(prefers-reduced-motion:reduce){#bg-net{display:none;}}
+@media(hover:none){.info-field-actions{opacity:1!important;}}
+@media(max-width:640px){#tab-info.active{padding:14px 12px;}}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(var(--accent-rgb),.03) 1px,transparent 1px),linear-gradient(90deg,rgba(var(--accent-rgb),.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
 /* LANG */
@@ -93,7 +95,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--panel-glass);position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:7px;}
 .topbar-logo{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--accent);letter-spacing:3px;}
-.topbar-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.topbar-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
 .topbar-actions button{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap;}
 .topbar-actions button:hover{border-color:var(--accent-dim);color:var(--text);}
 /* ══ UNSAVED INDICATOR ══ */
@@ -154,6 +156,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 #tb-secondary{display:contents;}
 #tb-more{display:none;}
 .menu-only{display:none;}
+.tb-label{display:inline;}
 .legacy-lang-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),.13);}
 .search-wrap input{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:9px 34px 9px 32px;border-radius:2px;outline:none;width:190px;transition:border-color .2s;}
 #search-clear{position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:6px 8px;font-size:.8rem;line-height:1;border-radius:3px;transition:color .15s,background .15s;}
@@ -169,6 +172,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* DASHBOARD */
 #tab-dashboard{display:none;}
 #tab-dashboard.active{display:block;}
+#tab-info{display:none;}
+#tab-info.active{display:block;overflow-y:auto;padding:20px 24px;}
+#tab-store{display:none;}
+#tab-store.active{display:block;overflow-y:auto;padding:20px 24px;}
 #tab-vault{display:none;}
 #tab-vault.active{display:flex;flex:1;min-height:0;}
 #tab-notes{display:none;}
@@ -270,6 +277,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(13,15,20,.9);z-index:200;display:none;align-items:center;justify-content:center;}
+/* Modais de 2º nível — abrem por cima de outro ecrã, precisam de ficar à frente */
+#store-overlay,#barcode-overlay,#sub-overlay,#info-overlay{z-index:320;}
+#barcode-overlay{z-index:340;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--panel-glass);border:1px solid var(--border);border-radius:6px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:30px;animation:slideUp .2s ease;}
 @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
@@ -415,6 +425,112 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .vinfo-val{color:var(--text);font-weight:600;white-space:nowrap;}
 @media(max-width:768px){.vinfo-grid{grid-template-columns:1fr;}.catmgr-add{flex-wrap:wrap;}}
 
+/* ══ ABAS DAS DEFINIÇÕES ══ */
+.settings-nav{display:flex;gap:2px;margin-bottom:20px;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.settings-nav::-webkit-scrollbar{display:none;}
+.settings-nav-btn{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.5px;text-transform:uppercase;padding:11px 8px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;border-radius:8px 8px 0 0;margin-bottom:-1px;min-width:max-content;}
+.settings-nav-btn:hover{color:var(--text);background:rgba(var(--accent-rgb),.05);}
+.settings-nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+@media(max-width:520px){.settings-nav-btn{flex:0 0 auto;padding:11px 14px;}}
+.settings-pane{display:none;}
+.settings-pane.active{display:block;animation:tabFadeIn .25s ease;}
+
+/* ══ SECÇÃO SUBSCRIÇÕES (Dashboard) ══ */
+.subs-section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:20px;}
+.subs-sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.subs-sec-titlewrap{display:flex;align-items:center;gap:9px;}
+.subs-sec-ico{font-size:1.3rem;}
+.subs-sec-title{font-size:.82rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:600;}
+.subs-sec-add{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;padding:7px 13px;border-radius:8px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent);cursor:pointer;transition:all .15s;}
+.subs-sec-add:hover{background:rgba(var(--accent-rgb),.12);}
+.subs-sec-empty{text-align:center;padding:20px;color:var(--text-muted);font-size:.74rem;line-height:1.7;}
+.subs-sec-totals{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.subs-sec-total{display:flex;flex-direction:column;gap:2px;}
+.subs-sec-total-num{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--accent);line-height:1;}
+.subs-sec-total.dim .subs-sec-total-num{font-size:1.25rem;color:var(--text-muted);}
+.subs-sec-total-lbl{font-size:.56rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
+.subs-sec-count{margin-left:auto;font-size:.66rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.subs-sec-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px;}
+.sub-chip{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;cursor:pointer;transition:all .15s;text-align:left;width:100%;}
+.sub-chip:hover{border-color:var(--accent-dim);transform:translateY(-2px);}
+.sub-chip-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sub-chip-name{font-size:.76rem;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sub-chip-price{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--accent);white-space:nowrap;flex-shrink:0;}
+.sub-chip-price span{font-size:.52rem;color:var(--text-muted);}
+.sub-chip-next{font-size:.56rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;width:100%;order:3;margin-top:2px;padding-left:18px;}
+.sub-chip-next.soon{color:var(--red);}
+.sub-chip{flex-wrap:wrap;}
+
+/* ══ SECÇÃO RENOVAÇÕES (painel próprio) ══ */
+.renewals-section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px 20px;}
+
+/* ══ BARRA DE SEGURANÇA DO COFRE ══ */
+.vault-securebar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:16px;}
+.vsb-score{position:relative;width:52px;height:52px;flex-shrink:0;}
+.vsb-score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.05rem;}
+.vsb-score-lbl{font-size:.6rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;flex-shrink:0;}
+.vsb-divider{width:1px;align-self:stretch;background:var(--border);}
+.vsb-stats{display:flex;gap:16px;flex-wrap:wrap;flex:1;}
+.vsb-stat{display:flex;flex-direction:column;align-items:center;min-width:44px;}
+.vsb-num{font-family:'JetBrains Mono',monospace;font-size:1.05rem;color:var(--text);line-height:1;}
+.vsb-stat.warn .vsb-num{color:var(--red);}
+.vsb-lbl{font-size:.54rem;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-top:3px;}
+.vsb-breach{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+@media(max-width:720px){.vault-securebar{gap:10px;padding:11px 12px;}.vsb-divider{display:none;}.vsb-stats{gap:11px;order:3;width:100%;justify-content:space-between;}.vsb-breach{order:4;width:100%;justify-content:center;}}
+
+/* ══ ZONA CARTEIRA (Dashboard) ══ */
+
+/* ══ CARTÕES DE LOJA ══ */
+.store-list{display:flex;flex-direction:column;gap:12px;}
+.store-card{border:1px solid var(--accent-dim);border-left-width:4px;border-radius:10px;padding:14px 16px;background:var(--panel);}
+.store-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.store-card-name{font-size:.92rem;font-weight:600;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.store-card-actions{display:flex;gap:3px;flex-shrink:0;}
+.store-card-num{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--text-muted);letter-spacing:1px;cursor:pointer;margin-bottom:10px;word-break:break-all;}
+.store-show-btn{width:100%;padding:9px;background:rgba(var(--accent-rgb),.09);border:1px solid var(--accent-dim);border-radius:7px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;cursor:pointer;transition:all .15s;}
+.store-show-btn:hover{background:rgba(var(--accent-rgb),.17);}
+.barcode-frame{background:#fff;border-radius:12px;padding:22px 18px;}
+
+/* ══ SUBSCRIÇÕES ══ */
+.subs-head{margin-bottom:14px;}
+.subs-totals{display:flex;gap:12px;margin-bottom:16px;}
+.subs-total-box{flex:1;background:rgba(var(--accent-rgb),.07);border:1px solid var(--accent-dim);border-radius:10px;padding:14px;text-align:center;}
+.subs-total-num{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent);}
+.subs-total-lbl{font-size:.6rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-top:2px;}
+.subs-list{display:flex;flex-direction:column;gap:8px;}
+.sub-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:11px 13px;transition:border-color .15s;}
+.sub-row:hover{border-color:var(--accent-dim);}
+.sub-color{width:5px;height:34px;border-radius:3px;flex-shrink:0;}
+.sub-name{font-size:.82rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sub-meta{font-size:.62rem;color:var(--text-muted);margin-top:2px;}
+.sub-soon{color:var(--red);font-weight:600;}
+.sub-monthly{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent);white-space:nowrap;flex-shrink:0;}
+.sub-monthly span{font-size:.56rem;color:var(--text-muted);}
+.sub-actions{display:flex;gap:3px;flex-shrink:0;}
+.sub-color-pick{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;}
+.sub-color-pick.on{border-color:var(--text);transform:scale(1.15);}
+
+/* ══ INFO PESSOAL ══ */
+.info-person{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 17px;transition:border-color .15s;}
+.info-person:hover{border-color:var(--accent-dim);}
+.info-person-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.info-person-name{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.info-person-actions{display:flex;gap:4px;flex-shrink:0;}
+.info-fields{display:flex;flex-direction:column;gap:11px;}
+.info-field{}
+.info-field-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.info-label{font-size:.64rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.info-field-actions{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity .15s;}
+.info-field:hover .info-field-actions{opacity:1;}
+.info-val{display:block;font-family:'JetBrains Mono',monospace;font-size:.86rem;color:var(--text);word-break:break-all;letter-spacing:.5px;}
+.info-val.masked{letter-spacing:2px;color:var(--text-muted);}
+.info-add-field{width:100%;margin-top:13px;padding:9px;background:rgba(var(--accent-rgb),.06);border:1px dashed var(--accent-dim);border-radius:8px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;cursor:pointer;transition:all .15s;}
+.info-add-field:hover{background:rgba(var(--accent-rgb),.13);border-style:solid;}
+.im-preset{padding:5px 11px;background:var(--bg);border:1px solid var(--border);border-radius:14px;color:var(--text-muted);font-size:.62rem;cursor:pointer;transition:all .15s;font-family:'JetBrains Mono',monospace;}
+.im-preset:hover{border-color:var(--accent);color:var(--accent);}
+.im-check{display:flex;align-items:center;gap:9px;font-size:.72rem;color:var(--text-muted);cursor:pointer;margin:4px 0 8px;}
+.im-check input{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;}
+
 /* ══ PRÉ-VISUALIZAÇÃO DE DOCUMENTOS ══ */
 .docview-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);background:var(--panel);}
 .docview-close{background:none;border:0;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all .15s;flex-shrink:0;}
@@ -525,10 +641,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .breach-cta:active{transform:translateY(0);}
 .breach-cta:disabled{opacity:.6;cursor:default;animation:none;}
 @keyframes breachGlow{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.35);}50%{box-shadow:0 0 0 8px rgba(var(--accent-rgb),0);}}
-.breach-help{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--border);color:var(--text-muted);font-size:.7rem;cursor:help;flex-shrink:0;transition:all .15s;}
+.breach-help{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;min-width:20px;height:20px;border-radius:50%;border:1px solid var(--border);color:var(--text-muted);font-size:.75rem;font-weight:600;cursor:help;flex-shrink:0;transition:all .15s;line-height:1;}
 .breach-help:hover,.breach-help:focus{border-color:var(--accent);color:var(--accent);outline:none;}
-.breach-tip{position:absolute;bottom:calc(100% + 12px);left:-8px;width:330px;max-width:min(330px,86vw);background:var(--panel);border:1px solid var(--accent-dim);border-radius:8px;padding:13px 15px;font-size:.68rem;line-height:1.65;color:var(--text);text-align:left;letter-spacing:0;text-transform:none;box-shadow:0 14px 40px rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s;z-index:200;pointer-events:none;}
-.breach-tip::after{content:'';position:absolute;top:100%;left:12px;border:6px solid transparent;border-top-color:var(--accent-dim);}
+.breach-tip{position:fixed;top:-9999px;left:-9999px;width:min(330px,92vw);background:var(--panel);border:1px solid var(--accent-dim);border-radius:8px;padding:13px 15px;font-size:.68rem;line-height:1.65;color:var(--text);text-align:left;letter-spacing:0;text-transform:none;box-shadow:0 14px 40px rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .18s;z-index:400;pointer-events:none;}
+
 .breach-help:hover .breach-tip,.breach-help:focus .breach-tip{opacity:1;visibility:visible;}
 .breach-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;background:var(--card);}
 .breach-row.pwned{border-left:3px solid var(--red);}
@@ -887,8 +1003,8 @@ body::after{bottom:-32vmax;right:-24vmax;
 .card-color-swatch.active{border-color:var(--accent);transform:scale(1.2);}
 
 /* BANK CARD VISUAL */
-.bank-card{border-radius:14px;padding:22px 24px;position:relative;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .2s,box-shadow .2s;color:#fff;}
-.bank-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4);}
+.bank-card{border-radius:14px 14px 0 0;padding:22px 24px;position:relative;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .2s,box-shadow .2s;color:#fff;}
+.bank-card-wrap:hover{transform:translateY(-3px);}.bank-card-wrap:hover .bank-card{box-shadow:0 12px 32px rgba(0,0,0,.4);}.bank-card-wrap{transition:transform .2s;}
 .bank-card::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);}
 .bank-card::after{content:'';position:absolute;bottom:-40px;left:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);}
 .bank-card-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
@@ -901,8 +1017,11 @@ body::after{bottom:-32vmax;right:-24vmax;
 .bank-card-expiry-wrap{text-align:right;}
 .bank-card-expiry-label{font-size:.42rem;letter-spacing:2px;opacity:.6;display:block;margin-bottom:2px;font-family:'JetBrains Mono',monospace;}
 .bank-card-expiry{font-size:.7rem;letter-spacing:2px;font-family:'JetBrains Mono',monospace;opacity:.9;}
-.bank-card-wrap{display:flex;flex-direction:column;gap:10px;}
-.bank-card-actions{display:flex;gap:5px;flex-wrap:wrap;}
+.bank-card-wrap{display:flex;flex-direction:column;gap:0;}
+.bank-card-actions{display:flex;gap:4px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;padding:9px 12px;margin-top:-6px;}
+.bank-card-actions .card-btn{border:1px solid transparent;background:transparent;border-radius:8px;padding:7px 11px;transition:all .15s;}
+.bank-card-actions .card-btn:hover{background:rgba(var(--accent-rgb),.1);color:var(--accent);border-color:var(--accent-dim);}
+.bank-card-actions .card-btn.danger:hover{background:rgba(224,82,82,.12);color:var(--red);border-color:rgba(224,82,82,.4);}
 .pin-reveal{font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:6px;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:2px;padding:4px 10px;display:none;}
 
 /* CARDS TAB */
@@ -932,24 +1051,14 @@ body::after{bottom:-32vmax;right:-24vmax;
   #app{min-height:100vh;height:auto;}
   #app.visible{display:flex;flex-direction:column;}
 
-  /* TOPBAR — esconde textos, só ícones */
-  .topbar{padding:8px 10px;gap:5px 6px;flex-wrap:wrap;overflow-x:visible;}
+  /* TOPBAR — texto sempre visível, parte para várias linhas se preciso */
+  .topbar{padding:9px 12px;gap:7px;flex-wrap:wrap;overflow-x:visible;}
   .topbar-logo{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--accent);letter-spacing:1px;flex:0 0 auto;white-space:nowrap;}
-  .topbar-actions{gap:5px;flex-wrap:nowrap;flex:0 0 auto;margin-left:auto;overflow:visible;}
-  #tb-more{display:inline-flex;align-items:center;justify-content:center;font-size:1.15rem;line-height:1;padding:8px 12px;}
-  #tb-secondary{display:none;position:absolute;top:calc(100% + 6px);left:8px;right:8px;flex-direction:column;align-items:stretch;gap:3px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:7px;z-index:140;box-shadow:0 18px 44px rgba(0,0,0,.6);max-height:72vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  #tb-secondary.open{display:flex;}
-  #tb-secondary button{width:100%;justify-content:flex-start;gap:10px;padding:13px 14px;font-size:.68rem;letter-spacing:1px;}
-  #tb-secondary button span{display:inline;}
-  #tb-secondary button span.menu-only{display:inline;}
-  #tb-secondary button svg{width:15px;height:15px;}
-  #tb-secondary .lang-switcher{display:flex;gap:6px;width:100%;margin-top:2px;}
-  #tb-secondary .lang-switcher .lang-btn{flex:1;justify-content:center;padding:12px;font-size:.62rem;}
-  .topbar-actions button span{display:none;}
-  .topbar-actions button{padding:7px 9px;font-size:.7rem;letter-spacing:0;flex-shrink:0;}
+  .topbar-actions{gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .topbar-actions button{padding:8px 11px;font-size:.6rem;letter-spacing:.5px;flex:0 0 auto;}
   .topbar-actions button svg{width:14px;height:14px;}
   .autolock-badge{font-size:.48rem;padding:3px 6px;flex-shrink:0;}
-  .lang-switcher .lang-btn{padding:5px 8px;font-size:.54rem;}
+  .lang-switcher .lang-btn{padding:7px 10px;font-size:.58rem;}
 
   /* TABS */
   .tabs{padding:0 4px;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -1337,7 +1446,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v8.4</span>
+      <span>Aurora Vault © 2026 · v9.7</span>
     </div>
   </div>
 </div>
@@ -1361,44 +1470,17 @@ body::after{bottom:-32vmax;right:-24vmax;
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         <span id="tb-save-txt">Guardar ficheiro</span>
       </button>
-      <div id="tb-secondary">
-      <button onclick="document.getElementById('csv-input-app').click()">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span id="tb-import-txt">Importar CSV</span>
-      </button>
-      <button onclick="downloadBackupNow()" id="tb-backup-btn">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span id="tb-backup-txt">Descarregar cópia</span>
-      </button>
-      <button onclick="exportPDF()">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        <span id="tb-pdf-txt">Exportar PDF</span>
-      </button>
-      <button onclick="openLegacyModal()" id="tb-kit-btn">
-        📜 <span id="tb-kit-txt">Herança Digital</span>
-      </button>
-      <button onclick="openChangePwModal()">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span id="tb-changepw-txt">Alterar pass</span>
-      </button>
-      <button onclick="exportCSV()">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span id="tb-csv-txt">Exportar CSV</span>
-      </button>
-      <button onclick="openSettings()" title="Definições">⚙️ <span class="menu-only" id="tb-settings-txt">Definições</span></button>
-      <button onclick="togglePrivacy()" id="privacy-btn" title="Modo privacidade">🙈 <span class="menu-only" id="tb-privacy-txt">Modo privacidade</span></button>
-      <button onclick="toggleTheme()" id="theme-btn" title="Tema">🌙 <span class="menu-only" id="tb-theme-txt">Tema claro/escuro</span></button>
-      <div class="lang-switcher">
-        <button class="lang-btn active" id="lang-pt" onclick="setLang('pt')">PT</button>
-        <button class="lang-btn" id="lang-en" onclick="setLang('en')">ENG</button>
-      </div>
-      </div>
+      <button onclick="togglePrivacy()" id="privacy-btn" title="Modo de privacidade">🙈 <span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span></button>
+      <button onclick="openSettings()" title="Definições">⚙️ <span class="tb-label" id="tb-settings-txt">Definições</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
-      <button id="tb-more" onclick="toggleTopMenu(event)" title="Mais opções" aria-label="Mais opções">⋯</button>
       <button onclick="lockApp()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span id="tb-lock-txt">Bloquear</span>
       </button>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-pt" onclick="setLang('pt')">PT</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')">ENG</button>
+      </div>
     </div>
   </div>
 
@@ -1407,9 +1489,11 @@ body::after{bottom:-32vmax;right:-24vmax;
 
   <div class="tabs">
     <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" id="tab-btn-info" onclick="switchTab('info')">🆔 <span id="tab-info-txt">Info</span></button>
     <button class="tab-btn" id="tab-btn-vault" onclick="switchTab('vault')">🔐 <span id="tab-vault-txt">Cofre</span></button>
     <button class="tab-btn" id="tab-btn-notes" onclick="switchTab('notes')">📝 <span id="tab-notes-txt">Notas</span></button>
     <button class="tab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Cartões</span></button>
+    <button class="tab-btn" id="tab-btn-store" onclick="switchTab('store')">🎟️ <span id="tab-store-txt">Cartões Loja</span></button>
     <button class="tab-btn" id="tab-btn-totp" onclick="switchTab('totp')">🔢 <span id="tab-totp-txt">2FA</span></button>
     <button class="tab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
     <button class="tab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
@@ -1421,33 +1505,11 @@ body::after{bottom:-32vmax;right:-24vmax;
   <!-- DASHBOARD -->
   <div id="tab-dashboard" class="active">
     <div class="dashboard">
-      <div class="dash-top">
-        <div class="score-ring-wrap">
-          <div class="score-ring">
-            <svg width="100" height="100" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="7"/>
-              <circle id="score-circle" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/>
-            </svg>
-            <div class="score-ring-num"><span id="score-num">0</span><span>Score</span></div>
-          </div>
-          <div class="score-label" id="score-label">—</div>
-        </div>
-        <div class="dash-grid" id="dash-stats"></div>
-      </div>
-      <!-- BOTÃO VERIFICAR FUGAS -->
-      <div id="breach-panel" style="margin-top:20px">
-        <div style="display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap">
-          <button class="breach-cta" id="breach-btn" onclick="checkBreaches()">🛡️ <span id="breach-btn-txt">Verificar fugas de passwords</span></button>
-          <span class="breach-help" tabindex="0">?
-            <span class="breach-tip" id="breach-tip"></span>
-          </span>
-        </div>
-        <div id="breach-status" style="font-size:.7rem;color:var(--text-muted);text-align:center;margin-top:8px"></div>
-        <div id="breach-results" style="margin-top:12px"></div>
-      </div>
+      <!-- SUBSCRIÇÕES (secção própria, bonita) -->
+      <div id="dash-subs-section" class="subs-section"></div>
 
       <!-- RENOVAÇÕES (destaque próprio, sempre visível se houver) -->
-      <div id="dash-renewals-wrap" style="margin-top:24px;display:none">
+      <div id="dash-renewals-wrap" class="renewals-section" style="display:none">
         <div class="renewals-head">
           <div class="renewals-title" id="dash-renewals-title">📅 Renovações</div>
           <div id="renewal-filter" class="renewals-filter"></div>
@@ -1510,6 +1572,8 @@ body::after{bottom:-32vmax;right:-24vmax;
         <div id="sidebar-tags"></div>
       </div>
       <div class="content">
+        <!-- BARRA DE SEGURANÇA DO COFRE (score + números + fugas) -->
+        <div id="vault-securebar" class="vault-securebar"></div>
         <div class="content-header">
           <div class="content-title" id="content-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Todas as Entradas</div>
           <div class="header-controls">
@@ -1561,6 +1625,21 @@ body::after{bottom:-32vmax;right:-24vmax;
     </div>
   </div>
 
+  <!-- INFO PESSOAL -->
+  <div id="tab-info">
+    <div class="content-header">
+      <div class="content-title" id="info-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Informação Pessoal</div>
+      <div class="header-controls">
+        <button class="btn btn-gold" onclick="addPerson()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="info-add-txt">Nova pessoa</span>
+        </button>
+      </div>
+    </div>
+    <div id="info-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px;max-width:640px"></div>
+    <div id="info-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;align-items:start"></div>
+  </div>
+
   <!-- CARDS -->
   <div id="tab-cards">
     <div class="content" style="width:100%;overflow-y:auto">
@@ -1570,6 +1649,21 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
       <div id="cards-grid-area" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px"></div>
     </div>
+  </div>
+
+  <!-- STORE CARDS -->
+  <div id="tab-store">
+    <div class="content-header">
+      <div class="content-title" id="store-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Cartões de Loja</div>
+      <div class="header-controls">
+        <button class="btn btn-gold" onclick="openStoreModal()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="store-tab-add-txt">Adicionar cartão</span>
+        </button>
+      </div>
+    </div>
+    <div id="store-tab-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;max-width:640px"></div>
+    <div id="store-content"></div>
   </div>
 
   <!-- ARCHIVE -->
@@ -1674,7 +1768,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v8.4</span>
+      <span>Aurora Vault © 2026 · v9.7</span>
     </div>
   </div>
   </div>
@@ -1832,6 +1926,18 @@ body::after{bottom:-32vmax;right:-24vmax;
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-title" id="settings-title">⚙️ Definições</div>
 
+    <!-- NAV DAS ABAS -->
+    <div class="settings-nav" id="settings-nav">
+      <button class="settings-nav-btn active" data-stab="aspeto" onclick="switchSettingsTab('aspeto')">🎨 <span id="snav-aspeto">Aspeto</span></button>
+      <button class="settings-nav-btn" data-stab="seguranca" onclick="switchSettingsTab('seguranca')">🔒 <span id="snav-seguranca">Segurança</span></button>
+      <button class="settings-nav-btn" data-stab="dados" onclick="switchSettingsTab('dados')">📄 <span id="snav-dados">Dados</span></button>
+      <button class="settings-nav-btn" data-stab="heranca" onclick="switchSettingsTab('heranca')">📜 <span id="snav-heranca">Herança</span></button>
+      <button class="settings-nav-btn" data-stab="sobre" onclick="switchSettingsTab('sobre')">ℹ️ <span id="snav-sobre">Sobre</span></button>
+    </div>
+
+    <!-- ═══ ABA ASPETO ═══ -->
+    <div class="settings-pane active" data-spane="aspeto">
+
     <!-- THEME MODE TABS -->
     <div class="theme-mode-tabs">
       <button class="theme-mode-tab active" id="s-tab-dark" onclick="switchSettingsTheme('dark')">🌙 <span id="s-dark-label">Escuro</span></button>
@@ -1877,6 +1983,22 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
 
+    </div><!-- /pane aspeto (parte 1) -->
+
+    <!-- ═══ ABA DADOS ═══ -->
+    <div class="settings-pane" data-spane="dados">
+
+    <!-- IMPORTAR / EXPORTAR CSV + PDF -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-csv-title">📄 Importar / Exportar</div>
+      <div id="s-csv-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Importa ou exporta as tuas entradas em CSV, ou gera um PDF do cofre.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-ghost" onclick="document.getElementById('csv-input-app').click()" style="padding:11px"><span id="s-csv-import-txt">⬆️ Importar CSV</span></button>
+        <button class="btn btn-ghost" onclick="exportCSV()" style="padding:11px"><span id="s-csv-export-txt">⬇️ Exportar CSV</span></button>
+        <button class="btn btn-ghost" onclick="exportPDF()" style="padding:11px;grid-column:1/-1"><span id="s-pdf-export-txt">📄 Exportar PDF</span></button>
+      </div>
+    </div>
+
     <!-- EXPORTAÇÃO SELETIVA -->
     <div class="settings-section">
       <div class="settings-title" id="s-export-title">📤 Partilhar entradas selecionadas</div>
@@ -1889,6 +2011,18 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="settings-title" id="s-snap-title">💾 Cópias de Segurança</div>
       <div id="snap-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
       <button class="btn btn-ghost" id="snap-open-btn" onclick="openSnapshotModal()" style="width:100%;padding:11px">⏳ <span id="snap-open-txt">Ver e restaurar cópias</span></button>
+    </div>
+
+    </div><!-- /pane dados -->
+
+    <!-- ═══ ABA SEGURANÇA ═══ -->
+    <div class="settings-pane" data-spane="seguranca">
+
+    <!-- ALTERAR PALAVRA-PASSE -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-changepw-title">🔑 Palavra-passe mestra</div>
+      <div id="s-changepw-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Muda a palavra-passe que protege todo o cofre.</div>
+      <button class="btn btn-ghost" onclick="openChangePwModal()" style="width:100%;padding:11px"><span id="s-changepw-btn-txt">🔑 Alterar palavra-passe</span></button>
     </div>
 
     <!-- QUICK UNLOCK -->
@@ -1906,22 +2040,25 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div id="quick-note" style="font-size:.62rem;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
     </div>
 
-    <!-- PWA CUSTOM -->
+    <!-- AUTO-LOCK -->
     <div class="settings-section">
-      <div class="settings-title" id="s-pwa-title">📲 App Instalada</div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input id="pwa-emoji" maxlength="4" placeholder="🔒" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:9px 4px;border-radius:2px;outline:none">
-        <input id="pwa-name" maxlength="24" placeholder="Aurora Vault" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
-        <button class="btn btn-gold" onclick="savePwaPrefs()" id="pwa-apply-btn" style="flex:0 0 auto;padding:10px 16px">✓</button>
+      <div class="settings-title" id="s-timeout-title">⏱️ Auto-bloqueio</div>
+      <label style="display:flex;align-items:center;gap:10px;font-size:.72rem;color:var(--text);cursor:pointer;margin-bottom:12px">
+        <input type="checkbox" id="s-lockhide" onchange="setLockHide(this.checked)" style="accent-color:var(--accent);width:16px;height:16px">
+        <span id="s-lockhide-lbl">Bloquear ao minimizar / mudar de app</span>
+      </label>
+      <div class="timeout-btns">
+        <button class="timeout-btn" onclick="setTimeout2(1)" id="to-1">1 min</button>
+        <button class="timeout-btn active" onclick="setTimeout2(5)" id="to-5">5 min</button>
+        <button class="timeout-btn" onclick="setTimeout2(10)" id="to-10">10 min</button>
+        <button class="timeout-btn" onclick="setTimeout2(30)" id="to-30">30 min</button>
+        <button class="timeout-btn" onclick="setTimeout2(0)" id="to-0">∞ Nunca</button>
       </div>
-      <div id="pwa-note" style="font-size:.62rem;color:var(--text-muted);margin-top:8px;line-height:1.6">O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.</div>
     </div>
+    </div><!-- /pane seguranca -->
 
-    <!-- VAULT INFO -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-vaultinfo-title">📊 Info do Cofre</div>
-      <div class="vinfo-grid" id="vault-info-grid"></div>
-    </div>
+    <!-- ═══ ABA ASPETO (parte 2: personalização) ═══ -->
+    <div class="settings-pane" data-spane="aspeto">
 
     <!-- CUSTOM CATEGORIES -->
     <div class="settings-section">
@@ -1935,21 +2072,35 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
 
-    <!-- AUTO-LOCK -->
+    <!-- PWA CUSTOM -->
     <div class="settings-section">
-      <div class="settings-title" id="s-timeout-title">Auto-lock</div>
-      <label style="display:flex;align-items:center;gap:10px;font-size:.72rem;color:var(--text);cursor:pointer;margin-bottom:12px">
-        <input type="checkbox" id="s-lockhide" onchange="setLockHide(this.checked)" style="accent-color:var(--accent);width:16px;height:16px">
-        <span id="s-lockhide-lbl">Bloquear ao minimizar / mudar de app</span>
-      </label>
-      <div class="timeout-btns">
-        <button class="timeout-btn" onclick="setTimeout2(1)" id="to-1">1 min</button>
-        <button class="timeout-btn active" onclick="setTimeout2(5)" id="to-5">5 min</button>
-        <button class="timeout-btn" onclick="setTimeout2(10)" id="to-10">10 min</button>
-        <button class="timeout-btn" onclick="setTimeout2(30)" id="to-30">30 min</button>
-        <button class="timeout-btn" onclick="setTimeout2(0)" id="to-0">∞ Nunca</button>
+      <div class="settings-title" id="s-pwa-title">📲 App Instalada</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="pwa-emoji" maxlength="4" placeholder="🔒" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:9px 4px;border-radius:2px;outline:none">
+        <input id="pwa-name" maxlength="24" placeholder="Aurora Vault" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
+        <button class="btn btn-gold" onclick="savePwaPrefs()" id="pwa-apply-btn" style="flex:0 0 auto;padding:10px 16px">✓</button>
       </div>
+      <div id="pwa-note" style="font-size:.62rem;color:var(--text-muted);margin-top:8px;line-height:1.6">O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.</div>
     </div>
+    </div><!-- /pane aspeto parte 2 -->
+
+    <!-- ═══ ABA HERANÇA ═══ -->
+    <div class="settings-pane" data-spane="heranca">
+    <div class="settings-section">
+      <div class="settings-title" id="s-heranca-title">📜 Herança Digital</div>
+      <div id="s-heranca-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px">Um documento para a tua família aceder às tuas contas e ao que é importante, caso te aconteça alguma coisa. Preenche os dados e gera um PDF para guardar em segurança.</div>
+      <button class="btn btn-gold" onclick="openLegacyModal()" style="width:100%;padding:12px"><span id="s-heranca-btn-txt">📜 Abrir Herança Digital</span></button>
+    </div>
+    </div><!-- /pane heranca -->
+
+    <!-- ═══ ABA SOBRE ═══ -->
+    <div class="settings-pane" data-spane="sobre">
+    <!-- VAULT INFO -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-vaultinfo-title">📊 Info do Cofre</div>
+      <div class="vinfo-grid" id="vault-info-grid"></div>
+    </div>
+    </div><!-- /pane sobre -->
 
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="closeSettings()" id="s-close-btn">Fechar</button>
@@ -2075,6 +2226,122 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="saveTotp()" id="totp-save-btn">Guardar</button>
       <button class="btn btn-ghost" onclick="closeTotpModal()" id="totp-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CARTÃO DE LOJA MODAL -->
+<div class="modal-overlay" id="store-overlay" onclick="if(event.target===this)closeStoreModal()">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title" id="store-modal-title">Adicionar cartão</div>
+    <div class="form-group">
+      <label id="sc-name-lbl">Loja</label>
+      <input type="text" id="sc-name" placeholder="Ex: Continente, Pingo Doce...">
+      <div id="sc-presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    </div>
+    <div class="form-group">
+      <label id="sc-number-lbl">Número do cartão</label>
+      <input type="text" id="sc-number" placeholder="O número por baixo do código de barras" inputmode="numeric">
+      <div id="sc-number-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Escreve os dígitos que aparecem no teu cartão (por baixo do código de barras).</div>
+    </div>
+    <div class="form-group">
+      <label id="sc-color-lbl">Cor</label>
+      <div id="sc-colors" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="saveStoreCard()" id="sc-save">Guardar</button>
+      <button class="btn btn-ghost" onclick="closeStoreModal()" id="sc-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOSTRAR CÓDIGO DE BARRAS -->
+<div class="modal-overlay" id="barcode-overlay" onclick="if(event.target===this)closeBarcode()">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div class="modal-title" id="barcode-name" style="margin-bottom:6px"></div>
+    <div id="barcode-hint" style="font-size:.68rem;color:var(--text-muted);margin-bottom:18px"></div>
+    <div class="barcode-frame">
+      <div id="barcode-svg" style="width:100%;height:110px"></div>
+      <div id="barcode-number" style="font-family:'JetBrains Mono',monospace;font-size:1rem;letter-spacing:3px;color:#000;margin-top:10px"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeBarcode()" id="barcode-close" style="width:100%">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ECRÃ SUBSCRIÇÕES -->
+<div class="modal-overlay" id="subsscreen-overlay" onclick="if(event.target===this)closeSubsScreen()">
+  <div class="modal" style="max-width:560px;width:94vw">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+      <div class="modal-title" id="subsscreen-title" style="margin:0">💸 Subscrições</div>
+      <button class="docview-close" onclick="closeSubsScreen()" title="Fechar">✕</button>
+    </div>
+    <div id="subs-content"></div>
+  </div>
+</div>
+
+<!-- SUBSCRIÇÃO MODAL -->
+<div class="modal-overlay" id="sub-overlay" onclick="if(event.target===this)closeSubModal()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="sub-modal-title">Adicionar subscrição</div>
+    <div class="form-group">
+      <label id="sub-name-lbl">Nome</label>
+      <input type="text" id="sub-name" placeholder="Ex: Netflix, Ginásio...">
+      <div id="sub-presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1">
+        <label id="sub-amount-lbl">Valor (€)</label>
+        <input type="number" id="sub-amount" placeholder="9.99" step="0.01" min="0">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label id="sub-cycle-lbl">Periodicidade</label>
+        <select id="sub-cycle" class="sort-select" style="width:100%" onchange="updateSubCycleUI()">
+          <option value="monthly">Mensal</option>
+          <option value="yearly">Anual</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="sub-day-row">
+      <label id="sub-day-lbl">Dia de cobrança (1-31)</label>
+      <input type="number" id="sub-renew-day" min="1" max="31" value="1">
+    </div>
+    <div class="form-group" id="sub-date-row" style="display:none">
+      <label id="sub-date-lbl">Data de renovação</label>
+      <input type="date" id="sub-renew-date">
+    </div>
+    <div class="form-group">
+      <label id="sub-color-lbl">Cor</label>
+      <div id="sub-colors" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="saveSub()" id="sub-save">Guardar</button>
+      <button class="btn btn-ghost" onclick="closeSubModal()" id="sub-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- INFO PESSOAL MODAL -->
+<div class="modal-overlay" id="info-overlay" onclick="if(event.target===this)closeInfoModal()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="info-modal-title">Adicionar info</div>
+    <div class="form-group">
+      <label id="im-label-lbl">Nome</label>
+      <input type="text" id="im-label" placeholder="Ex: NIF, IBAN, Matrícula...">
+      <div id="im-presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    </div>
+    <div class="form-group">
+      <label id="im-value-lbl">Valor</label>
+      <input type="text" id="im-value" placeholder="Ex: 123456789">
+    </div>
+    <label class="im-check">
+      <input type="checkbox" id="im-sensitive">
+      <span id="im-sensitive-lbl">Ocultar por omissão (mostrar só ao tocar)</span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="saveInfo()" id="im-save">Guardar</button>
+      <button class="btn btn-ghost" onclick="closeInfoModal()" id="im-cancel">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2448,7 +2715,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='8.4';
+const APP_VERSION='9.7';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -3638,7 +3905,7 @@ async function submitOpenVault(pwArg){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];
   totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
   totp=totpRecWrap?[]:(data.totp||[]);cleanOldTrash();
   payloadExtras={};
@@ -4025,8 +4292,18 @@ function exportCSV(){
   toast(currentLang==='en'?'CSV exported! ✓':'CSV exportado! ✓');
 }
 // ══ SETTINGS ══
+let currentSettingsTab='aspeto';
+function switchSettingsTab(tab){
+  currentSettingsTab=tab;
+  document.querySelectorAll('.settings-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.stab===tab));
+  document.querySelectorAll('.settings-pane').forEach(p=>p.classList.toggle('active',p.dataset.spane===tab));
+  // Scroll para o topo do modal ao trocar de aba
+  const modal=document.querySelector('#settings-overlay .modal');
+  if(modal)modal.scrollTop=0;
+}
 function openSettings(){
   applySettingsLang();
+  switchSettingsTab('aspeto');
   settingsActiveTheme=currentTheme;
   document.getElementById('s-tab-dark').classList.toggle('active',currentTheme==='dark');
   document.getElementById('s-tab-light').classList.toggle('active',currentTheme==='light');
@@ -4058,6 +4335,28 @@ function applySettingsLang(){
   s('s-pwa-title',currentLang==='en'?'📲 Installed App':'📲 App Instalada');
   const pwn=document.getElementById('pwa-note');if(pwn)pwn.textContent=currentLang==='en'?'The icon uses your current colors. Reinstall the app to apply the new icon/name.':'O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.';
   s('s-lockhide-lbl',currentLang==='en'?'Lock when minimised / switching apps':'Bloquear ao minimizar / mudar de app');
+  const en_s=currentLang==='en';
+  // Nav das abas
+  s('snav-aspeto',en_s?'Appearance':'Aspeto');
+  s('snav-seguranca',en_s?'Security':'Segurança');
+  s('snav-dados',en_s?'Data':'Dados');
+  s('snav-heranca',en_s?'Legacy':'Herança');
+  s('snav-sobre',en_s?'About':'Sobre');
+  // Aba Dados
+  s('s-csv-title',en_s?'📄 Import / Export':'📄 Importar / Exportar');
+  const cd=document.getElementById('s-csv-desc');if(cd)cd.textContent=en_s?'Import or export your entries as CSV, or generate a PDF of the vault.':'Importa ou exporta as tuas entradas em CSV, ou gera um PDF do cofre.';
+  s('s-csv-import-txt',en_s?'⬆️ Import CSV':'⬆️ Importar CSV');
+  s('s-csv-export-txt',en_s?'⬇️ Export CSV':'⬇️ Exportar CSV');
+  s('s-pdf-export-txt',en_s?'📄 Export PDF':'📄 Exportar PDF');
+  s('s-timeout-title',en_s?'⏱️ Auto-lock':'⏱️ Auto-bloqueio');
+  // Aba Segurança
+  s('s-changepw-title',en_s?'🔑 Master password':'🔑 Palavra-passe mestra');
+  const cpd=document.getElementById('s-changepw-desc');if(cpd)cpd.textContent=en_s?'Change the password that protects the whole vault.':'Muda a palavra-passe que protege todo o cofre.';
+  s('s-changepw-btn-txt',en_s?'🔑 Change password':'🔑 Alterar palavra-passe');
+  // Aba Herança
+  s('s-heranca-title',en_s?'📜 Digital Legacy':'📜 Herança Digital');
+  const hd=document.getElementById('s-heranca-desc');if(hd)hd.textContent=en_s?'A document for your family to access your accounts and what matters, should something happen to you. Fill in the details and generate a PDF to keep safe.':'Um documento para a tua família aceder às tuas contas e ao que é importante, caso te aconteça alguma coisa. Preenche os dados e gera um PDF para guardar em segurança.';
+  s('s-heranca-btn-txt',en_s?'📜 Open Digital Legacy':'📜 Abrir Herança Digital');
   // ── Documentos: cabeçalho, filtros, modal ──
   const en2=currentLang==='en';
   const setTxt=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
@@ -4074,6 +4373,33 @@ function applySettingsLang(){
   setTxt('doc-date-lbl',en2?'Document date':'Data do documento');
   setTxt('doc-desc-lbl',en2?'Description':'Descrição');
   setTxt('doc-file-lbl',en2?'File':'Ficheiro');
+  setTxt('im-label-lbl',en2?'Name':'Nome');
+  setTxt('im-value-lbl',en2?'Value':'Valor');
+  setTxt('im-sensitive-lbl',en2?'Hide by default (show on tap)':'Ocultar por omissão (mostrar só ao tocar)');
+  setTxt('im-save',en2?'Save':'Guardar');
+  setTxt('im-cancel',en2?'Cancel':'Cancelar');
+  setTxt('tab-info-txt',en2?'Info':'Info');
+  setTxt('info-add-txt',en2?'New person':'Nova pessoa');
+  setTxt('sub-name-lbl',en2?'Name':'Nome');
+  setTxt('sub-amount-lbl',en2?'Amount (€)':'Valor (€)');
+  setTxt('sub-cycle-lbl',en2?'Billing':'Periodicidade');
+  setTxt('sub-day-lbl',en2?'Billing day (1-31)':'Dia de cobrança (1-31)');
+  setTxt('sub-date-lbl',en2?'Renewal date':'Data de renovação');
+  setTxt('sub-color-lbl',en2?'Colour':'Cor');
+  setTxt('sub-save',en2?'Save':'Guardar');
+  setTxt('sub-cancel',en2?'Cancel':'Cancelar');
+  setTxt('sc-name-lbl',en2?'Store':'Loja');
+  setTxt('sc-number-lbl',en2?'Card number':'Número do cartão');
+  setTxt('sc-number-hint',en2?'Type the digits shown on your card (under the barcode).':'Escreve os dígitos que aparecem no teu cartão (por baixo do código de barras).');
+  setTxt('sc-color-lbl',en2?'Colour':'Cor');
+  setTxt('sc-save',en2?'Save':'Guardar');
+  setTxt('sc-cancel',en2?'Cancel':'Cancelar');
+  setTxt('barcode-close',en2?'Close':'Fechar');
+  setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo de privacidade');
+  setTxt('tab-store-txt',en2?'Store Cards':'Cartões Loja');
+  setTxt('store-tab-add-txt',en2?'Add card':'Adicionar cartão');
+  const scOpts=document.getElementById('sub-cycle');
+  if(scOpts&&scOpts.options.length===2){scOpts.options[0].textContent=en2?'Monthly':'Mensal';scOpts.options[1].textContent=en2?'Yearly':'Anual';}
   setTxt('doc-drop-text',en2?'Click or drag the file here':'Clica ou arrasta o ficheiro aqui');
   setTxt('doc-save-btn',en2?'Save document':'Guardar documento');
   setTxt('doc-cancel-btn',en2?'Cancel':'Cancelar');
@@ -4092,7 +4418,7 @@ function applySettingsLang(){
   const scb=document.getElementById('search-clear');if(scb)scb.title=en2?'Clear':'Limpar';
   setTxt('tb-backup-txt',en2?'Download backup':'Descarregar cópia');
   setTxt('tb-settings-txt',en2?'Settings':'Definições');
-  setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo privacidade');
+  setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo de privacidade');
   setTxt('tb-theme-txt',en2?'Light / dark theme':'Tema claro/escuro');
   const tbm=document.getElementById('tb-more');if(tbm)tbm.title=en2?'More options':'Mais opções';
   renderWifiBar();
@@ -4155,7 +4481,7 @@ function animateDashNums(){
 
 // ══ TABS ══
 function switchTab(tab){
-  ['dashboard','vault','notes','cards','archive','docs','totp','trash'].forEach(id=>{
+  ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     const btnEl=document.getElementById('tab-btn-'+id);
     if(tabEl){tabEl.classList.remove('active');void tabEl.offsetHeight;}
@@ -4170,6 +4496,8 @@ function switchTab(tab){
   if(tab==='docs')renderDocs();
   if(tab==='trash')renderTrash();
   if(tab==='totp')renderTotp();
+  if(tab==='info')renderInfo();
+  if(tab==='store')renderStoreCards();
   positionTabIndicator();
   requestAnimationFrame(applyStagger);
 }
@@ -4328,50 +4656,77 @@ function calcSecurityScore(){
   let score=100;score-=Math.round((weak/total)*40);score-=Math.round((dups/total)*30);score-=Math.round((old/total)*20);if(total<3)score-=10;
   return Math.max(0,Math.min(100,score));
 }
-function renderScoreRing(score){
-  const circle=document.getElementById('score-circle');
-  const numEl=document.getElementById('score-num');
-  const labelEl=document.getElementById('score-label');
-  if(!circle)return;
-  const circ=2*Math.PI*42;
-  const color=score>=80?'#4caf82':score>=50?'var(--accent)':'#e05252';
-  circle.style.stroke=color;
-  const idx=score>=80?4:score>=60?3:score>=40?2:score>=20?1:0;
-  try{labelEl.textContent=(T[currentLang].scoreLabels||T.pt.scoreLabels)[idx];}catch(e){}
-  labelEl.style.color=color;
-  // Animate from 0 to score
-  const duration=900;const start=performance.now();
-  const startOffset=circ;const endOffset=circ-(score/100)*circ;
-  function animate(now){
-    const elapsed=now-start;
-    const progress=Math.min(elapsed/duration,1);
-    // Ease out cubic
-    const ease=1-Math.pow(1-progress,3);
-    const current=Math.round(score*ease);
-    const currentOffset=startOffset+(endOffset-startOffset)*ease;
-    circle.style.strokeDasharray=circ;
-    circle.style.strokeDashoffset=currentOffset;
-    numEl.textContent=current;
-    numEl.style.color=color;
-    if(progress<1)requestAnimationFrame(animate);
-  }
-  requestAnimationFrame(animate);
+function updateWalletTiles(){/* substituído por renderSubsSection + aba Cartões Loja */}
+function positionBreachTip(helpEl){
+  const tip=document.getElementById('breach-tip');
+  if(!tip||!helpEl)return;
+  const r=helpEl.getBoundingClientRect();
+  const margin=10;
+  // Larguras/alturas do balão (já tem conteúdo, mede-se na posição atual)
+  const tw=tip.offsetWidth||Math.min(330,window.innerWidth*0.92);
+  const th=tip.offsetHeight||140;
+  // Horizontal: alinhar a direita do balão com a direita do "?", sem sair do ecrã
+  let left=r.right-tw;
+  if(left<margin)left=margin;
+  if(left+tw>window.innerWidth-margin)left=window.innerWidth-margin-tw;
+  // Vertical: por cima do "?"; se não couber em cima, por baixo
+  let top=r.top-th-10;
+  if(top<margin)top=r.bottom+10;
+  tip.style.left=left+'px';
+  tip.style.top=top+'px';
+}
+function renderVaultSecureBar(){
+  const bar=document.getElementById('vault-securebar');
+  if(!bar)return;
+  const en=currentLang==='en';
+  const active=vault.filter(e=>!e.archived);
+  const total=active.length,favs=active.filter(e=>e.fav).length;
+  const weak=active.filter(e=>getPwScore(e.pw)<2).length;
+  const pwMap={};active.forEach(e=>{if(e.pw)pwMap[e.pw]=(pwMap[e.pw]||0)+1;});
+  const dups=active.filter(e=>e.pw&&pwMap[e.pw]>1).length;
+  const now=Date.now();const old=active.filter(e=>e.pwUpdated&&(now-e.pwUpdated)>180*86400000).length;
+  const score=calcSecurityScore();
+  const scoreColor=score>=80?'#4caf82':score>=50?'var(--accent)':'#e05252';
+  const scoreIdx=score>=80?4:score>=60?3:score>=40?2:score>=20?1:0;
+  let scoreLbl='';try{scoreLbl=(T[currentLang].scoreLabels||T.pt.scoreLabels)[scoreIdx];}catch(e){}
+  const circ=2*Math.PI*22;
+  const off=circ-(score/100)*circ;
+  bar.innerHTML=`
+    <div class="vsb-score">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="22" fill="none" stroke="var(--border)" stroke-width="5"/>
+        <circle cx="26" cy="26" r="22" fill="none" stroke="${scoreColor}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 26 26)"/>
+      </svg>
+      <div class="vsb-score-num" style="color:${scoreColor}">${score}</div>
+    </div>
+    <div class="vsb-score-lbl" style="color:${scoreColor}">${scoreLbl}</div>
+    <div class="vsb-divider"></div>
+    <div class="vsb-stats">
+      <div class="vsb-stat"><span class="vsb-num">${total}</span><span class="vsb-lbl">${t('dashTotal')}</span></div>
+      <div class="vsb-stat ${weak>0?'warn':''}"><span class="vsb-num">${weak}</span><span class="vsb-lbl">${t('dashWeak')}</span></div>
+      <div class="vsb-stat ${dups>0?'warn':''}"><span class="vsb-num">${dups}</span><span class="vsb-lbl">${t('dashDups')}</span></div>
+      <div class="vsb-stat ${old>0?'warn':''}"><span class="vsb-num">${old}</span><span class="vsb-lbl">${t('dashOld')}</span></div>
+      <div class="vsb-stat"><span class="vsb-num">${favs}</span><span class="vsb-lbl">${t('dashFavs')}</span></div>
+      <div class="vsb-stat"><span class="vsb-num" style="font-size:.9rem">🔒</span><span class="vsb-lbl">AES-256</span></div>
+    </div>
+    <div class="vsb-breach">
+      <button class="breach-cta" id="breach-btn" onclick="checkBreaches()" style="padding:9px 16px;font-size:.58rem">🛡️ <span id="breach-btn-txt">${en?'Check password leaks':'Verificar fugas'}</span></button>
+      <span class="breach-help" tabindex="0" onmouseenter="positionBreachTip(this)" onfocus="positionBreachTip(this)">?<span class="breach-tip" id="breach-tip"></span></span>
+    </div>
+    <div id="breach-status" style="font-size:.66rem;color:var(--text-muted);width:100%;text-align:center;margin-top:4px"></div>
+    <div id="breach-results" style="width:100%;margin-top:8px"></div>
+  `;
+  renderBreachTip();
+  refreshBreachButton();
 }
 function renderDashboard(){
+  renderVaultSecureBar();
+  updateWalletTiles();
   const active=vault.filter(e=>!e.archived);const total=active.length,favs=active.filter(e=>e.fav).length;
   const weak=active.filter(e=>getPwScore(e.pw)<2).length;
   const pwMap={};active.forEach(e=>{if(e.pw)pwMap[e.pw]=(pwMap[e.pw]||0)+1;});
   const dups=active.filter(e=>e.pw&&pwMap[e.pw]>1).length;
   const now=Date.now();const old=active.filter(e=>e.pwUpdated&&(now-e.pwUpdated)>180*86400000).length;
-  renderScoreRing(calcSecurityScore());
-  document.getElementById('dash-stats').innerHTML=`
-    <div class="dash-card"><div class="dash-card-num">${total}</div><div class="dash-card-label">${t('dashTotal')}</div></div>
-    <div class="dash-card ${weak>0?'warn':'ok'}"><div class="dash-card-num">${weak}</div><div class="dash-card-label">${t('dashWeak')}</div></div>
-    <div class="dash-card ${dups>0?'warn':'ok'}"><div class="dash-card-num">${dups}</div><div class="dash-card-label">${t('dashDups')}</div></div>
-    <div class="dash-card ${old>0?'warn':'ok'}"><div class="dash-card-num">${old}</div><div class="dash-card-label">${t('dashOld')}</div></div>
-    <div class="dash-card"><div class="dash-card-num">${favs}</div><div class="dash-card-label">${t('dashFavs')}</div></div>
-    <div class="dash-card ok"><div class="dash-card-num" style="font-size:1.2rem">🔒</div><div class="dash-card-label">AES-256</div></div>`;
-  animateDashNums();
   const alerts=[];
   if(total===0)alerts.push({type:'warn',icon:'💡',text:t('alertEmpty'),sub:t('alertEmptySub')});
   const common=active.filter(e=>isCommonPassword(e.pw));
@@ -4422,6 +4777,7 @@ function renderDashboard(){
   setT('dcard-activity-title','Atividade recente','Recent activity');
 
   renderRenewals();
+  renderSubsSection();
   applyDashCardStates();
   refreshBreachButton();
   // ── FAVORITOS ──
@@ -4560,6 +4916,7 @@ function setView(view){
 // ══ CARDS (DRAG & DROP) ══
 let dragSrcId=null;
 function renderCards(){
+  renderVaultSecureBar();
   const q=document.getElementById('search-input').value.toLowerCase();
   const sortVal=document.getElementById('sort-select').value;
   const now=Date.now();
@@ -5412,7 +5769,7 @@ async function changeMasterPw(){
 
 // ══ SAVE FILE ══
 function vaultPayload(){
-  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner};
+  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner,personalInfo,subscriptions,storeCards};
   if(totpRecWrap){
     base.totpEnc=totpEnc;
     base.totpRecWrap=totpRecWrap;
@@ -5647,6 +6004,9 @@ function exportPDF(){
 
 // ══ DOCUMENTS ══
 let documents=[];let editingDocId=null;let pendingDocFile=null;
+let personalInfo=[];let editingInfoId=null;
+let subscriptions=[];let editingSubId=null;
+let storeCards=[];let editingStoreId=null;
 
 const DOC_CATS={
   pessoal:{icon:'👤',label:{pt:'Pessoal',en:'Personal'}},
@@ -6091,6 +6451,493 @@ function renderDocs(){
   }).join('');
 }
 function setDocFilter(cat){currentDocFilter=cat;renderDocs();}
+
+// ══ CARTÕES DE LOJA ══
+const STORE_PRESETS=['Continente','Pingo Doce','Recheio','Auchan','Lidl','Intermarché','Worten','FNAC','Farmácia','El Corte Inglés','IKEA','Decathlon'];
+// Code128B — tabela de padrões (cada valor = larguras de barras/espaços)
+const C128B_PAT=['212222','222122','222221','121223','121322','131222','122213','122312','132212','221213','221312','231212','112232','122132','122231','113222','123122','123221','223211','221132','221231','213212','223112','312131','311222','321122','321221','312212','322112','322211','212123','212321','232121','111323','131123','131321','112313','132113','132311','211313','231113','231311','112133','112331','132131','113123','113321','133121','313121','211331','231131','213113','213311','213131','311123','311321','331121','312113','312311','332111','314111','221411','431111','111224','111422','121124','121421','141122','141221','112214','112412','122114','122411','142112','142211','241211','221114','413111','241112','134111','111242','121142','121241','114212','124112','124211','411212','421112','421211','212141','214121','412121','111143','111341','131141','114113','114311','411113','411311','113141','114131','311141','411131','211412','211214','211232','2331112'];
+function code128B(text){
+  // Devolve string de larguras. Start B=104, checksum, stop=106.
+  let sum=104,codes=[104];
+  for(let i=0;i<text.length;i++){
+    const v=text.charCodeAt(i)-32;
+    if(v<0||v>94)continue;
+    codes.push(v);sum+=v*(i+1);
+  }
+  codes.push(sum%103);
+  codes.push(106);
+  return codes.map(cd=>C128B_PAT[cd]).join('');
+}
+function barcodeSVG(text){
+  const clean=String(text).replace(/[^\x20-\x7E]/g,'');
+  if(!clean)return '';
+  const widths=code128B(clean);
+  let x=0,rects='',bar=true;
+  for(const w of widths){
+    const width=parseInt(w,10);
+    if(bar)rects+=`<rect x="${x}" y="0" width="${width}" height="100" fill="#000"/>`;
+    x+=width;bar=!bar;
+  }
+  return `<svg viewBox="0 0 ${x} 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">${rects}</svg>`;
+}
+function renderStoreCards(){
+  const en=currentLang==='en';
+  const box=document.getElementById('store-content');
+  if(!box)return;
+  // Cabeçalho da aba
+  const tt=document.getElementById('store-tab-title');if(tt)tt.textContent=en?'Store Cards':'Cartões de Loja';
+  const ta=document.getElementById('store-tab-add-txt');if(ta)ta.textContent=en?'Add card':'Adicionar cartão';
+  const ti=document.getElementById('store-tab-intro');if(ti)ti.textContent=en?'Your loyalty cards — show the barcode at checkout without carrying the plastic.':'Os teus cartões de fidelização — mostra o código de barras na caixa sem andar com o plástico.';
+  let html='';
+  if(!storeCards.length){
+    html+=`<div style="text-align:center;padding:26px 16px;color:var(--text-muted);font-size:.74rem;line-height:1.7">${en?'No store cards yet. Add your Continente, Pingo Doce… and show the barcode at checkout.':'Sem cartões de loja. Adiciona o Continente, Pingo Doce… e mostra o código de barras na caixa.'}</div>`;
+    box.innerHTML=html;return;
+  }
+  html+=`<div class="store-list">`+storeCards.map(sc=>{
+    return `<div class="store-card" style="border-color:${sc.color||'var(--accent-dim)'}">
+      <div class="store-card-head">
+        <span class="store-card-name" style="color:${sc.color||'var(--accent)'}">${esc(sc.name||'')}</span>
+        <div class="store-card-actions">
+          <button class="card-btn" onclick="showBarcode('${sc.id}')" title="${en?'Show barcode':'Mostrar código'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14"/></svg></button>
+          <button class="card-btn" onclick="editStoreCard('${sc.id}')" title="${en?'Edit':'Editar'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="card-btn danger" onclick="deleteStoreCard('${sc.id}')" title="${en?'Delete':'Apagar'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div>
+      </div>
+      <div class="store-card-num" onclick="showBarcode('${sc.id}')">${esc(sc.number||'')}</div>
+      <button class="store-show-btn" onclick="showBarcode('${sc.id}')">📷 ${en?'Show at checkout':'Mostrar na caixa'}</button>
+    </div>`;
+  }).join('')+`</div>`;
+  box.innerHTML=html;
+}
+function openStoreModal(){
+  editingStoreId=null;
+  const en=currentLang==='en';
+  document.getElementById('store-modal-title').textContent=en?'Add store card':'Adicionar cartão';
+  document.getElementById('sc-name').value='';
+  document.getElementById('sc-number').value='';
+  selectedStoreColor='#c9a84c';
+  renderStorePresets();renderStoreColors();
+  document.getElementById('store-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('sc-name').focus(),50);
+}
+function editStoreCard(id){
+  const sc=storeCards.find(x=>x.id===id);if(!sc)return;
+  editingStoreId=id;
+  const en=currentLang==='en';
+  document.getElementById('store-modal-title').textContent=en?'Edit store card':'Editar cartão';
+  document.getElementById('sc-name').value=sc.name||'';
+  document.getElementById('sc-number').value=sc.number||'';
+  selectedStoreColor=sc.color||'#c9a84c';
+  renderStorePresets();renderStoreColors();
+  document.getElementById('store-overlay').classList.add('open');
+}
+function renderStorePresets(){
+  const box=document.getElementById('sc-presets');
+  if(box)box.innerHTML=STORE_PRESETS.map(p=>`<button type="button" class="im-preset" onclick="document.getElementById('sc-name').value='${p.replace(/'/g,"\\'")}'">${p}</button>`).join('');
+}
+let selectedStoreColor='#c9a84c';
+function renderStoreColors(){
+  const cols=['#c9a84c','#e05252','#4caf82','#5b8def','#a970d0','#e0982a','#e0609f','#54c0c0'];
+  const box=document.getElementById('sc-colors');
+  if(box)box.innerHTML=cols.map(col=>`<button type="button" class="sub-color-pick${col===selectedStoreColor?' on':''}" style="background:${col}" onclick="selectedStoreColor='${col}';renderStoreColors()"></button>`).join('');
+}
+function saveStoreCard(){
+  const en=currentLang==='en';
+  const name=document.getElementById('sc-name').value.trim();
+  const number=document.getElementById('sc-number').value.trim();
+  if(!name){toast(en?'Name it!':'Dá-lhe um nome!');return;}
+  if(!number){toast(en?'Enter the card number!':'Introduz o número do cartão!');return;}
+  const obj={id:editingStoreId||Date.now().toString(36),name,number,color:selectedStoreColor};
+  if(editingStoreId){const i=storeCards.findIndex(x=>x.id===editingStoreId);if(i>=0)storeCards[i]=obj;logActivity('edit',name,'🎟️');}
+  else{storeCards.push(obj);logActivity('add',name,'🎟️');}
+  closeStoreModal();renderStoreCards();updateWalletTiles();markUnsaved();
+  toast(en?'Saved!':'Guardado!');
+}
+function closeStoreModal(){document.getElementById('store-overlay').classList.remove('open');}
+function deleteStoreCard(id){
+  const en=currentLang==='en';
+  const sc=storeCards.find(x=>x.id===id);if(!sc)return;
+  if(!confirm(en?`Delete "${sc.name}"?`:`Apagar "${sc.name}"?`))return;
+  storeCards=storeCards.filter(x=>x.id!==id);
+  logActivity('delete',sc.name,'🗑️');
+  renderStoreCards();updateWalletTiles();markUnsaved();
+  toast(en?'Deleted':'Apagado');
+}
+function showBarcode(id){
+  const sc=storeCards.find(x=>x.id===id);if(!sc)return;
+  const en=currentLang==='en';
+  document.getElementById('barcode-name').textContent=sc.name||'';
+  document.getElementById('barcode-svg').innerHTML=barcodeSVG(sc.number||'');
+  document.getElementById('barcode-number').textContent=sc.number||'';
+  document.getElementById('barcode-hint').textContent=en?'Show this to the cashier':'Mostra isto ao operador de caixa';
+  document.getElementById('barcode-overlay').classList.add('open');
+}
+function closeBarcode(){document.getElementById('barcode-overlay').classList.remove('open');}
+
+// ══ ECRÃS CARTEIRA (abrir/fechar) ══
+function renderSubsSection(){
+  const en=currentLang==='en';
+  const box=document.getElementById('dash-subs-section');
+  if(!box)return;
+  const totalM=subscriptions.reduce((a,s)=>a+subMonthly(s),0);
+  const totalY=totalM*12;
+  if(!subscriptions.length){
+    box.innerHTML=`
+      <div class="subs-sec-head">
+        <div class="subs-sec-titlewrap"><span class="subs-sec-ico">💸</span><span class="subs-sec-title">${en?'Subscriptions':'Subscrições'}</span></div>
+        <button class="subs-sec-add" onclick="openSubsScreen()">＋ ${en?'Add':'Adicionar'}</button>
+      </div>
+      <div class="subs-sec-empty">${en?'Track what you spend each month on Netflix, gym, insurance…':'Controla o que gastas por mês na Netflix, ginásio, seguros…'}</div>`;
+    return;
+  }
+  // Ordenar por próxima cobrança
+  const withNext=subscriptions.map(s=>({s,next:subNextCharge(s)})).sort((a,b)=>{
+    if(!a.next)return 1;if(!b.next)return -1;return a.next-b.next;
+  });
+  const chips=withNext.map(({s,next})=>{
+    const m=subMonthly(s);
+    const nextTxt=next?next.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short'}):'—';
+    const daysLeft=next?Math.ceil((next-new Date().setHours(0,0,0,0))/86400000):null;
+    const soon=daysLeft!==null&&daysLeft<=7;
+    return `<button class="sub-chip" onclick="openSubsScreen()" title="${esc(s.name)} · ${fmtMoney(m)}${en?'/mo':'/mês'}">
+      <span class="sub-chip-dot" style="background:${s.color||'var(--accent)'}"></span>
+      <span class="sub-chip-name">${esc(s.name||'')}</span>
+      <span class="sub-chip-price">${fmtMoney(m)}<span>${en?'/mo':'/mês'}</span></span>
+      <span class="sub-chip-next ${soon?'soon':''}">${en?'renews':'renova'} ${nextTxt}</span>
+    </button>`;
+  }).join('');
+  box.innerHTML=`
+    <div class="subs-sec-head">
+      <div class="subs-sec-titlewrap"><span class="subs-sec-ico">💸</span><span class="subs-sec-title">${en?'Subscriptions':'Subscrições'}</span></div>
+      <button class="subs-sec-add" onclick="openSubsScreen()">${en?'Manage':'Gerir'} →</button>
+    </div>
+    <div class="subs-sec-totals">
+      <div class="subs-sec-total"><span class="subs-sec-total-num">${fmtMoney(totalM)}</span><span class="subs-sec-total-lbl">${en?'per month':'por mês'}</span></div>
+      <div class="subs-sec-total dim"><span class="subs-sec-total-num">${fmtMoney(totalY)}</span><span class="subs-sec-total-lbl">${en?'per year':'por ano'}</span></div>
+      <div class="subs-sec-count">${subscriptions.length} ${en?(subscriptions.length===1?'service':'services'):(subscriptions.length===1?'serviço':'serviços')}</div>
+    </div>
+    <div class="subs-sec-chips">${chips}</div>`;
+}
+function openSubsScreen(){
+  const en=currentLang==='en';
+  document.getElementById('subsscreen-title').textContent=en?'💸 Subscriptions':'💸 Subscrições';
+  renderSubs();
+  document.getElementById('subsscreen-overlay').classList.add('open');
+}
+function closeSubsScreen(){document.getElementById('subsscreen-overlay').classList.remove('open');}
+
+// ══ SUBSCRIÇÕES ══
+const SUB_PRESETS=['Netflix','Spotify','Disney+','HBO Max','Amazon Prime','YouTube Premium','iCloud','Google One','Ginásio','Seguro Auto','Seguro Saúde','PlayStation Plus','Xbox Game Pass'];
+function subMonthly(s){
+  // Devolve o custo mensal equivalente (anuais divididos por 12)
+  const v=parseFloat(s.amount)||0;
+  return s.cycle==='yearly'?v/12:v;
+}
+function fmtMoney(v){
+  return '€'+(Math.round(v*100)/100).toFixed(2).replace('.',',');
+}
+function subNextCharge(s){
+  // Calcula a próxima data de cobrança a partir do dia (mensal) ou data (anual)
+  const now=new Date();now.setHours(0,0,0,0);
+  if(s.cycle==='yearly'){
+    if(!s.renewDate)return null;
+    let d=new Date(s.renewDate);
+    while(d<now)d.setFullYear(d.getFullYear()+1);
+    return d;
+  }else{
+    const day=parseInt(s.renewDay,10);
+    if(!day||day<1||day>31)return null;
+    let d=new Date(now.getFullYear(),now.getMonth(),Math.min(day,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()));
+    if(d<now)d=new Date(now.getFullYear(),now.getMonth()+1,Math.min(day,new Date(now.getFullYear(),now.getMonth()+2,0).getDate()));
+    return d;
+  }
+}
+function renderSubs(){
+  const en=currentLang==='en';
+  const box=document.getElementById('subs-content');
+  const badge=document.getElementById('subs-badge');
+  if(!box)return;
+  const totalM=subscriptions.reduce((a,s)=>a+subMonthly(s),0);
+  const totalY=totalM*12;
+  if(badge){badge.textContent=subscriptions.length?fmtMoney(totalM)+(en?'/mo':'/mês'):'';badge.className='dcard-badge'+(subscriptions.length?'':' ');}
+  let html=`<div class="subs-head">
+    <button class="btn btn-gold" onclick="openSubModal()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 15px;font-size:.56rem;letter-spacing:2px">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      ${en?'Add subscription':'Adicionar subscrição'}
+    </button>
+  </div>`;
+  if(!subscriptions.length){
+    html+=`<div style="text-align:center;padding:26px 16px;color:var(--text-muted);font-size:.74rem;line-height:1.7">${en?'No subscriptions yet. Add Netflix, gym, insurance… and see how much you spend per month.':'Sem subscrições. Adiciona a Netflix, ginásio, seguro… e vê quanto gastas por mês.'}</div>`;
+    box.innerHTML=html;return;
+  }
+  html+=`<div class="subs-totals">
+    <div class="subs-total-box"><div class="subs-total-num">${fmtMoney(totalM)}</div><div class="subs-total-lbl">${en?'per month':'por mês'}</div></div>
+    <div class="subs-total-box"><div class="subs-total-num">${fmtMoney(totalY)}</div><div class="subs-total-lbl">${en?'per year':'por ano'}</div></div>
+  </div>`;
+  // Ordenar por próxima cobrança
+  const withNext=subscriptions.map(s=>({s,next:subNextCharge(s)})).sort((a,b)=>{
+    if(!a.next)return 1;if(!b.next)return -1;return a.next-b.next;
+  });
+  html+=`<div class="subs-list">`+withNext.map(({s,next})=>{
+    const m=subMonthly(s);
+    const nextTxt=next?next.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short'}):'—';
+    const cycleTxt=s.cycle==='yearly'?(en?'yearly':'anual'):(en?'monthly':'mensal');
+    const daysLeft=next?Math.ceil((next-new Date().setHours(0,0,0,0))/86400000):null;
+    const soon=daysLeft!==null&&daysLeft<=7;
+    return `<div class="sub-row">
+      <div class="sub-color" style="background:${s.color||'var(--accent)'}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="sub-name">${esc(s.name||'')}</div>
+        <div class="sub-meta">${fmtMoney(parseFloat(s.amount)||0)} · ${cycleTxt} · <span class="${soon?'sub-soon':''}">${en?'next':'próx.'} ${nextTxt}</span></div>
+      </div>
+      <div class="sub-monthly">${fmtMoney(m)}<span>${en?'/mo':'/mês'}</span></div>
+      <div class="sub-actions">
+        <button class="card-btn" onclick="editSub('${s.id}')" title="${en?'Edit':'Editar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="card-btn danger" onclick="deleteSub('${s.id}')" title="${en?'Delete':'Apagar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+    </div>`;
+  }).join('')+`</div>`;
+  box.innerHTML=html;
+}
+function openSubModal(){
+  editingSubId=null;
+  const en=currentLang==='en';
+  document.getElementById('sub-modal-title').textContent=en?'Add subscription':'Adicionar subscrição';
+  document.getElementById('sub-name').value='';
+  document.getElementById('sub-amount').value='';
+  document.getElementById('sub-cycle').value='monthly';
+  document.getElementById('sub-renew-day').value='1';
+  document.getElementById('sub-renew-date').value='';
+  selectedSubColor='#c9a84c';
+  renderSubPresets();renderSubColors();updateSubCycleUI();
+  document.getElementById('sub-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('sub-name').focus(),50);
+}
+function editSub(id){
+  const s=subscriptions.find(x=>x.id===id);if(!s)return;
+  editingSubId=id;
+  const en=currentLang==='en';
+  document.getElementById('sub-modal-title').textContent=en?'Edit subscription':'Editar subscrição';
+  document.getElementById('sub-name').value=s.name||'';
+  document.getElementById('sub-amount').value=s.amount||'';
+  document.getElementById('sub-cycle').value=s.cycle||'monthly';
+  document.getElementById('sub-renew-day').value=s.renewDay||'1';
+  document.getElementById('sub-renew-date').value=s.renewDate||'';
+  selectedSubColor=s.color||'#c9a84c';
+  renderSubPresets();renderSubColors();updateSubCycleUI();
+  document.getElementById('sub-overlay').classList.add('open');
+}
+function updateSubCycleUI(){
+  const cycle=document.getElementById('sub-cycle').value;
+  document.getElementById('sub-day-row').style.display=cycle==='monthly'?'block':'none';
+  document.getElementById('sub-date-row').style.display=cycle==='yearly'?'block':'none';
+}
+function renderSubPresets(){
+  const box=document.getElementById('sub-presets');
+  if(box)box.innerHTML=SUB_PRESETS.map(p=>`<button type="button" class="im-preset" onclick="document.getElementById('sub-name').value='${p.replace(/'/g,"\\'")}'">${p}</button>`).join('');
+}
+let selectedSubColor='#c9a84c';
+function renderSubColors(){
+  const cols=['#c9a84c','#e05252','#4caf82','#5b8def','#a970d0','#e0982a','#e0609f','#54c0c0'];
+  const box=document.getElementById('sub-colors');
+  if(box)box.innerHTML=cols.map(col=>`<button type="button" class="sub-color-pick${col===selectedSubColor?' on':''}" style="background:${col}" onclick="selectedSubColor='${col}';renderSubColors()"></button>`).join('');
+}
+function saveSub(){
+  const en=currentLang==='en';
+  const name=document.getElementById('sub-name').value.trim();
+  const amount=parseFloat(document.getElementById('sub-amount').value);
+  if(!name){toast(en?'Name it!':'Dá-lhe um nome!');return;}
+  if(isNaN(amount)||amount<0){toast(en?'Enter a valid amount!':'Valor inválido!');return;}
+  const cycle=document.getElementById('sub-cycle').value;
+  const obj={
+    id:editingSubId||Date.now().toString(36),
+    name,amount,cycle,color:selectedSubColor,
+    renewDay:cycle==='monthly'?document.getElementById('sub-renew-day').value:null,
+    renewDate:cycle==='yearly'?document.getElementById('sub-renew-date').value:null,
+  };
+  if(editingSubId){const i=subscriptions.findIndex(x=>x.id===editingSubId);if(i>=0)subscriptions[i]=obj;logActivity('edit',name,'💸');}
+  else{subscriptions.push(obj);logActivity('add',name,'💸');}
+  closeSubModal();renderSubs();renderSubsSection();renderRenewals();markUnsaved();
+  toast(en?'Saved!':'Guardado!');
+}
+function closeSubModal(){document.getElementById('sub-overlay').classList.remove('open');}
+function deleteSub(id){
+  const en=currentLang==='en';
+  const s=subscriptions.find(x=>x.id===id);if(!s)return;
+  if(!confirm(en?`Delete "${s.name}"?`:`Apagar "${s.name}"?`))return;
+  subscriptions=subscriptions.filter(x=>x.id!==id);
+  logActivity('delete',s.name,'🗑️');
+  renderSubs();renderSubsSection();renderRenewals();markUnsaved();
+  toast(en?'Deleted':'Apagado');
+}
+
+// ══ INFORMAÇÃO PESSOAL RÁPIDA ══
+const INFO_PRESETS_PT=['NIF','Cartão de Cidadão','IBAN','NIB','Matrícula','Nº de Utente (SNS)','Nº Segurança Social','Nº de Sócio','Passaporte','Carta de Condução','Validade do CC'];
+const INFO_PRESETS_EN=['Tax ID','ID Card','IBAN','Bank Nº','Car Plate','Health Number','Social Security','Member Nº','Passport','Driving Licence'];
+
+// personalInfo agora é uma lista de PESSOAS: {id, name, fields:[{id,label,value,sensitive}]}
+// Compatibilidade: se vier do formato antigo (lista de campos soltos), migra para uma pessoa "Geral".
+function migrateInfoIfNeeded(){
+  if(!Array.isArray(personalInfo))personalInfo=[];
+  if(personalInfo.length && personalInfo[0] && personalInfo[0].value!==undefined && personalInfo[0].fields===undefined){
+    // formato antigo → agrupar tudo numa pessoa
+    const old=personalInfo.slice();
+    personalInfo=[{id:Date.now().toString(36),name:currentLang==='en'?'General':'Geral',fields:old.map(f=>({id:f.id,label:f.label,value:f.value,sensitive:f.sensitive}))}];
+  }
+}
+
+let editingPersonId=null;      // pessoa a que se adiciona/edita campo
+let editingInfoFieldId=null;   // campo em edição
+
+function renderInfo(){
+  migrateInfoIfNeeded();
+  const en=currentLang==='en';
+  const intro=document.getElementById('info-intro');
+  if(intro)intro.textContent=en
+    ?'Everyday details for you and your family, one tap away. Group them by person — each with their own tax ID, ID card, IBAN… Stored encrypted, like everything else.'
+    :'Os dados do dia-a-dia teus e da família, a um toque. Organizados por pessoa — cada uma com o seu NIF, cartão de cidadão, IBAN… Guardado encriptado, como tudo o resto.';
+  document.getElementById('info-title').textContent=en?'Personal Info':'Informação Pessoal';
+  document.getElementById('info-add-txt').textContent=en?'New person':'Nova pessoa';
+  const grid=document.getElementById('info-grid');
+  if(!personalInfo.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="40" height="40"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <p>${en?'No one added yet. Tap "New person" to create a profile (you, your family…) and store their details.':'Ninguém ainda. Toca em "Nova pessoa" para criar um perfil (tu, a família…) e guardar os dados.'}</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=personalInfo.map(person=>{
+    const fields=(person.fields||[]).map(f=>{
+      const val=esc(f.value||'');
+      const masked=f.sensitive?`<span class="info-val masked" id="infoval-${f.id}" data-real="${val}">••••••••</span>`:`<span class="info-val" id="infoval-${f.id}">${val}</span>`;
+      return `<div class="info-field">
+        <div class="info-field-head">
+          <span class="info-label">${esc(f.label||'')}</span>
+          <div class="info-field-actions">
+            ${f.sensitive?`<button class="card-btn" onclick="toggleInfoMask('${f.id}')" title="${en?'Show/Hide':'Mostrar/Ocultar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>`:''}
+            <button class="card-btn" onclick="copyInfoField('${person.id}','${f.id}')" title="${en?'Copy':'Copiar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="card-btn" onclick="editInfoField('${person.id}','${f.id}')" title="${en?'Edit':'Editar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="card-btn danger" onclick="deleteInfoField('${person.id}','${f.id}')" title="${en?'Delete':'Apagar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+          </div>
+        </div>
+        ${masked}
+      </div>`;
+    }).join('');
+    return `<div class="info-person">
+      <div class="info-person-head">
+        <div class="info-person-name">👤 ${esc(person.name||'')}</div>
+        <div class="info-person-actions">
+          <button class="card-btn" onclick="renamePerson('${person.id}')" title="${en?'Rename':'Renomear'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="card-btn danger" onclick="deletePerson('${person.id}')" title="${en?'Delete person':'Apagar pessoa'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div>
+      </div>
+      <div class="info-fields">${fields||`<div style="font-size:.68rem;color:var(--text-muted);padding:6px 0">${en?'No details yet.':'Sem dados ainda.'}</div>`}</div>
+      <button class="info-add-field" onclick="openInfoModal('${person.id}')">＋ ${en?'Add detail':'Adicionar dado'}</button>
+    </div>`;
+  }).join('');
+}
+function toggleInfoMask(id){
+  const el=document.getElementById('infoval-'+id);
+  if(!el)return;
+  if(el.classList.contains('masked')){el.textContent=el.dataset.real;el.classList.remove('masked');}
+  else{el.textContent='••••••••';el.classList.add('masked');}
+}
+function copyInfoField(personId,fieldId){
+  const p=personalInfo.find(x=>x.id===personId);if(!p)return;
+  const f=(p.fields||[]).find(x=>x.id===fieldId);if(!f)return;
+  copyText(f.value,currentLang==='en'?'Copied!':'Copiado!');
+}
+// ── Pessoas ──
+function addPerson(){
+  const en=currentLang==='en';
+  const name=prompt(en?'Person\'s name (e.g. Carlos, Aurora):':'Nome da pessoa (ex: Carlos, Aurora):');
+  if(name===null)return;
+  const nm=name.trim();if(!nm)return;
+  personalInfo.push({id:Date.now().toString(36),name:nm,fields:[]});
+  logActivity('add',nm,'🆔');
+  renderInfo();markUnsaved();
+}
+function renamePerson(id){
+  const en=currentLang==='en';
+  const p=personalInfo.find(x=>x.id===id);if(!p)return;
+  const name=prompt(en?'New name:':'Novo nome:',p.name||'');
+  if(name===null)return;
+  const nm=name.trim();if(!nm)return;
+  p.name=nm;renderInfo();markUnsaved();
+}
+function deletePerson(id){
+  const en=currentLang==='en';
+  const p=personalInfo.find(x=>x.id===id);if(!p)return;
+  const n=(p.fields||[]).length;
+  const msg=en?`Delete "${p.name}" and its ${n} detail(s)?`:`Apagar "${p.name}" e os seus ${n} dado(s)?`;
+  if(!confirm(msg))return;
+  personalInfo=personalInfo.filter(x=>x.id!==id);
+  logActivity('delete',p.name,'🗑️');
+  renderInfo();markUnsaved();
+  toast(en?'Deleted':'Apagado');
+}
+// ── Campos de uma pessoa ──
+function openInfoModal(personId){
+  editingPersonId=personId;editingInfoFieldId=null;
+  const en=currentLang==='en';
+  document.getElementById('info-modal-title').textContent=en?'Add detail':'Adicionar dado';
+  document.getElementById('im-label').value='';
+  document.getElementById('im-value').value='';
+  document.getElementById('im-sensitive').checked=false;
+  renderInfoPresets();
+  document.getElementById('info-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('im-label').focus(),50);
+}
+function editInfoField(personId,fieldId){
+  const p=personalInfo.find(x=>x.id===personId);if(!p)return;
+  const f=(p.fields||[]).find(x=>x.id===fieldId);if(!f)return;
+  editingPersonId=personId;editingInfoFieldId=fieldId;
+  const en=currentLang==='en';
+  document.getElementById('info-modal-title').textContent=en?'Edit detail':'Editar dado';
+  document.getElementById('im-label').value=f.label||'';
+  document.getElementById('im-value').value=f.value||'';
+  document.getElementById('im-sensitive').checked=!!f.sensitive;
+  renderInfoPresets();
+  document.getElementById('info-overlay').classList.add('open');
+}
+function renderInfoPresets(){
+  const en=currentLang==='en';
+  const presets=en?INFO_PRESETS_EN:INFO_PRESETS_PT;
+  const box=document.getElementById('im-presets');
+  if(box)box.innerHTML=presets.map(p=>`<button type="button" class="im-preset" onclick="document.getElementById('im-label').value='${p.replace(/'/g,"\\'")}'">${p}</button>`).join('');
+}
+function closeInfoModal(){document.getElementById('info-overlay').classList.remove('open');}
+function saveInfo(){
+  const en=currentLang==='en';
+  const label=document.getElementById('im-label').value.trim();
+  const value=document.getElementById('im-value').value.trim();
+  if(!label){toast(en?'Give it a name!':'Dá-lhe um nome!');return;}
+  if(!value){toast(en?'Fill in the value!':'Preenche o valor!');return;}
+  const sensitive=document.getElementById('im-sensitive').checked;
+  const p=personalInfo.find(x=>x.id===editingPersonId);
+  if(!p){closeInfoModal();return;}
+  if(!Array.isArray(p.fields))p.fields=[];
+  if(editingInfoFieldId){
+    const idx=p.fields.findIndex(f=>f.id===editingInfoFieldId);
+    if(idx>=0)p.fields[idx]={...p.fields[idx],label,value,sensitive};
+    logActivity('edit',label,'🆔');
+  }else{
+    p.fields.push({id:Date.now().toString(36),label,value,sensitive});
+    logActivity('add',label,'🆔');
+  }
+  closeInfoModal();renderInfo();markUnsaved();
+  toast(en?'Saved!':'Guardado!');
+}
+function deleteInfoField(personId,fieldId){
+  const en=currentLang==='en';
+  const p=personalInfo.find(x=>x.id===personId);if(!p)return;
+  const f=(p.fields||[]).find(x=>x.id===fieldId);if(!f)return;
+  if(!confirm(en?`Delete "${f.label}"?`:`Apagar "${f.label}"?`))return;
+  p.fields=p.fields.filter(x=>x.id!==fieldId);
+  logActivity('delete',f.label,'🗑️');
+  renderInfo();markUnsaved();
+  toast(en?'Deleted':'Apagado');
+}
 
 // ══ 2FA / TOTP (RFC 6238 — validado contra vetores oficiais) ══
 function b32decode(s){
@@ -6558,7 +7405,7 @@ async function restoreSnapshot(idx){
   }catch(e){}
   // Aplicar os dados do instantâneo
   vault=data.vault||[];notes=data.notes||[];bankCards=data.bankCards||[];
-  activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];
+  activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];
   customCats=data.customCats||[];docFolders=data.docFolders||[];vaultFolders=data.vaultFolders||[];
   wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';
   totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
@@ -6828,9 +7675,15 @@ try{privacyOn=localStorage.getItem('cv_privacy')==='1';}catch(e){}
 function applyPrivacy(){
   document.body.classList.toggle('privacy',privacyOn);
   const b=document.getElementById('privacy-btn');
-  if(b){b.textContent=privacyOn?'👁':'🙈';b.title=privacyOn
-    ?(currentLang==='en'?'Privacy mode ON — click to show values':'Modo privacidade ATIVO — clica para mostrar valores')
-    :(currentLang==='en'?'Privacy mode':'Modo privacidade');}
+  if(b){
+    // Muda só o emoji, preserva o texto no <span>
+    const span=b.querySelector('.tb-label');
+    const label=span?span.textContent:'';
+    b.innerHTML=(privacyOn?'👁':'🙈')+' <span class="tb-label" id="tb-privacy-txt">'+(label||(currentLang==='en'?'Privacy mode':'Modo de privacidade'))+'</span>';
+    b.title=privacyOn
+      ?(currentLang==='en'?'Privacy mode ON — click to show values':'Modo de privacidade ATIVO — clica para mostrar valores')
+      :(currentLang==='en'?'Privacy mode':'Modo de privacidade');
+  }
 }
 function togglePrivacy(){
   privacyOn=!privacyOn;
@@ -8107,7 +8960,7 @@ function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();closeSnapshotModal();closeDedupeModal();closeSelectiveExport();closeDocPreview();}
+  if(e.key==='Escape'){closeModal();closeChangePwModal();closePwGen();closeImport();closeSettings();closeCardModal();closeReadMode();closeDocModal();closeQrModal();closeTotpModal();closeQrScanner();closeShareModal();closeShareImport();closeFolderModal();closeMoveModal();closeWifiManager();closePinSetup();closeTopMenu();closeLegacyModal();close2faSetup();close2faManager();closeSnapshotModal();closeDedupeModal();closeSelectiveExport();closeDocPreview();closeInfoModal();closeSubModal();closeSubsScreen();closeStoreModal();closeBarcode();}
   if(!masterKey)return;
   const anyOpen=document.querySelector('.modal-overlay.open');
   if(anyOpen)return;
