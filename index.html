@@ -56,11 +56,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .lock-sub{color:var(--text-muted);font-size:.8rem;letter-spacing:5px;text-transform:uppercase;margin-bottom:22px;}
 .lock-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-bottom:26px;max-width:440px;}
 .lock-badge{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid var(--accent-dim);color:var(--accent);background:rgba(var(--accent-rgb),.07);}
-.vault-icon{width:74px;height:74px;border:2px solid var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 26px;animation:pulse 3s ease-in-out infinite;}
-.vault-icon svg{width:32px;height:32px;}
+.vault-icon{width:150px;height:150px;border:none;border-radius:0;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.vault-icon svg{width:100%;height:100%;display:block;}
+@keyframes logoUnlock{
+  0%{transform:scale(1) rotate(0deg);filter:drop-shadow(0 0 0 rgba(var(--accent-rgb),0)) brightness(1);}
+  25%{transform:scale(1.15) rotate(-6deg);filter:drop-shadow(0 0 20px rgba(var(--accent-rgb),.8)) brightness(1.4);}
+  55%{transform:scale(1.28) rotate(4deg);filter:drop-shadow(0 0 34px rgba(var(--accent-rgb),1)) brightness(1.8);}
+  80%{transform:scale(1.5) rotate(0deg);filter:drop-shadow(0 0 50px rgba(var(--accent-rgb),1)) brightness(2.2);opacity:1;}
+  100%{transform:scale(1.9) rotate(0deg);filter:drop-shadow(0 0 70px rgba(var(--accent-rgb),1)) brightness(3);opacity:0;}
+}
+.vault-icon.unlocking{animation:logoUnlock 1s ease forwards!important;}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.2);}50%{box-shadow:0 0 0 12px rgba(var(--accent-rgb),0);}}
-@keyframes unlockAnim{0%{transform:scale(1);}40%{transform:scale(1.15);}70%{transform:scale(.95);}100%{transform:scale(1);opacity:0;}}
-.vault-icon.unlocking{animation:unlockAnim .65s ease forwards;}
+
 .lock-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:34px;width:380px;max-width:100%;}
 .lock-card label{display:block;font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
 .lock-input-wrap{position:relative;}
@@ -801,24 +808,24 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .doc-loc{font-size:.6rem;color:var(--text-muted);margin-top:3px;}
 
 /* ══ DESBLOQUEIO — ONDA DE ENERGIA ══ */
-#vault-door{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,rgba(6,9,18,.55),rgba(6,9,18,.82));pointer-events:none;}
-#vault-door.show{display:flex;animation:vdBackdrop 1.1s ease forwards;}
-/* Anel de energia que se expande */
-.vd-ring{position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid var(--accent);box-shadow:0 0 30px rgba(var(--accent-rgb),.8),inset 0 0 20px rgba(var(--accent-rgb),.4);}
-#vault-door.show .vd-ring{animation:vdRing 1s cubic-bezier(.16,.84,.44,1) forwards;}
-.vd-ring:nth-child(2){animation-delay:.12s!important;opacity:.6;}
-.vd-ring:nth-child(3){animation-delay:.24s!important;opacity:.35;}
-/* Núcleo que pulsa e desaparece */
-.vd-core{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--accent);box-shadow:0 0 40px 12px rgba(var(--accent-rgb),.9);}
-#vault-door.show .vd-core{animation:vdCore .9s ease-out forwards;}
-/* Raios de luz que disparam do centro */
-.vd-rays{position:absolute;width:2px;height:2px;}
-.vd-rays span{position:absolute;left:0;top:0;width:2px;height:44vmin;background:linear-gradient(to top,rgba(var(--accent-rgb),.7),transparent);transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(var(--rot)) scaleY(0);}
-#vault-door.show .vd-rays span{animation:vdRay .8s cubic-bezier(.16,.84,.44,1) forwards;}
-@keyframes vdBackdrop{0%{opacity:0;}15%{opacity:1;}70%{opacity:1;}100%{opacity:0;visibility:hidden;}}
-@keyframes vdRing{0%{width:40px;height:40px;opacity:1;border-width:2px;}100%{width:150vmax;height:150vmax;opacity:0;border-width:0;}}
-@keyframes vdCore{0%{transform:scale(0);opacity:0;}25%{transform:scale(1.4);opacity:1;}60%{transform:scale(1);opacity:1;}100%{transform:scale(6);opacity:0;}}
-@keyframes vdRay{0%{transform:translate(-50%,-100%) rotate(var(--rot)) scaleY(0);opacity:0;}30%{opacity:1;}100%{transform:translate(-50%,-100%) rotate(var(--rot)) scaleY(1);opacity:0;}}
+#vault-door{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,rgba(6,9,18,.82),rgba(6,9,18,.94));pointer-events:none;}
+#vault-door.show{display:flex;animation:vdBackdrop 1.6s ease forwards;}
+/* Escudo grande no centro */
+.vd-logo{width:min(46vmin,300px);height:min(46vmin,300px);filter:drop-shadow(0 0 40px rgba(var(--accent-rgb),.7));}
+#vault-door.show .vd-logo{animation:vdLogoIn 1.6s cubic-bezier(.18,.9,.32,1) forwards;}
+/* Anéis de energia que expandem por trás do escudo */
+.vd-ring{position:absolute;width:min(46vmin,300px);height:min(46vmin,300px);border-radius:50%;border:2px solid var(--accent);box-shadow:0 0 30px rgba(var(--accent-rgb),.7);opacity:0;}
+#vault-door.show .vd-ring{animation:vdRingExpand 1.4s cubic-bezier(.16,.84,.44,1) forwards;}
+.vd-ring:nth-child(2){animation-delay:.35s!important;}
+@keyframes vdBackdrop{0%{opacity:0;}12%{opacity:1;}72%{opacity:1;}100%{opacity:0;visibility:hidden;}}
+@keyframes vdLogoIn{
+  0%{transform:scale(.3) rotate(-12deg);opacity:0;}
+  30%{transform:scale(1.05) rotate(3deg);opacity:1;}
+  50%{transform:scale(.95) rotate(0deg);opacity:1;}
+  72%{transform:scale(1) rotate(0deg);opacity:1;filter:brightness(1);}
+  100%{transform:scale(1.5) rotate(0deg);opacity:0;filter:brightness(2.4);}
+}
+@keyframes vdRingExpand{0%{width:min(30vmin,200px);height:min(30vmin,200px);opacity:.9;border-width:2px;}100%{width:170vmax;height:170vmax;opacity:0;border-width:0;}}
 @media(prefers-reduced-motion:reduce){#vault-door{display:none!important;}}
 
 /* ══ PACKS DE TEMA ══ */
@@ -844,13 +851,8 @@ body.privacy .card-field-value:hover,body.privacy .totp-code:hover,body.privacy 
 @keyframes encPulse{0%,100%{opacity:.72;}50%{opacity:1;}}
 .lock-card{background:rgba(15,20,36,.55);width:420px;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border:1px solid rgba(var(--accent-rgb),.18);}
 [data-theme="light"] .lock-card{background:rgba(240,237,232,.6);}
-.vault-icon{position:relative;animation:pulse 3s ease-in-out infinite,lockIn .55s ease backwards;box-shadow:0 0 50px rgba(var(--accent-rgb),.28);background:radial-gradient(circle at 50% 40%,rgba(var(--accent-rgb),.12),transparent 70%);}
-.vault-icon::before,.vault-icon::after{content:'';position:absolute;border-radius:50%;border:1px solid rgba(var(--accent-rgb),.25);}
-.vault-icon::before{inset:-10px;border-top-color:rgba(var(--accent-rgb),.6);border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent;animation:spinCW 8s linear infinite;}
-.vault-icon::after{inset:-18px;border-bottom-color:rgba(var(--accent-rgb),.4);border-top-color:transparent;border-right-color:transparent;border-left-color:transparent;animation:spinCCW 12s linear infinite;}
-.vault-icon::before,.vault-icon::after{content:'';position:absolute;border-radius:50%;pointer-events:none;}
-.vault-icon::before{inset:-9px;border:1px dashed rgba(var(--accent-rgb),.5);animation:spinCW 26s linear infinite;}
-.vault-icon::after{inset:-18px;border:1px dotted rgba(var(--accent-rgb),.28);animation:spinCCW 40s linear infinite;}
+.vault-icon{position:relative;animation:lockIn .55s ease backwards;background:radial-gradient(circle at 50% 45%,rgba(var(--accent-rgb),.14),transparent 68%);}
+.vault-icon::before,.vault-icon::after{content:none;}
 @keyframes spinCW{to{transform:rotate(360deg);}}
 @keyframes spinCCW{to{transform:rotate(-360deg);}}
 @keyframes lockIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
@@ -1103,7 +1105,7 @@ body::after{bottom:-32vmax;right:-24vmax;
   #lock-screen{padding:20px 12px 20px;}
   .lock-logo{font-size:1.4rem;letter-spacing:2px;}
   .lock-sub{font-size:.56rem;letter-spacing:4px;}
-  .vault-icon{width:52px;height:52px;margin-bottom:16px;}
+  .vault-icon{width:118px;height:118px;margin-bottom:12px;}
   .lock-badges{gap:5px;margin-bottom:18px;}
   .lock-badge{font-size:.44rem;padding:3px 7px;}
   .lock-card{padding:20px 16px;width:100%;}
@@ -1293,7 +1295,25 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div id="drop-sub" style="font-size:.68rem;color:var(--text-muted);margin-top:6px"></div>
   </div>
 </div>
-<div id="vault-door"><div class="vd-core"></div><div class="vd-ring"></div><div class="vd-ring"></div><div class="vd-ring"></div><div class="vd-rays" id="vd-rays"></div></div>
+<div id="vault-door">
+  <div class="vd-ring"></div><div class="vd-ring"></div>
+  <div class="vd-logo">
+    <svg viewBox="22 18 96 102" fill="none" width="100%" height="100%">
+      <defs>
+        <linearGradient id="vd-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e4a0"/><stop offset="0.5" stop-color="var(--accent)"/><stop offset="1" stop-color="#8a6d2a"/></linearGradient>
+        <filter id="vd-glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <ellipse cx="70" cy="66" rx="46" ry="18" fill="none" stroke="url(#vd-gold)" stroke-width="1.5" opacity="0.55" stroke-dasharray="4 6"><animateTransform attributeName="transform" type="rotate" from="0 70 66" to="360 70 66" dur="3s" repeatCount="indefinite"/></ellipse>
+      <g filter="url(#vd-glow)">
+        <path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z" fill="none" stroke="url(#vd-gold)" stroke-width="3"/>
+        <path d="M70 34 L96 45 V70 C96 88 84 100 70 105 C56 100 44 88 44 70 V45 Z" fill="url(#vd-gold)" opacity="0.12"/>
+        <path d="M52 82 L60 52 L68 82" fill="none" stroke="url(#vd-gold)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M55.5 71 H64.5" stroke="url(#vd-gold)" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M72 52 L80 82 L88 52" fill="none" stroke="url(#vd-gold)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </div>
+</div>
 
 <!-- DRAG VAULT OVERLAY -->
 <div id="drag-overlay"><div class="drag-overlay-text" id="drag-overlay-txt">⬡ Largar para abrir cofre</div></div>
@@ -1328,10 +1348,31 @@ body::after{bottom:-32vmax;right:-24vmax;
     <button class="lang-btn" id="lang-en-lock" onclick="setLang('en')">ENG</button>
   </div>
   <div class="vault-icon" id="vault-icon">
-    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
-      <rect x="3" y="11" width="18" height="11" rx="2"/>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-      <circle cx="12" cy="16" r="1.5" fill="var(--accent)" stroke="none"/>
+    <svg viewBox="22 18 96 102" fill="none" width="100%" height="100%">
+      <defs>
+        <linearGradient id="lg-shield" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e4a0"/><stop offset="0.5" stop-color="var(--accent)"/><stop offset="1" stop-color="#8a6d2a"/></linearGradient>
+        <filter id="lg-glow"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <clipPath id="lg-clip"><path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z"/></clipPath>
+      </defs>
+      <!-- dados binários a cair -->
+      <g fill="url(#lg-shield)" font-family="'JetBrains Mono',monospace" font-size="7" opacity="0.5">
+        <text x="26" y="45">1<animate attributeName="y" values="30;115" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="4s" repeatCount="indefinite"/></text>
+        <text x="104" y="60">0<animate attributeName="y" values="30;115" dur="3.4s" begin="-1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.4s" begin="-1s" repeatCount="indefinite"/></text>
+        <text x="112" y="80">1<animate attributeName="y" values="30;115" dur="3.8s" begin="-2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.8s" begin="-2s" repeatCount="indefinite"/></text>
+        <text x="20" y="90">0<animate attributeName="y" values="30;115" dur="3.2s" begin="-1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.2s" begin="-1.5s" repeatCount="indefinite"/></text>
+      </g>
+      <!-- órbita a rodar -->
+      <ellipse cx="70" cy="66" rx="46" ry="18" fill="none" stroke="url(#lg-shield)" stroke-width="1.5" opacity="0.55" stroke-dasharray="4 6"><animateTransform attributeName="transform" type="rotate" from="0 70 66" to="360 70 66" dur="10s" repeatCount="indefinite"/></ellipse>
+      <!-- escudo -->
+      <g filter="url(#lg-glow)">
+        <path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z" fill="none" stroke="url(#lg-shield)" stroke-width="3"/>
+        <path d="M70 34 L96 45 V70 C96 88 84 100 70 105 C56 100 44 88 44 70 V45 Z" fill="url(#lg-shield)" opacity="0.1"/>
+        <path d="M52 82 L60 52 L68 82" fill="none" stroke="url(#lg-shield)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M55.5 71 H64.5" stroke="url(#lg-shield)" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M72 52 L80 82 L88 52" fill="none" stroke="url(#lg-shield)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+      </g>
+      <!-- reflexo a varrer -->
+      <rect x="20" y="20" width="20" height="100" fill="#fff" opacity="0.25" clip-path="url(#lg-clip)"><animate attributeName="x" values="20;100;20" dur="4s" repeatCount="indefinite"/></rect>
     </svg>
   </div>
   <div class="lock-logo">AURORA VAULT</div>
@@ -1517,7 +1558,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.10</span>
+      <span>Aurora Vault © 2026 · v9.16</span>
     </div>
   </div>
 </div>
@@ -1842,7 +1883,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.10</span>
+      <span>Aurora Vault © 2026 · v9.16</span>
     </div>
   </div>
   </div>
@@ -2847,7 +2888,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.10';
+const APP_VERSION='9.16';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4099,8 +4140,13 @@ function setLockError(msg){document.getElementById('lock-error').textContent=msg
 function doUnlock(){
   const lockScreen=document.getElementById('lock-screen');
   const app=document.getElementById('app');
-  lockScreen.style.transition='opacity .5s ease';
-  lockScreen.style.opacity='0';
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Dispara a animação de entrada com o escudo grande
+  const vdEarly=document.getElementById('vault-door');
+  if(vdEarly&&!reduce){vdEarly.classList.remove('show');void vdEarly.offsetWidth;vdEarly.classList.add('show');}
+  const unlockDelay=reduce?300:1000;
+  lockScreen.style.transition='opacity .4s ease';
+  setTimeout(()=>{lockScreen.style.opacity='0';},reduce?0:150);
   setTimeout(()=>{
     lockScreen.style.display='none';
     lockScreen.style.opacity='1';
@@ -4112,15 +4158,7 @@ function doUnlock(){
     void app.offsetHeight;
     app.classList.add('visible');
     const vd=document.getElementById('vault-door');
-    if(vd&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
-      const rays=document.getElementById('vd-rays');
-      if(rays&&!rays.dataset.built){
-        let h='';for(let i=0;i<12;i++)h+=`<span style="--rot:${i*30}deg"></span>`;
-        rays.innerHTML=h;rays.dataset.built='1';
-      }
-      vd.classList.remove('show');void vd.offsetWidth;vd.classList.add('show');
-      setTimeout(()=>vd.classList.remove('show'),1150);
-    }
+    if(vd&&!reduce){setTimeout(()=>vd.classList.remove('show'),700);}
     const fl=document.getElementById('unlock-flash');
     if(fl){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
     setTimeout(positionTabIndicator,80);
@@ -4129,7 +4167,7 @@ function doUnlock(){
     startAutoLock();
     switchTab('dashboard');
     setTimeout(()=>checkFirstTime(),600);
-  },500);
+  },unlockDelay);
 }
 function lockApp(){
   if(presentationMode){exitPresentationMode();return;}
