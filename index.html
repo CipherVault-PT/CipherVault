@@ -269,7 +269,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .note-title-input:focus{border-bottom-color:var(--accent-dim);}
 .note-body-input{flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.9rem;padding:14px;border-radius:4px;outline:none;resize:none;line-height:1.8;}
 .note-body-input:focus{border-color:var(--accent-dim);}
-.note-actions{display:flex;gap:8px;}
+.note-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.note-actions .btn{flex:0 1 auto;white-space:nowrap;}
+.note-actions #ne-save-btn{flex:1 1 auto;}
 .notes-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.88rem;letter-spacing:2px;}
 
 /* ARCHIVE / VAULT SHARED */
@@ -1216,7 +1218,9 @@ body::after{bottom:-32vmax;right:-24vmax;
   .notes-editor{padding:12px;flex:1;}
   .note-title-input{font-size:1.1rem;}
   .note-body-input{min-height:220px;font-size:.82rem;}
-  .note-actions{gap:8px;}
+  .note-actions{gap:7px;flex-wrap:wrap;}
+  .note-actions #ne-save-btn{flex:1 1 100%;order:-1;}
+  .note-actions #ne-archive-btn,.note-actions #ne-del-btn{flex:1 1 0;justify-content:center;padding:11px 8px;font-size:.62rem;white-space:nowrap;}
 
   /* BANK CARDS TAB */
   #tab-cards.active{flex-direction:column;}
@@ -1513,7 +1517,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.9</span>
+      <span>Aurora Vault © 2026 · v9.10</span>
     </div>
   </div>
 </div>
@@ -1838,7 +1842,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.9</span>
+      <span>Aurora Vault © 2026 · v9.10</span>
     </div>
   </div>
   </div>
@@ -2843,7 +2847,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.9';
+const APP_VERSION='9.10';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
