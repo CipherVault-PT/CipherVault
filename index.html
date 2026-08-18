@@ -1554,7 +1554,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="lc-left">
       <div class="lhero-content">
         <div class="lhero-eyebrow" id="l-hero-eyebrow">◆ Encriptado · 100% Offline</div>
-        <div class="lhero-title">Cofre Digital<br><span class="lhero-accent">Pessoal</span></div>
+        <div class="lhero-title" id="l-hero-title">Cofre Digital<br><span class="lhero-accent">Pessoal</span></div>
         <div class="lhero-desc" id="l-hero-desc">Guarda passwords, documentos, notas e cartões com encriptação de nível militar. Tudo fica neste dispositivo — nunca na nuvem, nunca em servidores.</div>
         <div class="lhero-cats" id="l-sub2"></div>
         <div class="lhero-stats">
@@ -1782,7 +1782,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.27</span>
+      <span>Aurora Vault © 2026 · v9.28</span>
     </div>
   </div>
 </div>
@@ -2119,7 +2119,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.27</span>
+      <span>Aurora Vault © 2026 · v9.28</span>
     </div>
   </div>
   </div>
@@ -3149,7 +3149,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.27';
+const APP_VERSION='9.28';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -5031,6 +5031,7 @@ function applyLangStatic(){
    t2('l-panel-sub',en3?'Choose how to begin':'Escolhe como queres começar');
    t2('l-sobre-title',en3?'About Aurora Vault':'Sobre o Aurora Vault');
    const pw=document.getElementById('l-panel-welcome');if(pw)pw.innerHTML=(en3?'Welcome':'Bem-vindo')+'<span class="lhero-accent">.</span>';
+   const ht=document.getElementById('l-hero-title');if(ht)ht.innerHTML=en3?'Personal Digital<br><span class="lhero-accent">Vault</span>':'Cofre Digital<br><span class="lhero-accent">Pessoal</span>';
    const sp1=document.getElementById('l-sobre-p1');if(sp1)sp1.innerHTML=en3?'<strong>Aurora Vault</strong> is a personal digital vault to keep everything that matters — passwords, documents, notes, cards and more — encrypted and fully under your control.':'O <strong>Aurora Vault</strong> é um cofre digital pessoal para guardares tudo o que é importante — passwords, documentos, notas, cartões e muito mais — encriptado e totalmente sob o teu controlo.';
    const sp2=document.getElementById('l-sobre-p2');if(sp2)sp2.innerHTML=en3?'It works <strong>without internet</strong>, without relying on any company or server. Your data is yours, stays with you, and no one else can touch it.':'Funciona <strong>sem internet</strong>, sem depender de nenhuma empresa ou servidor. Os teus dados são teus, ficam contigo, e ninguém mais lhes toca.';
   }
