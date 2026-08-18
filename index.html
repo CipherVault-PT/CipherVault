@@ -94,6 +94,91 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .lock-footer{display:flex;align-items:center;gap:12px;margin-top:16px;font-size:.74rem;letter-spacing:2px;color:var(--text-muted);padding-bottom:24px;}
 .lock-footer strong{color:var(--accent);}
 
+/* ═══ LOGIN FUNDIDO (v9.24) ═══ */
+#lock-screen{padding:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+#lock-screen::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 50% 0%,rgba(var(--accent-rgb),.06),transparent 60%);}
+.login-nav{position:relative;z-index:20;width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 34px;gap:16px;flex-wrap:wrap;animation:lgNavDrop .8s cubic-bezier(.2,.8,.25,1) both;}
+.lnav-brand{display:flex;align-items:center;gap:10px;}
+.lnav-shield{width:34px;height:34px;}
+.lnav-name{font-family:'Playfair Display',serif;font-size:1.05rem;letter-spacing:2px;color:var(--accent);}
+.lnav-links{display:flex;gap:4px;align-items:center;}
+.lnav-link{padding:8px 15px;border-radius:100px;font-size:.66rem;letter-spacing:1px;color:var(--text-muted);cursor:pointer;transition:all .2s;background:transparent;border:none;font-family:'JetBrains Mono',monospace;}
+.lnav-link:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.lnav-link.active{color:var(--accent);}
+.lnav-right{display:flex;align-items:center;gap:12px;}
+.lnav-badge{font-size:.56rem;letter-spacing:1px;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-dim);border-radius:100px;padding:6px 12px;background:rgba(var(--accent-rgb),.05);white-space:nowrap;}
+.login-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:16px 24px;width:100%;position:relative;z-index:2;}
+.login-card{position:relative;width:100%;max-width:1280px;min-height:640px;border-radius:28px;overflow:hidden;border:1px solid rgba(var(--accent-rgb),.18);box-shadow:0 50px 110px -35px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);animation:lgCardIn 1s cubic-bezier(.2,.8,.25,1) both;display:grid;grid-template-columns:1.08fr .92fr;}
+.lc-bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:linear-gradient(135deg,#0c1120,#0a0e1a 60%,#090c15);}
+.lc-wave{position:absolute;border-radius:50%;filter:blur(60px);}
+.lcw1{width:70%;height:80%;top:-20%;left:-10%;background:radial-gradient(ellipse,rgba(var(--accent-rgb),.38),transparent 62%);animation:lgAur1 13s ease-in-out infinite;}
+.lcw2{width:55%;height:70%;top:30%;left:5%;background:radial-gradient(ellipse,rgba(120,90,200,.16),transparent 62%);animation:lgAur2 17s ease-in-out infinite;}
+.lcw3{width:50%;height:60%;bottom:-15%;left:-5%;background:radial-gradient(ellipse,rgba(var(--accent-rgb),.22),transparent 62%);animation:lgAur1 15s ease-in-out infinite reverse;}
+.lc-thread{position:absolute;top:0;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(var(--accent-rgb),.35),transparent);opacity:.35;}
+.lc-veil{position:absolute;inset:0;z-index:1;background:linear-gradient(100deg,rgba(8,10,18,.35) 0%,rgba(8,10,18,.25) 30%,rgba(10,13,24,.82) 56%,rgba(12,15,28,.94) 100%);}
+.lc-left{position:relative;z-index:2;padding:64px 56px;display:flex;flex-direction:column;justify-content:center;}
+.lc-right{position:relative;z-index:2;padding:60px 54px;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+.lhero-content{width:100%;}
+.lhero-eyebrow{font-size:.6rem;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;animation:lgFadeUp .8s .4s both;}
+.lhero-title{font-family:'Playfair Display',serif;font-size:3.9rem;line-height:1.04;font-weight:600;color:var(--text);margin-bottom:18px;animation:lgFadeUp .8s .5s both;}
+.lhero-accent{background:linear-gradient(110deg,var(--accent) 20%,#f0dca0 50%,var(--accent) 80%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:lgShimmer 7s linear infinite;}
+.lhero-desc{font-size:.82rem;line-height:1.85;color:var(--text-muted);max-width:400px;margin-bottom:22px;animation:lgFadeUp .8s .6s both;}
+.lhero-content #l-sub2{justify-content:flex-start;margin-bottom:26px;animation:lgFadeUp .8s .65s both;}
+.lhero-stats{display:flex;gap:26px;animation:lgFadeUp .8s .7s both;}
+.lhero-stat-n{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);}
+.lhero-stat-l{font-size:.52rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-top:2px;}
+.lc-right .vault-icon{width:92px;height:92px;margin:0 auto 16px;animation:lgIconPop 1.1s .3s cubic-bezier(.16,1,.3,1) both;}
+.lpanel-welcome{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:600;color:var(--text);margin-bottom:5px;text-align:center;animation:lgFadeUp .8s .5s both;}
+.lpanel-sub{font-size:.7rem;color:var(--text-muted);letter-spacing:1px;margin-bottom:22px;text-align:center;animation:lgFadeUp .8s .58s both;}
+.lc-right .lock-card{background:transparent;border:none;padding:0;width:100%;max-width:400px;animation:lgFadeUp .8s .64s both;}
+.lock-choices{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+.lock-choice{display:flex;flex-direction:row;align-items:center;gap:15px;padding:18px 20px;border-radius:14px;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .22s cubic-bezier(.2,.8,.25,1);font-family:inherit;text-align:left;width:100%;}
+.lock-choice:hover{transform:translateX(4px);border-color:rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.06);}
+.lock-choice.gold{border-color:rgba(var(--accent-rgb),.4);background:linear-gradient(120deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.04));}
+.lock-choice.gold:hover{border-color:var(--accent);box-shadow:0 12px 30px -12px rgba(var(--accent-rgb),.5);}
+.lock-choice-icon{width:48px;height:48px;border-radius:12px;background:rgba(var(--accent-rgb),.12);display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;}
+.lock-choice.gold .lock-choice-icon{background:rgba(var(--accent-rgb),.2);}
+.lock-choice-text{flex:1;min-width:0;display:flex;flex-direction:column;}
+.lock-choice-title{display:block;font-size:.86rem;font-weight:600;color:var(--text);margin-bottom:3px;}
+.lock-choice.gold .lock-choice-title{color:var(--accent);}
+.lock-choice-sub{display:block;font-size:.6rem;color:var(--text-muted);letter-spacing:.3px;line-height:1.4;}
+.lock-choice-arrow{color:var(--accent);font-size:1.1rem;opacity:0;transform:translateX(-6px);transition:all .22s;flex-shrink:0;}
+.lock-choice:hover .lock-choice-arrow{opacity:1;transform:translateX(0);}
+.login-modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);}
+.login-modal.open{display:flex;animation:lgModalFade .3s both;}
+.login-modal-card{max-width:620px;width:100%;background:linear-gradient(165deg,var(--panel),var(--card));border:1px solid var(--accent-dim);border-radius:20px;padding:32px;position:relative;box-shadow:0 40px 90px -30px rgba(0,0,0,.9);animation:lgModalUp .4s cubic-bezier(.16,1,.3,1) both;max-height:85vh;overflow-y:auto;}
+.login-modal-close{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:1rem;transition:all .2s;}
+.login-modal-close:hover{color:var(--accent);border-color:var(--accent);}
+.login-modal-icon{font-size:1.9rem;margin-bottom:10px;}
+.login-modal-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent);margin-bottom:18px;}
+.login-modal-body{font-size:.76rem;line-height:1.9;color:var(--text);}
+.login-modal-body p{margin-bottom:14px;color:var(--text-muted);}
+.login-modal-body strong{color:var(--accent);}
+.login-modal .lock-how-grid{background:transparent;padding:0;}
+@keyframes lgNavDrop{0%{opacity:0;transform:translateY(-20px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes lgCardIn{0%{opacity:0;transform:translateY(30px) scale(.97);}100%{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes lgFadeUp{0%{opacity:0;transform:translateY(16px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes lgIconPop{0%{opacity:0;transform:scale(.4) rotate(-15deg);}60%{transform:scale(1.08) rotate(4deg);}100%{opacity:1;transform:scale(1) rotate(0);}}
+@keyframes lgShimmer{to{background-position:200% center;}}
+@keyframes lgAur1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(12%,8%) scale(1.12);}}
+@keyframes lgAur2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-10%,-6%) scale(1.16);}}
+@keyframes lgModalFade{from{opacity:0}to{opacity:1}}
+@keyframes lgModalUp{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:860px){
+  .login-nav{padding:14px 16px;}
+  .lnav-links{order:3;width:100%;justify-content:center;flex-wrap:wrap;}
+  .lnav-name{font-size:.95rem;}
+  .login-stage{padding:12px 14px;}
+  .login-card{grid-template-columns:1fr;min-height:auto;}
+  .lc-veil{background:linear-gradient(180deg,rgba(8,10,18,.3) 0%,rgba(10,13,24,.6) 45%,rgba(12,15,28,.92) 60%);}
+  .lc-left{padding:36px 24px 18px;text-align:center;align-items:center;}
+  .lhero-desc{margin-left:auto;margin-right:auto;}
+  .lhero-content #l-sub2{justify-content:center;}
+  .lhero-stats{justify-content:center;}
+  .lhero-title{font-size:2.3rem;}
+  .lc-right{padding:18px 24px 38px;}
+}
+
 /* APP */
 #app{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
 #app.visible{display:flex;animation:appFadeIn .5s ease;}
@@ -127,6 +212,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* ══ SERVICE ICON ══ */
 .service-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;background:rgba(var(--accent-rgb),.1);}
+.service-icon:has(.brand-logo){background:#fff;padding:3px;}
+.brand-logo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.brand-logo svg{width:100%;height:100%;}
 
 /* ══ DRAG DROP INDICATOR ══ */
 #drag-overlay{position:fixed;inset:0;background:rgba(var(--accent-rgb),.08);border:3px dashed var(--accent);z-index:8888;display:none;align-items:center;justify-content:center;pointer-events:none;}
@@ -244,6 +332,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .card-btn:hover{border-color:var(--accent-dim);color:var(--text);}
 .card-btn.danger:hover{border-color:var(--red);color:var(--red);}
 .card-actions{display:flex;gap:5px;margin-top:11px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.card-btn.reviewed{color:var(--green);border-color:rgba(76,175,130,.4);background:rgba(76,175,130,.08);}
 
 /* CARDS — COMPACT MODE */
 .cards-grid.compact{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:7px;}
@@ -447,6 +536,81 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .pwgen-mode-tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--bg);padding:4px;border-radius:10px;}
 .pwgen-mode-tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.5px;text-transform:uppercase;padding:10px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:7px;transition:all .15s;}
 .pwgen-mode-tab.active{background:var(--panel);color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.2);}
+
+/* ══ BEM-ESTAR (revisão) ══ */
+.hc-wellness{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.hc-well-head{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--text);margin-bottom:9px;}
+.hc-well-num{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600;}
+.hc-well-track{height:8px;background:var(--bg);border-radius:5px;overflow:hidden;}
+.hc-well-fill{height:100%;background:linear-gradient(90deg,var(--green),#6dd4a3);border-radius:5px;transition:width .5s ease;}
+.hc-well-hint{font-size:.66rem;color:var(--text-muted);margin-top:7px;}
+
+/* ══ CALENDÁRIO ══ */
+.cal-open-btn{width:100%;margin-top:12px;padding:11px;background:rgba(var(--accent-rgb),.08);border:1px solid rgba(var(--accent-rgb),.25);border-radius:10px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:1px;cursor:pointer;transition:all .18s;}
+.cal-open-btn:hover{background:rgba(var(--accent-rgb),.15);}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-nav-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.3rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.cal-nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.cal-month-label{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;color:var(--text);}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
+.cal-wd{text-align:center;font-size:.6rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;padding:4px 0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day{aspect-ratio:1;border:1px solid transparent;border-radius:9px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:2px;position:relative;cursor:default;}
+.cal-day.empty{background:transparent;border:none;}
+.cal-day.has-events{cursor:pointer;border-color:var(--border);}
+.cal-day.has-events:hover{border-color:var(--accent);transform:scale(1.05);}
+.cal-day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.cal-day-num{font-size:.78rem;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.cal-day.today .cal-day-num{color:var(--accent);font-weight:700;}
+.cal-dots{display:flex;gap:2px;}
+.cal-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.cal-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.cal-leg{display:flex;align-items:center;gap:6px;font-size:.66rem;color:var(--text-muted);}
+.cal-leg-dot{width:9px;height:9px;border-radius:50%;}
+.cal-day-detail{margin-top:14px;}
+.cal-day.holiday{border-color:rgba(157,123,216,.4);background:rgba(157,123,216,.08);}
+.cal-day.holiday .cal-day-num{color:#b79ae0;}
+.cal-detail-head{font-family:'Playfair Display',Georgia,serif;font-size:.95rem;color:var(--accent);margin-bottom:10px;}
+.cal-detail-item{display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--panel);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;}
+.cal-detail-ic{font-size:1.2rem;flex-shrink:0;width:24px;text-align:center;}
+.cal-detail-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.cal-detail-label{font-size:.78rem;color:var(--text);}
+.cal-detail-type{font-size:.6rem;color:var(--text-muted);letter-spacing:.3px;}
+.cal-detail-amount{font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:600;color:var(--accent);flex-shrink:0;}
+.cal-upcoming{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+.cal-up-title{font-family:'Playfair Display',Georgia,serif;font-size:.9rem;color:var(--text);margin-bottom:12px;}
+.cal-up-item{display:flex;align-items:center;gap:11px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.04);}
+.cal-up-item:last-child{border-bottom:none;}
+.cal-up-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:42px;flex-shrink:0;background:rgba(var(--accent-rgb),.08);border:1px solid var(--border);border-radius:8px;padding:5px 0;}
+.cal-up-day{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--text);line-height:1;}
+.cal-up-mon{font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-top:2px;}
+
+/* ══ RELATÓRIO MENSAL ══ */
+.report-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.report-month{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;color:var(--accent);}
+.report-score{font-size:.78rem;color:var(--text-muted);}
+.report-score b{color:var(--text);}
+.report-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.report-stat{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 8px;}
+.report-stat-icon{font-size:1.2rem;}
+.report-stat-n{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;color:var(--accent);}
+.report-stat-label{font-size:.62rem;color:var(--text-muted);text-align:center;}
+.report-msg{font-size:.78rem;color:var(--text-muted);text-align:center;padding:10px;background:rgba(var(--accent-rgb),.06);border-radius:8px;}
+
+/* ══ TEMAS PREDEFINIDOS ══ */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.theme-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--tc-bg);border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .18s;text-align:left;}
+.theme-chip:hover{border-color:var(--tc-accent);transform:translateY(-2px);}
+.theme-chip.active{border-color:var(--tc-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--tc-accent) 25%,transparent);}
+.theme-chip-preview{width:26px;height:26px;border-radius:7px;background:var(--tc-bg);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.theme-chip-dot{width:12px;height:12px;border-radius:50%;}
+.theme-chip-name{font-size:.74rem;color:#fff;font-weight:500;mix-blend-mode:difference;}
+
+/* ══ CARTÃO DE VISITA (logótipo grande no modo leitura) ══ */
+.read-brand-head{display:flex;justify-content:center;margin-bottom:18px;}
+.read-brand-logo{width:88px;height:88px;border-radius:20px;background:#fff;padding:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px -8px rgba(0,0,0,.5);}
+.read-brand-logo svg{width:100%;height:100%;}
+.read-brand-emoji{width:88px;height:88px;border-radius:20px;background:linear-gradient(145deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.06));display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);}
 
 /* ══ HEALTH CHECK ══ */
 .hc-scorewrap{display:flex;align-items:center;gap:18px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);}
@@ -829,10 +993,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 @media(prefers-reduced-motion:reduce){#vault-door{display:none!important;}}
 
 /* ══ PACKS DE TEMA ══ */
-.pack-chip{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--text);transition:all .18s;}
-.pack-chip:hover{border-color:var(--accent-dim);transform:translateY(-2px);}
-.pack-dots{display:flex;gap:3px;}
-.pack-dot{width:9px;height:9px;border-radius:50%;}
+
+
+
+
 
 /* ══ MODO PRIVACIDADE ══ */
 body.privacy .card-field-value,body.privacy .totp-code,body.privacy .bank-card-number,body.privacy .bank-card-holder,body.privacy .read-field-value,body.privacy #note-body,body.privacy .note-item-preview{filter:blur(6px);transition:filter .2s;}
@@ -1343,51 +1507,94 @@ body::after{bottom:-32vmax;right:-24vmax;
 
 <!-- LOCK SCREEN -->
 <div id="lock-screen">
-  <div class="lang-switcher" style="position:absolute;top:14px;right:14px;">
-    <button class="lang-btn active" id="lang-pt-lock" onclick="setLang('pt')">PT</button>
-    <button class="lang-btn" id="lang-en-lock" onclick="setLang('en')">ENG</button>
-  </div>
-  <div class="vault-icon" id="vault-icon">
-    <svg viewBox="22 18 96 102" fill="none" width="100%" height="100%">
-      <defs>
-        <linearGradient id="lg-shield" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e4a0"/><stop offset="0.5" stop-color="var(--accent)"/><stop offset="1" stop-color="#8a6d2a"/></linearGradient>
-        <filter id="lg-glow"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <clipPath id="lg-clip"><path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z"/></clipPath>
-      </defs>
-      <!-- dados binários a cair -->
-      <g fill="url(#lg-shield)" font-family="'JetBrains Mono',monospace" font-size="7" opacity="0.5">
-        <text x="26" y="45">1<animate attributeName="y" values="30;115" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="4s" repeatCount="indefinite"/></text>
-        <text x="104" y="60">0<animate attributeName="y" values="30;115" dur="3.4s" begin="-1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.4s" begin="-1s" repeatCount="indefinite"/></text>
-        <text x="112" y="80">1<animate attributeName="y" values="30;115" dur="3.8s" begin="-2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.8s" begin="-2s" repeatCount="indefinite"/></text>
-        <text x="20" y="90">0<animate attributeName="y" values="30;115" dur="3.2s" begin="-1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.2s" begin="-1.5s" repeatCount="indefinite"/></text>
-      </g>
-      <!-- órbita a rodar -->
-      <ellipse cx="70" cy="66" rx="46" ry="18" fill="none" stroke="url(#lg-shield)" stroke-width="1.5" opacity="0.55" stroke-dasharray="4 6"><animateTransform attributeName="transform" type="rotate" from="0 70 66" to="360 70 66" dur="10s" repeatCount="indefinite"/></ellipse>
-      <!-- escudo -->
-      <g filter="url(#lg-glow)">
-        <path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z" fill="none" stroke="url(#lg-shield)" stroke-width="3"/>
-        <path d="M70 34 L96 45 V70 C96 88 84 100 70 105 C56 100 44 88 44 70 V45 Z" fill="url(#lg-shield)" opacity="0.1"/>
-        <path d="M52 82 L60 52 L68 82" fill="none" stroke="url(#lg-shield)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
-        <path d="M55.5 71 H64.5" stroke="url(#lg-shield)" stroke-width="2.8" stroke-linecap="round"/>
-        <path d="M72 52 L80 82 L88 52" fill="none" stroke="url(#lg-shield)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
-      </g>
-      <!-- reflexo a varrer -->
-      <rect x="20" y="20" width="20" height="100" fill="#fff" opacity="0.25" clip-path="url(#lg-clip)"><animate attributeName="x" values="20;100;20" dur="4s" repeatCount="indefinite"/></rect>
-    </svg>
-  </div>
-  <div class="lock-logo">AURORA VAULT</div>
-  <div class="lock-sub" id="l-sub">Cofre Digital Pessoal</div>
-  <div style="color:var(--text-muted);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:22px;text-align:center" id="l-sub2">Passwords · Documentos · Notas · Cartões</div>
-  <div class="lock-badges">
-    <div class="lock-badge">🔒 AES-256-GCM</div>
-    <div class="lock-badge">📡 100% Offline</div>
-    <div class="lock-badge">🔑 End-to-End Encrypted</div>
-    <div class="lock-badge">🔢 <span id="l-badge-2fa">2FA Integrado</span></div>
-  </div>
-  <button id="pwa-install-btn" onclick="promptInstall()">📲 <span id="pwa-install-txt">Instalar como app</span></button>
-  <div class="lock-card">
 
-    <!-- ESTADO 1: Botões iniciais -->
+  <!-- ═══ BARRA DE TOPO ═══ -->
+  <nav class="login-nav">
+    <div class="lnav-brand">
+      <svg class="lnav-shield" viewBox="22 18 96 102" fill="none">
+        <defs>
+          <linearGradient id="ln-sh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e4a0"/><stop offset="0.5" stop-color="var(--accent)"/><stop offset="1" stop-color="#8a6d2a"/></linearGradient>
+        </defs>
+        <path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z" fill="none" stroke="url(#ln-sh)" stroke-width="3.5"/>
+        <path d="M52 82 L60 52 L68 82" fill="none" stroke="url(#ln-sh)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M55.5 71 H64.5" stroke="url(#ln-sh)" stroke-width="3.2" stroke-linecap="round"/>
+        <path d="M72 52 L80 82 L88 52" fill="none" stroke="url(#ln-sh)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <span class="lnav-name">AURORA VAULT</span>
+    </div>
+    <div class="lnav-links">
+      <button class="lnav-link active" id="lnav-home" onclick="closeLoginModal()">Início</button>
+      <button class="lnav-link" id="lnav-como" onclick="openLoginModal('como')">Como usar</button>
+      <button class="lnav-link" id="lnav-seg" onclick="openLoginModal('seg')">Segurança</button>
+      <button class="lnav-link" id="lnav-sobre" onclick="openLoginModal('sobre')">Sobre</button>
+    </div>
+    <div class="lnav-right">
+      <span class="lnav-badge">📡 <span id="lnav-offline">100% Offline</span></span>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-pt-lock" onclick="setLang('pt')">PT</button>
+        <button class="lang-btn" id="lang-en-lock" onclick="setLang('en')">ENG</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ STAGE 2 COLUNAS ═══ -->
+  <div class="login-stage">
+   <div class="login-card">
+    <div class="lc-bg">
+      <div class="lc-wave lcw1"></div>
+      <div class="lc-wave lcw2"></div>
+      <div class="lc-wave lcw3"></div>
+      <div class="lc-thread" style="left:15%"></div>
+      <div class="lc-thread" style="left:30%;animation-delay:-2s"></div>
+      <div class="lc-thread" style="left:44%"></div>
+    </div>
+    <div class="lc-veil"></div>
+
+    <!-- ESQUERDA -->
+    <div class="lc-left">
+      <div class="lhero-content">
+        <div class="lhero-eyebrow" id="l-hero-eyebrow">◆ Encriptado · 100% Offline</div>
+        <div class="lhero-title">Cofre Digital<br><span class="lhero-accent">Pessoal</span></div>
+        <div class="lhero-desc" id="l-hero-desc">Guarda passwords, documentos, notas e cartões com encriptação de nível militar. Tudo fica neste dispositivo — nunca na nuvem, nunca em servidores.</div>
+        <div class="lhero-cats" id="l-sub2"></div>
+        <div class="lhero-stats">
+          <div><div class="lhero-stat-n">AES-256</div><div class="lhero-stat-l" id="l-hero-s1">Encriptação</div></div>
+          <div><div class="lhero-stat-n">100%</div><div class="lhero-stat-l" id="l-hero-s2">Offline</div></div>
+          <div><div class="lhero-stat-n">0</div><div class="lhero-stat-l" id="l-hero-s3">Servidores</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIREITA -->
+    <div class="lc-right">
+      <div class="vault-icon" id="vault-icon">
+        <svg viewBox="22 18 96 102" fill="none" width="100%" height="100%">
+          <defs>
+            <linearGradient id="lg-shield" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e4a0"/><stop offset="0.5" stop-color="var(--accent)"/><stop offset="1" stop-color="#8a6d2a"/></linearGradient>
+            <filter id="lg-glow"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <clipPath id="lg-clip"><path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z"/></clipPath>
+          </defs>
+          <g fill="url(#lg-shield)" font-family="'JetBrains Mono',monospace" font-size="7" opacity="0.5">
+            <text x="26" y="45">1<animate attributeName="y" values="30;115" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="4s" repeatCount="indefinite"/></text>
+            <text x="104" y="60">0<animate attributeName="y" values="30;115" dur="3.4s" begin="-1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.4s" begin="-1s" repeatCount="indefinite"/></text>
+            <text x="112" y="80">1<animate attributeName="y" values="30;115" dur="3.8s" begin="-2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.8s" begin="-2s" repeatCount="indefinite"/></text>
+            <text x="20" y="90">0<animate attributeName="y" values="30;115" dur="3.2s" begin="-1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.6;0" dur="3.2s" begin="-1.5s" repeatCount="indefinite"/></text>
+          </g>
+          <ellipse cx="70" cy="66" rx="46" ry="18" fill="none" stroke="url(#lg-shield)" stroke-width="1.5" opacity="0.55" stroke-dasharray="4 6"><animateTransform attributeName="transform" type="rotate" from="0 70 66" to="360 70 66" dur="10s" repeatCount="indefinite"/></ellipse>
+          <g filter="url(#lg-glow)">
+            <path d="M70 26 L104 40 V70 C104 92 89 106 70 112 C51 106 36 92 36 70 V40 Z" fill="none" stroke="url(#lg-shield)" stroke-width="3"/>
+            <path d="M70 34 L96 45 V70 C96 88 84 100 70 105 C56 100 44 88 44 70 V45 Z" fill="url(#lg-shield)" opacity="0.1"/>
+            <path d="M52 82 L60 52 L68 82" fill="none" stroke="url(#lg-shield)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M55.5 71 H64.5" stroke="url(#lg-shield)" stroke-width="2.8" stroke-linecap="round"/>
+            <path d="M72 52 L80 82 L88 52" fill="none" stroke="url(#lg-shield)" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+          </g>
+          <rect x="20" y="20" width="20" height="100" fill="#fff" opacity="0.25" clip-path="url(#lg-clip)"><animate attributeName="x" values="20;100;20" dur="4s" repeatCount="indefinite"/></rect>
+        </svg>
+      </div>
+      <div class="lpanel-welcome" id="l-panel-welcome">Bem-vindo<span class="lhero-accent">.</span></div>
+      <div class="lpanel-sub" id="l-panel-sub">Escolhe como queres começar</div>
+      <button id="pwa-install-btn" onclick="promptInstall()">📲 <span id="pwa-install-txt">Instalar como app</span></button>
+      <div class="lock-card">
     <div id="login-state-initial">
       <button id="l-continue-wrap" onclick="continueLastVault()" style="display:none;width:100%;margin-bottom:12px;align-items:center;gap:10px;padding:13px 16px;border-radius:6px;border:1px solid var(--accent);background:linear-gradient(150deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.05)),var(--card);cursor:pointer;font-family:inherit;color:var(--text);transition:all .2s" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">
         <span style="font-size:1.2rem">▶️</span>
@@ -1400,13 +1607,13 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="lock-choices">
         <button class="lock-choice gold" id="l-btn-open" onclick="startOpenVault()">
           <span class="lock-choice-icon">📂</span>
-          <span class="lock-choice-title" id="l-btn-open-txt">Abrir Cofre</span>
-          <span class="lock-choice-sub" id="l-btn-open-sub">Já tenho um ficheiro .vault</span>
+          <span class="lock-choice-text"><span class="lock-choice-title" id="l-btn-open-txt">Abrir Cofre</span><span class="lock-choice-sub" id="l-btn-open-sub">Já tenho um ficheiro .vault</span></span>
+          <span class="lock-choice-arrow">→</span>
         </button>
         <button class="lock-choice" id="l-btn-new" onclick="startNewVault()">
           <span class="lock-choice-icon">✦</span>
-          <span class="lock-choice-title" id="l-btn-new-txt">Novo Cofre</span>
-          <span class="lock-choice-sub" id="l-btn-new-sub">Começar do zero — grátis e offline</span>
+          <span class="lock-choice-text"><span class="lock-choice-title" id="l-btn-new-txt">Novo Cofre</span><span class="lock-choice-sub" id="l-btn-new-sub">Começar do zero — grátis e offline</span></span>
+          <span class="lock-choice-arrow">→</span>
         </button>
       </div>
       <button class="btn btn-ghost" id="l-demo-btn" onclick="enterPresentationMode()" style="width:100%;margin-top:12px;font-size:.6rem;padding:11px">🎭 <span id="l-demo-txt">Ver demonstração</span></button>
@@ -1498,24 +1705,26 @@ body::after{bottom:-32vmax;right:-24vmax;
 
     <div class="lock-error" id="lock-error"></div>
     <div class="attempts-warn" id="attempts-warn"></div>
-  </div>
-  <div class="lock-howto">
-    <div class="lock-howto-header" onclick="toggleLockHowTo()">
-      <span id="l-howto-title">📖 Como usar o Aurora Vault</span>
-      <span id="lock-how-arrow">▼</span>
+      </div>
     </div>
-    <div id="lock-how-body" style="display:none">
+   </div>
+  </div>
+
+  <!-- ═══ MODAIS DA NAVEGAÇÃO ═══ -->
+  <div class="login-modal" id="lmodal-como" onclick="if(event.target===this)closeLoginModal()">
+    <div class="login-modal-card">
+      <button class="login-modal-close" onclick="closeLoginModal()">✕</button>
+      <div class="login-modal-icon">📖</div>
+      <div class="login-modal-title" id="l-howto-title">📖 Como usar o Aurora Vault</div>
       <div class="lock-how-grid" id="lock-how-grid"></div>
     </div>
   </div>
 
-  <!-- SECURITY EXPLANATION -->
-  <div class="lock-howto" style="margin-top:12px">
-    <div class="lock-howto-header" onclick="toggleSecurityInfo()">
-      <span id="l-security-title">🔒 Como funciona a segurança?</span>
-      <span id="security-arrow">▼</span>
-    </div>
-    <div id="security-info-body" style="display:none;padding:20px;background:var(--card)">
+  <div class="login-modal" id="lmodal-seg" onclick="if(event.target===this)closeLoginModal()">
+    <div class="login-modal-card">
+      <button class="login-modal-close" onclick="closeLoginModal()">✕</button>
+      <div class="login-modal-icon">🔒</div>
+      <div class="login-modal-title" id="l-security-title">🔒 Como funciona a segurança?</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
         <div class="lock-how-card">
           <div style="font-size:1.8rem;margin-bottom:8px">🔐</div>
@@ -1550,6 +1759,21 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
   </div>
+
+  <div class="login-modal" id="lmodal-sobre" onclick="if(event.target===this)closeLoginModal()">
+    <div class="login-modal-card">
+      <button class="login-modal-close" onclick="closeLoginModal()">✕</button>
+      <div class="login-modal-icon">✦</div>
+      <div class="login-modal-title" id="l-sobre-title">Sobre o Aurora Vault</div>
+      <div class="login-modal-body">
+        <p id="l-sobre-p1">O <strong>Aurora Vault</strong> é um cofre digital pessoal para guardares tudo o que é importante — passwords, documentos, notas, cartões e muito mais — encriptado e totalmente sob o teu controlo.</p>
+        <p id="l-sobre-p2">Funciona <strong>sem internet</strong>, sem depender de nenhuma empresa ou servidor. Os teus dados são teus, ficam contigo, e ninguém mais lhes toca.</p>
+        <p style="color:var(--accent-dim);font-size:.64rem;margin-top:20px;">Aurora Vault © 2026 · Made by Carlos Silva 🔒</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RODAPÉ ═══ -->
   <div class="lock-footer" style="flex-direction:column;align-items:center;gap:10px;">
     <div style="display:flex;align-items:center;gap:8px;background:rgba(var(--accent-rgb),.08);border:1px solid var(--accent-dim);border-radius:20px;padding:6px 16px;">
       <span style="font-size:.9rem">🔒</span>
@@ -1558,7 +1782,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.16</span>
+      <span>Aurora Vault © 2026 · v9.27</span>
     </div>
   </div>
 </div>
@@ -1583,6 +1807,7 @@ body::after{bottom:-32vmax;right:-24vmax;
         <span id="tb-save-txt">Guardar ficheiro</span>
       </button>
       <button onclick="togglePrivacy()" id="privacy-btn" title="Modo de privacidade">🙈 <span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span></button>
+      <button onclick="openCalendar()" id="cal-topbar-btn" title="Calendário">📅 <span class="tb-label" id="tb-cal-txt">Calendário</span></button>
       <button onclick="openSettings()" title="Definições">⚙️ <span class="tb-label" id="tb-settings-txt">Definições</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
       <button onclick="lockApp()">
@@ -1640,6 +1865,17 @@ body::after{bottom:-32vmax;right:-24vmax;
             <span class="dcard-head-right"><span class="dcard-badge" id="alerts-badge"></span><span class="dcard-chevron">▾</span></span>
           </button>
           <div class="dcard-body" id="dcard-alerts-body"><div class="dash-alerts" id="dash-alerts"></div></div>
+        </div>
+
+        <div class="dcard" id="dcard-report">
+          <button class="dcard-head" onclick="toggleDashCard('report')">
+            <span class="dcard-head-left"><span class="dcard-icon">📈</span><span class="dcard-title" id="dcard-report-title">Relatório do Mês</span></span>
+            <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
+          </button>
+          <div class="dcard-body" id="dcard-report-body">
+            <div id="dash-report"></div>
+            <button class="cal-open-btn" onclick="openCalendar()">📅 <span id="cal-open-txt">Ver calendário de renovações</span></button>
+          </div>
         </div>
 
         <div class="dcard" id="dcard-favs" style="display:none">
@@ -1883,7 +2119,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.16</span>
+      <span>Aurora Vault © 2026 · v9.27</span>
     </div>
   </div>
   </div>
@@ -2076,12 +2312,6 @@ body::after{bottom:-32vmax;right:-24vmax;
     <!-- ═══ ABA ASPETO ═══ -->
     <div class="settings-pane active" data-spane="aspeto">
 
-    <!-- THEME MODE TABS -->
-    <div class="theme-mode-tabs">
-      <button class="theme-mode-tab active" id="s-tab-dark" onclick="switchSettingsTheme('dark')">🌙 <span id="s-dark-label">Escuro</span></button>
-      <button class="theme-mode-tab" id="s-tab-light" onclick="switchSettingsTheme('light')">☀️ <span id="s-light-label">Claro</span></button>
-    </div>
-
     <!-- FUNDO ANIMADO -->
     <div class="settings-section">
       <div class="settings-title" id="s-bg-title">🌌 Fundo Animado</div>
@@ -2099,10 +2329,15 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
 
+    <!-- TEMAS PREDEFINIDOS -->
+    <div class="settings-section">
+      <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
+      <div class="theme-grid" id="theme-grid"></div>
+    </div>
+
     <!-- COLOR PICKERS -->
     <div class="settings-section">
       <div class="settings-title" id="s-colors-title">Personalizar Cores</div>
-      <div id="pack-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
       <div class="color-picker-wrap">
 
         <div class="color-row">
@@ -2455,6 +2690,32 @@ body::after{bottom:-32vmax;right:-24vmax;
 </div>
 
 <!-- SUBSCRIÇÃO MODAL -->
+<!-- ECRÃ CALENDÁRIO -->
+<div class="modal-overlay" id="calendar-overlay" onclick="if(event.target===this)closeCalendar()">
+  <div class="modal" style="max-width:640px;width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+      <div class="modal-title" id="calendar-title" style="margin:0">📅 Calendário</div>
+      <button class="docview-close" onclick="closeCalendar()" title="Fechar">✕</button>
+    </div>
+    <div id="cal-sub" style="font-size:.72rem;color:var(--text-muted);margin-bottom:16px">Renovações e validades ao longo do mês.</div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calShiftMonth(-1)">‹</button>
+      <span class="cal-month-label" id="cal-month-label"></span>
+      <button class="cal-nav-btn" onclick="calShiftMonth(1)">›</button>
+    </div>
+    <div class="cal-weekdays" id="cal-weekdays"></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-legend">
+      <span class="cal-leg"><span class="cal-leg-dot" style="background:var(--accent)"></span><span id="cal-leg-renew">Renovação</span></span>
+      <span class="cal-leg"><span class="cal-leg-dot" style="background:#4c8caf"></span><span id="cal-leg-doc">Validade documento</span></span>
+      <span class="cal-leg"><span class="cal-leg-dot" style="background:#e05270"></span><span id="cal-leg-card">Validade cartão</span></span>
+      <span class="cal-leg"><span class="cal-leg-dot" style="background:#9d7bd8"></span><span id="cal-leg-holiday">Feriado</span></span>
+    </div>
+    <div id="cal-day-detail" class="cal-day-detail"></div>
+    <div id="cal-upcoming" class="cal-upcoming"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="sub-overlay" onclick="if(event.target===this)closeSubModal()">
   <div class="modal" style="max-width:460px">
     <div class="modal-title" id="sub-modal-title">Adicionar subscrição</div>
@@ -2888,7 +3149,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.16';
+const APP_VERSION='9.27';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4333,8 +4594,8 @@ function switchSettingsTheme(theme){
   settingsActiveTheme=theme;
   setTheme(theme);
   refreshColorPickers();
-  document.getElementById('s-tab-dark').classList.toggle('active',theme==='dark');
-  document.getElementById('s-tab-light').classList.toggle('active',theme==='light');
+  document.getElementById('s-tab-dark')?.classList.toggle('active',theme==='dark');
+  document.getElementById('s-tab-light')?.classList.toggle('active',theme==='light');
 }
 
 function livePreviewColor(type, value){
@@ -4360,6 +4621,51 @@ function updatePreviewBar(){
   bar.querySelector('span').style.color=c.accent;
 }
 
+const THEME_PRESETS=[
+  {id:'aurora',name:'Aurora',emoji:'🌠',dark:true,bg:'#0a0e1a',accent:'#c9a84c',text:'#e8e4d8'},
+  {id:'meianoite',name:'Meia-noite',emoji:'🌙',dark:true,bg:'#080810',accent:'#4c8caf',text:'#c8d4e0'},
+  {id:'floresta',name:'Floresta',emoji:'🌲',dark:true,bg:'#0a1410',accent:'#4caf82',text:'#d0e0c8'},
+  {id:'oceano',name:'Oceano',emoji:'🌊',dark:true,bg:'#0a1018',accent:'#3a9bc7',text:'#c8dae0'},
+  {id:'porsol',name:'Pôr do sol',emoji:'🌅',dark:true,bg:'#160a0e',accent:'#e08840',text:'#e0d0c8'},
+  {id:'rubi',name:'Rubi',emoji:'💎',dark:true,bg:'#140a0e',accent:'#e05270',text:'#e0c8d0'},
+  {id:'ametista',name:'Ametista',emoji:'🔮',dark:true,bg:'#100a16',accent:'#9b6ec7',text:'#d4c8e0'},
+  {id:'esmeralda',name:'Esmeralda',emoji:'✨',dark:true,bg:'#081410',accent:'#2ec98a',text:'#c8e0d4'},
+  {id:'classico',name:'Clássico Claro',emoji:'☀️',dark:false,bg:'#f0ede8',accent:'#c9a84c',text:'#1e1c1a'},
+  {id:'papel',name:'Papel',emoji:'📄',dark:false,bg:'#faf8f2',accent:'#a0864c',text:'#2a2824'},
+  {id:'menta',name:'Menta',emoji:'🍃',dark:false,bg:'#eef5f0',accent:'#3a9b6e',text:'#1a3020'},
+  {id:'ceu',name:'Céu',emoji:'☁️',dark:false,bg:'#eef2f8',accent:'#4c7caf',text:'#1a2030'},
+];
+function applyThemePreset(id){
+  const th=THEME_PRESETS.find(t=>t.id===id);
+  if(!th)return;
+  const mode=th.dark?'dark':'light';
+  // Guardar as cores no modo do tema
+  themeColors[mode]={bg:th.bg,accent:th.accent,text:th.text};
+  // Trocar para esse modo e aplicar
+  currentTheme=mode;
+  settingsActiveTheme=mode;
+  document.documentElement.setAttribute('data-theme',mode);
+  const tb=document.getElementById('theme-btn');if(tb)tb.textContent=mode==='dark'?'🌙':'☀️';
+  try{localStorage.setItem('cv_theme_mode',mode);}catch(e){}
+  applyThemeColors(mode);
+  saveThemeColors();
+  refreshColorPickers();
+  buildManifest();
+  renderThemeGrid();
+  toast((currentLang==='en'?'Theme applied: ':'Tema aplicado: ')+th.emoji+' '+th.name);
+}
+function renderThemeGrid(){
+  const grid=document.getElementById('theme-grid');
+  if(!grid)return;
+  const curBg=(getComputedStyle(document.documentElement).getPropertyValue('--bg')||'').trim().toLowerCase();
+  grid.innerHTML=THEME_PRESETS.map(th=>{
+    const active=curBg===th.bg.toLowerCase();
+    return `<button class="theme-chip${active?' active':''}" onclick="applyThemePreset('${th.id}')" style="--tc-bg:${th.bg};--tc-accent:${th.accent}">
+      <span class="theme-chip-preview"><span class="theme-chip-dot" style="background:${th.accent}"></span></span>
+      <span class="theme-chip-name">${th.emoji} ${th.name}</span>
+    </button>`;
+  }).join('');
+}
 function buildPresets(containerId, presets, type){
   const el=document.getElementById(containerId);if(!el)return;
   el.innerHTML=presets.map(color=>`
@@ -4388,6 +4694,7 @@ function refreshColorPickers(){
   buildPresets('presets-bg', isDark?BG_PRESETS_DARK:BG_PRESETS_LIGHT, 'bg');
   buildPresets('presets-accent', ACCENT_PRESETS, 'accent');
   buildPresets('presets-text', isDark?TEXT_PRESETS_DARK:TEXT_PRESETS_LIGHT, 'text');
+  renderThemeGrid();
   renderPresetHighlights();
   updatePreviewBar();
 }
@@ -4479,10 +4786,9 @@ function openSettings(){
   renderBgPicker();
   const ni=document.getElementById('s-name-input');if(ni)ni.value=vaultName||'';
   settingsActiveTheme=currentTheme;
-  document.getElementById('s-tab-dark').classList.toggle('active',currentTheme==='dark');
-  document.getElementById('s-tab-light').classList.toggle('active',currentTheme==='light');
+  document.getElementById('s-tab-dark')?.classList.toggle('active',currentTheme==='dark');
+  document.getElementById('s-tab-light')?.classList.toggle('active',currentTheme==='light');
   refreshColorPickers();
-  renderPackChips();
   renderQuickSettings();
   renderSnapshotSettings();
   renderExportSettings();
@@ -4604,6 +4910,7 @@ function applySettingsLang(){
   const scb=document.getElementById('search-clear');if(scb)scb.title=en2?'Clear':'Limpar';
   setTxt('tb-backup-txt',en2?'Download backup':'Descarregar cópia');
   setTxt('tb-settings-txt',en2?'Settings':'Definições');
+  setTxt('tb-cal-txt',en2?'Calendar':'Calendário');
   setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo de privacidade');
   setTxt('tb-theme-txt',en2?'Light / dark theme':'Tema claro/escuro');
   const tbm=document.getElementById('tb-more');if(tbm)tbm.title=en2?'More options':'Mais opções';
@@ -4708,6 +5015,25 @@ function applyLangStatic(){
   const pit=document.getElementById('pwa-install-txt');if(pit)pit.textContent=currentLang==='en'?'Install as app':'Instalar como app';
   const lct=document.getElementById('l-continue-title');if(lct)lct.textContent=currentLang==='en'?'Continue':'Continuar';
   const ldt=document.getElementById('l-demo-txt');if(ldt)ldt.textContent=currentLang==='en'?'View demo':'Ver demonstração';
+  // ── Novo login 2 colunas ──
+  {const en3=currentLang==='en';
+   const t2=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt;};
+   t2('lnav-home',en3?'Home':'Início');
+   t2('lnav-como',en3?'How to use':'Como usar');
+   t2('lnav-seg',en3?'Security':'Segurança');
+   t2('lnav-sobre',en3?'About':'Sobre');
+   t2('lnav-offline',en3?'100% Offline':'100% Offline');
+   t2('l-hero-eyebrow',en3?'◆ Encrypted · 100% Offline':'◆ Encriptado · 100% Offline');
+   t2('l-hero-desc',en3?'Store passwords, documents, notes and cards with military-grade encryption. Everything stays on this device — never in the cloud, never on servers.':'Guarda passwords, documentos, notas e cartões com encriptação de nível militar. Tudo fica neste dispositivo — nunca na nuvem, nunca em servidores.');
+   t2('l-hero-s1',en3?'Encryption':'Encriptação');
+   t2('l-hero-s2',en3?'Offline':'Offline');
+   t2('l-hero-s3',en3?'Servers':'Servidores');
+   t2('l-panel-sub',en3?'Choose how to begin':'Escolhe como queres começar');
+   t2('l-sobre-title',en3?'About Aurora Vault':'Sobre o Aurora Vault');
+   const pw=document.getElementById('l-panel-welcome');if(pw)pw.innerHTML=(en3?'Welcome':'Bem-vindo')+'<span class="lhero-accent">.</span>';
+   const sp1=document.getElementById('l-sobre-p1');if(sp1)sp1.innerHTML=en3?'<strong>Aurora Vault</strong> is a personal digital vault to keep everything that matters — passwords, documents, notes, cards and more — encrypted and fully under your control.':'O <strong>Aurora Vault</strong> é um cofre digital pessoal para guardares tudo o que é importante — passwords, documentos, notas, cartões e muito mais — encriptado e totalmente sob o teu controlo.';
+   const sp2=document.getElementById('l-sobre-p2');if(sp2)sp2.innerHTML=en3?'It works <strong>without internet</strong>, without relying on any company or server. Your data is yours, stays with you, and no one else can touch it.':'Funciona <strong>sem internet</strong>, sem depender de nenhuma empresa ou servidor. Os teus dados são teus, ficam contigo, e ninguém mais lhes toca.';
+  }
   h('l-first-use','firstUseInfo');
   // New login flow labels
   const btnOpenTxt=document.getElementById('l-btn-open-txt');if(btnOpenTxt)btnOpenTxt.textContent=currentLang==='en'?'Open Existing Vault':'Abrir Cofre Existente';
@@ -4826,6 +5152,20 @@ function renderHowTo(){
   el.innerHTML=cards.map(([num,title,text])=>`<div class="lock-how-card"><div style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--accent-dim);margin-bottom:5px;line-height:1">${num}</div><div style="font-size:.68rem;font-weight:600;color:var(--text);margin-bottom:4px">${title}</div><div style="font-size:.62rem;color:var(--text-muted);line-height:1.6">${text}</div></div>`).join('');
   const titleEl=document.getElementById('l-howto-title');if(titleEl)titleEl.textContent=t('howToTitle');
 }
+function openLoginModal(which){
+  closeLoginModal();
+  const map={como:'lmodal-como',seg:'lmodal-seg',sobre:'lmodal-sobre'};
+  const el=document.getElementById(map[which]);if(el)el.classList.add('open');
+  document.querySelectorAll('.lnav-link').forEach(l=>l.classList.remove('active'));
+  const lk={como:'lnav-como',seg:'lnav-seg',sobre:'lnav-sobre'}[which];
+  const lkEl=document.getElementById(lk);if(lkEl)lkEl.classList.add('active');
+}
+function closeLoginModal(){
+  document.querySelectorAll('.login-modal').forEach(m=>m.classList.remove('open'));
+  document.querySelectorAll('.lnav-link').forEach(l=>l.classList.remove('active'));
+  const home=document.getElementById('lnav-home');if(home)home.classList.add('active');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLoginModal();});
 function toggleLockHowTo(){const b=document.getElementById('lock-how-body'),a=document.getElementById('lock-how-arrow'),h=b&&b.style.display==='none';if(b){b.style.display=h?'block':'none';}if(a)a.textContent=h?'▲':'▼';}
 function toggleSecurityInfo(){const b=document.getElementById('security-info-body'),a=document.getElementById('security-arrow'),h=b&&b.style.display==='none';if(b){b.style.display=h?'block':'none';}if(a)a.textContent=h?'▲':'▼';}
 
@@ -4861,7 +5201,10 @@ function runHealthCheck(){
     const n=(e.name||'').toLowerCase();
     return n&&!totpNames.some(tn=>tn&&(tn.includes(n)||n.includes(tn)));
   });
-  return {total,weak,dups,old,no2fa,score:calcSecurityScore()};
+  // Bem-estar: revistas vs por rever (revisão "expira" após 90 dias)
+  const reviewed=active.filter(e=>e.reviewedAt&&(now-e.reviewedAt)<90*86400000);
+  const toReview=active.filter(e=>!e.reviewedAt||(now-e.reviewedAt)>=90*86400000);
+  return {total,weak,dups,old,no2fa,reviewed,toReview,score:calcSecurityScore()};
 }
 function openHealthCheck(){
   const en=currentLang==='en';
@@ -4903,7 +5246,18 @@ function openHealthCheck(){
   document.getElementById('hc-score-ring').style.background=`conic-gradient(${scoreColor} ${r.score*3.6}deg, var(--border) 0deg)`;
   document.getElementById('hc-score-lbl').textContent=scoreLbl;
   document.getElementById('hc-score-lbl').style.color=scoreColor;
-  document.getElementById('hc-body').innerHTML=body;
+  // Barra de progresso de revisão (bem-estar)
+  const revPct=r.total?Math.round(r.reviewed.length/r.total*100):0;
+  const wellBar=r.total?`
+    <div class="hc-wellness">
+      <div class="hc-well-head">
+        <span>${en?'🧘 Review progress':'🧘 Progresso de revisão'}</span>
+        <span class="hc-well-num">${r.reviewed.length}/${r.total}</span>
+      </div>
+      <div class="hc-well-track"><div class="hc-well-fill" style="width:${revPct}%"></div></div>
+      <div class="hc-well-hint">${r.toReview.length?(en?`${r.toReview.length} account${r.toReview.length>1?'s':''} to review`:`${r.toReview.length} ${r.toReview.length>1?'contas por rever':'conta por rever'}`):(en?'All accounts reviewed! 🎉':'Todas as contas revistas! 🎉')}</div>
+    </div>`:'';
+  document.getElementById('hc-body').innerHTML=wellBar+body;
   document.getElementById('hc-title').textContent=en?'🩺 Health Check':'🩺 Auditoria de Segurança';
   document.getElementById('healthcheck-overlay').classList.add('open');
 }
@@ -4974,6 +5328,7 @@ function renderVaultSecureBar(){
 function renderDashboard(){
   renderVaultSecureBar();
   updateWalletTiles();
+  renderMonthlyReport();
   const active=vault.filter(e=>!e.archived);const total=active.length,favs=active.filter(e=>e.fav).length;
   const weak=active.filter(e=>getPwScore(e.pw)<2).length;
   const pwMap={};active.forEach(e=>{if(e.pw)pwMap[e.pw]=(pwMap[e.pw]||0)+1;});
@@ -5023,6 +5378,15 @@ function renderDashboard(){
   const dcEn=currentLang==='en';
   const setT=(id,pt,en)=>{const el=document.getElementById(id);if(el)el.textContent=dcEn?en:pt;};
   setT('dcard-alerts-title','Alertas & Relatório','Alerts & Report');
+  setT('dcard-report-title','Relatório do Mês','Monthly Report');
+  setT('cal-open-txt','Ver calendário de renovações','View renewals calendar');
+  setT('calendar-title','📅 Calendário','📅 Calendar');
+  setT('cal-sub','Renovações, validades e feriados ao longo do mês.','Renewals, expiries and holidays through the month.');
+  setT('cal-leg-renew','Renovação','Renewal');
+  setT('cal-leg-doc','Validade documento','Document expiry');
+  setT('cal-leg-card','Validade cartão','Card expiry');
+  setT('cal-leg-holiday','Feriado','Holiday');
+  setT('s-themes-title','🎨 Temas Predefinidos','🎨 Preset Themes');
   setT('dcard-favs-title','Favoritos','Favourites');
   setT('dcard-cats-title','Entradas por categoria','Entries by category');
   setT('dcard-oldest-title','Passwords mais antigas','Oldest passwords');
@@ -5220,7 +5584,9 @@ function renderCards(){
     const isWeak=entry.pw&&getPwScore(entry.pw)<2;
     const weakBadge=isWeak?`<span class="pw-age-badge weak" title="${currentLang==='en'?'Weak password':'Password fraca'}">⚠️ ${currentLang==='en'?'Weak':'Fraca'}</span>`:'';
     const tagsHtml=(entry.tags||[]).map(tag=>`<span class="card-tag">${esc(tag)}</span>`).join('');
-    const svcIcon=entry.icon&&entry.icon!=='⭐'?entry.icon:getServiceIcon(entry.name);
+    const userIcon=entry.icon&&entry.icon!=='⭐'?entry.icon:null;
+    const brandSvg=userIcon?null:getBrandIcon(entry);
+    const svcIcon=userIcon?userIcon:(brandSvg?`<span class="brand-logo">${brandSvg}</span>`:getServiceIcon(entry.name));
     const ci=vaultCatInfo(entry.cat);
     return `<div class="entry-card cat-${entry.cat}${entry.fav?' is-fav':''}" id="card-${entry.id}"${ci.custom?` style="border-left:3px solid ${ci.color}"`:''} draggable="true" ondragstart="dragStart(event,'${entry.id}')" ondragover="dragOver(event,'${entry.id}')" ondrop="dragDrop('${entry.id}')" ondragend="dragEnd()">
       <div class="card-top">
@@ -5245,6 +5611,7 @@ function renderCards(){
         ${isWifiEntry(entry)?`<button class="card-btn" onclick="event.stopPropagation();openWifiQR('${entry.id}')">📶 QR</button>`:''}
         <button class="card-btn" onclick="event.stopPropagation();openReadMode('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${t('btnRead')}</button>
         <button class="card-btn" onclick="event.stopPropagation();editEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
+        <button class="card-btn${entry.reviewedAt?' reviewed':''}" onclick="event.stopPropagation();toggleReviewed('${entry.id}')" title="${entry.reviewedAt?reviewedLabel(entry.reviewedAt):(currentLang==='en'?'Mark as reviewed':'Marcar como revista')}">${entry.reviewedAt?'✅':'☑️'} ${entry.reviewedAt?(currentLang==='en'?'Reviewed':'Revista'):(currentLang==='en'?'Review':'Rever')}</button>
         <button class="card-btn" onclick="event.stopPropagation();openMoveModal('${entry.id}','vault')">📂 ${currentLang==='en'?'Move':'Mover'}</button>
         <button class="card-btn" onclick="event.stopPropagation();archiveEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> ${t('btnArchive')}</button>
         <button class="card-btn danger" onclick="event.stopPropagation();deleteEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
@@ -5390,6 +5757,205 @@ function scrollToDoc(id){
 }
 
 // ══ ACTIVITY LOG ══
+
+// ══ CALENDÁRIO DE RENOVAÇÕES, VALIDADES E FERIADOS ══
+let calYear, calMonth;
+
+// Cálculo da Páscoa (Meeus/Jones/Butcher) para os feriados móveis
+function calEaster(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,da);
+}
+// Feriados nacionais portugueses
+function calHolidays(y){
+  const e=calEaster(y),off=n=>{const dt=new Date(e);dt.setDate(dt.getDate()+n);return dt;};
+  const en=currentLang==='en';
+  return [
+    {d:new Date(y,0,1),n:en?'New Year':'Ano Novo'},
+    {d:off(-47),n:'Carnaval'},
+    {d:off(-2),n:en?'Good Friday':'Sexta-feira Santa'},
+    {d:off(0),n:en?'Easter':'Páscoa'},
+    {d:new Date(y,3,25),n:en?'Freedom Day':'Dia da Liberdade'},
+    {d:new Date(y,4,1),n:en?'Labour Day':'Dia do Trabalhador'},
+    {d:off(60),n:en?'Corpus Christi':'Corpo de Deus'},
+    {d:new Date(y,5,10),n:en?'Portugal Day':'Dia de Portugal'},
+    {d:new Date(y,7,15),n:en?'Assumption':'Assunção de Nossa Senhora'},
+    {d:new Date(y,9,5),n:en?'Republic Day':'Implantação da República'},
+    {d:new Date(y,10,1),n:en?"All Saints":'Todos os Santos'},
+    {d:new Date(y,11,1),n:en?'Restoration of Independence':'Restauração da Independência'},
+    {d:new Date(y,11,8),n:en?'Immaculate Conception':'Imaculada Conceição'},
+    {d:new Date(y,11,25),n:en?'Christmas':'Natal'},
+  ];
+}
+function calCollectEvents(){
+  const events=[];
+  (subscriptions||[]).forEach(s=>{
+    const d=subNextCharge(s);
+    if(d)events.push({date:d,type:'renew',label:s.name||'Subscrição',color:'var(--accent)',amount:s.amount,cycle:s.cycle});
+  });
+  (documents||[]).forEach(dc=>{
+    if(dc.expiry){const d=new Date(dc.expiry);if(!isNaN(d))events.push({date:d,type:'doc',label:dc.name||dc.title||'Documento',color:'#4c8caf'});}
+  });
+  (bankCards||[]).forEach(bc=>{
+    if(bc.expiry&&/^\d{2}\/\d{2}$/.test(bc.expiry)){const[mm,aa]=bc.expiry.split('/');const d=new Date(2000+parseInt(aa),parseInt(mm),0);if(!isNaN(d))events.push({date:d,type:'card',label:bc.name||bc.bank||'Cartão',color:'#e05270'});}
+  });
+  return events;
+}
+// Todos os eventos de um ano (utilizador + feriados)
+function calAllEvents(y){
+  const ev=calCollectEvents().slice();
+  calHolidays(y).forEach(h=>ev.push({date:h.d,type:'holiday',label:h.n,color:'#9d7bd8'}));
+  return ev;
+}
+function calDaysUntil(date){
+  const t=new Date();t.setHours(0,0,0,0);
+  const d=new Date(date);d.setHours(0,0,0,0);
+  return Math.round((d-t)/86400000);
+}
+function calWhenLabel(n){
+  const en=currentLang==='en';
+  if(n===0)return en?'today':'hoje';
+  if(n===1)return en?'tomorrow':'amanhã';
+  if(n>1)return en?('in '+n+' days'):('em '+n+' dias');
+  if(n===-1)return en?'yesterday':'ontem';
+  return en?(-n+' days ago'):('há '+(-n)+' dias');
+}
+const CAL_ICON={renew:'🔄',doc:'📄',card:'💳',holiday:'🎉'};
+function calTypeLabel(t){
+  const en=currentLang==='en';
+  return (en?{renew:'Renewal',doc:'Document expiry',card:'Card expiry',holiday:'Holiday'}
+            :{renew:'Renovação',doc:'Validade de documento',card:'Validade de cartão',holiday:'Feriado'})[t]||'';
+}
+function openCalendar(){
+  const now=new Date();
+  calYear=now.getFullYear();calMonth=now.getMonth();
+  renderCalendar();renderUpcoming();
+  document.getElementById('calendar-overlay').classList.add('open');
+}
+function closeCalendar(){
+  document.getElementById('calendar-overlay').classList.remove('open');
+  const det=document.getElementById('cal-day-detail');if(det)det.innerHTML='';
+}
+function calShiftMonth(delta){
+  calMonth+=delta;
+  if(calMonth<0){calMonth=11;calYear--;}else if(calMonth>11){calMonth=0;calYear++;}
+  renderCalendar();
+  const det=document.getElementById('cal-day-detail');if(det)det.innerHTML='';
+}
+function renderCalendar(){
+  const en=currentLang==='en';
+  const monthNames=en?['January','February','March','April','May','June','July','August','September','October','November','December']:['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const weekDays=en?['S','M','T','W','T','F','S']:['D','S','T','Q','Q','S','S'];
+  document.getElementById('cal-month-label').textContent=monthNames[calMonth]+' '+calYear;
+  document.getElementById('cal-weekdays').innerHTML=weekDays.map(d=>'<span class="cal-wd">'+d+'</span>').join('');
+  const events=calAllEvents(calYear).filter(e=>e.date.getFullYear()===calYear&&e.date.getMonth()===calMonth);
+  const byDay={};events.forEach(e=>{const day=e.date.getDate();(byDay[day]=byDay[day]||[]).push(e);});
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();today.setHours(0,0,0,0);
+  let html='';
+  // SEMPRE 42 células (6 linhas) → altura constante, as setas não saltam
+  for(let cell=0;cell<42;cell++){
+    const day=cell-firstDay+1;
+    if(day<1||day>daysInMonth){html+='<span class="cal-day empty"></span>';continue;}
+    const dayEvents=byDay[day]||[];
+    const isToday=new Date(calYear,calMonth,day).getTime()===today.getTime();
+    const isHoliday=dayEvents.some(e=>e.type==='holiday');
+    const dots=dayEvents.slice(0,4).map(e=>'<span class="cal-dot" style="background:'+e.color+'"></span>').join('');
+    html+='<button class="cal-day'+(isToday?' today':'')+(isHoliday?' holiday':'')+(dayEvents.length?' has-events':'')+'" '+(dayEvents.length?'onclick="calShowDay('+day+')"':'')+'>'+
+      '<span class="cal-day-num">'+day+'</span>'+
+      (dots?'<span class="cal-dots">'+dots+'</span>':'')+
+    '</button>';
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function calShowDay(day){
+  const events=calAllEvents(calYear).filter(e=>e.date.getFullYear()===calYear&&e.date.getMonth()===calMonth&&e.date.getDate()===day).sort((a,b)=>a.date-b.date);
+  const box=document.getElementById('cal-day-detail');
+  if(!events.length){box.innerHTML='';return;}
+  const en=currentLang==='en';
+  const n=calDaysUntil(new Date(calYear,calMonth,day));
+  box.innerHTML='<div class="cal-detail-head">'+day+' '+document.getElementById('cal-month-label').textContent+' · <span style="color:var(--text-muted);font-size:.7rem">'+calWhenLabel(n)+'</span></div>'+
+    events.map(e=>{
+      let extra='';
+      if(e.type==='renew'&&e.amount)extra='<span class="cal-detail-amount">'+fmtMoney(parseFloat(e.amount)||0)+(e.cycle==='yearly'?(en?'/yr':'/ano'):(en?'/mo':'/mês'))+'</span>';
+      return '<div class="cal-detail-item">'+
+        '<span class="cal-detail-ic">'+(CAL_ICON[e.type]||'•')+'</span>'+
+        '<span class="cal-detail-main"><span class="cal-detail-label">'+esc(e.label)+'</span><span class="cal-detail-type">'+calTypeLabel(e.type)+'</span></span>'+
+        extra+
+      '</div>';
+    }).join('');
+}
+// Lista dos próximos eventos (a partir de hoje)
+function renderUpcoming(){
+  const box=document.getElementById('cal-upcoming');if(!box)return;
+  const en=currentLang==='en';
+  const today=new Date();today.setHours(0,0,0,0);
+  const y=today.getFullYear();
+  let all=calAllEvents(y).concat(calAllEvents(y+1));
+  all=all.filter(e=>{const d=new Date(e.date);d.setHours(0,0,0,0);return d>=today;}).sort((a,b)=>a.date-b.date).slice(0,6);
+  const months=en?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  let inner='<div class="cal-up-title">'+(en?'Upcoming':'Próximos eventos')+'</div>';
+  if(!all.length){inner+='<div style="font-size:.7rem;color:var(--text-muted)">'+(en?'Nothing coming up.':'Nada à vista.')+'</div>';}
+  else inner+=all.map(e=>{
+    const d=new Date(e.date);const n=calDaysUntil(d);
+    let extra='';
+    if(e.type==='renew'&&e.amount)extra='<span class="cal-detail-amount">'+fmtMoney(parseFloat(e.amount)||0)+'</span>';
+    return '<div class="cal-up-item">'+
+      '<span class="cal-up-date"><span class="cal-up-day">'+d.getDate()+'</span><span class="cal-up-mon">'+months[d.getMonth()]+'</span></span>'+
+      '<span class="cal-detail-ic">'+(CAL_ICON[e.type]||'•')+'</span>'+
+      '<span class="cal-detail-main"><span class="cal-detail-label">'+esc(e.label)+'</span><span class="cal-detail-type">'+calTypeLabel(e.type)+' · '+calWhenLabel(n)+'</span></span>'+
+      extra+
+    '</div>';
+  }).join('');
+  box.innerHTML=inner;
+}
+function renderMonthlyReport(){
+  const el=document.getElementById('dash-report');
+  if(!el)return;
+  const en=currentLang==='en';
+  const now=Date.now();
+  const monthAgo=now-30*86400000;
+  const active=vault.filter(e=>!e.archived);
+  // Contagens do último mês a partir do registo de atividade
+  const recent=(activityLog||[]).filter(a=>a.ts>=monthAgo);
+  const added=recent.filter(a=>a.action==='add').length;
+  const edited=recent.filter(a=>a.action==='edit').length;
+  // Contas criadas no último mês
+  const newAccounts=active.filter(e=>e.createdAt&&e.createdAt>=monthAgo).length;
+  // Passwords alteradas no último mês
+  const pwChanged=active.filter(e=>e.pwUpdated&&e.pwUpdated>=monthAgo).length;
+  // Revistas no último mês
+  const reviewed=active.filter(e=>e.reviewedAt&&e.reviewedAt>=monthAgo).length;
+  // Pontuação de segurança atual
+  const score=calcSecurityScore();
+  const monthName=new Date().toLocaleDateString(en?'en-US':'pt-PT',{month:'long'});
+  const stats=[
+    {icon:'➕',n:newAccounts,label:en?'new accounts':'contas novas'},
+    {icon:'✏️',n:edited,label:en?'entries edited':'entradas editadas'},
+    {icon:'🔑',n:pwChanged,label:en?'passwords changed':'passwords alteradas'},
+    {icon:'✅',n:reviewed,label:en?'accounts reviewed':'contas revistas'},
+  ];
+  let msg='';
+  if(newAccounts+edited+pwChanged+reviewed===0){
+    msg=en?'Quiet month — no changes yet. 😌':'Mês tranquilo — ainda sem alterações. 😌';
+  }else if(score>=80){
+    msg=en?'Great work keeping things secure! 🎉':'Bom trabalho a manter tudo seguro! 🎉';
+  }else if(pwChanged>0||reviewed>0){
+    msg=en?'Nice progress this month. Keep it up! 💪':'Bom progresso este mês. Continua! 💪';
+  }else{
+    msg=en?'Tip: review a weak password to boost your score. 🔒':'Dica: revê uma password fraca para subir a pontuação. 🔒';
+  }
+  el.innerHTML=`
+    <div class="report-head">
+      <span class="report-month">${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</span>
+      <span class="report-score">${en?'Security':'Segurança'}: <b>${score}%</b></span>
+    </div>
+    <div class="report-stats">
+      ${stats.map(s=>`<div class="report-stat"><span class="report-stat-icon">${s.icon}</span><span class="report-stat-n">${s.n}</span><span class="report-stat-label">${s.label}</span></div>`).join('')}
+    </div>
+    <div class="report-msg">${msg}</div>`;
+}
 function logActivity(action, name, icon='📝'){
   activityLog.unshift({action, name, icon, ts:Date.now()});
   if(activityLog.length>50)activityLog=activityLog.slice(0,50);
@@ -5430,6 +5996,26 @@ function goToSiteEntry(url,pw){
   window.open(url.startsWith('http')?url:'https://'+url,'_blank');
 }
 function toggleFav(id){const e=vault.find(v=>v.id===id);if(e){e.fav=!e.fav;renderCards();renderSidebar();renderDashboard();markUnsaved();}}
+function toggleReviewed(id){
+  const e=vault.find(v=>v.id===id);
+  if(e){
+    e.reviewedAt=e.reviewedAt?null:Date.now();
+    renderCards();markUnsaved();
+    toast(e.reviewedAt?(currentLang==='en'?'✅ Marked as reviewed':'✅ Marcada como revista'):(currentLang==='en'?'Review mark removed':'Marca de revisão removida'));
+  }
+}
+function reviewedLabel(ts){
+  if(!ts)return '';
+  const days=Math.floor((Date.now()-ts)/86400000);
+  const en=currentLang==='en';
+  if(days===0)return en?'Reviewed today':'Revista hoje';
+  if(days===1)return en?'Reviewed yesterday':'Revista ontem';
+  if(days<30)return en?`Reviewed ${days} days ago`:`Revista há ${days} dias`;
+  const months=Math.floor(days/30);
+  if(months<12)return en?`Reviewed ${months} month${months>1?'s':''} ago`:`Revista há ${months} ${months>1?'meses':'mês'}`;
+  const years=Math.floor(days/365);
+  return en?`Reviewed ${years} year${years>1?'s':''} ago`:`Revista há ${years} ano${years>1?'s':''}`;
+}
 function archiveEntry(id){const e=vault.find(v=>v.id===id);if(e){logActivity('archive',e.name,'📦');e.archived=true;renderAll();toast(t('toastArchived'));markUnsaved();}}
 let clipboardTimerInterval=null;
 function copyText(text,msg){
@@ -5601,6 +6187,7 @@ function saveEntry(){
     createdAt:existing?existing.createdAt:Date.now(),order:existing?existing.order:vault.length,
     pwUpdated:pwChanged?Date.now():(existing?existing.pwUpdated:Date.now()),
     pwHistory:pwChanged&&existing?([(existing.pw),...(existing.pwHistory||[])].slice(0,3)):(existing?existing.pwHistory||[]:null),
+    reviewedAt:existing?existing.reviewedAt||null:null,
   };
   if(editingId){const idx=vault.findIndex(v=>v.id===editingId);vault[idx]=entry;}else vault.push(entry);
   logActivity(editingId?'edit':'add', name, entryEmoji||'📝');
@@ -7688,6 +8275,126 @@ const BG_META={
   bubbles:{pt:'Bolhas',en:'Bubbles',ico:'🫧',grad:'radial-gradient(circle at 50% 70%,#1a2c3a,#0a0e1a)'},
   none:{pt:'Nenhum',en:'None',ico:'⬛',grad:'#0a0e1a'}
 };
+
+// ══ ÍCONES DE MARCAS (SVG offline) — deteta pela marca no nome/URL ══
+const BRAND_ICONS=[
+  {k:['google','gmail','youtube','gdrive','google drive'],c:'#4285F4',svg:'<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>'},
+  {k:['facebook','fb.com','messenger'],c:'#1877F2',svg:'<svg viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12c0-6.63-5.37-12-12-12S0 5.37 0 12c0 5.99 4.39 10.95 10.13 11.85v-8.38H7.08V12h3.05V9.36c0-3.01 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v2.95h-1.51c-1.49 0-1.96.93-1.96 1.87V12h3.33l-.53 3.47h-2.8v8.38C19.61 22.95 24 17.99 24 12z"/></svg>'},
+  {k:['instagram','insta'],c:'#E4405F',svg:'<svg viewBox="0 0 24 24"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0" stop-color="#fdf497"/><stop offset="0.05" stop-color="#fdf497"/><stop offset="0.45" stop-color="#fd5949"/><stop offset="0.6" stop-color="#d6249f"/><stop offset="0.9" stop-color="#285AEB"/></radialGradient></defs><path fill="url(#ig)" d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.31-1.46.72-2.13 1.38C1.35 2.68.94 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.79.72 1.46 1.38 2.13.67.66 1.34 1.07 2.13 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.31 1.46-.72 2.13-1.38.66-.67 1.07-1.34 1.38-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.31-.79-.72-1.46-1.38-2.13C21.32 1.35 20.65.94 19.86.63 19.1.33 18.22.13 16.95.07 15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.41-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"/></svg>'},
+  {k:['twitter','x.com',' x '],c:'#000',svg:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg>'},
+  {k:['microsoft','outlook','hotmail','onedrive','office','xbox','live.com'],c:'#00A4EF',svg:'<svg viewBox="0 0 24 24"><path fill="#F25022" d="M1 1h10.5v10.5H1z"/><path fill="#7FBA00" d="M12.5 1H23v10.5H12.5z"/><path fill="#00A4EF" d="M1 12.5h10.5V23H1z"/><path fill="#FFB900" d="M12.5 12.5H23V23H12.5z"/></svg>'},
+  {k:['apple','icloud','itunes','appstore'],c:'#000',svg:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M17.05 12.04c-.03-2.9 2.37-4.3 2.48-4.36-1.35-1.98-3.46-2.25-4.21-2.28-1.79-.18-3.5 1.05-4.41 1.05-.91 0-2.31-1.03-3.8-1-1.96.03-3.77 1.14-4.78 2.9-2.04 3.54-.52 8.78 1.46 11.66.97 1.41 2.12 2.99 3.63 2.93 1.46-.06 2.01-.94 3.77-.94s2.26.94 3.8.91c1.57-.03 2.56-1.43 3.52-2.85 1.11-1.63 1.57-3.21 1.59-3.29-.03-.02-3.05-1.17-3.08-4.64zM14.13 3.62c.81-.98 1.35-2.34 1.2-3.7-1.16.05-2.57.78-3.4 1.75-.75.86-1.4 2.25-1.23 3.58 1.3.1 2.62-.66 3.43-1.63z"/></svg>'},
+  {k:['amazon','aws','prime'],c:'#FF9900',svg:'<svg viewBox="0 0 24 24"><path fill="#FF9900" d="M15.93 17.09c-2.14 1.58-5.25 2.42-7.92 2.42-3.74 0-7.11-1.38-9.66-3.68-.2-.18-.02-.43.22-.29 2.75 1.6 6.15 2.56 9.67 2.56 2.37 0 4.98-.49 7.38-1.51.36-.15.66.24.31.5zm.89-1.02c-.27-.35-1.81-.17-2.5-.08-.21.02-.24-.16-.05-.29 1.22-.86 3.23-.61 3.46-.32.24.29-.06 2.3-1.21 3.26-.18.15-.35.07-.27-.12.26-.63.85-2.03.57-2.35z"/><path fill="currentColor" d="M13.7 8.99c0 1.09.03 2-.52 2.97-.44.79-1.15 1.28-1.93 1.28-1.07 0-1.7-.82-1.7-2.02 0-2.38 2.13-2.81 4.15-2.81v.58zm2.83 6.84c-.19.16-.45.18-.66.07-.93-.77-1.1-1.13-1.61-1.87-1.54 1.57-2.63 2.04-4.62 2.04-2.36 0-4.19-1.46-4.19-4.37 0-2.28 1.23-3.83 2.99-4.58 1.52-.67 3.65-.79 5.28-.97v-.36c0-.67.05-1.45-.34-2.02-.34-.51-.99-.72-1.56-.72-1.06 0-2 .54-2.23 1.66-.05.25-.23.5-.48.51l-2.69-.29c-.23-.05-.48-.23-.41-.57C6.13 1.51 8.71.5 11.03.5c1.19 0 2.74.32 3.68 1.21 1.19 1.11 1.08 2.58 1.08 4.19v3.8c0 1.14.47 1.64.92 2.26.15.22.19.48-.01.64-.5.42-1.38 1.18-1.86 1.61z"/></svg>'},
+  {k:['netflix'],c:'#E50914',svg:'<svg viewBox="0 0 24 24"><path fill="#E50914" d="M5.4 2.6h4.2l4.8 13.5V2.6h4.2v18.8h-4.2L9.6 7.9v13.5H5.4z"/></svg>'},
+  {k:['spotify'],c:'#1DB954',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#1DB954"/><path fill="#fff" d="M17.4 16.5c-.2.35-.66.46-1 .25-2.75-1.68-6.2-2.06-10.27-1.13-.4.09-.8-.16-.88-.56-.09-.4.16-.8.56-.88 4.45-1.02 8.27-.58 11.35 1.3.35.2.46.66.24 1.02zm1.44-3.2c-.27.43-.83.57-1.26.3-3.15-1.94-7.95-2.5-11.67-1.37-.48.14-.99-.13-1.14-.61-.14-.48.13-.99.61-1.14 4.26-1.29 9.55-.67 13.17 1.56.42.26.56.82.29 1.26zm.12-3.32C16.68 7.73 10.6 7.53 7.03 8.61c-.58.18-1.19-.15-1.37-.72-.17-.58.15-1.19.73-1.37 4.1-1.24 10.81-1.01 15.08 1.53.52.31.69.98.38 1.5-.31.52-.99.69-1.5.38z"/></svg>'},
+  {k:['paypal'],c:'#00457C',svg:'<svg viewBox="0 0 24 24"><path fill="#003087" d="M7.08 21.34l.52-3.3-1.16-.03H3.9L6.19 3.9c.02-.11.13-.19.24-.19h5.86c1.95 0 3.29.4 4 1.2.33.37.54.76.65 1.19.11.45.11.99 0 1.65v.47l.52.3c.44.23.79.5 1.05.81.44.52.72 1.19.84 1.98.12.82.08 1.79-.12 2.89-.23 1.27-.6 2.37-1.11 3.27-.46.83-1.05 1.51-1.75 2.05-.67.51-1.46.9-2.36 1.14-.87.24-1.86.36-2.95.36h-.7c-.5 0-.99.18-1.37.5-.38.33-.63.78-.71 1.27l-.05.29-.92 5.83-.04.21c-.01.07-.03.1-.06.13-.03.02-.07.04-.11.04z"/><path fill="#0070E0" d="M18.11 7.42c-.02.11-.04.22-.06.34-.79 4.06-3.5 5.46-6.95 5.46H9.34c-.42 0-.78.31-.84.72l-.9 5.72-.26 1.62c-.04.27.17.51.44.51h3.11c.37 0 .68-.27.74-.63l.03-.16.58-3.71.04-.2c.06-.36.37-.63.74-.63h.46c3.02 0 5.38-1.23 6.07-4.77.29-1.48.14-2.72-.62-3.58-.23-.26-.52-.48-.86-.66z"/></svg>'},
+  {k:['discord'],c:'#5865F2',svg:'<svg viewBox="0 0 24 24"><path fill="#5865F2" d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.61 1.25a18.3 18.3 0 0 0-5.49 0 12.6 12.6 0 0 0-.62-1.25.08.08 0 0 0-.08-.04c-1.7.3-3.33.8-4.89 1.52a.07.07 0 0 0-.03.03C.53 9.09-.32 13.68.1 18.21c0 .02.02.04.04.06a19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03c.46-.63.87-1.29 1.23-1.99a.08.08 0 0 0-.04-.11c-.65-.25-1.27-.55-1.87-.88a.08.08 0 0 1-.01-.13c.13-.09.25-.19.37-.29a.07.07 0 0 1 .08-.01c3.92 1.79 8.16 1.79 12.03 0a.07.07 0 0 1 .08.01c.12.1.24.2.37.29a.08.08 0 0 1-.01.13c-.6.35-1.22.64-1.87.89a.08.08 0 0 0-.04.11c.36.7.78 1.36 1.23 1.99a.08.08 0 0 0 .09.03 19.8 19.8 0 0 0 6-3.03.08.08 0 0 0 .04-.06c.5-5.25-.84-9.8-3.55-13.81a.06.06 0 0 0-.03-.03zM8.02 15.45c-1.18 0-2.16-1.09-2.16-2.42s.95-2.42 2.16-2.42c1.21 0 2.18 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42zm7.97 0c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.22 0 2.18 1.1 2.16 2.42 0 1.33-.94 2.42-2.16 2.42z"/></svg>'},
+  {k:['linkedin'],c:'#0A66C2',svg:'<svg viewBox="0 0 24 24"><path fill="#0A66C2" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.66H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.59 0 4.25 2.36 4.25 5.43v6.31zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zm1.78 13.02H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .77 0 1.73v20.53C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.73C24 .77 23.2 0 22.22 0z"/></svg>'},
+  {k:['whatsapp'],c:'#25D366',svg:'<svg viewBox="0 0 24 24"><path fill="#25D366" d="M.06 24l1.68-6.16A11.87 11.87 0 0 1 .16 11.9C.16 5.34 5.5 0 12.06 0a11.82 11.82 0 0 1 8.41 3.49 11.82 11.82 0 0 1 3.48 8.42c0 6.56-5.34 11.9-11.9 11.9a11.9 11.9 0 0 1-5.68-1.45L.06 24zm6.6-3.8c1.68.99 3.28 1.59 5.4 1.59 5.45 0 9.89-4.43 9.89-9.88 0-5.46-4.42-9.89-9.88-9.89C6.61 2.02 2.18 6.45 2.18 11.9c0 2.23.65 3.9 1.75 5.65l-1 3.63 3.73-.98zM17.42 14.7c-.07-.12-.27-.2-.56-.34-.29-.15-1.73-.86-2-.95-.27-.1-.46-.15-.65.14-.2.29-.75.95-.91 1.14-.17.2-.34.22-.63.07-.29-.14-1.23-.45-2.35-1.44-.87-.78-1.45-1.73-1.62-2.02-.17-.29-.02-.45.13-.59.13-.13.29-.34.44-.51.15-.17.19-.29.29-.48.1-.2.05-.36-.02-.51-.08-.14-.65-1.57-.89-2.15-.24-.57-.47-.49-.65-.5l-.55-.01c-.19 0-.5.07-.76.36s-1 .98-1 2.4 1.03 2.79 1.17 2.98c.15.2 2.03 3.1 4.92 4.35.69.3 1.22.47 1.64.6.69.22 1.32.19 1.81.12.55-.08 1.73-.71 1.97-1.39.24-.68.24-1.27.17-1.39z"/></svg>'},
+  {k:['github'],c:'#181717',svg:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49.99.11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.82.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>'},
+  {k:['steam'],c:'#171a21',svg:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M11.98 0C5.66 0 .48 4.87.02 11.07l6.44 2.66a3.4 3.4 0 0 1 1.92-.6l2.86-4.15v-.06a4.53 4.53 0 1 1 4.53 4.53h-.1l-4.09 2.92c0 .05.01.1.01.16a3.4 3.4 0 0 1-6.75.5L.02 15.5A11.99 11.99 0 1 0 11.98 0zm-4.4 18.2l-1.48-.62a2.56 2.56 0 0 0 4.71-1.03 2.55 2.55 0 0 0-3.44-2.4l1.53.63a1.88 1.88 0 1 1-1.32 3.52zm10.98-6.67a3.02 3.02 0 1 0 0-6.04 3.02 3.02 0 0 0 0 6.04zm0-.94a2.08 2.08 0 1 1 0-4.16 2.08 2.08 0 0 1 0 4.16z"/></svg>'},
+  {k:['continente','sonae'],c:'#E30613',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E30613"/><text x="12" y="16" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial">C</text></svg>'},
+  {k:['pingo doce','pingodoce'],c:'#00953B',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00953B"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial">PD</text></svg>'},
+  {k:['mbway','mb way'],c:'#C4161C',svg:'<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="3" fill="#C4161C"/><text x="12" y="15" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial">MB</text></svg>'},
+  {k:['ctt'],c:'#DA020E',svg:'<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" fill="#DA020E"/><text x="12" y="15" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial">CTT</text></svg>'},
+  {k:['nos'],c:'#8246AF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#8246AF"/><text x="12" y="16" font-size="8" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial">NOS</text></svg>'},
+  {k:['vodafone'],c:'#E60000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E60000"/><path fill="#fff" d="M12 6c-3 0-5 2.4-5 5.5 0 2.5 1.8 4.5 4 4.5.3 0 .6 0 .6-.3 0-.2-.1-.3-.3-.4-1.3-.5-2.2-1.8-2.2-3.4 0-2.2 1.5-4 3.6-4.5.1 0 .3-.1.3-.3 0-.4-.5-.6-1-.6z"/></svg>'},
+  {k:['meo','altice'],c:'#00A9E0',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00A9E0"/><text x="12" y="16" font-size="8" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial">meo</text></svg>'},
+  {k:['tiktok'],c:'#000',svg:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .57.04.83.13V9.4a6.33 6.33 0 0 0-1-.05A6.34 6.34 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>'},
+  {k:['reddit'],c:'#FF4500',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#FF4500"/><path fill="#fff" d="M20 12c0-.97-.79-1.75-1.75-1.75-.47 0-.9.19-1.21.49-1.2-.86-2.85-1.42-4.68-1.49l.8-3.76 2.61.55a1.25 1.25 0 1 0 .14-.83l-2.92-.62a.42.42 0 0 0-.5.32l-.89 4.18c-1.86.06-3.53.62-4.75 1.49a1.75 1.75 0 1 0-1.93 2.87c-.02.16-.03.32-.03.48 0 2.45 2.85 4.43 6.36 4.43s6.36-1.98 6.36-4.43c0-.16-.01-.32-.03-.48A1.75 1.75 0 0 0 20 12zm-11 1.25a1.25 1.25 0 1 1 2.5 0 1.25 1.25 0 0 1-2.5 0zm6.98 3.32c-.86.86-2.5.92-2.98.92-.48 0-2.12-.06-2.98-.92a.33.33 0 0 1 .46-.46c.54.54 1.7.73 2.52.73.82 0 1.98-.19 2.52-.73a.33.33 0 0 1 .46.46zm-.23-2.07a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>'},
+  {k:['revolut'],c:'#0666EB',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0666EB"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">R</text></svg>'},
+  {k:['trade republic','traderepublic'],c:'#000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#000"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">TR</text></svg>'},
+  {k:['xtb'],c:'#E30613',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E30613"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">XTB</text></svg>'},
+  {k:['degiro'],c:'#003D7C',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#003D7C"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">D</text></svg>'},
+  {k:['etoro'],c:'#13C636',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#13C636"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">e</text></svg>'},
+  {k:['binance'],c:'#F0B90B',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#F0B90B"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#000" text-anchor="middle" font-family="Arial,sans-serif">B</text></svg>'},
+  {k:['coinbase'],c:'#0052FF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0052FF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">C</text></svg>'},
+  {k:['wise','transferwise'],c:'#9FE870',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#9FE870"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#163300" text-anchor="middle" font-family="Arial,sans-serif">W</text></svg>'},
+  {k:['n26'],c:'#48AC98',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48AC98"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">N26</text></svg>'},
+  {k:['klarna'],c:'#FFB3C7',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FFB3C7"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#000" text-anchor="middle" font-family="Arial,sans-serif">K</text></svg>'},
+  {k:['moey'],c:'#00C1B5',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00C1B5"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">m</text></svg>'},
+  {k:['santander'],c:'#EC0000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#EC0000"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">S</text></svg>'},
+  {k:['universo'],c:'#7B2D8E',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#7B2D8E"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">U</text></svg>'},
+  {k:['millennium','bcp','millenium'],c:'#D4001A',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#D4001A"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">M</text></svg>'},
+  {k:['caixa','cgd','caixa geral'],c:'#009640',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#009640"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">CGD</text></svg>'},
+  {k:['novo banco','novobanco'],c:'#00A19A',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00A19A"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">NB</text></svg>'},
+  {k:['bpi'],c:'#0033A0',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0033A0"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">BPI</text></svg>'},
+  {k:['montepio'],c:'#00954C',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00954C"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">M</text></svg>'},
+  {k:['crédito agrícola','credito agricola','creditoagricola'],c:'#6EA204',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#6EA204"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">CA</text></svg>'},
+  {k:['activobank','activo bank'],c:'#EE7203',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#EE7203"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">A</text></svg>'},
+  {k:['abanca'],c:'#00A0DF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00A0DF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">A</text></svg>'},
+  {k:['eurobic','bic'],c:'#005CA9',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#005CA9"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">BIC</text></svg>'},
+  {k:['bankinter'],c:'#FF6600',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FF6600"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">B</text></svg>'},
+  {k:['disney','disney+','disneyplus'],c:'#113CCF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#113CCF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">D+</text></svg>'},
+  {k:['hbo','hbo max','max'],c:'#5822B4',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#5822B4"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">HBO</text></svg>'},
+  {k:['prime video','primevideo','amazon prime'],c:'#1399FF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00A8E1"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">PV</text></svg>'},
+  {k:['twitch'],c:'#9146FF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#9146FF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">T</text></svg>'},
+  {k:['dazn'],c:'#F8F808',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#F8F808"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#000" text-anchor="middle" font-family="Arial,sans-serif">D</text></svg>'},
+  {k:['rtp','rtp play'],c:'#00A9A6',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00A9A6"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">RTP</text></svg>'},
+  {k:['sic'],c:'#E30613',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E30613"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">SIC</text></svg>'},
+  {k:['tvi'],c:'#003DA5',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#003DA5"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">TVI</text></svg>'},
+  {k:['worten'],c:'#E30613',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E30613"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">W</text></svg>'},
+  {k:['fnac'],c:'#E1A700',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E1A700"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#000" text-anchor="middle" font-family="Arial,sans-serif">F</text></svg>'},
+  {k:['ikea'],c:'#0058A3',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0058A3"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#FFDA1A" text-anchor="middle" font-family="Arial,sans-serif">I</text></svg>'},
+  {k:['leroy merlin','leroymerlin'],c:'#78BE20',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#78BE20"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">LM</text></svg>'},
+  {k:['aliexpress'],c:'#E43225',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E43225"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">Ali</text></svg>'},
+  {k:['ebay'],c:'#E53238',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E53238"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">e</text></svg>'},
+  {k:['zalando'],c:'#FF6900',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FF6900"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">Z</text></svg>'},
+  {k:['glovo'],c:'#FFC244',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FFC244"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#00A082" text-anchor="middle" font-family="Arial,sans-serif">G</text></svg>'},
+  {k:['uber eats','ubereats'],c:'#06C167',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#06C167"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">UE</text></svg>'},
+  {k:['uber'],c:'#000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#000"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">U</text></svg>'},
+  {k:['bolt'],c:'#34D186',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#34D186"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">B</text></svg>'},
+  {k:['booking','booking.com'],c:'#003580',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#003580"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">B</text></svg>'},
+  {k:['airbnb'],c:'#FF5A5F',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FF5A5F"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">A</text></svg>'},
+  {k:['ryanair'],c:'#073590',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#073590"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#F1C933" text-anchor="middle" font-family="Arial,sans-serif">R</text></svg>'},
+  {k:['tap','tap air','tap portugal'],c:'#00A3E0',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00A3E0"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">TAP</text></svg>'},
+  {k:['dropbox'],c:'#0061FF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0061FF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">D</text></svg>'},
+  {k:['telegram'],c:'#26A5E4',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#26A5E4"/><path fill="#fff" d="M5.5 11.7l11-4.24c.51-.19.96.12.79.9l-1.87 8.82c-.14.66-.54.82-1.09.51l-3-2.21-1.45 1.4c-.16.16-.3.3-.61.3l.22-3.09 5.6-5.06c.24-.21-.05-.33-.38-.12L7.8 13.02l-2.98-.93c-.65-.2-.66-.65.14-.96z"/></svg>'},
+  {k:['signal'],c:'#3A76F0',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#3A76F0"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">S</text></svg>'},
+  {k:['pinterest'],c:'#BD081C',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#BD081C"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">P</text></svg>'},
+  {k:['snapchat'],c:'#FFFC00',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FFFC00"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#000" text-anchor="middle" font-family="Arial,sans-serif">S</text></svg>'},
+  {k:['twitch'],c:'#9146FF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#9146FF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">T</text></svg>'},
+  {k:['notion'],c:'#000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#000"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">N</text></svg>'},
+  {k:['slack'],c:'#4A154B',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4A154B"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">S</text></svg>'},
+  {k:['zoom'],c:'#0B5CFF',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0B5CFF"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">Z</text></svg>'},
+  {k:['adobe'],c:'#FF0000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FF0000"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">A</text></svg>'},
+  {k:['canva'],c:'#00C4CC',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00C4CC"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">C</text></svg>'},
+  {k:['openai','chatgpt','chat gpt'],c:'#000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#10A37F"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">AI</text></svg>'},
+  {k:['anthropic','claude'],c:'#D97757',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#D97757"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">C</text></svg>'},
+  {k:['epic games','epicgames','epic'],c:'#000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#2A2A2A"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">E</text></svg>'},
+  {k:['playstation','psn'],c:'#003791',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#003791"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">PS</text></svg>'},
+  {k:['nintendo'],c:'#E60012',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E60012"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">N</text></svg>'},
+  {k:['riot','riot games','league of legends'],c:'#D13639',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#D13639"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">R</text></svg>'},
+  {k:['mercadolibre','mercado livre'],c:'#FFE600',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FFE600"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#000" text-anchor="middle" font-family="Arial,sans-serif">ML</text></svg>'},
+  {k:['temu'],c:'#FB7701',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FB7701"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">T</text></svg>'},
+  {k:['shein'],c:'#000',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#000"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">S</text></svg>'},
+  {k:['edp'],c:'#32C832',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#32C832"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">EDP</text></svg>'},
+  {k:['galp'],c:'#FF5F00',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#FF5F00"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">G</text></svg>'},
+  {k:['endesa'],c:'#0072CE',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0072CE"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">E</text></svg>'},
+  {k:['iberdrola'],c:'#8AC53F',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#8AC53F"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">I</text></svg>'},
+  {k:['águas','aguas','epal'],c:'#0093D0',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#0093D0"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">A</text></svg>'},
+  {k:['via verde','viaverde'],c:'#009B3A',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#009B3A"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">VV</text></svg>'},
+  {k:['ctt'],c:'#DA020E',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#DA020E"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">CTT</text></svg>'}
+];
+function getBrandIcon(entry){
+  if(!entry)return null;
+  const hay=((entry.name||'')+' '+(entry.url||'')).toLowerCase();
+  for(const b of BRAND_ICONS){
+    for(const key of b.k){
+      const k=key.trim();
+      if(!k)continue;
+      // Keys curtas (<=3): exigir limite de palavra para evitar falsos positivos
+      if(k.length<=3){
+        const re=new RegExp('(^|[^a-z0-9])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)','i');
+        if(re.test(hay))return b.svg;
+      }else{
+        if(hay.includes(k))return b.svg;
+      }
+    }
+  }
+  return null;
+}
+
 const ENTRY_FLAGS=[
   {id:'',pt:'Nenhuma',en:'None',color:''},
   {id:'red',pt:'A rever',en:'Review',color:'#e05252'},
@@ -7801,7 +8508,7 @@ function toggleDashCard(key){
 }
 function applyDashCardStates(){
   // Todos fechados por omissão (escolha do utilizador)
-  ['alerts','favs','cats','oldest','activity'].forEach(key=>{
+  ['alerts','report','favs','cats','oldest','activity'].forEach(key=>{
     const card=document.getElementById('dcard-'+key);
     if(!card)return;
     let open=false;
@@ -8142,33 +8849,8 @@ window.addEventListener('appinstalled',()=>{
   toast(currentLang==='en'?'App installed! 📲':'App instalada! 📲');
 });
 
-// ══ PACKS DE TEMA ══
-const THEME_PACKS={
-  royal:{label:'Royal',dark:{bg:'#0a0e1a',accent:'#c9a84c',text:'#e8e4d8'},light:{bg:'#f5f2ea',accent:'#8a6e2f',text:'#2a2418'}},
-  matrix:{label:'Matrix',dark:{bg:'#050d07',accent:'#2bd96b',text:'#c9f2d6'},light:{bg:'#eefaf1',accent:'#0f9d58',text:'#0c2415'}},
-  cyber:{label:'Cyberpunk',dark:{bg:'#0b0716',accent:'#ff3fb4',text:'#efe3ff'},light:{bg:'#faf0f8',accent:'#c2179b',text:'#2c1030'}},
-  oceano:{label:'Oceano',dark:{bg:'#061420',accent:'#38bdf8',text:'#dcecf5'},light:{bg:'#eef6fb',accent:'#0284c7',text:'#0c2331'}},
-  papel:{label:'Papel',dark:{bg:'#121212',accent:'#d6d2c8',text:'#eceae4'},light:{bg:'#faf9f5',accent:'#2b2b28',text:'#1c1c1a'}},
-};
-function renderPackChips(){
-  const wrap=document.getElementById('pack-chips');if(!wrap)return;
-  wrap.innerHTML=Object.entries(THEME_PACKS).map(([id,p])=>{
-    const d=p.dark;
-    return `<button type="button" class="pack-chip" onclick="applyPack('${id}')">
-      <span class="pack-dots"><span class="pack-dot" style="background:${d.bg};border:1px solid #555"></span><span class="pack-dot" style="background:${d.accent}"></span><span class="pack-dot" style="background:${d.text}"></span></span>
-      ${p.label}</button>`;
-  }).join('');
-}
-function applyPack(id){
-  const p=THEME_PACKS[id];if(!p)return;
-  themeColors.dark={...p.dark};
-  themeColors.light={...p.light};
-  saveThemeColors();
-  applyThemeColors(currentTheme);
-  refreshColorPickers();
-  buildManifest();
-  toast(`🎨 ${p.label} ✓`);
-}
+// (Packs de tema antigos removidos — substituídos pelos Temas Predefinidos)
+function renderPackChips(){}
 
 // ══ MODO PRIVACIDADE ══
 let privacyOn=false;
@@ -9593,7 +10275,11 @@ function openReadMode(id){
   const entry=vault.find(v=>v.id===id);if(!entry)return;
   const content=document.getElementById('read-content');
   const catLabel=getCatLabel(entry.cat);
+  const userIcon2=entry.icon&&entry.icon!=='⭐'?entry.icon:null;
+  const brandSvg=userIcon2?null:getBrandIcon(entry);
+  const brandBadge=userIcon2?`<div class="read-brand-emoji">${userIcon2}</div>`:(brandSvg?`<div class="read-brand-logo">${brandSvg}</div>`:`<div class="read-brand-emoji">${getServiceIcon(entry.name)||'🔐'}</div>`);
   let html=`
+    <div class="read-brand-head">${brandBadge}</div>
     <span class="read-card-cat">${vaultCatInfo(entry.cat).icon} ${esc(vaultCatInfo(entry.cat).label)}</span>
     <div class="read-card-title">${esc(entry.name)}</div>`;
   if(entry.user)html+=`<div class="read-field"><span class="read-field-label">${t('cardUser')}</span><div class="read-field-value">${esc(entry.user)}</div></div>`;
