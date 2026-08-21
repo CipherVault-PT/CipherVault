@@ -165,8 +165,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 @keyframes lgModalFade{from{opacity:0}to{opacity:1}}
 @keyframes lgModalUp{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:860px){
-  .login-nav{padding:14px 16px;}
-  .lnav-links{order:3;width:100%;justify-content:center;flex-wrap:wrap;}
+  .login-nav{padding:16px;justify-content:center;text-align:center;}
+  .lnav-brand{flex:0 0 100%;justify-content:center;}
+  .lnav-right{flex:0 0 100%;justify-content:center;}
+  .lnav-links{order:3;width:100%;justify-content:center;flex-wrap:wrap;gap:2px;margin-top:6px;}
+  .lnav-link{padding:7px 12px;font-size:.6rem;letter-spacing:.5px;}
   .lnav-name{font-size:.95rem;}
   .login-stage{padding:12px 14px;}
   .login-card{grid-template-columns:1fr;min-height:auto;}
@@ -221,6 +224,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 #drag-overlay.show{display:flex;}
 .drag-overlay-text{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);letter-spacing:4px;}
 .autolock-badge{font-size:.68rem;letter-spacing:1px;padding:5px 11px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted);white-space:nowrap;}
+.tb-mini{display:none;}
 
 /* TABS */
 .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel-glass);padding:0 22px;overflow-x:auto;position:relative;}
@@ -613,6 +617,27 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .read-brand-emoji{width:88px;height:88px;border-radius:20px;background:linear-gradient(145deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.06));display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);}
 
 /* ══ HEALTH CHECK ══ */
+.hc-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.hc-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.hc-chart-title{font-size:.66rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;text-align:center;}
+.hc-donut-wrap{position:relative;width:120px;height:120px;margin:0 auto 12px;}
+.hc-donut{width:120px;height:120px;}
+.hc-donut circle{transition:stroke-dasharray .6s ease,stroke-dashoffset .6s ease;}
+.hc-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.hc-donut-pct{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--text);line-height:1;}
+.hc-donut-sub{font-size:.54rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-top:2px;}
+.hc-legend{display:flex;flex-direction:column;gap:6px;}
+.hc-leg-row{display:flex;align-items:center;gap:8px;font-size:.68rem;}
+.hc-leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.hc-leg-l{flex:1;color:var(--text-muted);}
+.hc-leg-v{font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:600;}
+.hc-bars{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
+.hc-bar-row{display:flex;align-items:center;gap:9px;}
+.hc-bar-l{font-size:.62rem;color:var(--text-muted);width:64px;flex-shrink:0;}
+.hc-bar-track{flex:1;height:8px;background:var(--border);border-radius:5px;overflow:hidden;}
+.hc-bar-fill{display:block;height:100%;border-radius:5px;transition:width .6s ease;min-width:2px;}
+.hc-bar-v{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text);font-weight:600;width:20px;text-align:right;}
+@media(max-width:560px){.hc-charts{grid-template-columns:1fr;}}
 .hc-scorewrap{display:flex;align-items:center;gap:18px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);}
 .hc-score-ring{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .4s;}
 .hc-score-inner{width:60px;height:60px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text);}
@@ -1281,18 +1306,23 @@ body::after{bottom:-32vmax;right:-24vmax;
   #app{min-height:100vh;height:auto;}
   #app.visible{display:flex;flex-direction:column;}
 
-  /* TOPBAR — texto sempre visível, parte para várias linhas se preciso */
-  .topbar{padding:9px 12px;gap:7px;flex-wrap:wrap;overflow-x:visible;}
-  .topbar-logo{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--accent);letter-spacing:1px;flex:0 0 auto;white-space:nowrap;}
-  .topbar-actions{gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-  .topbar-actions button{padding:8px 11px;font-size:.6rem;letter-spacing:.5px;flex:0 0 auto;}
-  .topbar-actions button svg{width:14px;height:14px;}
-  .autolock-badge{font-size:.48rem;padding:3px 6px;flex-shrink:0;}
-  .lang-switcher .lang-btn{padding:7px 10px;font-size:.58rem;}
+  /* TOPBAR — telemóvel: logo centrado; botões = ícone + mini-texto, centrados por baixo */
+  .topbar{padding:14px 12px;gap:12px;flex-direction:column;align-items:center;overflow-x:visible;}
+  .topbar-logo{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent);letter-spacing:2px;width:100%;text-align:center;white-space:nowrap;}
+  .topbar-actions{gap:7px;flex-wrap:wrap;justify-content:center;align-items:center;width:100%;}
+  .topbar-actions button{flex-direction:column;gap:3px;padding:8px 9px;font-size:1.05rem;line-height:1;letter-spacing:0;flex:0 0 auto;min-width:52px;justify-content:center;}
+  .topbar-actions button svg{width:16px;height:16px;}
+  /* esconder o texto longo, mostrar o mini-texto por baixo do ícone */
+  .topbar-actions .tb-label,#tb-save-txt,#tb-lock-txt{display:none;}
+  .topbar-actions .tb-mini{display:block;font-size:.5rem;letter-spacing:.3px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:inherit;}
+  .autolock-badge{display:none!important;}
+  .lang-switcher{flex:0 0 auto;align-self:center;}
+  .lang-switcher .lang-btn{padding:8px 10px;font-size:.58rem;}
 
-  /* TABS */
-  .tabs{padding:0 4px;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .tab-btn{padding:11px 12px;font-size:.56rem;letter-spacing:1px;flex-shrink:0;white-space:nowrap;}
+  /* TABS — scroll horizontal suave, sem cortar nem barra visível */
+  .tabs{padding:0 10px;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{padding:12px 15px;font-size:.62rem;letter-spacing:1px;flex-shrink:0;white-space:nowrap;}
 
   /* MAIN — coluna, altura auto */
   .main{flex-direction:column;height:auto;min-height:0;flex:1;}
@@ -1782,7 +1812,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.28</span>
+      <span>Aurora Vault © 2026 · v9.35</span>
     </div>
   </div>
 </div>
@@ -1804,15 +1834,15 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="topbar-actions">
       <button class="btn-save-file" onclick="saveFile()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        <span id="tb-save-txt">Guardar ficheiro</span>
+        <span id="tb-save-txt">Guardar ficheiro</span><span class="tb-mini" id="tbm-save">Guardar</span>
       </button>
-      <button onclick="togglePrivacy()" id="privacy-btn" title="Modo de privacidade">🙈 <span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span></button>
-      <button onclick="openCalendar()" id="cal-topbar-btn" title="Calendário">📅 <span class="tb-label" id="tb-cal-txt">Calendário</span></button>
-      <button onclick="openSettings()" title="Definições">⚙️ <span class="tb-label" id="tb-settings-txt">Definições</span></button>
+      <button onclick="togglePrivacy()" id="privacy-btn" title="Modo de privacidade">🙈 <span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span><span class="tb-mini" id="tbm-priv">Privado</span></button>
+      <button onclick="openCalendar()" id="cal-topbar-btn" title="Calendário">📅 <span class="tb-label" id="tb-cal-txt">Calendário</span><span class="tb-mini" id="tbm-cal">Calendário</span></button>
+      <button onclick="openSettings()" title="Definições">⚙️ <span class="tb-label" id="tb-settings-txt">Definições</span><span class="tb-mini" id="tbm-set">Ajustes</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
       <button onclick="lockApp()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span id="tb-lock-txt">Bloquear</span>
+        <span id="tb-lock-txt">Bloquear</span><span class="tb-mini" id="tbm-lock">Bloquear</span>
       </button>
       <div class="lang-switcher">
         <button class="lang-btn active" id="lang-pt" onclick="setLang('pt')">PT</button>
@@ -2119,7 +2149,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.28</span>
+      <span>Aurora Vault © 2026 · v9.35</span>
     </div>
   </div>
   </div>
@@ -3149,7 +3179,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.28';
+const APP_VERSION='9.35';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4284,9 +4314,10 @@ function toggleField(id){const i=document.getElementById(id);i.type=i.type==='pa
 
 // ══ LOGIN FLOW ══
 let pendingVaultFile=null;
+let pendingVaultText=null;
 
 function backToInitial(){
-  pendingVaultFile=null;
+  pendingVaultFile=null;pendingVaultText=null;
   document.getElementById('login-state-initial').style.display='block';
   document.getElementById('login-state-open').style.display='none';
   document.getElementById('login-state-new').style.display='none';
@@ -4310,7 +4341,7 @@ function startNewVault(){
   setTimeout(()=>document.getElementById('new-pw1').focus(),100);
 }
 function backToFileStep(){
-  pendingVaultFile=null;
+  pendingVaultFile=null;pendingVaultText=null;
   const fm=document.getElementById('l-file-meta');if(fm)fm.style.display='none';
   document.getElementById('open-step-file').style.display='block';
   document.getElementById('open-step-pw').style.display='none';
@@ -4329,12 +4360,12 @@ function onFileSelected(e){
   e.target.value='';
 }
 async function submitOpenVault(pwArg){
-  if(!pendingVaultFile||lockedOut)return;
+  if((!pendingVaultFile&&!pendingVaultText)||lockedOut)return;
   const quick=typeof pwArg==='string';
   const pw=quick?pwArg:document.getElementById('master-pw').value;
   if(!quick&&pw.length<4){setLockError(t('lockMinChars'));return;}
   try{
-    const text=await pendingVaultFile.text();
+    const text=(quick&&pendingVaultText)?pendingVaultText:await pendingVaultFile.text();
     const container=JSON.parse(text);
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
@@ -4347,7 +4378,7 @@ async function submitOpenVault(pwArg){
   vaultReadOnly=(Number(data.fmt)||1)>VAULT_FMT;
   check2faMismatch();
   checkVaultFormat();
-    failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
+    pendingVaultText=text;failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
   }catch{
     if(quick){
       await clearQuickUnlock();
@@ -4457,9 +4488,8 @@ function lockApp(){
 function startAutoLock(){
   stopAutoLock();
   if(autoLockSeconds===0){document.getElementById('autolock-badge').style.display='none';return;}
-  autoLockSecondsLeft=autoLockSeconds;updateAutoLockBadge();
-  document.getElementById('autolock-badge').style.display='inline';
-  autoLockCountdown=setInterval(()=>{autoLockSecondsLeft--;updateAutoLockBadge();if(autoLockSecondsLeft<=0){stopAutoLock();lockApp();toast(t('toastLocked'));}},1000);
+  autoLockSecondsLeft=autoLockSeconds;
+  autoLockCountdown=setInterval(()=>{autoLockSecondsLeft--;if(autoLockSecondsLeft<=0){stopAutoLock();lockApp();toast(t('toastLocked'));}},1000);
   ['mousemove','keydown','click','touchstart'].forEach(ev=>document.addEventListener(ev,resetAutoLock,{passive:true}));
 }
 function resetAutoLock(){autoLockSecondsLeft=autoLockSeconds;}
@@ -5137,6 +5167,41 @@ function applyLangStatic(){
     const t2=document.getElementById(`sec-t${i+1}`);if(t2)t2.textContent=title;
     const d=document.getElementById(`sec-d${i+1}`);if(d)d.innerHTML=desc;
   });
+  // === Traduções em falta (auditoria de i18n) ===
+  const _L=currentLang==='en';
+  [
+    ['sec-t1','Encriptação Militar','Military-grade Encryption',0],
+    ['sec-d1','Passwords, documentos, notas, cartões e códigos 2FA — tudo protegido com <strong>AES-256-GCM</strong>, a mesma tecnologia usada por bancos e governos. Impossível de quebrar sem a tua palavra-passe.','Passwords, documents, notes, cards and 2FA codes — all protected with <strong>AES-256-GCM</strong>, the same technology used by banks and governments. Impossible to crack without your password.',1],
+    ['sec-t2','Ficheiro Local','Local File',0],
+    ['sec-d2','Passwords, documentos, notas, cartões e códigos 2FA ficam num único ficheiro <strong>.vault</strong> no teu dispositivo — pen, computador ou telemóvel. Tudo teu, sob o teu controlo, nunca sai do dispositivo.','Passwords, documents, notes, cards and 2FA codes live in a single <strong>.vault</strong> file on your device — USB stick, computer or phone. All yours, under your control, never leaves the device.',1],
+    ['sec-t3','Zero Servidores','Zero Servers',0],
+    ['sec-d3','O Aurora Vault é uma <strong>app local</strong> para guardar passwords, documentos, notas, cartões e códigos 2FA. Sem servidores, sem base de dados online. O GitHub hospeda apenas o código — os teus dados ficam sempre no teu dispositivo.','Aurora Vault is a <strong>local app</strong> for storing passwords, documents, notes, cards and 2FA codes. No servers, no online database. GitHub only hosts the code — your data always stays on your device.',1],
+    ['sec-t4','Zero Knowledge','Zero Knowledge',0],
+    ['sec-d4','<strong>Ninguém</strong> tem acesso aos teus dados — nem os criadores da app, nem o GitHub, nem qualquer servidor. Só tu, com a tua palavra-passe mestra, podes abrir o cofre.','<strong>Nobody</strong> has access to your data — not the app creators, not GitHub, not any server. Only you, with your master password, can open the vault.',1],
+    ['sec-t5','Funciona Offline','Works Offline',0],
+    ['sec-d5','Após a primeira abertura, a app funciona <strong>sem internet</strong>. Consulta as tuas passwords, documentos, notas e códigos 2FA em qualquer lugar, sem ligação. Os teus dados nunca precisam de estar online.','After the first open, the app works <strong>without internet</strong>. Check your passwords, documents, notes and 2FA codes anywhere, offline. Your data never needs to be online.',1],
+    ['sec-t6','A tua Chave, o teu Cofre','Your Key, Your Vault',0],
+    ['sec-d6','A palavra-passe mestra <strong>nunca é enviada</strong> para lado nenhum. É usada localmente para encriptar e desencriptar. Se a perderes, não há recuperação — guarda-a num papel em casa!','The master password is <strong>never sent</strong> anywhere. It is used locally to encrypt and decrypt. If you lose it, there is no recovery — keep it on paper at home!',1],
+    ['dash-renewals-title','📅 Renovações','📅 Renewals',0],
+    ['doc-expiry-lbl','Validade','Expiry',0],
+    ['hc-score-cap','Pontuação de segurança','Security score',0],
+    ['l-pin-label','PIN rápido','Quick PIN',0],
+    ['pgm-words-lbl','Número de palavras:','Number of words:',0],
+    ['pin-dur-lbl','Validade do PIN','PIN validity',0],
+    ['s-snap-title','💾 Cópias de Segurança','💾 Backups',0],
+    ['snap-title','💾 Cópias de Segurança','💾 Backups',0],
+    ['snap-open-txt','Ver e restaurar cópias','View and restore backups',0],
+    ['t2-setup-btn','Ativar proteção','Enable protection',0],
+    ['t2-setup-sub','Fecha este separador com um PIN próprio e uma chave que a palavra-passe mestra não abre.','Lock this tab with its own PIN and a key the master password cannot open.',0],
+    ['totp-modal-title','🔢 Novo Código 2FA','🔢 New 2FA Code',0],
+    ['totp-shield-txt','Proteção','Protection',0],
+    ['tbm-save','Guardar','Save',0],
+    ['tbm-priv','Privado','Private',0],
+    ['tbm-cal','Calendário','Calendar',0],
+    ['tbm-set','Ajustes','Settings',0],
+    ['tbm-lock','Bloquear','Lock',0],
+  ].forEach(([id,pt,en,html])=>{const el=document.getElementById(id);if(el){if(html)el.innerHTML=_L?en:pt;else el.textContent=_L?en:pt;}});
+  {const ec=document.getElementById('export-count');const ecv=ec?ec.textContent:'0';const edb=document.getElementById('export-do-btn');if(edb)edb.innerHTML='📤 '+(_L?'Export':'Exportar')+' (<span id="export-count">'+ecv+'</span>)';}
   // Re-render
   renderBankCards();
   // HowTo
@@ -5207,6 +5272,43 @@ function runHealthCheck(){
   const toReview=active.filter(e=>!e.reviewedAt||(now-e.reviewedAt)>=90*86400000);
   return {total,weak,dups,old,no2fa,reviewed,toReview,score:calcSecurityScore()};
 }
+function renderHealthCharts(r){
+  const en=currentLang==='en';
+  const active=vault.filter(e=>!e.archived);
+  let strong=0,medium=0,weak=0;
+  active.forEach(e=>{if(!e.pw)return;const s=getPwScore(e.pw);if(s>=4)strong++;else if(s>=2)medium++;else weak++;});
+  const totalPw=strong+medium+weak;
+  if(!totalPw)return '';
+  const C=2*Math.PI*50;
+  const segs=[{v:strong,c:'#4caf82',l:en?'Strong':'Fortes'},{v:medium,c:'var(--accent)',l:en?'Medium':'Médias'},{v:weak,c:'#e05252',l:en?'Weak':'Fracas'}];
+  let off=0;
+  const circles=segs.filter(s=>s.v>0).map(s=>{const len=s.v/totalPw*C;const el='<circle cx="60" cy="60" r="50" fill="none" stroke="'+s.c+'" stroke-width="13" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 60 60)"/>';off+=len;return el;}).join('');
+  const pctStrong=Math.round(strong/totalPw*100);
+  const legend=segs.map(s=>'<div class="hc-leg-row"><span class="hc-leg-dot" style="background:'+s.c+'"></span><span class="hc-leg-l">'+s.l+'</span><span class="hc-leg-v">'+s.v+'</span></div>').join('');
+  // Barras de problemas
+  const probs=[
+    {l:en?'Weak':'Fracas',v:r.weak.length,c:'#e05252'},
+    {l:en?'Reused':'Repetidas',v:r.dups.length,c:'#e0a052'},
+    {l:en?'Old':'Antigas',v:r.old.length,c:'#c9a84c'},
+    {l:en?'No 2FA':'Sem 2FA',v:r.no2fa.length,c:'#8a8f9e'},
+  ];
+  const maxP=Math.max(1,...probs.map(p=>p.v));
+  const bars=probs.map(p=>'<div class="hc-bar-row"><span class="hc-bar-l">'+p.l+'</span><span class="hc-bar-track"><span class="hc-bar-fill" style="width:'+(p.v/maxP*100)+'%;background:'+p.c+'"></span></span><span class="hc-bar-v">'+p.v+'</span></div>').join('');
+  return '<div class="hc-charts">'+
+    '<div class="hc-chart-card">'+
+      '<div class="hc-chart-title">'+(en?'Password strength':'Força das palavras-passe')+'</div>'+
+      '<div class="hc-donut-wrap">'+
+        '<svg class="hc-donut" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="13"/>'+circles+'</svg>'+
+        '<div class="hc-donut-center"><span class="hc-donut-pct">'+pctStrong+'%</span><span class="hc-donut-sub">'+(en?'strong':'fortes')+'</span></div>'+
+      '</div>'+
+      '<div class="hc-legend">'+legend+'</div>'+
+    '</div>'+
+    '<div class="hc-chart-card">'+
+      '<div class="hc-chart-title">'+(en?'Issues found':'Problemas encontrados')+'</div>'+
+      '<div class="hc-bars">'+bars+'</div>'+
+    '</div>'+
+  '</div>';
+}
 function openHealthCheck(){
   const en=currentLang==='en';
   const r=runHealthCheck();
@@ -5258,7 +5360,7 @@ function openHealthCheck(){
       <div class="hc-well-track"><div class="hc-well-fill" style="width:${revPct}%"></div></div>
       <div class="hc-well-hint">${r.toReview.length?(en?`${r.toReview.length} account${r.toReview.length>1?'s':''} to review`:`${r.toReview.length} ${r.toReview.length>1?'contas por rever':'conta por rever'}`):(en?'All accounts reviewed! 🎉':'Todas as contas revistas! 🎉')}</div>
     </div>`:'';
-  document.getElementById('hc-body').innerHTML=wellBar+body;
+  document.getElementById('hc-body').innerHTML=(r.total?renderHealthCharts(r):'')+wellBar+body;
   document.getElementById('hc-title').textContent=en?'🩺 Health Check':'🩺 Auditoria de Segurança';
   document.getElementById('healthcheck-overlay').classList.add('open');
 }
@@ -6680,7 +6782,7 @@ async function saveFile(){
   if(totpUnlocked)totpEnc=await encryptTotpArray();
   const p=await encrypt(masterKey,vaultPayload());
   const container={salt:Array.from(window._salt),payload:p};
-  const json=JSON.stringify(container);
+  const json=JSON.stringify(container);pendingVaultText=json;
   const dateStr=new Date().toISOString().slice(0,10);
   lastSavedAt=Date.now();
   pushSnapshot(container);
