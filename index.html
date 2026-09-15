@@ -225,7 +225,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .drag-overlay-text{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);letter-spacing:4px;}
 .autolock-badge{font-size:.68rem;letter-spacing:1px;padding:5px 11px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted);white-space:nowrap;}
 .tb-mini{display:none;}
-body.bg-blur .tabs,body.bg-blur .tab-content,body.bg-blur .search-wrap,body.bg-blur .modal-overlay{filter:blur(16px);transition:filter .12s;}
+body.bg-blur #app,body.bg-blur .modal-overlay{filter:blur(16px);transition:filter .12s;}
 
 /* TABS */
 .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel-glass);padding:0 22px;overflow-x:auto;position:relative;}
@@ -233,6 +233,27 @@ body.bg-blur .tabs,body.bg-blur .tab-content,body.bg-blur .search-wrap,body.bg-b
 .tab-btn{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:2px;text-transform:uppercase;padding:11px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--accent);}
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.asset-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px 16px;transition:border-color .2s;}
+.asset-card:hover{border-color:var(--accent-dim);}
+.asset-head{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.asset-ic{font-size:1.15rem;flex-shrink:0;}
+.asset-name{flex:1;min-width:0;font-size:.84rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.asset-acts{display:flex;gap:5px;flex-shrink:0;}
+.asset-mini{font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .18s;}
+.asset-mini:hover{color:var(--accent);border-color:var(--accent-dim);}
+.asset-mini.danger:hover{color:var(--red);border-color:var(--red);}
+.asset-meta{font-size:.68rem;color:var(--text-muted);margin-bottom:6px;}
+.asset-key{display:flex;align-items:center;gap:7px;margin:8px 0;padding:7px 10px;background:rgba(0,0,0,.18);border-radius:7px;}
+.asset-key-val{flex:1;min-width:0;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.asset-when{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.5px;margin-top:6px;}
+.asset-notes{font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+@media(max-width:560px){.asset-grid{grid-template-columns:1fr;}}
+.subtabs{display:flex;gap:6px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.12);overflow-x:auto;scrollbar-width:none;}
+.subtabs::-webkit-scrollbar{display:none;}
+.subtab-btn{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:1.2px;text-transform:uppercase;padding:7px 14px;background:transparent;border:1px solid transparent;border-radius:20px;color:var(--text-muted);cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0;}
+.subtab-btn:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.subtab-btn.active{color:var(--accent);border-color:var(--accent-dim);background:rgba(var(--accent-rgb),.10);}
 
 /* MAIN */
 .main{display:flex;flex:1;min-height:0;height:calc(100dvh - 112px);}
@@ -274,6 +295,14 @@ body.bg-blur .tabs,body.bg-blur .tab-content,body.bg-blur .search-wrap,body.bg-b
 #tab-dashboard.active{display:block;}
 #tab-info{display:none;}
 #tab-info.active{display:block;overflow-y:auto;padding:20px 24px;}
+#tab-warranty{display:none;}
+#tab-warranty.active{display:block;overflow-y:auto;padding:20px 24px;}
+#tab-license{display:none;}
+#tab-license.active{display:block;overflow-y:auto;padding:20px 24px;}
+#tab-vehicle{display:none;}
+#tab-vehicle.active{display:block;overflow-y:auto;padding:20px 24px;}
+#tab-dates{display:none;}
+#tab-dates.active{display:block;overflow-y:auto;padding:20px 24px;}
 #tab-store{display:none;}
 #tab-store.active{display:block;overflow-y:auto;padding:20px 24px;}
 #tab-vault{display:none;}
@@ -416,6 +445,19 @@ body.bg-blur .tabs,body.bg-blur .tab-content,body.bg-blur .search-wrap,body.bg-b
 .tags-input{background:none;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.72rem;min-width:80px;flex:1;}
 
 /* ATTACHMENT */
+.att-chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;}
+.att-chip{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(var(--accent-rgb),.06);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.56rem;cursor:pointer;transition:all .18s;}
+.att-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;}
+.att-chip:hover{color:var(--accent);border-color:var(--accent-dim);background:rgba(var(--accent-rgb),.14);}
+.att-list{margin-top:9px;}
+.att-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;}
+.att-ic{font-size:.95rem;flex-shrink:0;}
+.att-name{flex:1;min-width:0;font-size:.68rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.att-size{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--text-muted);flex-shrink:0;}
+.att-btn{font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:11px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;flex-shrink:0;transition:all .18s;}
+.att-btn:hover{color:var(--accent);border-color:var(--accent-dim);}
+.att-btn.danger:hover{color:var(--red);border-color:var(--red);}
+.att-total{font-size:.6rem;color:var(--text-muted);margin-top:6px;font-family:'JetBrains Mono',monospace;}
 .attachment-preview-wrap{margin-top:8px;}
 .attachment-thumb{width:60px;height:60px;object-fit:cover;border-radius:2px;border:1px solid var(--border);}
 .attachment-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:.7rem;margin-left:8px;}
@@ -1324,6 +1366,8 @@ body::after{bottom:-32vmax;right:-24vmax;
   .tabs{padding:0 10px;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .tabs::-webkit-scrollbar{display:none;}
   .tab-btn{padding:12px 15px;font-size:.62rem;letter-spacing:1px;flex-shrink:0;white-space:nowrap;}
+  .subtabs{padding:8px 10px;gap:5px;}
+  .subtab-btn{padding:7px 12px;font-size:.58rem;letter-spacing:.8px;}
 
   /* MAIN — coluna, altura auto */
   .main{flex-direction:column;height:auto;min-height:0;flex:1;}
@@ -1813,7 +1857,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.36</span>
+      <span>Aurora Vault © 2026 · v9.41</span>
     </div>
   </div>
 </div>
@@ -1856,18 +1900,29 @@ body::after{bottom:-32vmax;right:-24vmax;
   <div id="global-search-results" style="display:none;padding:20px 24px;overflow-y:auto;flex:1"></div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" id="tab-btn-info" onclick="switchTab('info')">🆔 <span id="tab-info-txt">Info</span></button>
-    <button class="tab-btn" id="tab-btn-vault" onclick="switchTab('vault')">🔐 <span id="tab-vault-txt">Cofre</span></button>
-    <button class="tab-btn" id="tab-btn-notes" onclick="switchTab('notes')">📝 <span id="tab-notes-txt">Notas</span></button>
-    <button class="tab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Cartões</span></button>
-    <button class="tab-btn" id="tab-btn-store" onclick="switchTab('store')">🎟️ <span id="tab-store-txt">Cartões Loja</span></button>
-    <button class="tab-btn" id="tab-btn-totp" onclick="switchTab('totp')">🔢 <span id="tab-totp-txt">2FA</span></button>
-    <button class="tab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
-    <button class="tab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
-    <button class="tab-btn" id="tab-btn-trash" onclick="switchTab('trash')">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
+    <button class="tab-btn active" id="grp-btn-dashboard" onclick="switchGroup('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" id="grp-btn-cofre" onclick="switchGroup('cofre')">🔐 <span id="grp-cofre-txt">Cofre</span></button>
+    <button class="tab-btn" id="grp-btn-cards" onclick="switchGroup('cards')">💳 <span id="grp-cards-txt">Cartões</span></button>
+    <button class="tab-btn" id="grp-btn-docs" onclick="switchGroup('docs')">📁 <span id="grp-docs-txt">Documentos</span></button>
+    <button class="tab-btn" id="grp-btn-bens" onclick="switchGroup('bens')">🏠 <span id="grp-bens-txt">Bens</span></button>
+    <button class="tab-btn" id="grp-btn-archive" onclick="switchGroup('archive')">📦 <span id="grp-archive-txt">Arquivo</span></button>
     <div id="tabs-wifi"></div>
     <div class="tab-indicator" id="tab-indicator"></div>
+  </div>
+  <div class="subtabs" id="subtabs" style="display:none">
+    <button class="subtab-btn" id="tab-btn-vault" onclick="switchTab('vault')">🔐 <span id="tab-vault-txt">Cofre</span></button>
+    <button class="subtab-btn" id="tab-btn-totp" onclick="switchTab('totp')">🔢 <span id="tab-totp-txt">2FA</span></button>
+    <button class="subtab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Bancários</span></button>
+    <button class="subtab-btn" id="tab-btn-store" onclick="switchTab('store')">🎟️ <span id="tab-store-txt">Cartões Loja</span></button>
+    <button class="subtab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
+    <button class="subtab-btn" id="tab-btn-notes" onclick="switchTab('notes')">📝 <span id="tab-notes-txt">Notas</span></button>
+    <button class="subtab-btn" id="tab-btn-info" onclick="switchTab('info')">🆔 <span id="tab-info-txt">Info</span></button>
+    <button class="subtab-btn" id="tab-btn-warranty" onclick="switchTab('warranty')">🧾 <span id="tab-warranty-txt">Garantias</span></button>
+    <button class="subtab-btn" id="tab-btn-license" onclick="switchTab('license')">🔑 <span id="tab-license-txt">Licenças</span></button>
+    <button class="subtab-btn" id="tab-btn-vehicle" onclick="switchTab('vehicle')">🚗 <span id="tab-vehicle-txt">Veículos</span></button>
+    <button class="subtab-btn" id="tab-btn-dates" onclick="switchTab('dates')">🎂 <span id="tab-dates-txt">Datas</span></button>
+    <button class="subtab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
+    <button class="subtab-btn" id="tab-btn-trash" onclick="switchTab('trash')">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
   </div>
 
   <!-- DASHBOARD -->
@@ -2131,6 +2186,62 @@ body::after{bottom:-32vmax;right:-24vmax;
   </div>
 
   <!-- RECICLAGEM -->
+  <div id="tab-warranty">
+    <div class="content-header">
+      <div class="content-title" id="warranty-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🧾 Garantias</div>
+      <div class="header-controls">
+        <button class="btn btn-gold" onclick="openAssetModal('warranty')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="warranty-add-txt">Adicionar garantia</span>
+        </button>
+      </div>
+    </div>
+    <div id="warranty-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;max-width:640px">Guarda as tuas compras com garantia. A app avisa-te antes de expirar.</div>
+    <div id="warranty-content"></div>
+  </div>
+
+  <div id="tab-license">
+    <div class="content-header">
+      <div class="content-title" id="license-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🔑 Licenças de Software</div>
+      <div class="header-controls">
+        <button class="btn btn-gold" onclick="openAssetModal('license')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="license-add-txt">Adicionar licença</span>
+        </button>
+      </div>
+    </div>
+    <div id="license-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;max-width:640px">Chaves do Windows, Office, jogos e apps que compraste.</div>
+    <div id="license-content"></div>
+  </div>
+
+  <div id="tab-vehicle">
+    <div class="content-header">
+      <div class="content-title" id="vehicle-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🚗 Veículos</div>
+      <div class="header-controls">
+        <button class="btn btn-gold" onclick="openAssetModal('vehicle')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="vehicle-add-txt">Adicionar veículo</span>
+        </button>
+      </div>
+    </div>
+    <div id="vehicle-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;max-width:640px">Seguro, inspeção e revisão — as datas entram no calendário.</div>
+    <div id="vehicle-content"></div>
+  </div>
+
+  <div id="tab-dates">
+    <div class="content-header">
+      <div class="content-title" id="dates-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🎂 Datas Importantes</div>
+      <div class="header-controls">
+        <button class="btn btn-gold" onclick="openAssetModal('dates')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="dates-add-txt">Adicionar data</span>
+        </button>
+      </div>
+    </div>
+    <div id="dates-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;max-width:640px">Aniversários e datas que não podes esquecer.</div>
+    <div id="dates-content"></div>
+  </div>
+
   <div id="tab-trash">
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header">
@@ -2150,7 +2261,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.36</span>
+      <span>Aurora Vault © 2026 · v9.41</span>
     </div>
   </div>
   </div>
@@ -2237,12 +2348,9 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
     </div>
     <div class="form-group">
-      <label id="f-attach-lbl">Anexo (imagem)</label>
-      <input type="file" id="f-attach" accept="image/*" onchange="handleAttachment(event)" style="font-size:.7rem">
-      <div class="attachment-preview-wrap" id="attach-preview-wrap" style="display:none">
-        <img id="attach-thumb" class="attachment-thumb" src="" alt="anexo">
-        <button class="attachment-remove" onclick="removeAttachment()">✕ Remover</button>
-      </div>
+      <label id="f-attach-lbl">Anexos (imagens ou PDF)</label>
+      <input type="file" id="f-attach" accept="image/*,application/pdf" multiple onchange="handleAttachment(event,'entry')" style="font-size:.7rem">
+      <div id="attach-list" class="att-list"></div>
     </div>
     <div class="form-group">
       <label id="f-notes-lbl">Notas</label>
@@ -2676,6 +2784,16 @@ body::after{bottom:-32vmax;right:-24vmax;
 </div>
 
 <!-- CARTÃO DE LOJA MODAL -->
+<div class="modal-overlay" id="asset-overlay" onclick="if(event.target===this)closeAssetModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="asset-modal-title">Novo</div>
+    <div id="asset-fields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAssetModal()" id="asset-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveAsset()" id="asset-save-btn">Guardar</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="store-overlay" onclick="if(event.target===this)closeStoreModal()">
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="store-modal-title">Adicionar cartão</div>
@@ -3187,7 +3305,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.36';
+const APP_VERSION='9.41';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -3199,6 +3317,7 @@ let payloadExtras={},vaultReadOnly=false;let currentDocSort='added';let lastSave
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
 let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
+let entryAttachments=[],assetAttachments=[];
 const MAX_ATTEMPTS=5;
 const CATS={all:{icon:'◈'},email:{icon:'📧'},banco:{icon:'🏦'},jogo:{icon:'🎮'},social:{icon:'💬'},trabalho:{icon:'💼'},outro:{icon:'📁'}};
 
@@ -4378,7 +4497,7 @@ async function submitOpenVault(pwArg){
     const salt=new Uint8Array(container.salt);window._salt=salt;
     masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
     const data=await decrypt(masterKey,container.payload);
-    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];vaultName=data.vaultName||'';
+    vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];assets=data.assets||[];vaultName=data.vaultName||'';
   totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
   totp=totpRecWrap?[]:(data.totp||[]);cleanOldTrash();
   payloadExtras={};
@@ -5012,13 +5131,46 @@ function animateDashNums(){
 }
 
 // ══ TABS ══
-function switchTab(tab){
-  ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash'].forEach(id=>{
-    const tabEl=document.getElementById('tab-'+id);
-    const btnEl=document.getElementById('tab-btn-'+id);
-    if(tabEl){tabEl.classList.remove('active');void tabEl.offsetHeight;}
-    if(btnEl)btnEl.classList.toggle('active',id===tab);
+// ══ GRUPOS DE ABAS ══
+const TAB_GROUPS={
+  dashboard:['dashboard'],
+  cofre:['vault','totp'],
+  cards:['cards','store'],
+  docs:['docs','notes','info'],
+  bens:['warranty','license','vehicle','dates'],
+  archive:['archive','trash']
+};
+let currentGroup='dashboard';
+const lastLeafOf={dashboard:'dashboard',cofre:'vault',cards:'cards',docs:'docs',bens:'warranty',archive:'archive'};
+function groupOfTab(tab){
+  for(const g in TAB_GROUPS)if(TAB_GROUPS[g].includes(tab))return g;
+  return 'dashboard';
+}
+function switchGroup(g){
+  if(!TAB_GROUPS[g])return;
+  switchTab(lastLeafOf[g]||TAB_GROUPS[g][0]);
+}
+function renderTabNav(tab){
+  const g=groupOfTab(tab);
+  currentGroup=g;lastLeafOf[g]=tab;
+  for(const gg in TAB_GROUPS){
+    const gb=document.getElementById('grp-btn-'+gg);
+    if(gb)gb.classList.toggle('active',gg===g);
+  }
+  const leaves=TAB_GROUPS[g];
+  const bar=document.getElementById('subtabs');
+  if(bar)bar.style.display=leaves.length>1?'flex':'none';
+  ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash','warranty','license','vehicle','dates'].forEach(id=>{
+    const b=document.getElementById('tab-btn-'+id);
+    if(b){b.style.display=leaves.includes(id)?'':'none';b.classList.toggle('active',id===tab);}
   });
+}
+function switchTab(tab){
+  ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash','warranty','license','vehicle','dates'].forEach(id=>{
+    const tabEl=document.getElementById('tab-'+id);
+    if(tabEl){tabEl.classList.remove('active');void tabEl.offsetHeight;}
+  });
+  renderTabNav(tab);
   const active=document.getElementById('tab-'+tab);
   if(active)active.classList.add('active');
   if(tab==='dashboard')renderDashboard();
@@ -5030,6 +5182,7 @@ function switchTab(tab){
   if(tab==='totp')renderTotp();
   if(tab==='info')renderInfo();
   if(tab==='store')renderStoreCards();
+  if(['warranty','license','vehicle','dates'].includes(tab))renderAssets(tab);
   positionTabIndicator();
   requestAnimationFrame(applyStagger);
 }
@@ -5096,7 +5249,7 @@ function applyLangStatic(){
   const createBtn=document.getElementById('l-create-btn');if(createBtn)createBtn.textContent=currentLang==='en'?'✦ Create Vault':'✦ Criar Cofre';
   s('l-howto-title','howToTitle');
   s('tab-vault-txt','tabVault');s('tab-notes-txt','tabNotes');s('tab-archive-txt','tabArchive');
-  document.getElementById('tab-btn-dashboard').textContent=t('tabDash');
+  {const gd=document.getElementById('grp-btn-dashboard');if(gd)gd.textContent=t('tabDash');}
   s('tb-new-txt','tbNew');s('tb-import-txt','tbImport');s('tb-save-txt','tbSave');s('tb-pdf-txt','tbPdf');
   const tbCsv=document.getElementById('tb-csv-txt');if(tbCsv)tbCsv.textContent=t('tbCsv');
   const tdocs=document.getElementById('tab-docs-txt');if(tdocs)tdocs.textContent=currentLang==='en'?'Documents':'Documentos';
@@ -5212,9 +5365,33 @@ function applyLangStatic(){
     ['s-notif-title','🔔 Avisos de validades','🔔 Expiry alerts',0],
     ['s-notif-desc','Recebe um aviso quando um documento, cartão ou subscrição está prestes a expirar ou renovar (30, 7 e 2 dias antes).','Get an alert when a document, card or subscription is about to expire or renew (30, 7 and 2 days ahead).',0],
     ['s-notif-btn-txt','Avisos','Alerts',0],
+    ['grp-cofre-txt','Cofre','Vault',0],
+    ['grp-cards-txt','Cartões','Cards',0],
+    ['grp-docs-txt','Documentos','Documents',0],
+    ['grp-archive-txt','Arquivo','Archive',0],
+    ['tab-cards-txt','Bancários','Bank',0],
+    ['grp-bens-txt','Bens','Assets',0],
+    ['tab-warranty-txt','Garantias','Warranties',0],
+    ['tab-license-txt','Licenças','Licenses',0],
+    ['tab-vehicle-txt','Veículos','Vehicles',0],
+    ['tab-dates-txt','Datas','Dates',0],
+    ['warranty-tab-title','🧾 Garantias','🧾 Warranties',0],
+    ['license-tab-title','🔑 Licenças de Software','🔑 Software Licenses',0],
+    ['vehicle-tab-title','🚗 Veículos','🚗 Vehicles',0],
+    ['dates-tab-title','🎂 Datas Importantes','🎂 Important Dates',0],
+    ['warranty-add-txt','Adicionar garantia','Add warranty',0],
+    ['license-add-txt','Adicionar licença','Add license',0],
+    ['vehicle-add-txt','Adicionar veículo','Add vehicle',0],
+    ['dates-add-txt','Adicionar data','Add date',0],
+    ['f-attach-lbl','Anexos (imagens ou PDF)','Attachments (images or PDF)',0],
+    ['warranty-intro','Guarda as tuas compras com garantia. A app avisa-te antes de expirar.','Keep track of your purchases under warranty. The app warns you before it expires.',0],
+    ['license-intro','Chaves do Windows, Office, jogos e apps que compraste.','Keys for Windows, Office, games and apps you bought.',0],
+    ['vehicle-intro','Seguro, inspeção e revisão — as datas entram no calendário.','Insurance, inspection and service — dates go into the calendar.',0],
+    ['dates-intro','Aniversários e datas que não podes esquecer.','Birthdays and dates you cannot forget.',0],
   ].forEach(([id,pt,en,html])=>{const el=document.getElementById(id);if(el){if(html)el.innerHTML=_L?en:pt;else el.textContent=_L?en:pt;}});
   {const ec=document.getElementById('export-count');const ecv=ec?ec.textContent:'0';const edb=document.getElementById('export-do-btn');if(edb)edb.innerHTML='📤 '+(_L?'Export':'Exportar')+' (<span id="export-count">'+ecv+'</span>)';}
   try{renderNotifBtn();}catch(e){}
+  try{if(['warranty','license','vehicle','dates'].includes(currentGroup?lastLeafOf[currentGroup]:''))renderAssets(lastLeafOf[currentGroup]);}catch(e){}
   // Re-render
   renderBankCards();
   // HowTo
@@ -5716,13 +5893,14 @@ function renderCards(){
       </div>
       <div class="card-name">${entry.flag?`<span class="entry-flag-dot" style="background:${(ENTRY_FLAGS.find(f=>f.id===entry.flag)||{}).color||'transparent'}"></span>`:''}${esc(entry.name)}</div><div class="pw-badges">${weakBadge}${ageBadge}</div>
       ${vFilterActive&&entry.folderId?`<div class="doc-loc">📍 ${esc(scopePathLabel(entry.folderId,'vault'))}</div>`:''}
-      ${entry.attachment?`<img class="card-attachment" src="${entry.attachment}" alt="anexo">`:''}
+      ${(()=>{const ats=normalizeAttachments(entry);const im=ats.find(x=>(x.type||'').startsWith('image/'));return im?`<img class="card-attachment" src="${im.data}" alt="anexo">`:'';})()}
       ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText('${esc(entry.user)}','${t('userCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.pw?`<div class="card-field"><span class="card-field-label">${t('cardPw')}</span><div class="card-field-inner"><span class="card-field-value masked" id="pw-${entry.id}">••••••••</span><button class="card-btn" onclick="togglePw('${entry.id}','${esc(entry.pw)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(entry.pw)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.url?`<div class="card-field"><span class="card-field-label">${t('cardUrl')}</span><div class="card-field-inner"><a href="${esc(entry.url)}" target="_blank" class="card-field-value" style="color:var(--accent-dim);text-decoration:none;font-size:.7rem">${esc(entry.url)}</a></div></div>`:''}
       ${(entry.fields||[]).map(f=>`<div class="card-field"><span class="card-field-label">${esc(f.k)}</span><div class="card-field-inner"><span class="card-field-value">${esc(f.v)}</span><button class="card-btn" onclick="copyText('${esc(f.v)}','✓')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`).join('')}
       ${entry.notes?`<div class="card-field"><span class="card-field-label">${t('cardNotes')}</span><div class="card-field-inner"><span class="card-field-value" style="white-space:normal;font-size:.65rem;color:var(--text-muted)">${esc(entry.notes)}</span></div></div>`:''}
       ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i},'${esc(p)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(p)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
+      ${attachChips(entry,'vault')}
       <div class="card-actions">
         ${entry.url?`<button class="card-btn" onclick="event.stopPropagation();goToSiteEntry('${esc(entry.url)}','${esc(entry.pw)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${t('btnGoSite')}</button>`:''}
         ${isWifiEntry(entry)?`<button class="card-btn" onclick="event.stopPropagation();openWifiQR('${entry.id}')">📶 QR</button>`:''}
@@ -5916,6 +6094,13 @@ function calCollectEvents(){
   (bankCards||[]).forEach(bc=>{
     if(bc.expiry&&/^\d{2}\/\d{2}$/.test(bc.expiry)){const[mm,aa]=bc.expiry.split('/');const d=new Date(2000+parseInt(aa),parseInt(mm),0);if(!isNaN(d))events.push({date:d,type:'card',label:bc.name||bc.bank||'Cartão',color:'#e05270'});}
   });
+  (assets||[]).forEach(as=>{
+    const kindType={warranty:'warranty',license:'license',vehicle:'vehicle',dates:'date'}[as.kind];
+    const kindColor={warranty:'#6fae7a',license:'#c98fd0',vehicle:'#5aa9c9',dates:'#e0a052'}[as.kind];
+    assetDates(as).forEach(d=>{
+      events.push({date:d.date,type:kindType,label:(as.name||'')+(d.sub?' ('+d.sub+')':''),color:kindColor});
+    });
+  });
   return events;
 }
 // Todos os eventos de um ano (utilizador + feriados)
@@ -5937,11 +6122,11 @@ function calWhenLabel(n){
   if(n===-1)return en?'yesterday':'ontem';
   return en?(-n+' days ago'):('há '+(-n)+' dias');
 }
-const CAL_ICON={renew:'🔄',doc:'📄',card:'💳',holiday:'🎉'};
+const CAL_ICON={renew:'🔄',doc:'📄',card:'💳',holiday:'🎉',warranty:'🧾',license:'🔑',vehicle:'🚗',date:'🎂'};
 function calTypeLabel(t){
   const en=currentLang==='en';
-  return (en?{renew:'Renewal',doc:'Document expiry',card:'Card expiry',holiday:'Holiday'}
-            :{renew:'Renovação',doc:'Validade de documento',card:'Validade de cartão',holiday:'Feriado'})[t]||'';
+  return (en?{renew:'Renewal',doc:'Document expiry',card:'Card expiry',holiday:'Holiday',warranty:'Warranty',license:'License',vehicle:'Vehicle',date:'Important date'}
+            :{renew:'Renovação',doc:'Validade de documento',card:'Validade de cartão',holiday:'Feriado',warranty:'Garantia',license:'Licença',vehicle:'Veículo',date:'Data importante'})[t]||'';
 }
 function openCalendar(){
   const now=new Date();
@@ -6015,7 +6200,7 @@ function exportCalendarIcs(){
   const fmtD=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
   const stamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
   const esc2=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
-  const typeTxt={renew:en?'Renewal':'Renovação',doc:en?'Document expiry':'Validade de documento',card:en?'Card expiry':'Validade de cartão'};
+  const typeTxt={renew:en?'Renewal':'Renovação',doc:en?'Document expiry':'Validade de documento',card:en?'Card expiry':'Validade de cartão',warranty:en?'Warranty':'Garantia',license:en?'License':'Licença',vehicle:en?'Vehicle':'Veículo',date:en?'Important date':'Data importante'};
   const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Aurora Vault//PT','CALSCALE:GREGORIAN','METHOD:PUBLISH',
            'X-WR-CALNAME:'+(en?'Aurora Vault':'Aurora Vault')];
   all.forEach((e,i)=>{
@@ -6342,7 +6527,7 @@ function restoreNote(id){const n=notes.find(x=>x.id===id);if(n){logActivity('res
 
 // ══ ENTRY MODAL ══
 function openModal(id=null){
-  editingId=id;entryTags=[];entryAttachment=null;entryEmoji='⭐';
+  editingId=id;entryTags=[];entryAttachment=null;entryAttachments=[];entryEmoji='⭐';
   document.getElementById('modal-title').textContent=id?t('modalEdit'):t('modalNew');
   populateCatSelect();
   if(id){
@@ -6350,7 +6535,7 @@ function openModal(id=null){
     document.getElementById('f-name').value=e.name||'';document.getElementById('f-cat').value=e.cat||'outro';
     document.getElementById('f-user').value=e.user||'';document.getElementById('f-pw').value=e.pw||'';
     document.getElementById('f-url').value=e.url||'';document.getElementById('f-notes').value=e.notes||'';
-    entryTags=[...(e.tags||[])];entryAttachment=e.attachment||null;
+    entryTags=[...(e.tags||[])];entryAttachment=e.attachment||null;entryAttachments=normalizeAttachments(e);
     entryFields=(e.fields||[]).map(f=>({k:f.k||'',v:f.v||''}));
     populateEntryFolderSelect(e.folderId||'');
     const wf=document.getElementById('f-wifi');if(wf)wf.checked=isWifiEntry(e);
@@ -6366,13 +6551,13 @@ function openModal(id=null){
   }
   document.getElementById('f-icon-preview').textContent=entryEmoji;
   document.getElementById('emoji-picker-wrap').style.display='none';
-  renderTagPills();renderFieldRows();updateAttachPreview();renderFlagPicker();
+  renderTagPills();renderFieldRows();renderAttachList('entry');renderFlagPicker();
   checkPwStrength();checkDuplicate();
   document.getElementById('modal-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-name').focus(),100);
 }
 function editEntry(id){openModal(id);}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;entryTags=[];entryAttachment=null;entryFields=[];}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;entryTags=[];entryAttachments=[];entryAttachment=null;entryFields=[];}
 function saveEntry(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){alert(t('confirmDelete').replace('?','')||'Nome obrigatório!');return;}
@@ -6386,7 +6571,7 @@ function saveEntry(){
     fields:entryFields.map(f=>({k:f.k.trim(),v:f.v.trim()})).filter(f=>f.k||f.v),
     folderId:(document.getElementById('entry-folder')?.value||'')||null,
     isWifi:!!document.getElementById('f-wifi')?.checked,
-    attachment:entryAttachment,fav:existing?existing.fav:false,archived:false,icon:entryEmoji,
+    attachments:entryAttachments,fav:existing?existing.fav:false,archived:false,icon:entryEmoji,
     createdAt:existing?existing.createdAt:Date.now(),order:existing?existing.order:vault.length,
     pwUpdated:pwChanged?Date.now():(existing?existing.pwUpdated:Date.now()),
     pwHistory:pwChanged&&existing?([(existing.pw),...(existing.pwHistory||[])].slice(0,3)):(existing?existing.pwHistory||[]:null),
@@ -6423,19 +6608,125 @@ function handleTagKey(e){
 function removeTag(tag){entryTags=entryTags.filter(t2=>t2!==tag);renderTagPills();}
 
 // ══ ATTACHMENT ══
-function handleAttachment(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{entryAttachment=ev.target.result;updateAttachPreview();};
-  reader.readAsDataURL(file);
+// ══ ANEXOS (múltiplos, imagens + PDF) ══
+// Cada anexo: {id,name,type,size,data}
+function fmtSize(b){
+  if(!b&&b!==0)return '';
+  if(b<1024)return b+' B';
+  if(b<1048576)return (b/1024).toFixed(0)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
 }
-function updateAttachPreview(){
-  const wrap=document.getElementById('attach-preview-wrap');
-  const img=document.getElementById('attach-thumb');
-  if(entryAttachment){wrap.style.display='block';img.src=entryAttachment;}
-  else{wrap.style.display='none';img.src='';}
+function attachListOf(ctx){return ctx==='asset'?assetAttachments:entryAttachments;}
+function setAttachList(ctx,arr){if(ctx==='asset')assetAttachments=arr;else entryAttachments=arr;}
+// Converte formato antigo (1 imagem em .attachment) para o novo
+function normalizeAttachments(o){
+  if(o&&Array.isArray(o.attachments))return o.attachments.slice();
+  if(o&&o.attachment)return [{id:'old',name:'anexo.jpg',type:'image/jpeg',size:0,data:o.attachment}];
+  return [];
 }
-function removeAttachment(){entryAttachment=null;document.getElementById('f-attach').value='';updateAttachPreview();}
+function compressImage(file,cb){
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const MAX=1600;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        cb(cv.toDataURL('image/jpeg',0.82));
+      }catch(err){cb(e.target.result);}
+    };
+    img.onerror=()=>cb(e.target.result);
+    img.src=e.target.result;
+  };
+  rd.readAsDataURL(file);
+}
+function handleAttachment(ev,ctx){
+  ctx=ctx||'entry';
+  const en=currentLang==='en';
+  const files=Array.from(ev.target.files||[]);
+  if(!files.length)return;
+  const MAXF=8*1024*1024;
+  let pend=files.length;
+  files.forEach(file=>{
+    if(file.size>MAXF){
+      toast(en?('Too big (max 8 MB): '+file.name):('Demasiado grande (máx 8 MB): '+file.name));
+      if(--pend===0)renderAttachList(ctx);
+      return;
+    }
+    const done=data=>{
+      const list=attachListOf(ctx);
+      list.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+                 name:file.name,type:file.type||'application/octet-stream',
+                 size:Math.round((data.length||0)*0.75),data});
+      if(--pend===0)renderAttachList(ctx);
+    };
+    if(file.type&&file.type.startsWith('image/'))compressImage(file,done);
+    else{const rd=new FileReader();rd.onload=e=>done(e.target.result);rd.onerror=()=>{pend--;};rd.readAsDataURL(file);}
+  });
+  ev.target.value='';
+}
+function attachIcon(t){
+  if(!t)return '📎';
+  if(t.startsWith('image/'))return '🖼️';
+  if(t==='application/pdf')return '📕';
+  return '📎';
+}
+function renderAttachList(ctx){
+  ctx=ctx||'entry';
+  const box=document.getElementById(ctx==='asset'?'asset-attach-list':'attach-list');
+  if(!box)return;
+  const en=currentLang==='en';
+  const list=attachListOf(ctx);
+  if(!list.length){box.innerHTML='';return;}
+  const total=list.reduce((s,a)=>s+(a.size||0),0);
+  box.innerHTML=list.map((a,i)=>
+    '<div class="att-row">'+
+      '<span class="att-ic">'+attachIcon(a.type)+'</span>'+
+      '<span class="att-name" title="'+esc(a.name)+'">'+esc(a.name)+'</span>'+
+      '<span class="att-size">'+fmtSize(a.size)+'</span>'+
+      '<button type="button" class="att-btn" onclick="openAttachment(\''+ctx+'\','+i+')">'+(en?'Open':'Abrir')+'</button>'+
+      '<button type="button" class="att-btn danger" onclick="removeAttachment(\''+ctx+'\','+i+')">✕</button>'+
+    '</div>').join('')+
+    '<div class="att-total">'+list.length+' '+(en?'file(s)':'ficheiro(s)')+' · '+fmtSize(total)+
+    (total>3*1024*1024?' <span style="color:var(--accent)">'+(en?'— heavy, the vault file grows':'— pesado, o ficheiro do cofre cresce')+'</span>':'')+'</div>';
+}
+function openAttachData(a){
+  if(!a)return;
+  try{
+    const parts=a.data.split(',');
+    const bin=atob(parts[1]);
+    const arr=new Uint8Array(bin.length);
+    for(let k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);
+    const blob=new Blob([arr],{type:a.type||'application/octet-stream'});
+    const url=URL.createObjectURL(blob);
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  }catch(e){
+    const w=window.open();if(w)w.document.write('<img src="'+a.data+'" style="max-width:100%">');
+  }
+}
+function openAttachment(ctx,i){openAttachData(attachListOf(ctx)[i]);}
+function openAttachmentBy(kind,id,i){
+  const o=kind==='asset'?(assets||[]).find(x=>x.id===id):(vault||[]).find(x=>x.id===id);
+  if(!o)return;
+  openAttachData(normalizeAttachments(o)[i]);
+}
+function attachChips(o,kind){
+  const list=normalizeAttachments(o);
+  if(!list.length)return '';
+  return '<div class="att-chips">'+list.map((a,i)=>
+    '<button class="att-chip" onclick="event.stopPropagation();openAttachmentBy(\''+kind+'\',\''+o.id+'\','+i+')" title="'+esc(a.name||'')+'">'+
+    attachIcon(a.type)+' <span>'+esc(a.name||'')+'</span></button>').join('')+'</div>';
+}
+function removeAttachment(ctx,i){
+  ctx=ctx||'entry';
+  const list=attachListOf(ctx);
+  if(typeof i!=='number'){setAttachList(ctx,[]);renderAttachList(ctx);return;}
+  list.splice(i,1);renderAttachList(ctx);
+}
+
 
 // ══ PW STRENGTH ══
 function checkPwStrength(){
@@ -6842,8 +7133,195 @@ async function changeMasterPw(){
 }
 
 // ══ SAVE FILE ══
+// ══ BENS: garantias, licenças, veículos, datas ══
+const ASSET_SCHEMA={
+  warranty:{icon:'🧾',title:['Garantia','Warranty'],fields:[
+    {k:'name',l:['Produto','Product'],t:'text',req:1,ph:['Ex: Máquina de lavar Bosch','e.g. Bosch washing machine']},
+    {k:'store',l:['Loja','Store'],t:'text',ph:['Ex: Worten','e.g. Currys']},
+    {k:'buyDate',l:['Data de compra','Purchase date'],t:'date',req:1},
+    {k:'years',l:['Anos de garantia','Warranty years'],t:'number',req:1,ph:['2','2']},
+    {k:'price',l:['Valor pago (€)','Price paid (€)'],t:'number'},
+    {k:'notes',l:['Notas','Notes'],t:'textarea'}
+  ]},
+  license:{icon:'🔑',title:['Licença','License'],fields:[
+    {k:'name',l:['Software','Software'],t:'text',req:1,ph:['Ex: Windows 11 Pro','e.g. Windows 11 Pro']},
+    {k:'key',l:['Chave / Serial','Key / Serial'],t:'text',req:1},
+    {k:'email',l:['Conta associada','Linked account'],t:'text'},
+    {k:'buyDate',l:['Data de compra','Purchase date'],t:'date'},
+    {k:'expiry',l:['Validade (se tiver)','Expiry (if any)'],t:'date'},
+    {k:'notes',l:['Notas','Notes'],t:'textarea'}
+  ]},
+  vehicle:{icon:'🚗',title:['Veículo','Vehicle'],fields:[
+    {k:'name',l:['Veículo','Vehicle'],t:'text',req:1,ph:['Ex: Golf 1.6 TDI','e.g. Golf 1.6 TDI']},
+    {k:'plate',l:['Matrícula','Plate'],t:'text'},
+    {k:'insurance',l:['Seguro até','Insurance until'],t:'date'},
+    {k:'inspection',l:['Inspeção até','Inspection until'],t:'date'},
+    {k:'service',l:['Próxima revisão','Next service'],t:'date'},
+    {k:'notes',l:['Notas','Notes'],t:'textarea'}
+  ]},
+  dates:{icon:'🎂',title:['Data','Date'],fields:[
+    {k:'name',l:['O que é','What is it'],t:'text',req:1,ph:['Ex: Aniversário da Aurora','e.g. Anna birthday']},
+    {k:'date',l:['Data','Date'],t:'date',req:1},
+    {k:'yearly',l:['Repete todos os anos','Repeats every year'],t:'check'},
+    {k:'notes',l:['Notas','Notes'],t:'textarea'}
+  ]}
+};
+
+// datas que cada bem gera (para calendário e avisos)
+function assetDates(a){
+  const en=currentLang==='en';
+  const out=[];
+  const mk=(v,sub)=>{if(!v)return;const d=new Date(v);if(!isNaN(d))out.push({date:d,sub});};
+  if(a.kind==='warranty'&&a.buyDate&&a.years){
+    const d=new Date(a.buyDate);
+    if(!isNaN(d)){d.setFullYear(d.getFullYear()+(parseInt(a.years)||0));out.push({date:d,sub:en?'warranty ends':'fim da garantia'});}
+  }
+  if(a.kind==='license')mk(a.expiry,en?'license expires':'licença expira');
+  if(a.kind==='vehicle'){
+    mk(a.insurance,en?'insurance':'seguro');
+    mk(a.inspection,en?'inspection':'inspeção');
+    mk(a.service,en?'service':'revisão');
+  }
+  if(a.kind==='dates'&&a.date){
+    const d=new Date(a.date);
+    if(!isNaN(d)){
+      if(a.yearly){
+        const t=new Date();t.setHours(0,0,0,0);
+        const n=new Date(t.getFullYear(),d.getMonth(),d.getDate());
+        if(n<t)n.setFullYear(n.getFullYear()+1);
+        out.push({date:n,sub:''});
+      }else out.push({date:d,sub:''});
+    }
+  }
+  return out;
+}
+
+function assetNextDate(a){
+  const ds=assetDates(a);if(!ds.length)return null;
+  const t=new Date();t.setHours(0,0,0,0);
+  const fut=ds.filter(x=>x.date>=t).sort((x,y)=>x.date-y.date);
+  return fut.length?fut[0]:ds.sort((x,y)=>y.date-x.date)[0];
+}
+
+function renderAssets(kind){
+  const box=document.getElementById(kind+'-content');if(!box)return;
+  const en=currentLang==='en';
+  const list=(assets||[]).filter(a=>a.kind===kind);
+  if(!list.length){
+    box.innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--text-muted)"><div style="font-size:2.4rem;margin-bottom:12px;opacity:.5">'+ASSET_SCHEMA[kind].icon+'</div><div style="font-size:.78rem">'+(en?'Nothing here yet.':'Ainda não há nada aqui.')+'</div></div>';
+    return;
+  }
+  const sorted=list.slice().sort((a,b)=>{
+    const x=assetNextDate(a),y=assetNextDate(b);
+    if(!x&&!y)return (a.name||'').localeCompare(b.name||'');
+    if(!x)return 1;if(!y)return -1;return x.date-y.date;
+  });
+  box.innerHTML='<div class="asset-grid">'+sorted.map(a=>{
+    const nx=assetNextDate(a);
+    let badge='';
+    if(nx){
+      const n=calDaysUntil(nx.date);
+      const col=n<0?'var(--red)':n<=30?'var(--accent)':'var(--text-muted)';
+      const txt=(nx.sub?esc(nx.sub)+' · ':'')+calWhenLabel(n);
+      badge='<div class="asset-when" style="color:'+col+'">'+txt+'</div>';
+    }
+    let meta=[];
+    if(a.kind==='warranty'){if(a.store)meta.push(esc(a.store));if(a.price)meta.push(fmtMoney(parseFloat(a.price)||0));}
+    if(a.kind==='license'){if(a.email)meta.push(esc(a.email));}
+    if(a.kind==='vehicle'){if(a.plate)meta.push(esc(a.plate));}
+
+    let keyRow='';
+    if(a.kind==='license'&&a.key){
+      keyRow='<div class="asset-key"><span class="asset-key-val" id="ak-'+a.id+'">••••••••••••</span>'+
+        '<button class="asset-mini" onclick="toggleAssetKey(\''+a.id+'\')" id="akb-'+a.id+'">'+(en?'Show':'Ver')+'</button>'+
+        '<button class="asset-mini" onclick="copyAssetKey(\''+a.id+'\')">'+(en?'Copy':'Copiar')+'</button></div>';
+    }
+    return '<div class="asset-card">'+
+      '<div class="asset-head"><span class="asset-ic">'+ASSET_SCHEMA[kind].icon+'</span>'+
+        '<span class="asset-name">'+esc(a.name||'')+'</span>'+
+        '<span class="asset-acts"><button class="asset-mini" onclick="openAssetModal(\''+kind+'\',\''+a.id+'\')">'+(en?'Edit':'Editar')+'</button>'+
+        '<button class="asset-mini danger" onclick="deleteAsset(\''+a.id+'\')">'+(en?'Delete':'Apagar')+'</button></span></div>'+
+      (meta.length?'<div class="asset-meta">'+meta.join(' · ')+'</div>':'')+
+      keyRow+badge+attachChips(a,'asset')+
+      (a.notes?'<div class="asset-notes">'+esc(a.notes)+'</div>':'')+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+function toggleAssetKey(id){
+  const a=assets.find(x=>x.id===id);if(!a)return;
+  const el=document.getElementById('ak-'+id),btn=document.getElementById('akb-'+id);
+  const en=currentLang==='en';
+  if(!el)return;
+  if(el.dataset.shown==='1'){el.textContent='••••••••••••';el.dataset.shown='0';if(btn)btn.textContent=en?'Show':'Ver';}
+  else{el.textContent=a.key||'';el.dataset.shown='1';if(btn)btn.textContent=en?'Hide':'Ocultar';}
+}
+function copyAssetKey(id){
+  const a=assets.find(x=>x.id===id);if(!a||!a.key)return;
+  copyText(a.key,currentLang==='en'?'Key copied!':'Chave copiada!');
+}
+
+function openAssetModal(kind,id){
+  const en=currentLang==='en';
+  currentAssetKind=kind;editingAssetId=id||null;
+  const sch=ASSET_SCHEMA[kind];
+  const a=id?assets.find(x=>x.id===id):null;
+  assetAttachments=a?normalizeAttachments(a):[];
+  document.getElementById('asset-modal-title').textContent=sch.icon+' '+(id?(en?'Edit ':'Editar '):(en?'New ':'Nova '))+sch.title[en?1:0];
+  const box=document.getElementById('asset-fields');
+  box.innerHTML=sch.fields.map(f=>{
+    const v=a?(a[f.k]||''):'';
+    const lbl=f.l[en?1:0]+(f.req?' *':'');
+    if(f.t==='check'){
+      return '<div class="form-group"><label style="display:flex;align-items:center;gap:9px;cursor:pointer"><input type="checkbox" id="as-'+f.k+'"'+(a&&a[f.k]?' checked':'')+' style="width:auto;margin:0"> <span>'+lbl+'</span></label></div>';
+    }
+    if(f.t==='textarea'){
+      return '<div class="form-group"><label>'+lbl+'</label><textarea id="as-'+f.k+'" rows="2">'+esc(v)+'</textarea></div>';
+    }
+    const ph=f.ph?' placeholder="'+esc(f.ph[en?1:0])+'"':'';
+    const step=f.t==='number'?' step="any"':'';
+    return '<div class="form-group"><label>'+lbl+'</label><input type="'+f.t+'" id="as-'+f.k+'" value="'+esc(v)+'"'+ph+step+'></div>';
+  }).join('')+
+    '<div class="form-group"><label>'+(en?'Attachments (images or PDF)':'Anexos (imagens ou PDF)')+'</label>'+
+    '<input type="file" id="asset-attach-input" accept="image/*,application/pdf" multiple onchange="handleAttachment(event,\'asset\')" style="font-size:.7rem">'+
+    '<div id="asset-attach-list" class="att-list"></div></div>';
+  renderAttachList('asset');
+  document.getElementById('asset-cancel-btn').textContent=en?'Cancel':'Cancelar';
+  document.getElementById('asset-save-btn').textContent=en?'Save':'Guardar';
+  document.getElementById('asset-overlay').classList.add('open');
+}
+function closeAssetModal(){document.getElementById('asset-overlay').classList.remove('open');editingAssetId=null;assetAttachments=[];}
+
+function saveAsset(){
+  const en=currentLang==='en';
+  const kind=currentAssetKind,sch=ASSET_SCHEMA[kind];
+  const obj={id:editingAssetId||Date.now().toString(36),kind};
+  for(const f of sch.fields){
+    const el=document.getElementById('as-'+f.k);if(!el)continue;
+    const val=f.t==='check'?el.checked:el.value.trim();
+    if(f.req&&!val){toast(en?('Fill in: '+f.l[1]):('Preenche: '+f.l[0]));el.focus();return;}
+    obj[f.k]=val;
+  }
+  obj.attachments=assetAttachments;
+  if(editingAssetId){const i=assets.findIndex(x=>x.id===editingAssetId);if(i>=0)assets[i]=obj;logActivity('edit',obj.name,sch.icon);}
+  else{assets.push(obj);logActivity('add',obj.name,sch.icon);}
+  closeAssetModal();renderAssets(kind);markUnsaved();
+  toast(en?'Saved!':'Guardado!');
+}
+
+function deleteAsset(id){
+  const en=currentLang==='en';
+  const a=assets.find(x=>x.id===id);if(!a)return;
+  if(!confirm(en?('Delete "'+a.name+'"?'):('Apagar "'+a.name+'"?')))return;
+  const kind=a.kind;
+  assets=assets.filter(x=>x.id!==id);
+  logActivity('delete',a.name,'🗑️');
+  renderAssets(kind);markUnsaved();
+  toast(en?'Deleted.':'Apagado.');
+}
+
 function vaultPayload(){
-  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner,personalInfo,subscriptions,storeCards,vaultName};
+  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner,personalInfo,subscriptions,storeCards,vaultName,assets};
   if(totpRecWrap){
     base.totpEnc=totpEnc;
     base.totpRecWrap=totpRecWrap;
@@ -7081,6 +7559,7 @@ let documents=[];let editingDocId=null;let pendingDocFile=null;
 let personalInfo=[];let editingInfoId=null;
 let subscriptions=[];let editingSubId=null;
 let storeCards=[];let editingStoreId=null;
+let assets=[];let editingAssetId=null;let currentAssetKind='warranty';
 let vaultName='';
 
 const DOC_CATS={
@@ -8889,7 +9368,7 @@ async function restoreSnapshot(idx){
   }catch(e){}
   // Aplicar os dados do instantâneo
   vault=data.vault||[];notes=data.notes||[];bankCards=data.bankCards||[];
-  activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];vaultName=data.vaultName||'';
+  activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];assets=data.assets||[];vaultName=data.vaultName||'';
   customCats=data.customCats||[];docFolders=data.docFolders||[];vaultFolders=data.vaultFolders||[];
   wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';
   totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
