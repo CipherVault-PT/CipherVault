@@ -1868,7 +1868,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.44</span>
+      <span>Aurora Vault © 2026 · v9.45</span>
     </div>
   </div>
 </div>
@@ -2273,7 +2273,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.44</span>
+      <span>Aurora Vault © 2026 · v9.45</span>
     </div>
   </div>
   </div>
@@ -2569,6 +2569,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       </div>
       <button class="btn btn-ghost" onclick="saveDriveCid()" id="drive-save-cid-btn" style="width:100%;padding:10px;margin-bottom:7px">Guardar credencial</button>
       <button class="btn btn-gold" onclick="driveFirstUpload()" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px">☁️ Enviar o cofre atual para o Drive</button>
+      <button class="btn btn-ghost" onclick="driveOpenLinkPicker()" id="drive-link-btn" style="width:100%;padding:10px;margin-bottom:7px">🔗 Usar um ficheiro já existente na Drive</button>
       <button class="btn btn-ghost" onclick="driveToggle()" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px">Ligar sincronização</button>
       <button class="btn btn-ghost" onclick="driveForget()" id="drive-forget-btn" style="width:100%;padding:10px">Desligar e esquecer</button>
       <div id="drive-state" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:11px"></div>
@@ -2810,6 +2811,15 @@ body::after{bottom:-32vmax;right:-24vmax;
 </div>
 
 <!-- CARTÃO DE LOJA MODAL -->
+<div class="modal-overlay" id="drive-link-overlay" onclick="if(event.target===this)closeDriveLinkPicker()">
+  <div class="modal" style="max-width:480px;max-height:80vh;overflow-y:auto">
+    <div class="modal-title" id="drive-link-title">🔗 Ficheiros encontrados na Drive</div>
+    <div id="drive-link-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDriveLinkPicker()" id="drive-link-close-btn" style="width:100%">Fechar</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="fuel-overlay" onclick="if(event.target===this)closeFuelModal()">
   <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
     <div class="modal-title" id="fuel-modal-title">⛽ Abastecimentos</div>
@@ -3356,7 +3366,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.44';
+const APP_VERSION='9.45';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -5437,6 +5447,9 @@ function applyLangStatic(){
     ['drive-save-cid-btn','Guardar credencial','Save credential',0],
     ['drive-upload-btn','☁️ Enviar o cofre atual para o Drive','☁️ Upload current vault to Drive',0],
     ['drive-forget-btn','Desligar e esquecer','Disconnect and forget',0],
+    ['drive-link-btn','🔗 Usar um ficheiro já existente na Drive','🔗 Use a file already on Drive',0],
+    ['drive-link-title','🔗 Ficheiros encontrados na Drive','🔗 Files found on Drive',0],
+    ['drive-link-close-btn','Fechar','Close',0],
     ['grp-cofre-txt','Cofre','Vault',0],
     ['grp-cards-txt','Cartões','Cards',0],
     ['grp-docs-txt','Documentos','Documents',0],
@@ -7718,6 +7731,62 @@ function saveDriveCid(){
   dCfg('cid',v||null);
   toast(v?(en?'Credential saved.':'Credencial guardada.'):(en?'Credential removed.':'Credencial removida.'));
   renderDriveSettings();
+}
+// ── ligar a um ficheiro já existente no Drive (em vez de criar um novo) ──
+async function driveListMatches(){
+  const q=encodeURIComponent("name='"+DRIVE_NAME+"' and trashed=false");
+  const r=await dApi('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc',{},true);
+  if(!r.ok)throw new Error('list '+r.status);
+  const j=await r.json();
+  return j.files||[];
+}
+async function driveOpenLinkPicker(){
+  const en=currentLang==='en';
+  if(!masterKey){toast(en?'Open the vault first.':'Abre o cofre primeiro.');return;}
+  if(!dCfg('cid')){toast(en?'Paste the credential first.':'Cola a credencial primeiro.');return;}
+  const box=document.getElementById('drive-link-list');
+  if(!box)return;
+  box.innerHTML='<div class="fuel-hint">'+(en?'Searching Drive…':'A procurar na Drive…')+'</div>';
+  document.getElementById('drive-link-overlay').classList.add('open');
+  try{
+    const files=await driveListMatches();
+    if(!files.length){
+      box.innerHTML='<div class="fuel-hint">'+(en?'No ciphervault.vault file found on Drive.':'Não foi encontrado nenhum ficheiro ciphervault.vault na Drive.')+'</div>';
+      return;
+    }
+    box.innerHTML=files.map(f=>{
+      const d=new Date(f.modifiedTime);
+      const ds=d.toLocaleString(en?'en-GB':'pt-PT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const isCurrent=f.id===dCfg('fid');
+      const kb=f.size?(parseInt(f.size)/1024).toFixed(0)+' KB':'';
+      return '<div class="fuel-row" style="cursor:pointer'+(isCurrent?';border-color:var(--accent-dim)':'')+'" onclick="driveLinkExisting(\''+f.id+'\')">'+
+        '<span class="fuel-main">'+(isCurrent?'⭐ ':'')+(en?'Modified':'Modificado')+': '+ds+' · '+kb+'</span>'+
+      '</div>';
+    }).join('')+'<div class="fuel-hint" style="margin-top:8px">'+(en?'Tap the version you want the app to use from now on.':'Toca na versão que queres que a app passe a usar.')+'</div>';
+  }catch(e){
+    box.innerHTML='<div class="fuel-hint">'+(en?'Search failed.':'A procura falhou.')+'</div>';
+  }
+}
+function closeDriveLinkPicker(){document.getElementById('drive-link-overlay').classList.remove('open');}
+async function driveLinkExisting(fid){
+  const en=currentLang==='en';
+  closeDriveLinkPicker();
+  if(!confirm(en?'Load this version and use it from now on? Your current screen will be replaced.':'Carregar esta versão e passar a usá-la a partir de agora? O que tens no ecrã é substituído.'))return;
+  try{
+    dCfg('fid',fid);
+    driveBusy=true;renderDriveChip();
+    const txt=await driveDownload(true);
+    await applyContainerText(txt);
+    const m=await driveMeta(false);
+    if(m&&m.modifiedTime)dCfg('mtime',m.modifiedTime);
+    dCfg('on','1');
+    driveBusy=false;renderDriveChip('ok');
+    toast(en?'Linked. This is now the file in use.':'Ligado. Este passa a ser o ficheiro em uso.');
+    renderDriveSettings();
+  }catch(e){
+    driveBusy=false;renderDriveChip('off');
+    toast((en?'Failed: ':'Falhou: ')+e.message);
+  }
 }
 async function driveFirstUpload(){
   const en=currentLang==='en';
