@@ -1868,7 +1868,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.45</span>
+      <span>Aurora Vault © 2026 · v9.46</span>
     </div>
   </div>
 </div>
@@ -2273,7 +2273,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.45</span>
+      <span>Aurora Vault © 2026 · v9.46</span>
     </div>
   </div>
   </div>
@@ -3366,7 +3366,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.45';
+const APP_VERSION='9.46';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7735,10 +7735,26 @@ function saveDriveCid(){
 // ── ligar a um ficheiro já existente no Drive (em vez de criar um novo) ──
 async function driveListMatches(){
   const q=encodeURIComponent("name='"+DRIVE_NAME+"' and trashed=false");
-  const r=await dApi('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc',{},true);
+  const r=await dApi('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime,size,mimeType,shortcutDetails)&orderBy=modifiedTime desc',{},true);
   if(!r.ok)throw new Error('list '+r.status);
   const j=await r.json();
-  return j.files||[];
+  const files=j.files||[];
+  // Atalhos: usar o ficheiro real a que apontam (id + data reais)
+  const out=[];
+  for(const f of files){
+    if(f.mimeType==='application/vnd.google-apps.shortcut'&&f.shortcutDetails&&f.shortcutDetails.targetId){
+      try{
+        const r2=await dApi('https://www.googleapis.com/drive/v3/files/'+f.shortcutDetails.targetId+'?fields=id,name,modifiedTime,size',{},false);
+        if(r2.ok){out.push(await r2.json());continue;}
+      }catch(e){}
+    }else if(f.mimeType!=='application/vnd.google-apps.shortcut'){
+      out.push(f);
+    }
+  }
+  // remover duplicados (mesmo ficheiro real encontrado por 2 vias) e ordenar por data
+  const seen=new Set();
+  return out.filter(f=>{if(seen.has(f.id))return false;seen.add(f.id);return true;})
+            .sort((a,b)=>new Date(b.modifiedTime)-new Date(a.modifiedTime));
 }
 async function driveOpenLinkPicker(){
   const en=currentLang==='en';
