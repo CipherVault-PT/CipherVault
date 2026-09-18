@@ -445,6 +445,17 @@ body.bg-blur #app,body.bg-blur .modal-overlay{filter:blur(16px);transition:filte
 .tags-input{background:none;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.72rem;min-width:80px;flex:1;}
 
 /* ATTACHMENT */
+.fuel-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 12px;}
+.fuel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.fuel-stat{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 8px;text-align:center;}
+.fuel-v{display:block;font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--accent);line-height:1.1;}
+.fuel-l{display:block;font-size:.5rem;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-top:3px;}
+.fuel-hint{font-size:.7rem;color:var(--text-muted);line-height:1.6;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:9px;margin-bottom:12px;}
+.fuel-row{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;}
+.fuel-date{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text-muted);flex-shrink:0;}
+.fuel-main{flex:1;min-width:0;font-size:.68rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fuel-cons{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--accent);flex-shrink:0;}
+@media(max-width:560px){.fuel-form{grid-template-columns:1fr;}.fuel-stats{grid-template-columns:repeat(2,1fr);}}
 .att-chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;}
 .att-chip{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(var(--accent-rgb),.06);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.56rem;cursor:pointer;transition:all .18s;}
 .att-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;}
@@ -1857,7 +1868,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.41</span>
+      <span>Aurora Vault © 2026 · v9.42</span>
     </div>
   </div>
 </div>
@@ -2261,7 +2272,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.41</span>
+      <span>Aurora Vault © 2026 · v9.42</span>
     </div>
   </div>
   </div>
@@ -2784,6 +2795,23 @@ body::after{bottom:-32vmax;right:-24vmax;
 </div>
 
 <!-- CARTÃO DE LOJA MODAL -->
+<div class="modal-overlay" id="fuel-overlay" onclick="if(event.target===this)closeFuelModal()">
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title" id="fuel-modal-title">⛽ Abastecimentos</div>
+    <div id="fuel-stats"></div>
+    <div class="fuel-form">
+      <div class="form-group"><label id="fuel-lbl-date">Data</label><input type="date" id="fuel-date"></div>
+      <div class="form-group"><label id="fuel-lbl-liters">Litros</label><input type="number" step="any" id="fuel-liters" placeholder="45.2"></div>
+      <div class="form-group"><label id="fuel-lbl-euros">Valor (€)</label><input type="number" step="any" id="fuel-euros" placeholder="72.50"></div>
+      <div class="form-group"><label id="fuel-lbl-km">Quilómetros (conta-km)</label><input type="number" id="fuel-km" placeholder="145300"></div>
+    </div>
+    <button class="btn btn-gold" onclick="addFuel()" id="fuel-add-btn" style="width:100%;margin-bottom:14px">Adicionar</button>
+    <div id="fuel-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeFuelModal()" id="fuel-close-btn" style="width:100%">Fechar</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="asset-overlay" onclick="if(event.target===this)closeAssetModal()">
   <div class="modal" style="max-width:520px">
     <div class="modal-title" id="asset-modal-title">Novo</div>
@@ -3305,7 +3333,7 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.41';
+const APP_VERSION='9.42';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4507,6 +4535,7 @@ async function submitOpenVault(pwArg){
   checkVaultFormat();
     pendingVaultText=text;failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
     setTimeout(()=>{try{renderNotifBtn();checkNotifs();}catch(e){}},2500);
+    applyPendingGo();
   }catch{
     if(quick){
       await clearQuickUnlock();
@@ -5146,6 +5175,18 @@ function groupOfTab(tab){
   for(const g in TAB_GROUPS)if(TAB_GROUPS[g].includes(tab))return g;
   return 'dashboard';
 }
+let pendingGo=null;
+try{const _u=new URLSearchParams(location.search);const _g=_u.get('go');if(_g)pendingGo=_g;}catch(e){}
+function applyPendingGo(){
+  if(!pendingGo)return;
+  const g=pendingGo;pendingGo=null;
+  setTimeout(()=>{
+    try{
+      if(g==='cal'){if(typeof openCalendar==='function')openCalendar();}
+      else if(['vault','totp','store','cards','docs','notes','info','warranty','license','vehicle','dates'].includes(g))switchTab(g);
+    }catch(e){}
+  },700);
+}
 function switchGroup(g){
   if(!TAB_GROUPS[g])return;
   switchTab(lastLeafOf[g]||TAB_GROUPS[g][0]);
@@ -5658,6 +5699,32 @@ function renderDashboard(){
     if(!status)return;
     if(status.cls==='expired')alerts.push({type:'danger',icon:'📁',text:`${esc(doc.title)}: ${currentLang==='en'?'Document expired!':'Documento expirado!'}`,sub:doc.expiry});
     else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:doc.expiry});
+  });
+  // Renovações de subscrições
+  (subscriptions||[]).forEach(s=>{
+    try{
+      const d=subNextCharge(s);if(!d)return;
+      const n=calDaysUntil(d);
+      if(n<0||n>14)return;
+      const val=s.amount?' · '+fmtMoney(parseFloat(s.amount)||0):'';
+      alerts.push({type:n<=3?'danger':'warn',icon:'🔄',
+        text:esc(s.name||'')+': '+(currentLang==='en'?'renews':'renova')+' '+calWhenLabel(n),sub:d.toLocaleDateString(currentLang==='en'?'en-GB':'pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'})+val});
+    }catch(e){}
+  });
+  // Grupo Bens: garantias, licenças, veículos e datas
+  (assets||[]).forEach(as=>{
+    try{
+      const ic={warranty:'🧾',license:'🔑',vehicle:'🚗',dates:'🎂'}[as.kind]||'📌';
+      assetDates(as).forEach(ev=>{
+        const n=calDaysUntil(ev.date);
+        if(n>30)return;
+        const nome=esc(as.name||'')+(ev.sub?' ('+esc(ev.sub)+')':'');
+        if(n<0){
+          if(n<-90)return;
+          alerts.push({type:'danger',icon:ic,text:nome+': '+(currentLang==='en'?'expired!':'expirou!'),sub:ev.date.toLocaleDateString(currentLang==='en'?'en-GB':'pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'})});
+        }else alerts.push({type:n<=7?'danger':'warn',icon:ic,text:nome+': '+calWhenLabel(n),sub:ev.date.toLocaleDateString(currentLang==='en'?'en-GB':'pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'})});
+      });
+    }catch(e){}
   });
   document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}${a.action?' clickable':''}"${a.action==='dedupe'?' onclick="openDedupeModal()"':''}><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div>${a.action==='dedupe'?`<span class="dash-alert-cta">${currentLang==='en'?'Fix →':'Resolver →'}</span>`:''}</div>`).join('');
   // Badge do cartão de alertas: nº de problemas (ou ✓ se tudo bem)
@@ -7242,7 +7309,9 @@ function renderAssets(kind){
         '<span class="asset-acts"><button class="asset-mini" onclick="openAssetModal(\''+kind+'\',\''+a.id+'\')">'+(en?'Edit':'Editar')+'</button>'+
         '<button class="asset-mini danger" onclick="deleteAsset(\''+a.id+'\')">'+(en?'Delete':'Apagar')+'</button></span></div>'+
       (meta.length?'<div class="asset-meta">'+meta.join(' · ')+'</div>':'')+
-      keyRow+badge+attachChips(a,'asset')+
+      keyRow+badge+
+      (a.kind==='vehicle'?'<button class="asset-mini" style="margin-top:8px" onclick="openFuelModal(\''+a.id+'\')">⛽ '+(en?'Refuelling':'Abastecimentos')+((a.fuel&&a.fuel.length)?' ('+a.fuel.length+')':'')+'</button>':'')+
+      attachChips(a,'asset')+
       (a.notes?'<div class="asset-notes">'+esc(a.notes)+'</div>':'')+
     '</div>';
   }).join('')+'</div>';
@@ -7318,6 +7387,106 @@ function deleteAsset(id){
   logActivity('delete',a.name,'🗑️');
   renderAssets(kind);markUnsaved();
   toast(en?'Deleted.':'Apagado.');
+}
+
+// ══ ABASTECIMENTOS (por veículo) ══
+let fuelVehicleId=null;
+function openFuelModal(vid){
+  fuelVehicleId=vid;
+  const v=(assets||[]).find(x=>x.id===vid);if(!v)return;
+  const en=currentLang==='en';
+  document.getElementById('fuel-modal-title').textContent='⛽ '+(en?'Refuelling — ':'Abastecimentos — ')+(v.name||'');
+  document.getElementById('fuel-date').value=new Date().toISOString().slice(0,10);
+  ['fuel-liters','fuel-euros','fuel-km'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fuel-lbl-date').textContent=en?'Date':'Data';
+  document.getElementById('fuel-lbl-liters').textContent=en?'Litres':'Litros';
+  document.getElementById('fuel-lbl-euros').textContent=en?'Amount (€)':'Valor (€)';
+  document.getElementById('fuel-lbl-km').textContent=en?'Odometer (km)':'Quilómetros (conta-km)';
+  document.getElementById('fuel-add-btn').textContent=en?'Add':'Adicionar';
+  document.getElementById('fuel-close-btn').textContent=en?'Close':'Fechar';
+  renderFuel();
+  document.getElementById('fuel-overlay').classList.add('open');
+}
+function closeFuelModal(){document.getElementById('fuel-overlay').classList.remove('open');fuelVehicleId=null;}
+
+function fuelStats(list){
+  // método do depósito cheio: consumo entre abastecimentos consecutivos
+  const s=list.slice().filter(f=>f.km).sort((a,b)=>a.km-b.km);
+  const out={rows:[],avg:null,kmTotal:0,litTotal:0,eurTotal:0,eurPer100:null,perMonth:null};
+  list.forEach(f=>{out.eurTotal+=parseFloat(f.euros)||0;});
+  for(let i=1;i<s.length;i++){
+    const dk=s[i].km-s[i-1].km;
+    const li=parseFloat(s[i].liters)||0;
+    if(dk>0&&li>0){
+      out.rows.push({id:s[i].id,cons:li/dk*100});
+      out.kmTotal+=dk;out.litTotal+=li;
+    }
+  }
+  if(out.kmTotal>0&&out.litTotal>0){
+    out.avg=out.litTotal/out.kmTotal*100;
+    const eurNoFirst=s.slice(1).reduce((a,f)=>a+(parseFloat(f.euros)||0),0);
+    if(eurNoFirst>0)out.eurPer100=eurNoFirst/out.kmTotal*100;
+  }
+  // custo médio por mês
+  const ds=list.map(f=>new Date(f.date)).filter(d=>!isNaN(d)).sort((a,b)=>a-b);
+  if(ds.length>=2){
+    const meses=Math.max(1,(ds[ds.length-1]-ds[0])/(30.44*86400000));
+    out.perMonth=out.eurTotal/meses;
+  }
+  return out;
+}
+
+function renderFuel(){
+  const v=(assets||[]).find(x=>x.id===fuelVehicleId);if(!v)return;
+  const en=currentLang==='en';
+  const list=(v.fuel||[]).slice();
+  const box=document.getElementById('fuel-list');
+  const st=fuelStats(list);
+  const sBox=document.getElementById('fuel-stats');
+  if(list.length<2){
+    sBox.innerHTML='<div class="fuel-hint">'+(en?'Add at least two refuels (with odometer) to see real consumption.':'Regista pelo menos dois abastecimentos (com os quilómetros) para veres o consumo real.')+'</div>';
+  }else{
+    sBox.innerHTML='<div class="fuel-stats">'+
+      '<div class="fuel-stat"><span class="fuel-v">'+(st.avg?st.avg.toFixed(1):'—')+'</span><span class="fuel-l">'+(en?'L/100km':'L/100km')+'</span></div>'+
+      '<div class="fuel-stat"><span class="fuel-v">'+(st.eurPer100?fmtMoney(st.eurPer100):'—')+'</span><span class="fuel-l">'+(en?'per 100km':'por 100km')+'</span></div>'+
+      '<div class="fuel-stat"><span class="fuel-v">'+(st.perMonth?fmtMoney(st.perMonth):'—')+'</span><span class="fuel-l">'+(en?'per month':'por mês')+'</span></div>'+
+      '<div class="fuel-stat"><span class="fuel-v">'+fmtMoney(st.eurTotal)+'</span><span class="fuel-l">'+(en?'total':'total')+'</span></div>'+
+      '</div>';
+  }
+  if(!list.length){box.innerHTML='<div class="fuel-hint">'+(en?'No refuels yet.':'Ainda não há abastecimentos.')+'</div>';return;}
+  const consOf={};st.rows.forEach(r=>consOf[r.id]=r.cons);
+  const sorted=list.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  box.innerHTML=sorted.map(f=>{
+    const d=new Date(f.date);
+    const ds=isNaN(d)?'':d.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const c=consOf[f.id];
+    return '<div class="fuel-row">'+
+      '<span class="fuel-date">'+ds+'</span>'+
+      '<span class="fuel-main">'+(parseFloat(f.liters)||0).toFixed(1)+' L · '+fmtMoney(parseFloat(f.euros)||0)+(f.km?' · '+f.km+' km':'')+'</span>'+
+      (c?'<span class="fuel-cons">'+c.toFixed(1)+'</span>':'')+
+      '<button class="att-btn danger" onclick="deleteFuel(\''+f.id+'\')">✕</button>'+
+    '</div>';
+  }).join('');
+}
+
+function addFuel(){
+  const en=currentLang==='en';
+  const v=(assets||[]).find(x=>x.id===fuelVehicleId);if(!v)return;
+  const date=document.getElementById('fuel-date').value;
+  const liters=document.getElementById('fuel-liters').value.trim();
+  const euros=document.getElementById('fuel-euros').value.trim();
+  const km=document.getElementById('fuel-km').value.trim();
+  if(!date||!liters||!euros){toast(en?'Date, litres and amount are required.':'Data, litros e valor são obrigatórios.');return;}
+  if(!v.fuel)v.fuel=[];
+  v.fuel.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),date,liters,euros,km:km?parseInt(km):null});
+  ['fuel-liters','fuel-euros','fuel-km'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  renderFuel();renderAssets('vehicle');markUnsaved();
+  toast(en?'Added.':'Adicionado.');
+}
+function deleteFuel(fid){
+  const v=(assets||[]).find(x=>x.id===fuelVehicleId);if(!v||!v.fuel)return;
+  v.fuel=v.fuel.filter(f=>f.id!==fid);
+  renderFuel();renderAssets('vehicle');markUnsaved();
 }
 
 function vaultPayload(){
@@ -9684,6 +9853,14 @@ function buildManifest(){
   }
   const icon=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='${encBg}'/%3E${inner}%3C/svg%3E`;
   const mf={name:prefs.name,short_name:prefs.name.slice(0,12),description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:'.',display:'standalone',background_color:bg,theme_color:bg,orientation:'any',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const en_=currentLang==='en';
+  const shIc=e=>`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='${encBg}'/%3E%3Ctext x='48' y='68' font-size='52' text-anchor='middle'%3E${encodeURIComponent(e)}%3C/text%3E%3C/svg%3E`;
+  mf.shortcuts=[
+    {name:en_?'2FA codes':'Códigos 2FA',short_name:'2FA',url:'./?go=totp',icons:[{src:shIc('🔢'),sizes:'96x96',type:'image/svg+xml'}]},
+    {name:en_?'Store cards':'Cartões Loja',short_name:en_?'Cards':'Lojas',url:'./?go=store',icons:[{src:shIc('🎟️'),sizes:'96x96',type:'image/svg+xml'}]},
+    {name:en_?'Passwords':'Passwords',short_name:en_?'Vault':'Cofre',url:'./?go=vault',icons:[{src:shIc('🔐'),sizes:'96x96',type:'image/svg+xml'}]},
+    {name:en_?'Calendar':'Calendário',short_name:en_?'Calendar':'Datas',url:'./?go=cal',icons:[{src:shIc('📅'),sizes:'96x96',type:'image/svg+xml'}]}
+  ];
   const link=document.getElementById('pwa-manifest');
   if(link)link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
 }
