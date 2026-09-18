@@ -1868,7 +1868,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.46</span>
+      <span>Aurora Vault © 2026 · v9.47</span>
     </div>
   </div>
 </div>
@@ -2273,7 +2273,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.46</span>
+      <span>Aurora Vault © 2026 · v9.47</span>
     </div>
   </div>
   </div>
@@ -3366,7 +3366,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.46';
+const APP_VERSION='9.47';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7775,10 +7775,14 @@ async function driveOpenLinkPicker(){
       const ds=d.toLocaleString(en?'en-GB':'pt-PT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
       const isCurrent=f.id===dCfg('fid');
       const kb=f.size?(parseInt(f.size)/1024).toFixed(0)+' KB':'';
-      return '<div class="fuel-row" style="cursor:pointer'+(isCurrent?';border-color:var(--accent-dim)':'')+'" onclick="driveLinkExisting(\''+f.id+'\')">'+
+      return '<div class="fuel-row" style="flex-direction:column;align-items:flex-start;gap:6px'+(isCurrent?';border-color:var(--accent-dim)':'')+'">'+
         '<span class="fuel-main">'+(isCurrent?'⭐ ':'')+(en?'Modified':'Modificado')+': '+ds+' · '+kb+'</span>'+
+        '<div style="display:flex;gap:6px;width:100%">'+
+          '<button type="button" class="att-btn" style="flex:1" onclick="driveLinkExisting(\''+f.id+'\')">'+(en?'Load this':'Carregar este')+'</button>'+
+          '<button type="button" class="att-btn" style="flex:1" onclick="driveLinkKeepLocal(\''+f.id+'\')">'+(en?'Use, keep my current data':'Usar, manter os meus dados')+'</button>'+
+        '</div>'+
       '</div>';
-    }).join('')+'<div class="fuel-hint" style="margin-top:8px">'+(en?'Tap the version you want the app to use from now on.':'Toca na versão que queres que a app passe a usar.')+'</div>';
+    }).join('')+'<div class="fuel-hint" style="margin-top:8px">'+(en?'"Load this" replaces what is on screen with that version. "Use, keep my current data" points to that file but uploads what you have now on your next save.':'"Carregar este" substitui o que está no ecrã por essa versão. "Usar, manter os meus dados" aponta para esse ficheiro mas envia o que tens agora na próxima gravação.')+'</div>';
   }catch(e){
     box.innerHTML='<div class="fuel-hint">'+(en?'Search failed.':'A procura falhou.')+'</div>';
   }
@@ -7803,6 +7807,14 @@ async function driveLinkExisting(fid){
     driveBusy=false;renderDriveChip('off');
     toast((en?'Failed: ':'Falhou: ')+e.message);
   }
+}
+async function driveLinkKeepLocal(fid){
+  const en=currentLang==='en';
+  closeDriveLinkPicker();
+  if(!confirm(en?'Link to this file WITHOUT loading it — what you have on screen now stays, and will overwrite it on your next save. Continue?':'Ligar a este ficheiro SEM o carregar — o que tens agora no ecrã mantém-se, e vai substituir o conteúdo dele na próxima vez que gravares. Continuar?'))return;
+  dCfg('fid',fid);dCfg('on','1');dCfg('mtime',null);
+  toast(en?'Linked. Save now (💾) to upload your current data.':'Ligado. Grava agora (💾) para enviar os teus dados atuais.');
+  renderDriveSettings();renderDriveChip('pend');
 }
 async function driveFirstUpload(){
   const en=currentLang==='en';
