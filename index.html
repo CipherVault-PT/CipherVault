@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.48</span>
+      <span>Aurora Vault © 2026 · v9.49</span>
     </div>
   </div>
 </div>
@@ -2274,7 +2274,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.48</span>
+      <span>Aurora Vault © 2026 · v9.49</span>
     </div>
   </div>
   </div>
@@ -3367,7 +3367,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.48';
+const APP_VERSION='9.49';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7679,6 +7679,34 @@ async function driveCheckOnOpen(){
     }else renderDriveChip('ok');
   }catch(e){renderDriveChip('off');}
 }
+let _driveFocusBusy=false,_driveFocusT=0;
+async function driveCheckOnFocus(){
+  if(!driveOn()||!masterKey||presentationMode)return;
+  if(_driveFocusBusy)return;
+  if(document.querySelector('.modal-overlay.open'))return; // não interromper uma edição em curso
+  const now=Date.now();
+  if(now-_driveFocusT<4000)return; // debounce
+  _driveFocusT=now;
+  const en=currentLang==='en';
+  try{
+    _driveFocusBusy=true;
+    const loc=await localVaultGet();
+    if(loc&&loc.pending){renderDriveChip('pend');_driveFocusBusy=false;return;} // há alterações locais por enviar → não carregar
+    const m=await driveMeta(false);
+    if(!m){_driveFocusBusy=false;return;}
+    const remote=new Date(m.modifiedTime).getTime();
+    const known=dCfg('mtime')?new Date(dCfg('mtime')).getTime():0;
+    if(remote>known+2000){
+      driveBusy=true;renderDriveChip();
+      const txt=await driveDownload(true);
+      await applyContainerText(txt);
+      dCfg('mtime',m.modifiedTime);
+      driveBusy=false;renderDriveChip('ok');
+      toast(en?'Updated from Drive.':'Atualizado do Drive.');
+    }else{renderDriveChip('ok');}
+  }catch(e){driveBusy=false;renderDriveChip('off');}
+  _driveFocusBusy=false;
+}
 async function driveFlushPending(){
   if(!driveOn())return;
   const loc=await localVaultGet();
@@ -10188,10 +10216,10 @@ document.addEventListener('visibilitychange',()=>{
       clearTimeout(lockHideTimer);
       lockHideTimer=setTimeout(()=>{if(document.hidden&&masterKey&&!presentationMode)lockApp();},1200);
     }
-  }else{document.body.classList.remove('bg-blur');clearTimeout(lockHideTimer);}
+  }else{document.body.classList.remove('bg-blur');clearTimeout(lockHideTimer);try{driveCheckOnFocus();}catch(e){}}
 });
 window.addEventListener('blur',()=>{if(masterKey&&!presentationMode)document.body.classList.add('bg-blur');});
-window.addEventListener('focus',()=>{document.body.classList.remove('bg-blur');});
+window.addEventListener('focus',()=>{document.body.classList.remove('bg-blur');try{driveCheckOnFocus();}catch(e){}});
 
 // ══ CAMPOS PERSONALIZADOS ══
 let entryFields=[];
