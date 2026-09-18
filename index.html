@@ -1868,7 +1868,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.42</span>
+      <span>Aurora Vault © 2026 · v9.44</span>
     </div>
   </div>
 </div>
@@ -1896,6 +1896,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button onclick="openCalendar()" id="cal-topbar-btn" title="Calendário">📅 <span class="tb-label" id="tb-cal-txt">Calendário</span><span class="tb-mini" id="tbm-cal">Calendário</span></button>
       <button onclick="openSettings()" title="Definições">⚙️ <span class="tb-label" id="tb-settings-txt">Definições</span><span class="tb-mini" id="tbm-set">Ajustes</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
+      <span class="autolock-badge" id="drive-chip" style="display:none;cursor:pointer" onclick="openSettings()"></span>
       <button onclick="lockApp()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span id="tb-lock-txt">Bloquear</span><span class="tb-mini" id="tbm-lock">Bloquear</span>
@@ -2272,7 +2273,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.42</span>
+      <span>Aurora Vault © 2026 · v9.44</span>
     </div>
   </div>
   </div>
@@ -2557,6 +2558,20 @@ body::after{bottom:-32vmax;right:-24vmax;
       <div class="settings-title" id="s-notif-title">🔔 Avisos de validades</div>
       <div id="s-notif-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Recebe um aviso quando um documento, cartão ou subscrição está prestes a expirar ou renovar (30, 7 e 2 dias antes).</div>
       <button class="btn btn-ghost" onclick="toggleNotifs()" style="width:100%;padding:11px">🔔 <span id="s-notif-btn-txt">Avisos</span>: <span id="notif-state">Desligadas</span></button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-drive-title">☁️ Sincronizar com a Google Drive</div>
+      <div id="s-drive-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Mantém o mesmo cofre no computador e no telemóvel. O que vai para a Drive é o ficheiro já encriptado — a Google nunca vê o conteúdo. Sem rede, a app usa a cópia guardada por dentro e envia as alterações quando voltares a ter ligação.</div>
+      <div class="form-group">
+        <label id="s-drive-cid-lbl">Credencial da Google (Client ID)</label>
+        <input type="text" id="drive-cid" placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com" style="font-size:.66rem">
+      </div>
+      <button class="btn btn-ghost" onclick="saveDriveCid()" id="drive-save-cid-btn" style="width:100%;padding:10px;margin-bottom:7px">Guardar credencial</button>
+      <button class="btn btn-gold" onclick="driveFirstUpload()" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px">☁️ Enviar o cofre atual para o Drive</button>
+      <button class="btn btn-ghost" onclick="driveToggle()" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px">Ligar sincronização</button>
+      <button class="btn btn-ghost" onclick="driveForget()" id="drive-forget-btn" style="width:100%;padding:10px">Desligar e esquecer</button>
+      <div id="drive-state" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:11px"></div>
     </div>
 
     </div><!-- /pane dados -->
@@ -3333,14 +3348,22 @@ body::after{bottom:-32vmax;right:-24vmax;
 <div class="toast" id="toast"></div>
 <script>
 // ══ STATE ══
-const APP_VERSION='9.42';
+(function(){
+  try{
+    if(location.hash&&location.hash.indexOf('access_token')>=0&&window.opener){
+      window.opener.postMessage({avOAuth:location.hash},location.origin);
+      window.close();
+    }
+  }catch(e){}
+})();
+const APP_VERSION='9.44';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
 let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let legacyNote='';let legacyOwner='';
 let totpEnc=null,totpRecWrap=null,totpKey=null,totpUnlocked=false;
 const VAULT_FMT=2;
-const KNOWN_KEYS=['fmt','vault','notes','bankCards','activityLog','documents','trash','totp','customCats','docFolders','vaultFolders','wifiNets','legacyNote','legacyOwner','totpEnc','totpRecWrap'];
+const KNOWN_KEYS=['savedAt','fmt','vault','notes','bankCards','activityLog','documents','trash','totp','customCats','docFolders','vaultFolders','wifiNets','legacyNote','legacyOwner','totpEnc','totpRecWrap'];
 let payloadExtras={},vaultReadOnly=false;let currentDocSort='added';let lastSavedAt=null;let totpCounters={};
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
@@ -4536,6 +4559,7 @@ async function submitOpenVault(pwArg){
     pendingVaultText=text;failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
     setTimeout(()=>{try{renderNotifBtn();checkNotifs();}catch(e){}},2500);
     applyPendingGo();
+    setTimeout(()=>{try{driveCheckOnOpen();}catch(e){}},1800);
   }catch{
     if(quick){
       await clearQuickUnlock();
@@ -4968,6 +4992,7 @@ function switchSettingsTab(tab){
   if(modal)modal.scrollTop=0;
 }
 function openSettings(){
+  try{setTimeout(()=>renderDriveSettings(),60);}catch(e){}
   applySettingsLang();
   switchSettingsTab('aspeto');
   renderBgPicker();
@@ -5406,6 +5431,12 @@ function applyLangStatic(){
     ['s-notif-title','🔔 Avisos de validades','🔔 Expiry alerts',0],
     ['s-notif-desc','Recebe um aviso quando um documento, cartão ou subscrição está prestes a expirar ou renovar (30, 7 e 2 dias antes).','Get an alert when a document, card or subscription is about to expire or renew (30, 7 and 2 days ahead).',0],
     ['s-notif-btn-txt','Avisos','Alerts',0],
+    ['s-drive-title','☁️ Sincronizar com a Google Drive','☁️ Sync with Google Drive',0],
+    ['s-drive-desc','Mantém o mesmo cofre no computador e no telemóvel. O que vai para a Drive é o ficheiro já encriptado — a Google nunca vê o conteúdo. Sem rede, a app usa a cópia guardada por dentro e envia as alterações quando voltares a ter ligação.','Keeps the same vault on your computer and phone. What goes to Drive is the already-encrypted file — Google never sees the contents. Offline, the app uses its internal copy and uploads your changes once you are back online.',0],
+    ['s-drive-cid-lbl','Credencial da Google (Client ID)','Google credential (Client ID)',0],
+    ['drive-save-cid-btn','Guardar credencial','Save credential',0],
+    ['drive-upload-btn','☁️ Enviar o cofre atual para o Drive','☁️ Upload current vault to Drive',0],
+    ['drive-forget-btn','Desligar e esquecer','Disconnect and forget',0],
     ['grp-cofre-txt','Cofre','Vault',0],
     ['grp-cards-txt','Cartões','Cards',0],
     ['grp-docs-txt','Documentos','Documents',0],
@@ -5432,6 +5463,7 @@ function applyLangStatic(){
   ].forEach(([id,pt,en,html])=>{const el=document.getElementById(id);if(el){if(html)el.innerHTML=_L?en:pt;else el.textContent=_L?en:pt;}});
   {const ec=document.getElementById('export-count');const ecv=ec?ec.textContent:'0';const edb=document.getElementById('export-do-btn');if(edb)edb.innerHTML='📤 '+(_L?'Export':'Exportar')+' (<span id="export-count">'+ecv+'</span>)';}
   try{renderNotifBtn();}catch(e){}
+  try{if(document.getElementById('drive-state'))renderDriveSettings();}catch(e){}
   try{if(['warranty','license','vehicle','dates'].includes(currentGroup?lastLeafOf[currentGroup]:''))renderAssets(lastLeafOf[currentGroup]);}catch(e){}
   // Re-render
   renderBankCards();
@@ -7489,8 +7521,246 @@ function deleteFuel(fid){
   renderFuel();renderAssets('vehicle');markUnsaved();
 }
 
+// ══ SINCRONIZAÇÃO COM A GOOGLE DRIVE ══
+// Config não sensível em localStorage; token só em memória.
+const DRIVE_NAME='ciphervault.vault';
+let driveToken=null,driveTokenExp=0,driveBusy=false;
+function dCfg(k,v){
+  if(v===undefined)return localStorage.getItem('av_drive_'+k)||'';
+  if(v===null)localStorage.removeItem('av_drive_'+k);else localStorage.setItem('av_drive_'+k,v);
+}
+function driveOn(){return dCfg('on')==='1'&&!!dCfg('cid');}
+
+// ── cópia local (dentro da app, sempre atualizada) ──
+async function localVaultSave(json,pending){
+  try{await idbSet('av_local',{json,at:Date.now(),pending:!!pending});}catch(e){}
+}
+async function localVaultGet(){try{return await idbGet('av_local');}catch(e){return null;}}
+
+// ── autorização (sem carregar scripts da Google) ──
+function driveAuth(interactive){
+  return new Promise((resolve,reject)=>{
+    const cid=dCfg('cid');
+    if(!cid)return reject(new Error('sem-id'));
+    if(driveToken&&Date.now()<driveTokenExp-60000)return resolve(driveToken);
+    if(!interactive)return reject(new Error('sem-token'));
+    const redirect=location.origin+location.pathname;
+    const state=Math.random().toString(36).slice(2);
+    const url='https://accounts.google.com/o/oauth2/v2/auth'+
+      '?client_id='+encodeURIComponent(cid)+
+      '&redirect_uri='+encodeURIComponent(redirect)+
+      '&response_type=token'+
+      '&scope='+encodeURIComponent('https://www.googleapis.com/auth/drive.file')+
+      '&include_granted_scopes=true&state='+state;
+    const w=window.open(url,'av_oauth','width=500,height=660');
+    if(!w)return reject(new Error('popup-bloqueado'));
+    let done=false;
+    const onMsg=ev=>{
+      if(ev.origin!==location.origin||!ev.data||!ev.data.avOAuth)return;
+      const p=new URLSearchParams(String(ev.data.avOAuth).replace(/^#/,''));
+      if(p.get('state')!==state)return;
+      const tok=p.get('access_token');
+      window.removeEventListener('message',onMsg);done=true;
+      if(!tok)return reject(new Error(p.get('error')||'sem-token'));
+      driveToken=tok;driveTokenExp=Date.now()+(parseInt(p.get('expires_in')||'3600')*1000);
+      resolve(tok);
+    };
+    window.addEventListener('message',onMsg);
+    const iv=setInterval(()=>{
+      if(done||!w||w.closed){clearInterval(iv);if(!done){window.removeEventListener('message',onMsg);reject(new Error('cancelado'));}}
+    },600);
+  });
+}
+
+// ── chamadas à API ──
+async function dApi(url,opts,interactive){
+  const tok=await driveAuth(interactive!==false);
+  opts=opts||{};opts.headers=Object.assign({},opts.headers,{Authorization:'Bearer '+tok});
+  const r=await fetch(url,opts);
+  if(r.status===401){driveToken=null;const t2=await driveAuth(true);opts.headers.Authorization='Bearer '+t2;return fetch(url,opts);}
+  return r;
+}
+async function driveMeta(interactive){
+  const fid=dCfg('fid');if(!fid)return null;
+  const r=await dApi('https://www.googleapis.com/drive/v3/files/'+fid+'?fields=id,name,modifiedTime,size',{},interactive);
+  if(!r.ok)return null;
+  return r.json();
+}
+async function driveDownload(interactive){
+  const fid=dCfg('fid');if(!fid)throw new Error('sem-ficheiro');
+  const r=await dApi('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media',{},interactive);
+  if(!r.ok)throw new Error('download '+r.status);
+  return r.text();
+}
+async function driveUpload(json,interactive){
+  const fid=dCfg('fid');
+  const meta={name:DRIVE_NAME,mimeType:'application/octet-stream'};
+  const bnd='avb'+Math.random().toString(36).slice(2);
+  const body='--'+bnd+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+
+             '\r\n--'+bnd+'\r\nContent-Type: application/octet-stream\r\n\r\n'+json+'\r\n--'+bnd+'--';
+  const url=fid
+    ? 'https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=multipart&fields=id,modifiedTime'
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime';
+  const r=await dApi(url,{method:fid?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+bnd},body},interactive);
+  if(!r.ok)throw new Error('upload '+r.status);
+  const j=await r.json();
+  if(j.id)dCfg('fid',j.id);
+  if(j.modifiedTime)dCfg('mtime',j.modifiedTime);
+  return j;
+}
+
+// ── recarregar o cofre a partir de um container descarregado ──
+async function applyContainerText(text){
+  const container=JSON.parse(text);
+  const salt=new Uint8Array(container.salt);
+  const key=await deriveKey(masterPwRaw,salt);
+  const data=await decrypt(key,container.payload);
+  window._salt=salt;masterKey=key;
+  vault=data.vault||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];assets=data.assets||[];vaultName=data.vaultName||'';
+  totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
+  totp=totpRecWrap?[]:(data.totp||[]);
+  payloadExtras={};
+  Object.keys(data).forEach(k=>{if(!KNOWN_KEYS.includes(k))payloadExtras[k]=data[k];});
+  pendingVaultText=text;
+  await localVaultSave(text,false);
+  renderAll();
+  return data.savedAt||0;
+}
+
+// ── orquestração ──
+async function driveAfterSave(json){
+  if(!driveOn())return;
+  try{
+    driveBusy=true;renderDriveChip();
+    await driveUpload(json,false);
+    await localVaultSave(json,false);
+    driveBusy=false;renderDriveChip('ok');
+  }catch(e){
+    driveBusy=false;
+    await localVaultSave(json,true);
+    renderDriveChip('pend');
+  }
+}
+async function driveCheckOnOpen(){
+  if(!driveOn())return;
+  const en=currentLang==='en';
+  try{
+    const loc=await localVaultGet();
+    if(loc&&loc.pending){renderDriveChip('pend');return;}
+    const m=await driveMeta(false);
+    if(!m)return;
+    const remote=new Date(m.modifiedTime).getTime();
+    const known=dCfg('mtime')?new Date(dCfg('mtime')).getTime():0;
+    if(remote>known+2000){
+      const msg=en
+        ?'A newer version is on Drive ('+new Date(remote).toLocaleString('en-GB')+').\n\nLoad it? Your current screen will be replaced.'
+        :'Há uma versão mais recente no Drive ('+new Date(remote).toLocaleString('pt-PT')+').\n\nCarregar essa versão? O que tens no ecrã é substituído.';
+      if(confirm(msg)){
+        const txt=await driveDownload(true);
+        await applyContainerText(txt);
+        dCfg('mtime',m.modifiedTime);
+        toast(en?'Loaded from Drive.':'Carregado do Drive.');
+        renderDriveChip('ok');
+      }else renderDriveChip('old');
+    }else renderDriveChip('ok');
+  }catch(e){renderDriveChip('off');}
+}
+async function driveFlushPending(){
+  if(!driveOn())return;
+  const loc=await localVaultGet();
+  if(!loc||!loc.pending)return;
+  try{
+    driveBusy=true;renderDriveChip();
+    await driveUpload(loc.json,false);
+    await localVaultSave(loc.json,false);
+    driveBusy=false;renderDriveChip('ok');
+    toast(currentLang==='en'?'Pending changes sent to Drive.':'Alterações pendentes enviadas para o Drive.');
+  }catch(e){driveBusy=false;renderDriveChip('pend');}
+}
+window.addEventListener('online',()=>{setTimeout(()=>{try{driveFlushPending();}catch(e){}},1500);});
+
+// ── indicador na barra de topo ──
+function renderDriveChip(state){
+  const el=document.getElementById('drive-chip');if(!el)return;
+  if(!driveOn()){el.style.display='none';return;}
+  el.style.display='inline-flex';
+  const en=currentLang==='en';
+  if(driveBusy){el.textContent='☁️ …';el.title=en?'Syncing':'A sincronizar';el.style.color='var(--text-muted)';return;}
+  const map={
+    ok:['☁️ ✓',en?'Synced with Drive':'Sincronizado com o Drive','var(--green)'],
+    pend:['☁️ !',en?'Changes pending upload':'Alterações por enviar','var(--accent)'],
+    old:['☁️ ↓',en?'Newer version on Drive':'Há versão mais recente no Drive','var(--accent)'],
+    off:['☁️ ✕',en?'No connection to Drive':'Sem ligação ao Drive','var(--text-muted)']
+  };
+  const s=map[state]||map.ok;
+  el.textContent=s[0];el.title=s[1];el.style.color=s[2];
+}
+
+// ── definições ──
+function renderDriveSettings(){
+  const box=document.getElementById('drive-state');if(!box)return;
+  const en=currentLang==='en';
+  const cid=dCfg('cid'),fid=dCfg('fid');
+  const inp=document.getElementById('drive-cid');if(inp&&!inp.value)inp.value=cid;
+  let s;
+  if(!cid)s=en?'Not configured — paste your Google credential above.':'Por configurar — cola a tua credencial da Google acima.';
+  else if(!fid)s=en?'Credential saved. Now upload the current vault to Drive.':'Credencial guardada. Falta enviar o cofre atual para o Drive.';
+  else if(driveOn())s=(en?'Active. File on Drive: ':'Ativo. Ficheiro no Drive: ')+DRIVE_NAME+(dCfg('mtime')?(en?' · last sync ':' · última sync ')+new Date(dCfg('mtime')).toLocaleString(en?'en-GB':'pt-PT'):'');
+  else s=en?'Configured but switched off.':'Configurado mas desligado.';
+  box.textContent=s;
+  const b=document.getElementById('drive-toggle-btn');
+  if(b)b.textContent=driveOn()?(en?'Turn off sync':'Desligar sincronização'):(en?'Turn on sync':'Ligar sincronização');
+  renderDriveChip();
+}
+function saveDriveCid(){
+  const en=currentLang==='en';
+  const v=(document.getElementById('drive-cid').value||'').trim();
+  dCfg('cid',v||null);
+  toast(v?(en?'Credential saved.':'Credencial guardada.'):(en?'Credential removed.':'Credencial removida.'));
+  renderDriveSettings();
+}
+async function driveFirstUpload(){
+  const en=currentLang==='en';
+  if(!masterKey){toast(en?'Open the vault first.':'Abre o cofre primeiro.');return;}
+  if(!dCfg('cid')){toast(en?'Paste the credential first.':'Cola a credencial primeiro.');return;}
+  if(!confirm(en?'Upload the current vault to Drive? A new file will be created there.':'Enviar o cofre atual para o Drive? Vai ser criado lá um ficheiro novo.'))return;
+  try{
+    driveBusy=true;renderDriveChip();
+    if(totpUnlocked)totpEnc=await encryptTotpArray();
+    const p=await encrypt(masterKey,vaultPayload());
+    const json=JSON.stringify({salt:Array.from(window._salt),payload:p});
+    await driveUpload(json,true);
+    await localVaultSave(json,false);
+    dCfg('on','1');
+    driveBusy=false;
+    toast(en?'Vault uploaded to Drive.':'Cofre enviado para o Drive.');
+    renderDriveSettings();
+  }catch(e){
+    driveBusy=false;renderDriveChip('off');
+    toast((en?'Failed: ':'Falhou: ')+e.message);
+  }
+}
+function driveToggle(){
+  const en=currentLang==='en';
+  if(driveOn()){dCfg('on',null);toast(en?'Sync off.':'Sincronização desligada.');}
+  else{
+    if(!dCfg('cid')||!dCfg('fid')){toast(en?'Configure and upload first.':'Configura e envia o cofre primeiro.');return;}
+    dCfg('on','1');toast(en?'Sync on.':'Sincronização ligada.');
+  }
+  renderDriveSettings();
+}
+function driveForget(){
+  const en=currentLang==='en';
+  if(!confirm(en?'Disconnect Drive? The file stays there; the app just stops using it.':'Desligar o Drive? O ficheiro fica lá; a app é que deixa de o usar.'))return;
+  ['cid','fid','on','mtime'].forEach(k=>dCfg(k,null));
+  driveToken=null;driveTokenExp=0;
+  const inp=document.getElementById('drive-cid');if(inp)inp.value='';
+  renderDriveSettings();
+  toast(en?'Disconnected.':'Desligado.');
+}
+
 function vaultPayload(){
-  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner,personalInfo,subscriptions,storeCards,vaultName,assets};
+  const base={fmt:VAULT_FMT,vault,notes,bankCards,activityLog,documents,trash,customCats,docFolders,vaultFolders,wifiNets,legacyNote,legacyOwner,personalInfo,subscriptions,storeCards,vaultName,assets,savedAt:Date.now()};
   if(totpRecWrap){
     base.totpEnc=totpEnc;
     base.totpRecWrap=totpRecWrap;
@@ -7533,6 +7803,8 @@ async function saveFile(){
   const dateStr=new Date().toISOString().slice(0,10);
   lastSavedAt=Date.now();
   pushSnapshot(container);
+  try{await localVaultSave(json,!driveOn());}catch(e){}
+  try{driveAfterSave(json);}catch(e){}
   // Sem handle mas com API: escolher onde guardar (uma vez)
   if(!vaultFileHandle&&FSA_OK){
     try{
