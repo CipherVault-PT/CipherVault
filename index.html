@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.52</span>
+      <span>Aurora Vault © 2026 · v9.53</span>
     </div>
   </div>
 </div>
@@ -2275,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.52</span>
+      <span>Aurora Vault © 2026 · v9.53</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.52';
+const APP_VERSION='9.53';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7568,6 +7568,7 @@ function driveAuth(interactive){
       '&redirect_uri='+encodeURIComponent(redirect)+
       '&response_type=token'+
       '&scope='+encodeURIComponent('https://www.googleapis.com/auth/drive.file')+
+      (dCfg('hint')?'&login_hint='+encodeURIComponent(dCfg('hint')):'')+
       '&include_granted_scopes=true&state='+state;
     const w=window.open(url,'av_oauth','width=500,height=660');
     if(!w)return reject(new Error('popup-bloqueado'));
@@ -7597,10 +7598,18 @@ async function dApi(url,opts,interactive){
   if(r.status===401){driveToken=null;const t2=await driveAuth(true);opts.headers.Authorization='Bearer '+t2;return fetch(url,opts);}
   return r;
 }
+async function driveCaptureHint(){
+  if(dCfg('hint'))return; // já sabemos a conta
+  try{
+    const r=await dApi('https://www.googleapis.com/drive/v3/about?fields=user',{},false);
+    if(r&&r.ok){const j=await r.json();const em=j&&j.user&&j.user.emailAddress;if(em)dCfg('hint',em);}
+  }catch(e){}
+}
 async function driveMeta(interactive){
   const fid=dCfg('fid');if(!fid)return null;
   const r=await dApi('https://www.googleapis.com/drive/v3/files/'+fid+'?fields=id,name,modifiedTime,size',{},interactive);
   if(!r.ok)return null;
+  driveCaptureHint(); // guarda o email da conta (1x) para saltar o seletor de contas
   return r.json();
 }
 async function driveDownload(interactive){
