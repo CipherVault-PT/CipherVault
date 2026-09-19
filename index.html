@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.49</span>
+      <span>Aurora Vault © 2026 · v9.52</span>
     </div>
   </div>
 </div>
@@ -1896,6 +1896,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button onclick="togglePrivacy()" id="privacy-btn" title="Modo de privacidade"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg><span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span><span class="tb-mini" id="tbm-priv">Privado</span></button>
       <button onclick="openCalendar()" id="cal-topbar-btn" title="Calendário"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tb-label" id="tb-cal-txt">Calendário</span><span class="tb-mini" id="tbm-cal">Calendário</span></button>
       <button onclick="openSettings()" title="Definições"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="tb-label" id="tb-settings-txt">Definições</span><span class="tb-mini" id="tbm-set">Ajustes</span></button>
+      <button onclick="driveSyncNow()" id="drive-sync-btn" title="Sincronizar agora" style="display:none"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span class="tb-label" id="tb-sync-txt">Sincronizar</span><span class="tb-mini" id="tbm-sync">Sinc.</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
       <span class="autolock-badge" id="drive-chip" style="display:none;cursor:pointer" onclick="openSettings()"></span>
       <button onclick="lockApp()">
@@ -2274,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.49</span>
+      <span>Aurora Vault © 2026 · v9.52</span>
     </div>
   </div>
   </div>
@@ -3367,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.49';
+const APP_VERSION='9.52';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4570,7 +4571,7 @@ async function submitOpenVault(pwArg){
     pendingVaultText=text;failedAttempts=0;doUnlock();touchPinExpiry();maybePromptPinRenew();
     setTimeout(()=>{try{renderNotifBtn();checkNotifs();}catch(e){}},2500);
     applyPendingGo();
-    setTimeout(()=>{try{driveCheckOnOpen();}catch(e){}},1800);
+    setTimeout(()=>{try{driveCheckOnOpen();}catch(e){}},500);
   }catch{
     if(quick){
       await clearQuickUnlock();
@@ -5133,6 +5134,8 @@ function applySettingsLang(){
   const scb=document.getElementById('search-clear');if(scb)scb.title=en2?'Clear':'Limpar';
   setTxt('tb-backup-txt',en2?'Download backup':'Descarregar cópia');
   setTxt('tb-settings-txt',en2?'Settings':'Definições');
+  setTxt('tb-sync-txt',en2?'Sync':'Sincronizar');setTxt('tbm-sync',en2?'Sync':'Sinc.');
+  const sib=document.getElementById('drive-sync-btn');if(sib)sib.title=en2?'Sync now':'Sincronizar agora';
   setTxt('tb-cal-txt',en2?'Calendar':'Calendário');
   setTxt('tb-privacy-txt',en2?'Privacy mode':'Modo de privacidade');
   setTxt('tb-theme-txt',en2?'Light / dark theme':'Tema claro/escuro');
@@ -7656,28 +7659,36 @@ async function driveAfterSave(json){
   }
 }
 async function driveCheckOnOpen(){
-  if(!driveOn())return;
+  if(!driveOn()||!navigator.onLine)return false;
   const en=currentLang==='en';
   try{
     const loc=await localVaultGet();
-    if(loc&&loc.pending){renderDriveChip('pend');return;}
-    const m=await driveMeta(false);
-    if(!m)return;
+    if(loc&&loc.pending){ // há alterações locais por enviar → enviar (não substituir)
+      try{
+        driveBusy=true;renderDriveChip();
+        await driveUpload(loc.json,true);
+        await localVaultSave(loc.json,false);
+        const mm=await driveMeta(false);
+        if(mm&&mm.modifiedTime)dCfg('mtime',mm.modifiedTime);
+        driveBusy=false;renderDriveChip('ok');
+      }catch(e){driveBusy=false;renderDriveChip('pend');}
+      return false;
+    }
+    driveBusy=true;renderDriveChip();
+    const m=await driveMeta(true); // interativo: garante o token do Drive logo ao entrar
+    if(!m){driveBusy=false;renderDriveChip('off');return false;}
     const remote=new Date(m.modifiedTime).getTime();
     const known=dCfg('mtime')?new Date(dCfg('mtime')).getTime():0;
     if(remote>known+2000){
-      const msg=en
-        ?'A newer version is on Drive ('+new Date(remote).toLocaleString('en-GB')+').\n\nLoad it? Your current screen will be replaced.'
-        :'Há uma versão mais recente no Drive ('+new Date(remote).toLocaleString('pt-PT')+').\n\nCarregar essa versão? O que tens no ecrã é substituído.';
-      if(confirm(msg)){
-        const txt=await driveDownload(true);
-        await applyContainerText(txt);
-        dCfg('mtime',m.modifiedTime);
-        toast(en?'Loaded from Drive.':'Carregado do Drive.');
-        renderDriveChip('ok');
-      }else renderDriveChip('old');
-    }else renderDriveChip('ok');
-  }catch(e){renderDriveChip('off');}
+      const txt=await driveDownload(true);
+      await applyContainerText(txt);
+      dCfg('mtime',m.modifiedTime);
+      driveBusy=false;renderDriveChip('ok');
+      toast(en?'Synced with Drive.':'Sincronizado com o Drive.');
+      return true;
+    }else{driveBusy=false;renderDriveChip('ok');return false;}
+  }catch(e){driveBusy=false;renderDriveChip('off');}
+  return false;
 }
 let _driveFocusBusy=false,_driveFocusT=0;
 async function driveCheckOnFocus(){
@@ -7719,11 +7730,24 @@ async function driveFlushPending(){
     toast(currentLang==='en'?'Pending changes sent to Drive.':'Alterações pendentes enviadas para o Drive.');
   }catch(e){driveBusy=false;renderDriveChip('pend');}
 }
-window.addEventListener('online',()=>{setTimeout(()=>{try{driveFlushPending();}catch(e){}},1500);});
+window.addEventListener('online',()=>{setTimeout(()=>{try{driveFlushPending();}catch(e){}try{driveCheckOnFocus();}catch(e){}},1500);});
+
+// ── sincronizar agora (botão da barra) ──
+async function driveSyncNow(){
+  const en=currentLang==='en';
+  if(!driveOn()){toast(en?'Drive sync is off — turn it on in Settings.':'Sincronização desligada — liga nas Definições.');return;}
+  if(!navigator.onLine){toast(en?'No Internet connection.':'Sem ligação à Internet.');return;}
+  toast(en?'Checking Drive…':'A verificar o Drive…');
+  try{
+    const loaded=await driveCheckOnOpen();
+    if(!loaded)toast(en?'Already up to date ✓':'Já estava atualizado ✓');
+  }catch(e){toast(en?'Sync failed.':'A sincronização falhou.');}
+}
 
 // ── indicador na barra de topo ──
 function renderDriveChip(state){
   const el=document.getElementById('drive-chip');if(!el)return;
+  const sb=document.getElementById('drive-sync-btn');if(sb)sb.style.display=driveOn()?'inline-flex':'none';
   if(!driveOn()){el.style.display='none';return;}
   el.style.display='inline-flex';
   const en=currentLang==='en';
@@ -10220,6 +10244,8 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('blur',()=>{if(masterKey&&!presentationMode)document.body.classList.add('bg-blur');});
 window.addEventListener('focus',()=>{document.body.classList.remove('bg-blur');try{driveCheckOnFocus();}catch(e){}});
+// verificação periódica do Drive enquanto a app está aberta e à vista (deteta versão nova sem ter de trocar de foco)
+setInterval(()=>{if(!document.hidden){try{driveCheckOnFocus();}catch(e){}}},45000);
 
 // ══ CAMPOS PERSONALIZADOS ══
 let entryFields=[];
