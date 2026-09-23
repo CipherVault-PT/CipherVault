@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.53</span>
+      <span>Aurora Vault © 2026 · v9.54</span>
     </div>
   </div>
 </div>
@@ -2275,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.53</span>
+      <span>Aurora Vault © 2026 · v9.54</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.53';
+const APP_VERSION='9.54';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -11778,6 +11778,289 @@ self.addEventListener('fetch',e=>{const r=e.request;
   const _origLockApp=lockApp;
   lockApp=function(){_origLockApp();if(window.__cvUpdateReady)setTimeout(()=>location.reload(),300);};
 }
+
+/* ═══════════════════ AURORA AI — assistente local de comandos ═══════════════════ */
+/* Interpreta pedidos e liga-os às funções que já existem na app. 100% local. */
+
+let auroraPending=null;   // ação à espera de confirmação ou de dado em falta
+
+function auroraNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
+function auroraGenPw(len){len=len||18;const chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';let p='';const a=new Uint8Array(len);crypto.getRandomValues(a);a.forEach(b=>p+=chars[b%chars.length]);return p;}
+function auroraEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function auroraOpen(){
+  if(typeof masterKey==='undefined'||!masterKey){if(typeof toast==='function')toast('Desbloqueia o cofre primeiro.');return;}
+  document.getElementById('aurora-panel').classList.add('open');
+  const m=document.getElementById('aurora-msgs');
+  if(!m.dataset.greeted){m.dataset.greeted='1';auroraSay('Olá! Sou a <b>Aurora</b>. Diz-me o que precisas — por exemplo:\n• "o que expira nos próximos 3 meses"\n• "adiciona o email joao@mail.com com a password Abc12345"\n• "gera uma password forte"\n• "abre o cartão de cidadão"\n• "código da Trade Republic"\n• "tenho passwords fracas?"\n\nEscreve <b>ajuda</b> para veres tudo o que sei fazer.');}
+  setTimeout(()=>{const i=document.getElementById('aurora-input');if(i)i.focus();},100);
+}
+function auroraClose(){document.getElementById('aurora-panel').classList.remove('open');}
+function auroraSay(html,cls){const m=document.getElementById('aurora-msgs');const d=document.createElement('div');d.className='aurora-msg '+(cls||'ai');d.innerHTML=html;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;}
+function auroraSend(){const i=document.getElementById('aurora-input');const txt=(i.value||'').trim();if(!txt)return;i.value='';auroraSay(auroraEsc(txt),'me');setTimeout(()=>auroraProcess(txt),120);}
+
+/* procura genérica por nome nos dados */
+function auroraFind(arr,q,fields){
+  q=auroraNorm(q);if(!q||!arr||!arr.length)return null;
+  let best=null,score=0;
+  arr.forEach(it=>{if(it.archived)return;
+    const hay=fields.map(f=>auroraNorm((it[f]||'')+'')).join(' ');
+    let s=0;if(hay.indexOf(q)>=0)s=q.length+5;
+    q.split(/\s+/).forEach(w=>{if(w.length>1&&hay.indexOf(w)>=0)s+=w.length;});
+    if(s>score){score=s;best=it;}
+  });
+  return score>0?best:null;
+}
+
+/* confirmar / cancelar ações pendentes */
+function auroraConfirm(){
+  const p=auroraPending;auroraPending=null;if(!p)return;
+  if(p.type==='add'){
+    vault.push(p.entry);
+    if(typeof logActivity==='function')logActivity('add',p.entry.name,'✨');
+    if(typeof renderAll==='function')renderAll();
+    if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
+    auroraSay('Feito ✓ Criei a entrada <b>'+auroraEsc(p.entry.name)+'</b> e guardei.');
+  }else if(p.type==='del'){
+    if(typeof deleteEntry==='function'){deleteEntry(p.id);auroraSay('Apagado ✓ Foi para a reciclagem, dá para recuperar.');}
+  }else if(p.type==='date'){
+    assets.push(p.asset);
+    if(typeof renderAll==='function')renderAll();
+    if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
+    auroraSay('Feito ✓ Agendei <b>'+auroraEsc(p.asset.name)+'</b> para '+p.asset.dateLabel+'. Vais ser avisado.');
+  }
+}
+function auroraCancel(){auroraPending=null;auroraSay('Ok, cancelei.');}
+
+/* ─────────── MOTOR DE INTENÇÕES ─────────── */
+function auroraProcess(raw){
+  const n=auroraNorm(raw);
+
+  // resposta a um dado em falta (ex.: serviço para uma password gerada)
+  if(auroraPending&&auroraPending.type==='needService'){
+    const pw=auroraPending.pw;auroraPending=null;
+    const e=auroraMakeEntry(raw.trim(),'',pw,'');
+    auroraPending={type:'add',entry:e};
+    return auroraSay('Vou criar a entrada <b>'+auroraEsc(e.name)+'</b> com a password gerada. Confirmas?'+auroraBtns());
+  }
+
+  // AJUDA
+  if(/\b(ajuda|help|comandos|o que sabes|o que podes|o que fazes)\b/.test(n))
+    return auroraSay('Eis o que sei fazer:\n• <b>Validades</b>: "o que expira nos próximos 2 meses"\n• <b>Adicionar</b>: "adiciona o gmail, user joao, pass Abc123"\n• <b>Gerar password</b>: "gera uma password forte"\n• <b>Procurar/abrir</b>: "abre o cartão de cidadão", "onde está o router"\n• <b>Copiar</b>: "copia a password do Continente"\n• <b>2FA</b>: "código da Trade Republic"\n• <b>Cartão de loja</b>: "abre o cartão do Continente"\n• <b>Wi-Fi</b>: "mostra o QR do wi-fi de casa"\n• <b>Segurança</b>: "tenho passwords fracas?"\n• <b>Custos</b>: "quanto gasto por mês em subscrições?"\n• <b>Carro</b>: "consumo médio do carro"\n• <b>Agendar</b>: "lembra-me da revisão do carro a 15/03/2027"\n• <b>Contagens</b>: "quantas passwords tenho?"\n• <b>Ações</b>: "faz uma cópia de segurança", "sincroniza", "bloqueia", "abre os documentos"');
+
+  // VALIDADES / RENOVAÇÕES
+  if(/\b(expir|expira|renov|caduc|acaba|acabam|vence|validade|a acabar|renovar)\b/.test(n)){
+    let meses=3;const mm=n.match(/(\d+)\s*(mes|meses|mês)/);const dd=n.match(/(\d+)\s*(dia|dias)/);
+    let dias=mm?parseInt(mm[1])*30:(dd?parseInt(dd[1]):90);
+    if(typeof calCollectEvents!=='function')return auroraSay('Não consegui ler as validades.');
+    const hoje=new Date();hoje.setHours(0,0,0,0);const lim=new Date(hoje.getTime()+dias*864e5);
+    const evs=calCollectEvents().filter(e=>e.date>=hoje&&e.date<=lim).sort((a,b)=>a.date-b.date);
+    if(!evs.length)return auroraSay('Nada a expirar nos próximos '+(mm?mm[1]+' meses':(dd?dd[1]+' dias':'3 meses'))+' ✓');
+    let out='Nos próximos '+(mm?mm[1]+' meses':(dd?dd[1]+' dias':'3 meses'))+':\n';
+    evs.forEach(e=>{const d=Math.ceil((e.date-hoje)/864e5);out+='• <b>'+auroraEsc(e.label)+'</b> — '+e.date.toLocaleDateString('pt-PT')+' ('+(d===0?'hoje':d===1?'amanhã':'em '+d+' dias')+')\n';});
+    return auroraSay(out);
+  }
+
+  // GERAR PASSWORD
+  if(/\b(gera|gerar|cria|criar|nova|preciso)\b.*\b(password|palavra|palavra-passe|senha|pass)\b/.test(n)||/^password forte|^senha forte/.test(n)){
+    const pw=auroraGenPw(18);
+    // menciona serviço? tenta "para o X"
+    const svc=raw.match(/para (?:o |a |os |as )?(.+)$/i);
+    if(svc&&svc[1]&&svc[1].trim().length>1){const e=auroraMakeEntry(svc[1].trim(),'',pw,'');auroraPending={type:'add',entry:e};return auroraSay('Password gerada:\n<b>'+auroraEsc(pw)+'</b>\n\nCrio a entrada <b>'+auroraEsc(e.name)+'</b> com ela? Confirmas?'+auroraBtns());}
+    auroraPending={type:'needService',pw};
+    return auroraSay('Aqui tens uma password forte:\n<b>'+auroraEsc(pw)+'</b>\n\nQueres que a guarde numa entrada? Diz-me o <b>serviço/email</b> (ou "não").');
+  }
+
+  // ADICIONAR ENTRADA
+  if(/\b(adiciona|adicionar|guarda|guardar|cria|criar|nova entrada|novo acesso|nova conta)\b/.test(n)&&/\b(email|conta|acesso|login|entrada|password|palavra|senha|utilizador|user)\b/.test(n)){
+    const email=(raw.match(/([\w.+-]+@[\w-]+\.[\w.-]+)/)||[])[1]||'';
+    let pw=(raw.match(/(?:password|palavra[- ]?passe|senha|pass)\s*[:=]?\s*([^\s,;]+)/i)||[])[1]||'';
+    let user=(raw.match(/(?:user|utilizador|username|nome de utilizador)\s*[:=]?\s*([^\s,;]+)/i)||[])[1]||email;
+    // nome do serviço: tenta "ao/do/para o X" ou a 1.ª palavra relevante
+    let name=(raw.match(/(?:ao |do |da |para o |para a |no |na |conta |acesso ao |acesso à )\s*([A-Za-zÀ-ÿ0-9][\w .-]{1,30})/)||[])[1]||'';
+    name=name.replace(/\b(com|user|utilizador|password|pass|senha|email)\b.*$/i,'').trim();
+    if(!name&&email)name=email.split('@')[1].split('.')[0];
+    if(!name)return auroraSay('Percebi que queres adicionar uma entrada, mas falta o <b>nome do serviço</b>. Ex.: "adiciona o Gmail com user X e pass Y".');
+    if(!pw){pw=auroraGenPw(18);var gerada=true;}
+    const e=auroraMakeEntry(name,user,pw,'');
+    auroraPending={type:'add',entry:e};
+    return auroraSay('Vou criar:\n• <b>'+auroraEsc(e.name)+'</b>\n• utilizador: '+(user?auroraEsc(user):'—')+'\n• password: '+(gerada?'(gerada) '+auroraEsc(pw):'●●●●●●')+'\n\nConfirmas?'+auroraBtns());
+  }
+
+  // AUDITORIA / PASSWORDS FRACAS
+  if(/\b(fracas|repetidas|duplicad|antigas|seguran|auditoria|health|quao seguro|pontuac|score|verifica.*password)\b/.test(n)){
+    if(typeof openHealthCheck==='function'){openHealthCheck();auroraClose();return auroraSay('Abri a <b>auditoria de segurança</b> — vês aí as passwords fracas, repetidas, antigas, sem 2FA e a tua pontuação.');}
+    return auroraSay('Não consegui abrir a auditoria.');
+  }
+
+  // CUSTO SUBSCRIÇÕES
+  if(/\b(quanto|custo|gasto|gasta|pago|pagas)\b.*\b(subscri|mes|mensal|ano|assinatura)\b/.test(n)||/\bsubscri.*(quanto|custo|total)\b/.test(n)){
+    if(typeof subMonthly==='function'&&subscriptions){let tot=0;subscriptions.forEach(s=>{tot+=subMonthly(s)||0;});
+      return auroraSay('Subscrições: <b>'+(typeof fmtMoney==='function'?fmtMoney(tot):tot.toFixed(2)+'€')+'/mês</b> (~'+(typeof fmtMoney==='function'?fmtMoney(tot*12):(tot*12).toFixed(2)+'€')+'/ano), '+subscriptions.length+' ativas.');}
+    return auroraSay('Não encontrei subscrições.');
+  }
+
+  // CONSUMO CARRO
+  if(/\b(consumo|litros|combustivel|gasolina|gasoleo|km|abastec)\b/.test(n)){
+    if(typeof fuelStats==='function'){const veic=(assets||[]).filter(a=>a.kind==='vehicle');
+      if(!veic.length)return auroraSay('Ainda não tens veículos registados nos Bens.');
+      let out='Consumo:\n';veic.forEach(v=>{try{const s=fuelStats(v);if(s&&s.l100!=null)out+='• <b>'+auroraEsc(v.name||'Veículo')+'</b>: '+(s.l100?s.l100.toFixed(1)+' L/100km':'sem dados')+'\n';}catch(e){}});
+      return auroraSay(out);
+    }
+    return auroraSay('Não consegui calcular o consumo.');
+  }
+
+  // CONTAGENS
+  if(/\bquant[ao]s?\b/.test(n)){
+    if(/password|entrada|acesso|conta/.test(n))return auroraSay('Tens <b>'+(vault?vault.filter(v=>!v.archived).length:0)+'</b> passwords guardadas.');
+    if(/document/.test(n))return auroraSay('Tens <b>'+(documents?documents.length:0)+'</b> documentos.');
+    if(/cartao|cartão/.test(n))return auroraSay('Cartões bancários: <b>'+(bankCards?bankCards.length:0)+'</b> · de loja: <b>'+(storeCards?storeCards.length:0)+'</b>.');
+    if(/2fa|codigo|autenticador/.test(n))return auroraSay('Tens <b>'+(totp?totp.length:0)+'</b> códigos 2FA.');
+  }
+
+  // AGENDAR / CALENDÁRIO
+  if(/\b(agenda|agendar|lembra|lembra-me|marca|marcar|coloca no calendario|adiciona.*data|nova data)\b/.test(n)){
+    const dm=raw.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+    if(!dm)return auroraSay('Diz-me a <b>data</b> (ex.: 15/03/2027) e o motivo. Ex.: "lembra-me da revisão do carro a 15/03/2027".');
+    let[_,d,mo,y]=dm;y=y.length===2?'20'+y:y;const dt=new Date(+y,+mo-1,+d);
+    let motivo=raw.replace(dm[0],'').replace(/\b(agenda|agendar|lembra-me|lembra|marca|marcar|coloca no calendario|para|a|no dia|no|de|da|do)\b/gi,' ').replace(/\s+/g,' ').trim();
+    if(!motivo)motivo='Lembrete';
+    const asset={id:Date.now().toString(36),kind:'dates',name:motivo,date:dt.toISOString().slice(0,10),yearly:false,dateLabel:dt.toLocaleDateString('pt-PT'),createdAt:Date.now()};
+    auroraPending={type:'date',asset};
+    return auroraSay('Vou agendar:\n• <b>'+auroraEsc(motivo)+'</b>\n• '+dt.toLocaleDateString('pt-PT')+'\n\nConfirmas?'+auroraBtns());
+  }
+
+  // BACKUP
+  if(/\b(copia de seguranca|cópia de segurança|backup|salvaguarda|exporta.*copia)\b/.test(n)){
+    if(typeof downloadBackupNow==='function'){downloadBackupNow();return auroraSay('Descarreguei uma cópia de segurança ✓');}
+    return auroraSay('Não encontrei a função de cópia.');
+  }
+  // SINCRONIZAR
+  if(/\b(sincroniza|sincronizar|sync|atualiza.*drive|drive)\b/.test(n)){
+    if(typeof driveSyncNow==='function'){driveSyncNow();return auroraSay('A sincronizar com o Drive…');}
+    return auroraSay('A sincronização com o Drive não está ligada.');
+  }
+  // BLOQUEAR
+  if(/\b(bloqueia|bloquear|fecha o cofre|tranca|lock)\b/.test(n)){
+    if(typeof lockApp==='function'){auroraClose();lockApp();return;}
+  }
+
+  // ABRIR SEPARADOR
+  if(/\b(abre|abrir|vai|mostra|ir)\b.*\b(cartoes|cartões|documentos|notas|cofre|passwords|2fa|bens|reciclagem|dashboard|arquivo|info)\b/.test(n)){
+    const map={cartoes:'cards',cartões:'cards',documentos:'documents',notas:'notes',cofre:'vault',passwords:'vault','2fa':'totp',bens:'assets',reciclagem:'trash',dashboard:'dashboard',arquivo:'archive',info:'info'};
+    for(const k in map){if(n.indexOf(k)>=0&&typeof switchTab==='function'){switchTab(map[k]);auroraClose();return auroraSay('Abri '+k+'.');}}
+  }
+
+  // 2FA por serviço
+  if(/\b(codigo|código|2fa|otp|autenticador|token)\b/.test(n)){
+    const q=raw.replace(/.*\b(codigo|código|2fa|otp|autenticador|token)\b\s*(de |do |da |para )?/i,'');
+    const it=auroraFind(totp,q,['name','issuer','account','label']);
+    if(it&&typeof openTotpModal==='function'){openTotpModal(it.id);auroraClose();return auroraSay('Abri o código 2FA de <b>'+auroraEsc(it.name||it.issuer||q)+'</b>.');}
+    if(typeof openTotpModal==='function'){openTotpModal();auroraClose();return auroraSay('Abri os teus códigos 2FA.');}
+    return auroraSay('Não encontrei esse código 2FA.');
+  }
+
+  // CARTÃO DE LOJA
+  if(/\b(cartao|cartão)\b.*\b(loja|continente|pingo|barras|fidelidade|pontos)\b/.test(n)||/\b(codigo de barras|código de barras)\b/.test(n)){
+    const q=raw.replace(/.*\bcartao|cartão\b\s*(de |do |da )?/i,'').replace(/de loja|loja/i,'');
+    const it=auroraFind(storeCards,q,['name','store']);
+    if(it&&typeof showBarcode==='function'){showBarcode(it.id);auroraClose();return auroraSay('Aqui está o cartão <b>'+auroraEsc(it.name||q)+'</b>.');}
+    return auroraSay('Não encontrei esse cartão de loja.');
+  }
+
+  // WIFI
+  if(/\b(wifi|wi-fi|rede)\b/.test(n)){
+    const q=raw.replace(/.*\b(wifi|wi-fi|rede)\b\s*(de |do |da )?/i,'').replace(/\b(qr|codigo|código|mostra|casa)\b/gi,'').trim();
+    const it=auroraFind(wifiNets,q||'casa',['name','ssid']);
+    if(it&&typeof openWifiNetQR==='function'){openWifiNetQR(it.id);auroraClose();return auroraSay('Aqui está o QR do Wi-Fi <b>'+auroraEsc(it.name||it.ssid||'')+'</b>.');}
+    if(typeof openWifiManager==='function'){openWifiManager();auroraClose();return auroraSay('Abri as tuas redes Wi-Fi.');}
+    return auroraSay('Não encontrei essa rede Wi-Fi.');
+  }
+
+  // DOCUMENTO
+  if(/\b(documento|cartao de cidadao|cartão de cidadão|carta de conducao|carta de condução|passaporte|fatura|contrato|abre.*doc)\b/.test(n)||/\b(abre|abrir|mostra|ver)\b.*\bdoc/.test(n)){
+    const q=raw.replace(/.*\b(abre|abrir|mostra|ver|documento|o|a)\b\s*/i,'');
+    const it=auroraFind(documents,q,['name','title']);
+    if(it&&typeof openDocPreview==='function'){openDocPreview(it.id);auroraClose();return auroraSay('Abri o documento <b>'+auroraEsc(it.name||it.title||q)+'</b>.');}
+    return auroraSay('Não encontrei esse documento.');
+  }
+
+  // COPIAR PASSWORD
+  if(/\b(copia|copiar)\b.*\b(password|palavra|senha|pass)\b/.test(n)){
+    const q=raw.replace(/.*\b(de|do|da)\b\s*/i,'');
+    const it=auroraFind(vault,q,['name','user','url']);
+    if(it){if(typeof copyText==='function')copyText(it.pw);else navigator.clipboard.writeText(it.pw);return auroraSay('Copiei a password de <b>'+auroraEsc(it.name)+'</b> ✓ (limpa-se do clipboard em breve).');}
+    return auroraSay('Não encontrei essa entrada.');
+  }
+
+  // APAGAR (com confirmação)
+  if(/\b(apaga|apagar|elimina|remove|remover)\b/.test(n)){
+    const q=raw.replace(/.*\b(apaga|apagar|elimina|remove|remover)\b\s*(a |o |entrada |password )?/i,'');
+    const it=auroraFind(vault,q,['name','user','url']);
+    if(it){auroraPending={type:'del',id:it.id};return auroraSay('Queres mesmo apagar <b>'+auroraEsc(it.name)+'</b>? (vai para a reciclagem)'+auroraBtns('Apagar','auroraConfirm()',true));}
+    return auroraSay('Não encontrei essa entrada para apagar.');
+  }
+
+  // PROCURAR / ABRIR ENTRADA (genérico — por último)
+  if(/\b(procura|procurar|encontra|encontrar|onde esta|onde está|abre|abrir|mostra|ver|acesso)\b/.test(n)){
+    const q=raw.replace(/.*\b(procura|procurar|encontra|encontrar|onde esta|onde está|abre|abrir|mostra|ver|o acesso ao|acesso ao|o|a)\b\s*/i,'');
+    const it=auroraFind(vault,q,['name','user','url','notes']);
+    if(it&&typeof openReadMode==='function'){openReadMode(it.id);auroraClose();return auroraSay('Encontrei e abri <b>'+auroraEsc(it.name)+'</b>.');}
+    // tenta noutros dados
+    const d=auroraFind(documents,q,['name','title']);if(d&&typeof openDocPreview==='function'){openDocPreview(d.id);auroraClose();return auroraSay('Abri o documento <b>'+auroraEsc(d.name||d.title)+'</b>.');}
+    return auroraSay('Não encontrei nada com "'+auroraEsc(q)+'". Tenta com outro nome.');
+  }
+
+  // negação a uma pergunta pendente
+  if(/^(nao|não|nop|deixa)/.test(n)){return auroraSay('Ok 👍');}
+
+  return auroraSay('Não percebi esse pedido. Escreve <b>ajuda</b> para veres o que sei fazer.');
+}
+
+function auroraMakeEntry(name,user,pw,url){
+  return {id:Date.now().toString(36),name:name,cat:'',user:user||'',pw:pw||'',url:url||'',notes:'',tags:[],flag:'',fields:[],folderId:null,isWifi:false,attachments:[],fav:false,archived:false,icon:'',createdAt:Date.now(),order:(typeof vault!=='undefined'&&vault?vault.length:0),pwUpdated:Date.now(),pwHistory:null,reviewedAt:null};
+}
+function auroraBtns(label,fn,danger){
+  label=label||'Confirmar';fn=fn||'auroraConfirm()';
+  return '\n<span class="a-btn'+(danger?' danger':'')+'" onclick="'+fn+'">'+label+'</span><span class="a-btn" onclick="auroraCancel()">Cancelar</span>';
+}
+function auroraDo(what){if(what==='health'&&typeof openHealthCheck==='function'){openHealthCheck();auroraClose();}}
+
+/* injeta estilos, botão flutuante e painel */
+(function auroraInit(){
+  const css='#aurora-fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:900;width:56px;height:56px;border-radius:50%;border:1px solid var(--accent);background:var(--panel);color:var(--accent);cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.45)}'
+  +'#aurora-fab:hover{transform:scale(1.07)}#aurora-fab svg{width:26px;height:26px}'
+  +'#aurora-panel{position:fixed;inset:0;z-index:1400;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}#aurora-panel.open{display:flex}'
+  +'.aurora-box{width:100%;max-width:520px;height:82vh;background:var(--panel);border:1px solid var(--border);border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}'
+  +'@media(min-width:560px){.aurora-box{border-radius:16px;height:72vh;margin-bottom:3vh}}'
+  +'.aurora-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}'
+  +'.aurora-head .ttl{font-family:"Playfair Display",serif;color:var(--accent);letter-spacing:1px;font-size:1.15rem;flex:1}'
+  +'.aurora-head button{background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer}'
+  +'.aurora-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}'
+  +'.aurora-msg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:.86rem;line-height:1.55;white-space:pre-wrap;word-break:break-word}'
+  +'.aurora-msg.me{align-self:flex-end;background:var(--accent);color:#0a0e1a}'
+  +'.aurora-msg.ai{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text)}'
+  +'.aurora-msg.ai b{color:var(--accent)}'
+  +'.a-btn{display:inline-block;margin:8px 6px 0 0;padding:6px 13px;border:1px solid var(--accent);border-radius:20px;color:var(--accent);cursor:pointer;font-size:.8rem}'
+  +'.a-btn.danger{border-color:#e05270;color:#e05270}'
+  +'.aurora-in{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}'
+  +'.aurora-in input{flex:1;background:rgba(0,0,0,.22);border:1px solid var(--border);border-radius:22px;padding:11px 15px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}'
+  +'.aurora-in button{background:var(--accent);color:#0a0e1a;border:none;border-radius:22px;padding:0 18px;font-size:1rem;font-weight:700;cursor:pointer}';
+  const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+
+  const fab=document.createElement('button');fab.id='aurora-fab';fab.title='Aurora';fab.setAttribute('onclick','auroraOpen()');
+  fab.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><circle cx="18.5" cy="17.5" r="1"/><circle cx="6" cy="16" r="1"/></svg>';
+  document.body.appendChild(fab);
+
+  const panel=document.createElement('div');panel.id='aurora-panel';
+  panel.innerHTML='<div class="aurora-box"><div class="aurora-head"><span class="ttl">✨ Aurora</span><button onclick="auroraClose()">✕</button></div><div class="aurora-msgs" id="aurora-msgs"></div><div class="aurora-in"><input id="aurora-input" placeholder="Escreve um pedido…" autocomplete="off"><button onclick="auroraSend()">➤</button></div></div>';
+  document.body.appendChild(panel);
+  const inp=document.getElementById('aurora-input');if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')auroraSend();});
+
+  // mostra o botão só com o cofre aberto
+  setInterval(function(){const f=document.getElementById('aurora-fab');if(!f)return;const on=(typeof masterKey!=='undefined'&&masterKey);f.style.display=on?'flex':'none';if(!on){const p=document.getElementById('aurora-panel');if(p)p.classList.remove('open');}},800);
+})();
+
 </script>
 </body>
 </html>
