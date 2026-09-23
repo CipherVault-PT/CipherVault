@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.54</span>
+      <span>Aurora Vault © 2026 · v9.57</span>
     </div>
   </div>
 </div>
@@ -2275,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.54</span>
+      <span>Aurora Vault © 2026 · v9.57</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.54';
+const APP_VERSION='9.57';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -11786,18 +11786,22 @@ let auroraPending=null;   // ação à espera de confirmação ou de dado em fal
 
 function auroraNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
 function auroraGenPw(len){len=len||18;const chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';let p='';const a=new Uint8Array(len);crypto.getRandomValues(a);a.forEach(b=>p+=chars[b%chars.length]);return p;}
+const AURORA_WORDS=['aurora','estrela','oceano','floresta','montanha','trovoada','cristal','veludo','girassol','relampago','cascata','labareda','nevoeiro','peixe','tigre','falcao','castelo','muralha','bussola','ancora','farol','duna','coral','jasmim','canela','ambar','safira','esmeralda','carvalho','sereno','vulcao','pantera','cometa','orquidea','abelha','raposa'];
+function auroraMemPw(){const idx=new Uint32Array(5);crypto.getRandomValues(idx);const w=[];for(let i=0;i<4;i++){const x=AURORA_WORDS[idx[i]%AURORA_WORDS.length];w.push(x[0].toUpperCase()+x.slice(1));}return w.join('-')+'-'+(10+idx[4]%90);}
+function auroraQuick(cmd){const i=document.getElementById('aurora-input');if(i){i.value=cmd;auroraSend();}}
 function auroraEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function auroraOpen(){
   if(typeof masterKey==='undefined'||!masterKey){if(typeof toast==='function')toast('Desbloqueia o cofre primeiro.');return;}
   document.getElementById('aurora-panel').classList.add('open');
   const m=document.getElementById('aurora-msgs');
-  if(!m.dataset.greeted){m.dataset.greeted='1';auroraSay('Olá! Sou a <b>Aurora</b>. Diz-me o que precisas — por exemplo:\n• "o que expira nos próximos 3 meses"\n• "adiciona o email joao@mail.com com a password Abc12345"\n• "gera uma password forte"\n• "abre o cartão de cidadão"\n• "código da Trade Republic"\n• "tenho passwords fracas?"\n\nEscreve <b>ajuda</b> para veres tudo o que sei fazer.');}
+  if(!m.dataset.greeted){m.dataset.greeted='1';auroraSay('Olá! Sou a <b>Aurora</b>. Diz-me o que precisas — por exemplo:\n• "o que expira nos próximos 3 meses"\n• "adiciona o email joao@mail.com com a password Abc12345"\n• "gera uma password forte"\n• "abre o cartão de cidadão"\n• "código da Trade Republic"\n• "tenho passwords fracas?"\n\nEscreve <b>ajuda</b> para veres tudo o que sei fazer.'+auroraChips());}
   setTimeout(()=>{const i=document.getElementById('aurora-input');if(i)i.focus();},100);
 }
 function auroraClose(){document.getElementById('aurora-panel').classList.remove('open');}
 function auroraSay(html,cls){const m=document.getElementById('aurora-msgs');const d=document.createElement('div');d.className='aurora-msg '+(cls||'ai');d.innerHTML=html;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;}
-function auroraSend(){const i=document.getElementById('aurora-input');const txt=(i.value||'').trim();if(!txt)return;i.value='';auroraSay(auroraEsc(txt),'me');setTimeout(()=>auroraProcess(txt),120);}
+function auroraSend(){const i=document.getElementById('aurora-input');const txt=(i.value||'').trim();if(!txt)return;i.value='';auroraSay(auroraEsc(txt),'me');const typing=auroraSay('<i style="opacity:.55">Aurora está a escrever…</i>');setTimeout(()=>{if(typing&&typing.remove)typing.remove();auroraProcess(txt);},350);}
+function auroraChips(){return '\n<span class="a-btn" onclick="auroraQuick(\'o que expira nos proximos 3 meses\')">O que expira?</span><span class="a-btn" onclick="auroraQuick(\'ponto de situacao\')">Ponto de situação</span><span class="a-btn" onclick="auroraQuick(\'gera uma password forte\')">Gerar password</span><span class="a-btn" onclick="auroraQuick(\'tenho passwords fracas\')">Passwords fracas</span>';}
 
 /* procura genérica por nome nos dados */
 function auroraFind(arr,q,fields){
@@ -11828,6 +11832,14 @@ function auroraConfirm(){
     if(typeof renderAll==='function')renderAll();
     if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
     auroraSay('Feito ✓ Agendei <b>'+auroraEsc(p.asset.name)+'</b> para '+p.asset.dateLabel+'. Vais ser avisado.');
+  }else if(p.type==='setpw'){
+    const it=(vault||[]).find(v=>v.id===p.id);
+    if(it){if(!it.pwHistory)it.pwHistory=[];it.pwHistory.push({pw:it.pw,at:it.pwUpdated||it.createdAt||Date.now()});it.pw=p.pw;it.pwUpdated=Date.now();
+      if(typeof renderAll==='function')renderAll();
+      if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
+      auroraLast=it;
+      auroraSay('Feito ✓ Password de <b>'+auroraEsc(it.name)+'</b> atualizada e guardada.\n⚠️ Não te esqueças de a mudar também no site do serviço.');
+    }
   }
 }
 function auroraCancel(){auroraPending=null;auroraSay('Ok, cancelei.');}
@@ -11848,6 +11860,34 @@ function auroraProcess(raw){
   if(/\b(ajuda|help|comandos|o que sabes|o que podes|o que fazes)\b/.test(n))
     return auroraSay('Eis o que sei fazer:\n• <b>Validades</b>: "o que expira nos próximos 2 meses"\n• <b>Adicionar</b>: "adiciona o gmail, user joao, pass Abc123"\n• <b>Gerar password</b>: "gera uma password forte"\n• <b>Procurar/abrir</b>: "abre o cartão de cidadão", "onde está o router"\n• <b>Copiar</b>: "copia a password do Continente"\n• <b>2FA</b>: "código da Trade Republic"\n• <b>Cartão de loja</b>: "abre o cartão do Continente"\n• <b>Wi-Fi</b>: "mostra o QR do wi-fi de casa"\n• <b>Segurança</b>: "tenho passwords fracas?"\n• <b>Custos</b>: "quanto gasto por mês em subscrições?"\n• <b>Carro</b>: "consumo médio do carro"\n• <b>Agendar</b>: "lembra-me da revisão do carro a 15/03/2027"\n• <b>Contagens</b>: "quantas passwords tenho?"\n• <b>Ações</b>: "faz uma cópia de segurança", "sincroniza", "bloqueia", "abre os documentos"');
 
+  // AÇÃO SOBRE O ÚLTIMO RESULTADO ("copia essa", "abre essa", "apaga essa")
+  if(auroraLast&&/\b(essa|esse|isso|este|esta|dela|dele|a mesma|o mesmo)\b/.test(n)){
+    if(/copia|copiar/.test(n)&&auroraLast.pw){if(typeof copyText==='function')copyText(auroraLast.pw);else if(navigator.clipboard)navigator.clipboard.writeText(auroraLast.pw);return auroraSay('Copiei a password de <b>'+auroraEsc(auroraLast.name)+'</b> ✓');}
+    if(/apaga|apagar|elimina|remove/.test(n)){auroraPending={type:'del',id:auroraLast.id};return auroraSay('Apago <b>'+auroraEsc(auroraLast.name)+'</b>? (vai para a reciclagem)'+auroraBtns('Apagar','auroraConfirm()',true));}
+    if(/abre|abrir|mostra|ver/.test(n)&&typeof openReadMode==='function'){openReadMode(auroraLast.id);auroraClose();return auroraSay('Abri <b>'+auroraEsc(auroraLast.name)+'</b>.');}
+  }
+
+  // RESUMO / PONTO DE SITUAÇÃO
+  if(/\b(resumo|ponto de situacao|como esta o cofre|como estou|estado do cofre|situacao|panorama|overview)\b/.test(n)){
+    const nP=(vault||[]).filter(v=>!v.archived).length,nD=(documents||[]).length,nT=(totp||[]).length;
+    let sub=0;if(typeof subMonthly==='function')(subscriptions||[]).forEach(s=>{sub+=subMonthly(s)||0;});
+    let prox='nada a expirar nos próximos 30 dias';
+    if(typeof calCollectEvents==='function'){const h=new Date();h.setHours(0,0,0,0);const lim=new Date(h.getTime()+30*864e5);const ev=calCollectEvents().filter(e=>e.date>=h&&e.date<=lim).length;if(ev)prox='<b>'+ev+'</b> a expirar nos próximos 30 dias';}
+    return auroraSay('📊 <b>Ponto de situação</b>\n• '+nP+' acessos · '+nD+' documentos · '+nT+' códigos 2FA\n• Subscrições: <b>'+(typeof fmtMoney==='function'?fmtMoney(sub):sub.toFixed(2)+'€')+'/mês</b>\n• '+prox+auroraBtns('Auditar segurança','auroraDo(\'health\')'));
+  }
+
+  // MUDAR PASSWORD DE UMA ENTRADA
+  if(/\b(muda|mudar|altera|alterar|atualiza|atualizar|troca|trocar|redefine|redefinir|renova|renovar)\b/.test(n)&&/\b(password|palavra|senha|pass)\b/.test(n)){
+    let nova=(raw.match(/\bpara\s+([^\s,;]+)\s*$/i)||[])[1]||'';
+    let alvoRaw=raw.replace(/.*\b(password|palavra[- ]?passe|senha|pass)\b\s*(do|da|de|ao|à|no|na)?\s*/i,'').replace(/\s+para\s+.*$/i,'');
+    const alvo=auroraTerms(alvoRaw||raw);
+    const it=auroraFind(vault,alvo,['name','user','url']);
+    if(!it){const ents=(vault||[]).filter(v=>!v.archived).map(v=>v.name).filter(Boolean);return auroraSay('Não encontrei essa conta. Tens: '+(ents.length?ents.slice(0,12).map(auroraEsc).join(', '):'(nenhuma)')+'.');}
+    let ger=false;if(!nova){nova=auroraGenPw(18);ger=true;}
+    auroraLast=it;auroraPending={type:'setpw',id:it.id,pw:nova};
+    return auroraSay('Vou mudar a password de <b>'+auroraEsc(it.name)+'</b> para:\n<b>'+auroraEsc(nova)+'</b>'+(ger?' (gerada)':'')+'\n\nConfirmas?'+auroraBtns());
+  }
+
   // VALIDADES / RENOVAÇÕES
   if(/\b(expir|expira|renov|caduc|acaba|acabam|vence|validade|a acabar|renovar)\b/.test(n)){
     let meses=3;const mm=n.match(/(\d+)\s*(mes|meses|mês)/);const dd=n.match(/(\d+)\s*(dia|dias)/);
@@ -11863,7 +11903,7 @@ function auroraProcess(raw){
 
   // GERAR PASSWORD
   if(/\b(gera|gerar|cria|criar|nova|preciso)\b.*\b(password|palavra|palavra-passe|senha|pass)\b/.test(n)||/^password forte|^senha forte/.test(n)){
-    const pw=auroraGenPw(18);
+    const pw=/memoravel|decorar|lembrar|facil|frase|simples/.test(n)?auroraMemPw():auroraGenPw(18);
     // menciona serviço? tenta "para o X"
     const svc=raw.match(/para (?:o |a |os |as )?(.+)$/i);
     if(svc&&svc[1]&&svc[1].trim().length>1){const e=auroraMakeEntry(svc[1].trim(),'',pw,'');auroraPending={type:'add',entry:e};return auroraSay('Password gerada:\n<b>'+auroraEsc(pw)+'</b>\n\nCrio a entrada <b>'+auroraEsc(e.name)+'</b> com ela? Confirmas?'+auroraBtns());}
@@ -11872,13 +11912,14 @@ function auroraProcess(raw){
   }
 
   // ADICIONAR ENTRADA
-  if(/\b(adiciona|adicionar|guarda|guardar|cria|criar|nova entrada|novo acesso|nova conta)\b/.test(n)&&/\b(email|conta|acesso|login|entrada|password|palavra|senha|utilizador|user)\b/.test(n)){
+  if(/\b(adiciona|adicionar|guarda|guardar|nova entrada|novo acesso|nova conta|regista|registar)\b/.test(n)&&(/\b(email|conta|acesso|login|entrada|password|palavra|senha|pass|utilizador|user)\b/.test(n)||/@/.test(raw))){
     const email=(raw.match(/([\w.+-]+@[\w-]+\.[\w.-]+)/)||[])[1]||'';
     let pw=(raw.match(/(?:password|palavra[- ]?passe|senha|pass)\s*[:=]?\s*([^\s,;]+)/i)||[])[1]||'';
     let user=(raw.match(/(?:user|utilizador|username|nome de utilizador)\s*[:=]?\s*([^\s,;]+)/i)||[])[1]||email;
     // nome do serviço: tenta "ao/do/para o X" ou a 1.ª palavra relevante
     let name=(raw.match(/(?:ao |do |da |para o |para a |no |na |conta |acesso ao |acesso à )\s*([A-Za-zÀ-ÿ0-9][\w .-]{1,30})/)||[])[1]||'';
     name=name.replace(/\b(com|user|utilizador|password|pass|senha|email)\b.*$/i,'').trim();
+    if(!name){let seg=raw.replace(/.*\b(adiciona|adicionar|guarda|guardar|nova entrada|novo acesso|nova conta|regista|registar)\b\s*/i,'');seg=seg.replace(/\b(com|,|:|user|utilizador|username|password|palavra|passe|pass|senha|email).*$/i,'');name=auroraTerms(seg);}
     if(!name&&email)name=email.split('@')[1].split('.')[0];
     if(!name)return auroraSay('Percebi que queres adicionar uma entrada, mas falta o <b>nome do serviço</b>. Ex.: "adiciona o Gmail com user X e pass Y".');
     if(!pw){pw=auroraGenPw(18);var gerada=true;}
@@ -11945,6 +11986,9 @@ function auroraProcess(raw){
     if(typeof lockApp==='function'){auroraClose();lockApp();return;}
   }
 
+  // LISTAR SUBSCRIÇÕES
+  if(/\b(subscri|assinatura)\b/.test(n)&&/\b(mostra|mostrar|lista|listar|ver|abre|abrir|quais|minhas)\b/.test(n)){if(typeof openSubsScreen==='function'){openSubsScreen();auroraClose();return auroraSay('Abri as tuas subscrições.');}}
+
   // ABRIR SEPARADOR
   if(/\b(abre|abrir|vai|mostra|ir)\b.*\b(cartoes|cartões|documentos|notas|cofre|passwords|2fa|bens|reciclagem|dashboard|arquivo|info)\b/.test(n)){
     const map={cartoes:'cards',cartões:'cards',documentos:'documents',notas:'notes',cofre:'vault',passwords:'vault','2fa':'totp',bens:'assets',reciclagem:'trash',dashboard:'dashboard',arquivo:'archive',info:'info'};
@@ -11978,19 +12022,22 @@ function auroraProcess(raw){
   }
 
   // DOCUMENTO
-  if(/\b(documento|cartao de cidadao|cartão de cidadão|carta de conducao|carta de condução|passaporte|fatura|contrato|abre.*doc)\b/.test(n)||/\b(abre|abrir|mostra|ver)\b.*\bdoc/.test(n)){
-    const q=raw.replace(/.*\b(abre|abrir|mostra|ver|documento|o|a)\b\s*/i,'');
-    const it=auroraFind(documents,q,['name','title']);
-    if(it&&typeof openDocPreview==='function'){openDocPreview(it.id);auroraClose();return auroraSay('Abri o documento <b>'+auroraEsc(it.name||it.title||q)+'</b>.');}
-    return auroraSay('Não encontrei esse documento.');
+  if(/\b(documento|cartao de cidadao|cartão de cidadão|carta de conducao|carta de condução|passaporte|fatura|contrato)\b/.test(n)||/\b(abre|abrir|mostra|ver)\b.*\bdoc/.test(n)){
+    const q=auroraTerms(raw);
+    const it=q?auroraFind(documents,q,['title','name']):null;
+    if(it&&typeof openDocPreview==='function'){openDocPreview(it.id);auroraClose();return auroraSay('Abri o documento <b>'+auroraEsc(it.title||it.name)+'</b>.');}
+    const docs=(documents||[]).map(d=>d.title||d.name).filter(Boolean);
+    if(docs.length)return auroraSay('Não encontrei "<b>'+auroraEsc(q||'esse')+'</b>" nos documentos. Tens estes:\n• '+docs.slice(0,12).map(auroraEsc).join('\n• ')+'\n\nDiz-me qual.');
+    return auroraSay('Ainda não tens documentos guardados no cofre.');
   }
 
   // COPIAR PASSWORD
   if(/\b(copia|copiar)\b.*\b(password|palavra|senha|pass)\b/.test(n)){
-    const q=raw.replace(/.*\b(de|do|da)\b\s*/i,'');
+    const q=auroraTerms(raw);
     const it=auroraFind(vault,q,['name','user','url']);
-    if(it){if(typeof copyText==='function')copyText(it.pw);else navigator.clipboard.writeText(it.pw);return auroraSay('Copiei a password de <b>'+auroraEsc(it.name)+'</b> ✓ (limpa-se do clipboard em breve).');}
-    return auroraSay('Não encontrei essa entrada.');
+    if(it){auroraLast=it;if(typeof copyText==='function')copyText(it.pw);else if(navigator.clipboard)navigator.clipboard.writeText(it.pw);return auroraSay('Copiei a password de <b>'+auroraEsc(it.name)+'</b> ✓ (limpa-se do clipboard em breve).');}
+    const ents=(vault||[]).filter(v=>!v.archived).map(v=>v.name).filter(Boolean);
+    return auroraSay('Não encontrei "<b>'+auroraEsc(q)+'</b>". Acessos que tens: '+(ents.length?ents.slice(0,12).map(auroraEsc).join(', '):'(nenhum)')+'.');
   }
 
   // APAGAR (com confirmação)
@@ -12001,22 +12048,58 @@ function auroraProcess(raw){
     return auroraSay('Não encontrei essa entrada para apagar.');
   }
 
-  // PROCURAR / ABRIR ENTRADA (genérico — por último)
-  if(/\b(procura|procurar|encontra|encontrar|onde esta|onde está|abre|abrir|mostra|ver|acesso)\b/.test(n)){
-    const q=raw.replace(/.*\b(procura|procurar|encontra|encontrar|onde esta|onde está|abre|abrir|mostra|ver|o acesso ao|acesso ao|o|a)\b\s*/i,'');
-    const it=auroraFind(vault,q,['name','user','url','notes']);
-    if(it&&typeof openReadMode==='function'){openReadMode(it.id);auroraClose();return auroraSay('Encontrei e abri <b>'+auroraEsc(it.name)+'</b>.');}
-    // tenta noutros dados
-    const d=auroraFind(documents,q,['name','title']);if(d&&typeof openDocPreview==='function'){openDocPreview(d.id);auroraClose();return auroraSay('Abri o documento <b>'+auroraEsc(d.name||d.title)+'</b>.');}
-    return auroraSay('Não encontrei nada com "'+auroraEsc(q)+'". Tenta com outro nome.');
+  // PROCURAR / ABRIR (genérico — pesquisa universal, por último)
+  if(/\b(procura|procurar|encontra|encontrar|onde esta|onde está|abre|abrir|mostra|mostrar|ver|acesso|qual)\b/.test(n)){
+    const q=auroraTerms(raw);
+    if(!q)return auroraSay('O que queres abrir ou procurar? Diz-me o nome.');
+    const hits=auroraSearchAll(q);
+    if(!hits.length)return auroraSay('Não encontrei nada com "<b>'+auroraEsc(q)+'</b>".'+auroraSuggestions());
+    return auroraOfferHits(hits,'Abri');
   }
 
-  // negação a uma pergunta pendente
-  if(/^(nao|não|nop|deixa)/.test(n)){return auroraSay('Ok 👍');}
+  // negação
+  if(/^(nao|não|nop|deixa|cancela|esquece)/.test(n)){auroraPending=null;return auroraSay('Ok 👍');}
 
-  return auroraSay('Não percebi esse pedido. Escreve <b>ajuda</b> para veres o que sei fazer.');
+  // REDE DE SEGURANÇA — nunca ficar sem resposta: procura o texto todo no cofre
+  const fq=auroraTerms(raw);
+  if(fq){const hits=auroraSearchAll(fq);if(hits.length)return auroraSay('Não tenho um comando exato para isso, mas encontrei no teu cofre:\n'+auroraOfferInline(hits));}
+  return auroraSay('Não apanhei bem o pedido — mas eis o que tens e posso fazer:'+auroraSuggestions()+'\n\nExperimenta: "muda a password do Gmail", "o que expira este mês", "gera uma password", "quanto gasto em subscrições", "ponto de situação".');
 }
 
+let auroraCurrentHits=[];
+let auroraLast=null;
+function auroraOfferInline(hits){auroraCurrentHits=hits.slice(0,6);return auroraCurrentHits.map((h,i)=>'<span class="a-btn" onclick="auroraPick('+i+')">'+auroraEsc(h.label)+' · '+h.type+'</span>').join(' ');}
+const AURORA_STOP=['abre','abrir','mostra','mostrar','ver','procura','procurar','encontra','encontrar','quero','preciso','o','a','os','as','meu','minha','meus','minhas','do','da','de','dos','das','no','na','onde','esta','está','qual','quais','me','por','favor','uma','um','conta','acesso','entrada','documento','cartao','cartão','ao','à','que','tenho','ha','há','aurora','password','pass','senha','codigo','código'];
+function auroraTerms(raw){return auroraNorm(raw).split(/\s+/).filter(w=>w.length>1&&AURORA_STOP.indexOf(w)<0).join(' ').trim();}
+function auroraLev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;const d=[];for(let i=0;i<=m;i++){d[i]=[];d[i][0]=i;}for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);}return d[m][n];}
+function auroraScore(hay,qn){let s=0;if(!qn)return 0;if(hay.indexOf(qn)>=0)s=qn.length+10;const hw=hay.split(/\s+/);qn.split(/\s+/).forEach(w=>{if(w.length<2)return;if(hay.indexOf(w)>=0){s+=w.length;return;}if(w.length>=4){const tol=w.length>=7?2:1;for(let k=0;k<hw.length;k++){if(hw[k].length>=3&&auroraLev(w,hw[k])<=tol){s+=w.length-1;break;}}}});return s;}
+function auroraSearchAll(q){
+  const qn=auroraNorm(q),res=[];
+  const add=(arr,fields,type,openFn,labelFn)=>{(arr||[]).forEach(it=>{if(it.archived)return;const hay=fields.map(f=>auroraNorm((it[f]||'')+'')).join(' ');const s=auroraScore(hay,qn);if(s>0)res.push({type,score:s,item:it,open:()=>openFn(it),label:labelFn(it)||'(sem nome)'});});};
+  if(typeof openReadMode==='function')add(vault,['name','user','url','notes'],'acesso',it=>openReadMode(it.id),it=>it.name);
+  if(typeof openDocPreview==='function')add(documents,['title','name'],'documento',it=>openDocPreview(it.id),it=>it.title||it.name);
+  if(typeof showBarcode==='function')add(storeCards,['name','store'],'cartão de loja',it=>showBarcode(it.id),it=>it.name);
+  if(typeof openTotpModal==='function')add(totp,['name','label','issuer','account'],'código 2FA',it=>openTotpModal(it.id),it=>it.name||it.issuer||it.label);
+  if(typeof openWifiNetQR==='function')add(wifiNets,['name','ssid'],'Wi-Fi',it=>openWifiNetQR(it.id),it=>it.name||it.ssid);
+  if(typeof selectNote==='function')add(notes,['title','name'],'nota',it=>selectNote(it.id),it=>it.title||it.name);
+  if(typeof openAssetModal==='function')add(assets,['name'],'bem',it=>openAssetModal(it.kind,it.id),it=>it.name);
+  return res.sort((a,b)=>b.score-a.score);
+}
+function auroraSuggestions(){
+  const docs=(documents||[]).map(d=>d.title||d.name).filter(Boolean).slice(0,8);
+  const ents=(vault||[]).filter(v=>!v.archived).map(v=>v.name).filter(Boolean).slice(0,8);
+  let out='';
+  if(docs.length)out+='\n\n📄 Documentos: '+docs.map(auroraEsc).join(', ');
+  if(ents.length)out+='\n🔑 Acessos: '+ents.map(auroraEsc).join(', ');
+  return out||'\n\n(Ainda não tens documentos nem acessos guardados.)';
+}
+function auroraPick(i){const h=auroraCurrentHits[i];if(!h)return;if(h.type==='acesso')auroraLast=h.item;h.open();auroraClose();auroraSay('Abri o '+h.type+' <b>'+auroraEsc(h.label)+'</b>.');}
+function auroraOfferHits(hits,introUnique){
+  if(hits.length===1||hits[0].score>=hits[1].score+8){const h=hits[0];if(h.type==='acesso')auroraLast=h.item;h.open();auroraClose();return auroraSay((introUnique||'Abri')+' o '+h.type+' <b>'+auroraEsc(h.label)+'</b>.');}
+  auroraCurrentHits=hits.slice(0,6);let out='Encontrei vários — toca no que queres:';
+  auroraCurrentHits.forEach((h,i)=>{out+='\n<span class="a-btn" onclick="auroraPick('+i+')">'+auroraEsc(h.label)+' · '+h.type+'</span>';});
+  return auroraSay(out);
+}
 function auroraMakeEntry(name,user,pw,url){
   return {id:Date.now().toString(36),name:name,cat:'',user:user||'',pw:pw||'',url:url||'',notes:'',tags:[],flag:'',fields:[],folderId:null,isWifi:false,attachments:[],fav:false,archived:false,icon:'',createdAt:Date.now(),order:(typeof vault!=='undefined'&&vault?vault.length:0),pwUpdated:Date.now(),pwHistory:null,reviewedAt:null};
 }
