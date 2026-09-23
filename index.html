@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.57</span>
+      <span>Aurora Vault © 2026 · v9.59</span>
     </div>
   </div>
 </div>
@@ -2275,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.57</span>
+      <span>Aurora Vault © 2026 · v9.59</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.57';
+const APP_VERSION='9.59';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -11840,6 +11840,8 @@ function auroraConfirm(){
       auroraLast=it;
       auroraSay('Feito ✓ Password de <b>'+auroraEsc(it.name)+'</b> atualizada e guardada.\n⚠️ Não te esqueças de a mudar também no site do serviço.');
     }
+  }else if(p.type==='emptytrash'){
+    if(typeof emptyTrash==='function'){emptyTrash();auroraSay('Reciclagem esvaziada ✓');}
   }
 }
 function auroraCancel(){auroraPending=null;auroraSay('Ok, cancelei.');}
@@ -11929,7 +11931,7 @@ function auroraProcess(raw){
   }
 
   // AUDITORIA / PASSWORDS FRACAS
-  if(/\b(fracas|repetidas|duplicad|antigas|seguran|auditoria|health|quao seguro|pontuac|score|verifica.*password)\b/.test(n)){
+  if(/\b(fracas|repetidas|duplicad|antigas|auditoria|auditar|health|quao seguro|pontuac|score|verifica.*password)\b/.test(n)){
     if(typeof openHealthCheck==='function'){openHealthCheck();auroraClose();return auroraSay('Abri a <b>auditoria de segurança</b> — vês aí as passwords fracas, repetidas, antigas, sem 2FA e a tua pontuação.');}
     return auroraSay('Não consegui abrir a auditoria.');
   }
@@ -11989,15 +11991,61 @@ function auroraProcess(raw){
   // LISTAR SUBSCRIÇÕES
   if(/\b(subscri|assinatura)\b/.test(n)&&/\b(mostra|mostrar|lista|listar|ver|abre|abrir|quais|minhas)\b/.test(n)){if(typeof openSubsScreen==='function'){openSubsScreen();auroraClose();return auroraSay('Abri as tuas subscrições.');}}
 
+  // ── COBERTURA TOTAL DO COFRE ──
+
+  // TEMAS (aplicar por nome)
+  if(/\b(tema|aspeto|aparencia|cor|cores)\b/.test(n)){
+    const TH=[['aurora','aurora'],['meia-noite','meianoite'],['meia noite','meianoite'],['floresta','floresta'],['oceano','oceano'],['por do sol','porsol'],['por-do-sol','porsol'],['rubi','rubi'],['ametista','ametista'],['esmeralda','esmeralda'],['classico','classico'],['papel','papel'],['menta','menta'],['ceu','ceu']];
+    for(let k=0;k<TH.length;k++){if(n.indexOf(TH[k][0])>=0&&typeof applyThemePreset==='function'){applyThemePreset(TH[k][1]);return auroraSay('Apliquei o tema <b>'+TH[k][0].charAt(0).toUpperCase()+TH[k][0].slice(1)+'</b> ✓');}}
+    if(typeof openSettings==='function'){openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('aspeto');auroraClose();return auroraSay('Abri o Aspeto — escolhe aí o tema e as cores. Ou diz-me, por ex., "aplica o tema Oceano".');}
+  }
+
+  // MODO PRIVADO
+  if(/\b(modo privado|modo oculto|esconde os valores|oculta os dados)\b/.test(n)||(/\bprivacidade\b/.test(n)&&/\b(ativa|liga|ativar|ligar|desliga|desativa)\b/.test(n))){if(typeof togglePrivacy==='function'){togglePrivacy();auroraClose();return auroraSay('Alternei o modo de privacidade 👁️');}}
+
+  // HERANÇA DIGITAL
+  if(/\b(heranca digital|herança digital|kit de emergencia|kit de emergência)\b/.test(n)){if(typeof openSettings==='function'){openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('heranca');auroraClose();return auroraSay('Abri a Herança Digital 📜');}}
+
+  // EXPORTAR
+  if(/\b(exporta|exportar)\b/.test(n)){if(/pdf/.test(n)&&typeof exportPDF==='function'){exportPDF();return auroraSay('A exportar para PDF…');}if(typeof exportCSV==='function'){exportCSV();return auroraSay('A exportar para CSV…');}}
+
+  // DEFINIÇÕES / ABAS
+  if(/\b(definicoes|definições|ajustes|configuracoes|configurações|settings)\b/.test(n)||(/\b(abre|abrir|vai|ir|mostra|mostrar)\b/.test(n)&&/\b(seguranca|segurança|sobre)\b/.test(n))){
+    let stab='';if(/seguranca|segurança/.test(n))stab='seguranca';else if(/heranca|herança/.test(n))stab='heranca';else if(/dados|exportar|importar|backup/.test(n))stab='dados';else if(/aspeto|tema|cor/.test(n))stab='aspeto';else if(/sobre|versao|versão|info do cofre/.test(n))stab='sobre';
+    if(typeof openSettings==='function'){openSettings();if(stab&&typeof switchSettingsTab==='function')switchSettingsTab(stab);auroraClose();return auroraSay('Abri as Definições'+(stab?' → '+stab:'')+' ⚙️');}
+  }
+
+  // RECICLAGEM
+  if(/\b(reciclagem|lixo|papeleira|apagados|eliminados)\b/.test(n)){
+    if(/esvazia|esvaziar|limpa|limpar|apaga tudo/.test(n)){auroraPending={type:'emptytrash'};return auroraSay('Esvaziar a reciclagem apaga tudo em <b>definitivo</b>, sem recuperação. Confirmas?'+auroraBtns('Esvaziar','auroraConfirm()',true));}
+    if(typeof switchTab==='function'){switchTab('trash');auroraClose();return auroraSay('Abri a Reciclagem 🗑️');}
+  }
+
+  // ARQUIVO
+  if(/\b(arquivo|arquivadas|arquivados)\b/.test(n)){if(typeof switchTab==='function'){switchTab('archive');auroraClose();return auroraSay('Abri o Arquivo 📦');}}
+
+  // NOVA NOTA
+  if(/\b(nota|apontamento)\b/.test(n)&&/\b(cria|criar|nova|novo|adiciona|adicionar|escreve|escrever)\b/.test(n)){if(typeof newNote==='function'){newNote();auroraClose();return auroraSay('Abri uma nota nova para escreveres 📝');}}
+
+  // CARTÃO BANCÁRIO (adicionar)
+  if(/\b(cartao|cartão)\b.*\b(banco|banco|credito|crédito|debito|débito|visa|mastercard|bancario|bancário)\b/.test(n)||(/\b(cartao|cartão)\b/.test(n)&&/\b(adiciona|adicionar|novo|nova|cria|criar)\b/.test(n)&&!/loja|fidelidad/.test(n))){if(typeof openCardModal==='function'){openCardModal();auroraClose();return auroraSay('Abri um cartão bancário novo para preencheres 💳');}}
+
+  // BENS (adicionar garantia/veículo/licença)
+  if(/\b(garantia|fatura|fatura|veiculo|veículo|carro|licenca|licença|software)\b/.test(n)&&/\b(adiciona|adicionar|nova|novo|cria|criar|regista|registar)\b/.test(n)){
+    let kind='warranty';if(/veiculo|veículo|carro/.test(n))kind='vehicle';else if(/licenca|licença|software/.test(n))kind='license';
+    if(typeof openAssetModal==='function'){openAssetModal(kind);auroraClose();return auroraSay('Abri um novo registo em Bens para preencheres 🏠');}
+  }
+
   // ABRIR SEPARADOR
   if(/\b(abre|abrir|vai|mostra|ir)\b.*\b(cartoes|cartões|documentos|notas|cofre|passwords|2fa|bens|reciclagem|dashboard|arquivo|info)\b/.test(n)){
     const map={cartoes:'cards',cartões:'cards',documentos:'documents',notas:'notes',cofre:'vault',passwords:'vault','2fa':'totp',bens:'assets',reciclagem:'trash',dashboard:'dashboard',arquivo:'archive',info:'info'};
     for(const k in map){if(n.indexOf(k)>=0&&typeof switchTab==='function'){switchTab(map[k]);auroraClose();return auroraSay('Abri '+k+'.');}}
   }
 
-  // 2FA por serviço
+  // 2FA por serviço (com desbloqueio automático)
   if(/\b(codigo|código|2fa|otp|autenticador|token)\b/.test(n)){
-    const q=raw.replace(/.*\b(codigo|código|2fa|otp|autenticador|token)\b\s*(de |do |da |para )?/i,'');
+    if(typeof totpUnlocked!=='undefined'&&!totpUnlocked){if(typeof switchTab==='function'){switchTab('totp');auroraClose();}return auroraSay('🔒 O teu cofre 2FA está bloqueado. Abri-o para desbloqueares com o PIN — depois volta a pedir-me o código.');}
+    const q=auroraTerms(raw.replace(/\b(codigo|código|2fa|otp|autenticador|token)\b/gi,' '));
     const it=auroraFind(totp,q,['name','issuer','account','label']);
     if(it&&typeof openTotpModal==='function'){openTotpModal(it.id);auroraClose();return auroraSay('Abri o código 2FA de <b>'+auroraEsc(it.name||it.issuer||q)+'</b>.');}
     if(typeof openTotpModal==='function'){openTotpModal();auroraClose();return auroraSay('Abri os teus códigos 2FA.');}
@@ -12019,6 +12067,18 @@ function auroraProcess(raw){
     if(it&&typeof openWifiNetQR==='function'){openWifiNetQR(it.id);auroraClose();return auroraSay('Aqui está o QR do Wi-Fi <b>'+auroraEsc(it.name||it.ssid||'')+'</b>.');}
     if(typeof openWifiManager==='function'){openWifiManager();auroraClose();return auroraSay('Abri as tuas redes Wi-Fi.');}
     return auroraSay('Não encontrei essa rede Wi-Fi.');
+  }
+
+  // DADOS PESSOAIS (aba Info): NIF, CC, IBAN, matrícula, etc.
+  if((/\b(nif|contribuinte|iban|nib|matricula|utente|sns|niss|seguranca social)\b/.test(n))||(/\b(cc|cidadao|identidade)\b/.test(n)&&/\b(numero|qual|meu|minha|da|da-me|dame|diz|mostra|copia)\b/.test(n))||(/informacao pessoal|dados pessoais|meus dados|a minha informacao|a minha info/.test(n))){
+    if(/informacao pessoal|dados pessoais|meus dados|a minha informacao|a minha info/.test(n)&&!/\b(nif|cc|iban|nib|matricula|utente|passaporte|seguranca)\b/.test(n)){
+      if(typeof switchTab==='function'){switchTab('info');auroraClose();return auroraSay('Abri a tua Informação Pessoal 👤');}
+    }
+    const hits=auroraFindInfo(raw);
+    if(hits.length){const h=hits[0];if(typeof copyInfoField==='function')copyInfoField(h.person.id,h.field.id);return auroraSay(auroraEsc(h.field.label)+' de <b>'+auroraEsc(h.person.name)+'</b>:\n<b>'+auroraEsc(h.field.value)+'</b>\n(copiei para a área de transferência ✓)');}
+    const labels=[];(personalInfo||[]).forEach(p=>(p.fields||[]).forEach(f=>{if(f.label)labels.push(f.label);}));
+    if(labels.length)return auroraSay('Não encontrei esse dado. Na tua Info tens: '+[...new Set(labels)].slice(0,12).map(auroraEsc).join(', ')+'.');
+    return auroraSay('Ainda não tens dados guardados na aba Info.');
   }
 
   // DOCUMENTO
@@ -12077,6 +12137,7 @@ function auroraSearchAll(q){
   const qn=auroraNorm(q),res=[];
   const add=(arr,fields,type,openFn,labelFn)=>{(arr||[]).forEach(it=>{if(it.archived)return;const hay=fields.map(f=>auroraNorm((it[f]||'')+'')).join(' ');const s=auroraScore(hay,qn);if(s>0)res.push({type,score:s,item:it,open:()=>openFn(it),label:labelFn(it)||'(sem nome)'});});};
   if(typeof openReadMode==='function')add(vault,['name','user','url','notes'],'acesso',it=>openReadMode(it.id),it=>it.name);
+  if(typeof openCardModal==='function')add(bankCards,['name','bank','title'],'cartão bancário',it=>openCardModal(it.id),it=>it.name||it.bank||it.title);
   if(typeof openDocPreview==='function')add(documents,['title','name'],'documento',it=>openDocPreview(it.id),it=>it.title||it.name);
   if(typeof showBarcode==='function')add(storeCards,['name','store'],'cartão de loja',it=>showBarcode(it.id),it=>it.name);
   if(typeof openTotpModal==='function')add(totp,['name','label','issuer','account'],'código 2FA',it=>openTotpModal(it.id),it=>it.name||it.issuer||it.label);
@@ -12099,6 +12160,12 @@ function auroraOfferHits(hits,introUnique){
   auroraCurrentHits=hits.slice(0,6);let out='Encontrei vários — toca no que queres:';
   auroraCurrentHits.forEach((h,i)=>{out+='\n<span class="a-btn" onclick="auroraPick('+i+')">'+auroraEsc(h.label)+' · '+h.type+'</span>';});
   return auroraSay(out);
+}
+function auroraFindInfo(q){
+  const qn=auroraNorm(q),out=[];
+  const SYN=[[/nif|contribuinte|fiscal/,/nif|contribuinte|fiscal|tax/],[/\bcc\b|cidadao|identidade|\bbi\b/,/cidadao|id card|identidade/],[/iban|nib|conta/,/iban|nib/],[/matricula|carro/,/matricula|plate/],[/utente|sns|saude/,/utente|sns|health/],[/seguranca social|niss/,/seguranca social|social security|niss/],[/passaporte|passport/,/passaporte|passport/],[/carta|conducao/,/carta|conducao|driving/]];
+  (personalInfo||[]).forEach(p=>{(p.fields||[]).forEach(f=>{const lab=auroraNorm(f.label||'');let s=auroraScore(lab,qn);SYN.forEach(pair=>{if(pair[0].test(qn)&&pair[1].test(lab))s+=25;});if(s>0)out.push({person:p,field:f,score:s});});});
+  return out.sort((a,b)=>b.score-a.score);
 }
 function auroraMakeEntry(name,user,pw,url){
   return {id:Date.now().toString(36),name:name,cat:'',user:user||'',pw:pw||'',url:url||'',notes:'',tags:[],flag:'',fields:[],folderId:null,isWifi:false,attachments:[],fav:false,archived:false,icon:'',createdAt:Date.now(),order:(typeof vault!=='undefined'&&vault?vault.length:0),pwUpdated:Date.now(),pwHistory:null,reviewedAt:null};
