@@ -2026,7 +2026,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.67</span>
+      <span>Aurora Vault © 2026 · v9.68</span>
     </div>
   </div>
 </div>
@@ -2435,7 +2435,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.67</span>
+      <span>Aurora Vault © 2026 · v9.68</span>
     </div>
   </div>
   </div>
@@ -2733,6 +2733,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button class="btn btn-gold" onclick="driveFirstUpload()" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px">☁️ Enviar o cofre atual para o Drive</button>
       <button class="btn btn-ghost" onclick="driveOpenLinkPicker()" id="drive-link-btn" style="width:100%;padding:10px;margin-bottom:7px">🔗 Usar um ficheiro já existente na Drive</button>
       <button class="btn btn-ghost" onclick="driveToggle()" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px">Ligar sincronização</button>
+      <button class="btn btn-ghost" onclick="openSyncHistory()" id="drive-hist-btn" style="width:100%;padding:10px;margin-bottom:7px">🕘 Histórico de versões no Drive</button>
       <button class="btn btn-ghost" onclick="driveForget()" id="drive-forget-btn" style="width:100%;padding:10px">Desligar e esquecer</button>
       <div id="drive-state" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:11px"></div>
     </div>
@@ -3528,7 +3529,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.67';
+const APP_VERSION='9.68';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4201,8 +4202,10 @@ async function derive2faPinKey(pin,salt){
 async function importTotpKey(b64){
   return crypto.subtle.importKey('raw',await b64ToU8(b64),{name:'AES-GCM'},false,['encrypt','decrypt']);
 }
+let totpSig=null;
 async function encryptTotpArray(){
   if(!totpKey)return totpEnc;
+  try{totpSig=syncStable(totp);}catch(e){}
   const iv=crypto.getRandomValues(new Uint8Array(12));
   const bytes=new TextEncoder().encode(JSON.stringify(totp));
   const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},totpKey,bytes));
@@ -4323,6 +4326,7 @@ async function finish2faUnlock(rawB64){
   totpKey=await importTotpKey(rawB64);
   session2faRaw=rawB64;
   totp=await decryptTotpArray(totpKey,totpEnc);
+  try{totpSig=syncStable(totp);}catch(e){}
   totpUnlocked=true;
   return{ok:true};
 }
@@ -7782,7 +7786,7 @@ async function driveCaptureHint(){
 }
 async function driveMeta(interactive){
   const fid=dCfg('fid');if(!fid)return null;
-  const r=await dApi('https://www.googleapis.com/drive/v3/files/'+fid+'?fields=id,name,modifiedTime,size',{},interactive);
+  const r=await dApi('https://www.googleapis.com/drive/v3/files/'+fid+'?fields=id,name,modifiedTime,size,version',{},interactive);
   if(!r.ok)return null;
   driveCaptureHint(); // guarda o email da conta (1x) para saltar o seletor de contas
   return r.json();
@@ -7800,13 +7804,15 @@ async function driveUpload(json,interactive){
   const body='--'+bnd+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+
              '\r\n--'+bnd+'\r\nContent-Type: application/octet-stream\r\n\r\n'+json+'\r\n--'+bnd+'--';
   const url=fid
-    ? 'https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=multipart&fields=id,modifiedTime'
-    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime';
+    ? 'https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=multipart&fields=id,modifiedTime,version'
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime,version';
   const r=await dApi(url,{method:fid?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+bnd},body},interactive);
   if(!r.ok)throw new Error('upload '+r.status);
   const j=await r.json();
   if(j.id)dCfg('fid',j.id);
   if(j.modifiedTime)dCfg('mtime',j.modifiedTime);
+  if(j.version!=null)dCfg('ver',String(j.version));
+  await syncBaseSave(json);
   return j;
 }
 
@@ -7817,60 +7823,143 @@ async function applyContainerText(text){
   const key=await deriveKey(masterPwRaw,salt);
   const data=await decrypt(key,container.payload);
   window._salt=salt;masterKey=key;
-  vault=data.vault||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];assets=data.assets||[];vaultName=data.vaultName||'';
-  totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
-  totp=totpRecWrap?[]:(data.totp||[]);
-  payloadExtras={};
-  Object.keys(data).forEach(k=>{if(!KNOWN_KEYS.includes(k))payloadExtras[k]=data[k];});
+  syncApplyData(data);
   pendingVaultText=text;
   await localVaultSave(text,false);
   renderAll();
   return data.savedAt||0;
 }
+function syncApplyData(data){
+  vault=data.vault||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];assets=data.assets||[];vaultName=data.vaultName||'';
+  totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
+  totp=totpRecWrap?[]:(data.totp||[]);
+  payloadExtras={};
+  Object.keys(data).forEach(k=>{if(!KNOWN_KEYS.includes(k))payloadExtras[k]=data[k];});
+}
 
-// ── orquestração ──
+// ── orquestração (sincronização blindada) ──
+/* Regras: (1) nunca carregar do Drive por cima de alterações por gravar; (2) antes de enviar, confirmar se o
+   Drive mudou desde a última sincronização — se mudou, juntar item a item (3 vias: base comum, este dispositivo,
+   Drive) e só depois enviar; (3) antes de substituir, guardar cópia no histórico do Drive; (4) travão se uma
+   gravação for eliminar mais de metade dos itens. */
+function syncErrMsg(e){
+  const en=currentLang==='en',m=e&&e.message;
+  if(m==='remote-pw')return en?'The vault on Drive was changed with a different master password — nothing was merged or replaced.':'O cofre no Drive foi alterado com outra palavra-passe mestra — não juntei nem substituí nada.';
+  if(m==='guard')return en?'Upload to Drive held back — confirm it by saving again.':'Envio para o Drive travado — confirma gravando outra vez.';
+  return '';
+}
 async function driveAfterSave(json){
   if(!driveOn())return;
   try{
     driveBusy=true;renderDriveChip();
-    await driveUpload(json,false);
-    await localVaultSave(json,false);
+    await driveSafeUpload(json,false);
     driveBusy=false;renderDriveChip('ok');
   }catch(e){
     driveBusy=false;
-    await localVaultSave(json,true);
+    try{await localVaultSave(pendingVaultText||json,true);}catch(_){}
     renderDriveChip('pend');
+    const msg=syncErrMsg(e);if(msg)toast(msg);
   }
+}
+async function driveSafeUpload(json,interactive){
+  const m=await driveMeta(interactive);
+  if(!m)throw new Error('meta');
+  const known=dCfg('ver');let rep=null;
+  if(known&&m.version!=null&&String(m.version)!==String(known)){
+    const res=await driveMergeRemote(m,interactive);
+    json=res.json;rep=res.rep;
+  }
+  if(!(await syncGuard()))throw new Error('guard');
+  try{await driveSnapshot(m,interactive,!!(rep&&rep.conflicts.length));}catch(e){}
+  const j=await driveUpload(json,interactive);
+  await localVaultSave(json,false);
+  dCfg('cnt',String(syncCount(vaultPayload())));
+  if(rep)syncReport(rep);
+  return j;
+}
+async function driveMergeRemote(m,interactive){
+  const rtxt=await driveDownload(interactive);
+  let R;try{R=await syncDecrypt(rtxt,masterPwRaw);}catch(e){throw new Error('remote-pw');}
+  let B=null;try{const bt=await idbGet('av_base');if(bt)B=await syncDecrypt(bt,masterPwRaw);}catch(e){B=null;}
+  if(totpUnlocked&&(!totpEnc||syncStable(totp)!==totpSig)){try{totpEnc=await encryptTotpArray();}catch(e){}}
+  const L=vaultPayload();
+  const {data,rep}=syncMerge(B,L,R);
+  if(totpUnlocked&&totpKey&&L.totpRecWrap&&syncEq(L.totpRecWrap,R.totpRecWrap)&&R.totpEnc&&!syncEq(L.totpEnc,R.totpEnc)){
+    try{
+      const rt=await decryptTotpArray(totpKey,R.totpEnc);
+      let bt=null;if(B&&B.totpEnc&&syncEq(B.totpRecWrap,L.totpRecWrap)){try{bt=await decryptTotpArray(totpKey,B.totpEnc);}catch(e){}}
+      rep.conflicts=rep.conflicts.filter(c=>c.key!=='2fa');
+      const lt=totp.slice();
+      const mt=(syncIsIdArr(lt)||syncIsIdArr(rt))?syncMergeIdArr(bt,lt,rt,rep,'2fa'):syncMergeSetArr(bt,lt,rt);
+      totp=mt;totpEnc=await encryptTotpArray();
+      data.totpEnc=totpEnc;data.totpRecWrap=L.totpRecWrap;
+      rep.totpMerged=true;
+    }catch(e){}
+  }
+  try{if(pendingVaultText)await pushSnapshot(JSON.parse(pendingVaultText));}catch(e){}
+  const totpChanged=!rep.totpMerged&&(!syncEq(data.totpEnc,L.totpEnc)||!syncEq(data.totp,L.totp));
+  const keepTotp=rep.totpMerged?{t:totp,k:totpKey,u:totpUnlocked,s:totpSig}:null;
+  syncApplyData(data);
+  if(keepTotp){totp=keepTotp.t;totpKey=keepTotp.k;totpUnlocked=keepTotp.u;totpSig=keepTotp.s;}
+  else if(totpChanged&&totpRecWrap){totpKey=null;totpUnlocked=false;totp=[];}
+  const p=await encrypt(masterKey,vaultPayload());
+  const json=JSON.stringify({salt:Array.from(window._salt),payload:p});
+  pendingVaultText=json;
+  await syncBaseSave(rtxt);if(m&&m.version!=null)dCfg('ver',String(m.version));
+  await localVaultSave(json,true);
+  try{await syncWriteLocalFile(json);}catch(e){}
+  if(typeof renderAll==='function')renderAll();
+  return {json,rep};
+}
+async function syncWriteLocalFile(json){
+  if(!vaultFileHandle)return;
+  const perm=await vaultFileHandle.queryPermission({mode:'readwrite'});
+  if(perm!=='granted')return;
+  const w=await vaultFileHandle.createWritable();await w.write(json);await w.close();
+}
+async function driveApplyRemote(m,interactive){
+  const txt=await driveDownload(interactive);
+  try{if(pendingVaultText)await pushSnapshot(JSON.parse(pendingVaultText));}catch(e){}
+  await applyContainerText(txt);
+  await syncBaseSave(txt);
+  dCfg('mtime',m.modifiedTime);if(m.version!=null)dCfg('ver',String(m.version));
+  dCfg('cnt',String(syncCount(vaultPayload())));
+  try{await syncWriteLocalFile(txt);}catch(e){}
+}
+function driveRemoteNewer(m){
+  const kv=dCfg('ver');
+  if(kv&&m.version!=null)return String(m.version)!==String(kv);
+  const remote=new Date(m.modifiedTime).getTime(),known=dCfg('mtime')?new Date(dCfg('mtime')).getTime():0;
+  return remote>known+2000;
+}
+let _syncHeldToast=0;
+function driveHoldForUnsaved(){
+  renderDriveChip('old');
+  if(Date.now()-_syncHeldToast>60000){_syncHeldToast=Date.now();toast(currentLang==='en'?'Newer version on Drive — it will be merged when you save.':'Há uma versão mais recente no Drive — junto-a quando gravares.');}
 }
 async function driveCheckOnOpen(){
   if(!driveOn()||!navigator.onLine)return false;
   const en=currentLang==='en';
   try{
     const loc=await localVaultGet();
-    if(loc&&loc.pending){ // há alterações locais por enviar → enviar (não substituir)
+    if(loc&&loc.pending){ // alterações locais por enviar → enviar em segurança (junta se o Drive mudou)
       try{
         driveBusy=true;renderDriveChip();
-        await driveUpload(loc.json,true);
-        await localVaultSave(loc.json,false);
-        const mm=await driveMeta(false);
-        if(mm&&mm.modifiedTime)dCfg('mtime',mm.modifiedTime);
+        await driveSafeUpload(loc.json,true);
         driveBusy=false;renderDriveChip('ok');
-      }catch(e){driveBusy=false;renderDriveChip('pend');}
+      }catch(e){driveBusy=false;renderDriveChip('pend');const msg=syncErrMsg(e);if(msg)toast(msg);}
       return false;
     }
     driveBusy=true;renderDriveChip();
     const m=await driveMeta(true); // interativo: garante o token do Drive logo ao entrar
     if(!m){driveBusy=false;renderDriveChip('off');return false;}
-    const remote=new Date(m.modifiedTime).getTime();
-    const known=dCfg('mtime')?new Date(dCfg('mtime')).getTime():0;
-    if(remote>known+2000){
-      const txt=await driveDownload(true);
-      await applyContainerText(txt);
-      dCfg('mtime',m.modifiedTime);
+    if(driveRemoteNewer(m)){
+      if(hasUnsaved){driveBusy=false;driveHoldForUnsaved();return false;}
+      await driveApplyRemote(m,true);
       driveBusy=false;renderDriveChip('ok');
       toast(en?'Synced with Drive.':'Sincronizado com o Drive.');
       return true;
-    }else{driveBusy=false;renderDriveChip('ok');return false;}
+    }else{driveBusy=false;renderDriveChip('ok');if(m.version!=null&&!dCfg('ver'))dCfg('ver',String(m.version));return false;}
   }catch(e){driveBusy=false;renderDriveChip('off');}
   return false;
 }
@@ -7889,13 +7978,10 @@ async function driveCheckOnFocus(){
     if(loc&&loc.pending){renderDriveChip('pend');_driveFocusBusy=false;return;} // há alterações locais por enviar → não carregar
     const m=await driveMeta(false);
     if(!m){_driveFocusBusy=false;return;}
-    const remote=new Date(m.modifiedTime).getTime();
-    const known=dCfg('mtime')?new Date(dCfg('mtime')).getTime():0;
-    if(remote>known+2000){
+    if(driveRemoteNewer(m)){
+      if(hasUnsaved){driveHoldForUnsaved();_driveFocusBusy=false;return;} // nunca por cima do que está por gravar
       driveBusy=true;renderDriveChip();
-      const txt=await driveDownload(true);
-      await applyContainerText(txt);
-      dCfg('mtime',m.modifiedTime);
+      await driveApplyRemote(m,true);
       driveBusy=false;renderDriveChip('ok');
       toast(en?'Updated from Drive.':'Atualizado do Drive.');
     }else{renderDriveChip('ok');}
@@ -7908,11 +7994,190 @@ async function driveFlushPending(){
   if(!loc||!loc.pending)return;
   try{
     driveBusy=true;renderDriveChip();
-    await driveUpload(loc.json,false);
-    await localVaultSave(loc.json,false);
+    await driveSafeUpload(loc.json,false);
     driveBusy=false;renderDriveChip('ok');
     toast(currentLang==='en'?'Pending changes sent to Drive.':'Alterações pendentes enviadas para o Drive.');
-  }catch(e){driveBusy=false;renderDriveChip('pend');}
+  }catch(e){driveBusy=false;renderDriveChip('pend');const msg=syncErrMsg(e);if(msg)toast(msg);}
+}
+
+/* ══ JUNÇÃO DE VERSÕES (3 vias: base comum da última sincronização · este dispositivo · Drive) ══ */
+function syncStable(v){
+  if(v===undefined)return 'u';
+  if(v===null||typeof v!=='object')return JSON.stringify(v);
+  if(Array.isArray(v))return '['+v.map(syncStable).join(',')+']';
+  return '{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+syncStable(v[k])).join(',')+'}';
+}
+function syncEq(a,b){return syncStable(a)===syncStable(b);}
+function syncIsIdArr(x){return Array.isArray(x)&&x.length>0&&x.every(o=>o&&typeof o==='object'&&!Array.isArray(o)&&o.id!=null);}
+function syncItemName(o){return String((o&&(o.name||o.title||o.label||o.bank||o.store||o.ssid||o.issuer))||'').slice(0,60);}
+function syncMergeIdArr(b,l,r,rep,key){
+  const mapOf=a=>{const m=new Map();(a||[]).forEach(o=>{if(o&&o.id!=null)m.set(String(o.id),o);});return m;};
+  const B=b?mapOf(b):null,L=mapOf(l),R=mapOf(r),out=[],seen=new Set();
+  const decide=id=>{
+    const lo=L.get(id),ro=R.get(id),bo=B?B.get(id):undefined;
+    if(lo&&ro){
+      if(syncEq(lo,ro))return lo;
+      if(bo&&syncEq(lo,bo)){rep.updated++;return ro;}
+      if(bo&&syncEq(ro,bo))return lo;
+      rep.conflicts.push({key,name:syncItemName(lo)});return lo;
+    }
+    if(lo){if(bo){if(syncEq(lo,bo)){rep.removed++;return null;}return lo;}return lo;}
+    if(ro){if(bo){if(syncEq(ro,bo))return null;rep.updated++;return ro;}rep.added++;return ro;}
+    return null;
+  };
+  [l||[],r||[]].forEach(arr=>arr.forEach(o=>{if(!o||o.id==null)return;const id=String(o.id);if(seen.has(id))return;seen.add(id);const v=decide(id);if(v)out.push(v);}));
+  return out;
+}
+function syncMergeSetArr(b,l,r){
+  const k=syncStable,L=l||[],R=r||[],Bs=b?new Set(b.map(k)):null,Ls=new Set(L.map(k)),Rs=new Set(R.map(k)),out=[],seen=new Set();
+  const keep=(x,inOther)=>{const s=k(x);if(seen.has(s))return;if(inOther||!Bs||!Bs.has(s)){seen.add(s);out.push(x);}};
+  L.forEach(x=>keep(x,Rs.has(k(x))));R.forEach(x=>keep(x,Ls.has(k(x))));
+  const tsOf=x=>x&&typeof x==='object'?(+x.ts||+x.deletedAt||+x.at||0):0;
+  if(out.length&&out.every(x=>tsOf(x)>0))out.sort((a,c)=>tsOf(c)-tsOf(a));
+  return out;
+}
+const SYNC_TOTP=['totpEnc','totpRecWrap','totp'];
+function syncMerge(B,L,R){
+  const rep={added:0,updated:0,removed:0,conflicts:[]},data={};
+  const keys=new Set([...Object.keys(L||{}),...Object.keys(R||{})]);
+  keys.forEach(k=>{
+    if(SYNC_TOTP.includes(k))return;
+    const l=L[k],r=R[k],b=B?B[k]:undefined;
+    if(k==='savedAt'){data[k]=Date.now();return;}
+    if(k==='fmt'){data[k]=Math.max(+l||0,+r||0)||l||r;return;}
+    if(syncIsIdArr(l)||syncIsIdArr(r)||(Array.isArray(l)&&Array.isArray(r)&&syncIsIdArr(b))){data[k]=syncMergeIdArr(Array.isArray(b)?b:null,Array.isArray(l)?l:[],Array.isArray(r)?r:[],rep,k);return;}
+    if(Array.isArray(l)&&Array.isArray(r)){let m=syncMergeSetArr(Array.isArray(b)?b:null,l,r);if(k==='activityLog')m=m.slice(0,Math.max(l.length,r.length,50));data[k]=m;return;}
+    if(syncEq(l,r)){data[k]=l;return;}
+    if(B&&syncEq(l,b)){data[k]=r===undefined?l:r;return;}
+    if(B&&syncEq(r,b)){data[k]=l;return;}
+    if(l===undefined){data[k]=r;return;}if(r===undefined){data[k]=l;return;}
+    rep.conflicts.push({key:k,name:''});data[k]=l;
+  });
+  const g=o=>o?{e:o.totpEnc,w:o.totpRecWrap,t:o.totp}:{};
+  const lg=g(L),rg=g(R),bg=g(B);let pick=lg;
+  if(!syncEq(lg,rg)){
+    if(B&&syncEq(lg,bg))pick=rg;else if(B&&syncEq(rg,bg))pick=lg;
+    else if(lg.e===undefined&&lg.t===undefined)pick=rg;
+    else if(!(rg.e===undefined&&rg.t===undefined))rep.conflicts.push({key:'2fa',name:''});
+  }
+  if(pick.e!==undefined)data.totpEnc=pick.e;if(pick.w!==undefined)data.totpRecWrap=pick.w;if(pick.t!==undefined&&pick.w===undefined)data.totp=pick.t;
+  return {data,rep};
+}
+async function syncDecrypt(text,pw){const c=JSON.parse(text);const key=await deriveKey(pw,new Uint8Array(c.salt));return await decrypt(key,c.payload);}
+async function syncBaseSave(json){try{await idbSet('av_base',json);}catch(e){}}
+function syncCount(d){if(!d)return 0;return ['vault','notes','documents','bankCards','storeCards','assets','subscriptions','wifiNets','personalInfo'].reduce((s,k)=>s+(Array.isArray(d[k])?d[k].length:0),0);}
+async function syncGuard(){
+  const prev=+dCfg('cnt')||0,now=syncCount(vaultPayload());
+  if(prev<10||now>=prev*.5)return true;
+  const en=currentLang==='en';
+  const ok=confirm(en?`This save removes many items at once (${prev} → ${now}).\n\nSend it to Drive anyway? (If you cancel, Drive keeps the previous version.)`:`Esta gravação elimina muitos itens de uma vez (${prev} → ${now}).\n\nEnviar mesmo assim para o Drive? (Se cancelares, o Drive fica com a versão anterior.)`);
+  if(ok)dCfg('cnt',String(now));
+  return ok;
+}
+const SYNC_KEY_LBL={vault:['Passwords','Passwords'],notes:['Notas','Notes'],documents:['Documentos','Documents'],bankCards:['Cartões','Cards'],storeCards:['Cartões de loja','Store cards'],assets:['Bens','Assets'],subscriptions:['Subscrições','Subscriptions'],wifiNets:['Wi-Fi','Wi-Fi'],personalInfo:['Info','Info'],'2fa':['Códigos 2FA','2FA codes'],vaultName:['Nome do cofre','Vault name']};
+function syncReport(rep){
+  const en=currentLang==='en',parts=[];
+  if(rep.added)parts.push('+'+rep.added+(en?' new':' novos'));
+  if(rep.updated)parts.push(rep.updated+(en?' updated':' atualizados'));
+  if(rep.removed)parts.push(rep.removed+(en?' removed':' removidos'));
+  toast((en?'Merged changes from another device':'Juntei as alterações de outro dispositivo')+(parts.length?' ('+parts.join(' · ')+')':'')+'.');
+  try{logActivity('edit',(en?'Drive sync: merged':'Sincronização: versões juntas')+(parts.length?' ('+parts.join(' · ')+')':''),'☁️');}catch(e){}
+  if(!rep.conflicts.length)return;
+  const lines=rep.conflicts.slice(0,12).map(c=>{const L=SYNC_KEY_LBL[c.key];return '• '+(L?(en?L[1]:L[0]):c.key)+(c.name?' — <b>'+esc(c.name)+'</b>':'');}).join('<br>');
+  syncModal((en?'⚠️ Edited on both devices':'⚠️ Editado nos dois dispositivos'),
+    (en?'These items were changed here and on another device at the same time. I kept <b>this device\'s version</b>; the other one is in the Drive history (Settings → Data → Version history).':'Estes itens foram alterados aqui e noutro dispositivo ao mesmo tempo. Ficou a <b>versão deste dispositivo</b>; a outra está no histórico do Drive (Definições → Dados → Histórico de versões).')+'<div style="margin-top:12px;line-height:1.9">'+lines+'</div>');
+}
+function syncModal(title,html,extra){
+  let ov=document.getElementById('sync-modal');
+  if(!ov){ov=document.createElement('div');ov.id='sync-modal';ov.className='modal-overlay';ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});document.body.appendChild(ov);}
+  const en=currentLang==='en';
+  ov.innerHTML='<div class="modal" style="max-width:520px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:\'Playfair Display\',serif;font-size:1.15rem;color:var(--text)">'+title+'</div><button class="btn btn-ghost" style="padding:6px 12px" onclick="document.getElementById(\'sync-modal\').classList.remove(\'open\')">'+(en?'Close':'Fechar')+'</button></div><div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">'+html+'</div>'+(extra||'')+'</div>';
+  ov.classList.add('open');
+  return ov;
+}
+
+/* ══ HISTÓRICO NO DRIVE — cópias encriptadas antes de substituir ══
+   No máximo 1 cópia a cada 6 h (sempre que há conflito). Mantém: todas das últimas 48 h, 1 por dia até 14 dias,
+   1 por mês até 6 meses. As cópias vão para a reciclagem do Drive (recuperáveis 30 dias), nunca apagadas de vez. */
+const DRIVE_HIST='Aurora Vault — Histórico';
+async function driveHistFolder(interactive){
+  const id=dCfg('hist');if(id)return id;
+  const q=encodeURIComponent("name='"+DRIVE_HIST+"' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+  let r=await dApi('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id)',{},interactive);
+  if(r.ok){const j=await r.json();if(j.files&&j.files[0]){dCfg('hist',j.files[0].id);return j.files[0].id;}}
+  r=await dApi('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:DRIVE_HIST,mimeType:'application/vnd.google-apps.folder'})},interactive);
+  if(!r.ok)throw new Error('folder '+r.status);
+  const j=await r.json();dCfg('hist',j.id);return j.id;
+}
+async function driveSnapshot(m,interactive,force){
+  const fid=dCfg('fid');if(!fid||!m)return false;
+  const last=+dCfg('snapAt')||0;
+  if(!force&&Date.now()-last<6*3600e3)return false;
+  const folder=await driveHistFolder(interactive);
+  const d=new Date(m.modifiedTime||Date.now()),z=n=>String(n).padStart(2,'0');
+  const name='ciphervault '+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+'h'+z(d.getMinutes())+'.vault';
+  const r=await dApi('https://www.googleapis.com/drive/v3/files/'+fid+'/copy?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,parents:[folder],description:'Aurora Vault — cópia automática (encriptada)'})},interactive);
+  if(!r.ok)throw new Error('copy '+r.status);
+  dCfg('snapAt',String(Date.now()));
+  driveHistPrune(interactive).catch(()=>{});
+  return true;
+}
+async function driveHistList(interactive){
+  const folder=await driveHistFolder(interactive);
+  const q=encodeURIComponent("'"+folder+"' in parents and trashed=false");
+  const r=await dApi('https://www.googleapis.com/drive/v3/files?q='+q+'&orderBy=createdTime%20desc&pageSize=200&fields=files(id,name,createdTime,size)',{},interactive);
+  if(!r.ok)throw new Error('list '+r.status);
+  const j=await r.json();
+  return (j.files||[]).sort((a,b)=>new Date(b.createdTime)-new Date(a.createdTime));
+}
+function driveHistToPrune(files,now){
+  now=now||Date.now();const keep=new Set(),seenDay=new Set(),seenMonth=new Set(),H=3600e3;
+  files.slice().sort((a,b)=>new Date(b.createdTime)-new Date(a.createdTime)).forEach(f=>{
+    const t=new Date(f.createdTime).getTime(),age=now-t,d=new Date(t),day=d.toISOString().slice(0,10),mon=day.slice(0,7);
+    if(age<=48*H){keep.add(f.id);return;}
+    if(age<=14*24*H){if(!seenDay.has(day)){seenDay.add(day);keep.add(f.id);}return;}
+    if(age<=183*24*H){if(!seenMonth.has(mon)){seenMonth.add(mon);keep.add(f.id);}return;}
+  });
+  return files.filter(f=>!keep.has(f.id));
+}
+async function driveHistPrune(interactive){
+  const files=await driveHistList(interactive);
+  for(const f of driveHistToPrune(files)){
+    try{await dApi('https://www.googleapis.com/drive/v3/files/'+f.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})},interactive);}catch(e){}
+  }
+}
+async function openSyncHistory(){
+  const en=currentLang==='en';
+  if(!driveOn()){toast(en?'Drive sync is off.':'A sincronização com o Drive está desligada.');return;}
+  if(!navigator.onLine){toast(en?'No Internet connection.':'Sem ligação à Internet.');return;}
+  syncModal(en?'🕘 Version history on Drive':'🕘 Histórico de versões no Drive',en?'Loading…':'A carregar…');
+  try{
+    const files=await driveHistList(true);
+    const fmtD=s=>new Date(s).toLocaleString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const rows=files.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div><div style="color:var(--text);font-size:.78rem">'+esc(fmtD(f.createdTime))+'</div><div style="font-size:.62rem;opacity:.7">'+Math.max(1,Math.round((+f.size||0)/1024))+' KB</div></div><button class="btn btn-ghost" style="padding:7px 14px;font-size:.7rem" onclick="syncRestoreFrom(\''+f.id+'\',\''+esc(fmtD(f.createdTime)).replace(/&#39;|'/g,'')+'\')">'+(en?'Restore':'Restaurar')+'</button></div>').join('');
+    syncModal(en?'🕘 Version history on Drive':'🕘 Histórico de versões no Drive',
+      (en?'Encrypted copies kept automatically before Drive is overwritten (all from the last 48 h, one per day for 14 days, one per month for 6 months). Restoring loads that version here — then save to confirm.':'Cópias encriptadas guardadas automaticamente antes de o Drive ser substituído (todas das últimas 48 h, uma por dia durante 14 dias, uma por mês durante 6 meses). Restaurar carrega essa versão aqui — depois gravas para confirmar.')
+      +'<div style="margin-top:10px">'+(rows||'<div style="padding:14px 0">'+(en?'No copies yet — the first one is made on the next save.':'Ainda não há cópias — a primeira é feita na próxima gravação.')+'</div>')+'</div>');
+  }catch(e){syncModal(en?'🕘 Version history on Drive':'🕘 Histórico de versões no Drive',(en?'Could not read the history: ':'Não consegui ler o histórico: ')+esc(e.message||''));}
+}
+async function syncRestoreFrom(id,label){
+  const en=currentLang==='en';
+  if(!confirm(en?`Replace the current vault with the version from ${label}?\n\nThe current version is kept in the local history.`:`Substituir o cofre atual pela versão de ${label}?\n\nA versão atual fica guardada no histórico local.`))return;
+  try{
+    const r=await dApi('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media',{},true);
+    if(!r.ok)throw new Error('download '+r.status);
+    const txt=await r.text();
+    let data;
+    try{data=await syncDecrypt(txt,masterPwRaw);}
+    catch(e){const pw=prompt(en?'This copy uses a different master password. Enter the password used at that time:':'Esta cópia usa outra palavra-passe mestra. Escreve a palavra-passe usada nessa altura:');if(!pw)return;data=await syncDecrypt(txt,pw);}
+    try{if(pendingVaultText)await pushSnapshot(JSON.parse(pendingVaultText));}catch(e){}
+    const totpDiff=!syncEq(data.totpEnc,totpEnc)||!syncEq(data.totpRecWrap,totpRecWrap);
+    syncApplyData(data);
+    if(totpDiff&&totpRecWrap){totpKey=null;totpUnlocked=false;totp=[];}
+    markUnsaved();renderAll();
+    const ov=document.getElementById('sync-modal');if(ov)ov.classList.remove('open');
+    toast(en?`Version from ${label} restored — save to confirm.`:`Versão de ${label} restaurada — grava para confirmar.`);
+  }catch(e){toast((en?'Could not restore: ':'Não consegui restaurar: ')+(e.message||''));}
 }
 window.addEventListener('online',()=>{setTimeout(()=>{try{driveFlushPending();}catch(e){}try{driveCheckOnFocus();}catch(e){}},1500);});
 
@@ -7958,6 +8223,7 @@ function renderDriveSettings(){
   else if(driveOn())s=(en?'Active. File on Drive: ':'Ativo. Ficheiro no Drive: ')+DRIVE_NAME+(dCfg('mtime')?(en?' · last sync ':' · última sync ')+new Date(dCfg('mtime')).toLocaleString(en?'en-GB':'pt-PT'):'');
   else s=en?'Configured but switched off.':'Configurado mas desligado.';
   box.textContent=s;
+  const hb=document.getElementById('drive-hist-btn');if(hb){hb.style.display=fid?'':'none';hb.textContent=en?'🕘 Version history on Drive':'🕘 Histórico de versões no Drive';}
   const b=document.getElementById('drive-toggle-btn');
   if(b)b.textContent=driveOn()?(en?'Turn off sync':'Desligar sincronização'):(en?'Turn on sync':'Ligar sincronização');
   renderDriveChip();
@@ -8130,7 +8396,7 @@ async function saveFile(){
       :'Gravação bloqueada: este cofre vem de uma versão mais recente da app. Atualiza o Aurora Vault primeiro.');
     return;
   }
-  if(totpUnlocked)totpEnc=await encryptTotpArray();
+  if(totpUnlocked&&(!totpEnc||syncStable(totp)!==totpSig))totpEnc=await encryptTotpArray();
   const p=await encrypt(masterKey,vaultPayload());
   const container={salt:Array.from(window._salt),payload:p};
   const json=JSON.stringify(container);pendingVaultText=json;
