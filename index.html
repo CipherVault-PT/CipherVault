@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.60</span>
+      <span>Aurora Vault © 2026 · v9.61</span>
     </div>
   </div>
 </div>
@@ -2275,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.60</span>
+      <span>Aurora Vault © 2026 · v9.61</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.60';
+const APP_VERSION='9.61';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -8745,12 +8745,23 @@ function renderGreeting(){
   const itemsTxt=en?`${active} ${active===1?'entry':'entries'} protected`:`${active} ${active===1?'entrada protegida':'entradas protegidas'}`;
   const now=new Date();
   const dateStr=now.toLocaleDateString(en?'en-GB':'pt-PT',{weekday:'long',day:'numeric',month:'long'});
+  const spark='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/></svg>';
+  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
   box.innerHTML=`
-    <div class="dash-greeting-main">
-      <span class="dash-greeting-ico">${ico}</span>
-      <span class="dash-greeting-text">${greet}</span>
+    <div class="dash-greet-left">
+      <div class="dash-greeting-main">
+        <span class="dash-greeting-ico">${ico}</span>
+        <span class="dash-greeting-text">${greet}</span>
+      </div>
+      <div class="dash-greeting-sub">${dateStr.charAt(0).toUpperCase()+dateStr.slice(1)} · ${itemsTxt}</div>
     </div>
-    <div class="dash-greeting-sub">${dateStr.charAt(0).toUpperCase()+dateStr.slice(1)} · ${itemsTxt}</div>`;
+    <div class="aur-launch aur-ring" role="button" tabindex="0" title="Aurora AI" onclick="auroraOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();auroraOpen();}">
+      <div class="aur-launch-in">
+        <span class="aur-launch-ico">${spark}</span>
+        <span class="aur-launch-txt"><b>Aurora AI</b> · <span id="aur-launch-ph">${en?'How can I help?':'Em que posso ajudar?'}</span><span class="aur-caret"></span></span>
+        <span class="aur-launch-go">${arrow}</span>
+      </div>
+    </div>`;
 }
 function renderSubsSection(){
   const en=currentLang==='en';
@@ -12074,14 +12085,20 @@ function aurFrame(raw){
 }
 
 /* ── saída ── */
-AUR.out=function(h,cls){if(typeof document==='undefined')return null;const m=document.getElementById('aurora-msgs');if(!m)return null;const d=document.createElement('div');d.className='aurora-msg '+cls;d.innerHTML=h;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;};
+AUR.out=function(h,cls){if(typeof document==='undefined')return null;const m=document.getElementById('aurora-msgs');if(!m)return null;const pn=document.getElementById('aurora-panel');if(pn&&pn.classList.contains('min')&&/ai/.test(cls))pn.classList.add('has-new');const d=document.createElement('div');d.className='aurora-msg '+cls;d.innerHTML=h;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;};
 function aurSay(html,chips,cls){
   const list=(chips||[]).filter(Boolean);let h=html;
   if(list.length){if(AUR.acts.length>3000)AUR.acts=[];h+='<div class="a-chips">'+list.map(ch=>{const i=AUR.acts.push(ch.fn)-1;return '<span class="a-btn'+(ch.danger?' danger':'')+'" onclick="aurAct('+i+')">'+aurEsc(ch.label)+'</span>';}).join('')+'</div>';}
   AUR.out(h,cls||'ai');return true;
 }
 function aurAct(i){const f=AUR.acts[i];if(typeof f==='function'){try{f();}catch(e){aurSay('Não consegui concluir essa ação ('+aurEsc(e.message)+').');}}}
-function aurClose(){if(typeof document==='undefined')return;const p=document.getElementById('aurora-panel');if(p)p.classList.remove('open');}
+function aurIsMobile(){return typeof window!=='undefined'&&!!window.matchMedia&&window.matchMedia('(max-width:760px)').matches;}
+function aurFab(){if(typeof document==='undefined')return;const f=document.getElementById('aurora-fab'),p=document.getElementById('aurora-panel');if(!f)return;const on=typeof masterKey!=='undefined'&&!!masterKey;let lv=false;const l=document.querySelector('.aur-launch');if(l&&l.offsetParent!==null){const r=l.getBoundingClientRect();lv=r.width>0&&r.bottom>40&&r.top<window.innerHeight-40;}f.style.display=on&&!(p&&p.classList.contains('open'))&&!lv?'flex':'none';}
+function aurClose(force){
+  if(typeof document==='undefined')return;const p=document.getElementById('aurora-panel');if(!p)return;
+  if(force){p.classList.remove('open','min','has-new');document.body.classList.remove('aur-docked');aurFab();return;}
+  if(aurIsMobile()&&p.classList.contains('open'))p.classList.add('min');
+}
 function aurTab(t){if(typeof switchTab==='function')switchTab(t);}
 function aurGoTab(t){aurTab(t);aurClose();return aurSay('Abri '+(AUR_TAB_LBL[t]||t)+'.');}
 function aurCopy(txt,msg){if(txt==null||txt==='')return false;if(typeof copyText==='function')copyText(String(txt),msg||'Copiado ✓');else if(typeof navigator!=='undefined'&&navigator.clipboard)navigator.clipboard.writeText(String(txt));return true;}
@@ -12113,7 +12130,7 @@ function aurHandle(raw){
   }
   if(c.has('HELP'))return aurHelp();
   if((c.has('HELLO')||c.has('THANKS'))&&!c.has('HELP')&&![...c].some(x=>AUR_ACTIONS.has(x)||x.indexOf('D_')===0)&&!F.confident)return aurSmall(F);
-  if(c.has('CLOSE')&&!F.hasDomain){aurClose();return aurSay('Até já! ✨');}
+  if(c.has('CLOSE')&&!F.hasDomain){aurSay('Até já! ✨');aurClose(true);return true;}
   if(c.has('D_MASTER'))return aurSettings('seguranca','A palavra-passe mestra, o PIN, a biometria e o auto-bloqueio mudam-se em Definições → Segurança — por segurança não os altero pela conversa. Abri-te lá.');
   if(c.has('D_2FA')||c.has('D_2FAW')){const r=aur2fa(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_EXPIRY')&&!(c.has('SCHEDULE')&&F.date)&&!(c.has('D_PW')&&!/expir|caduc|venc|validade/.test(F.n)))return aurExpiry(F);
@@ -12206,7 +12223,7 @@ function aur2fa(F){
   if(ent&&c.has('CHANGE')){aurTab('totp');if(typeof openTotpModal==='function')openTotpModal(ent.obj.id);aurClose();return aurSay('✏️ Abri o código 2FA de <b>'+aurEsc(ent.name)+'</b> para editares.');}
   if(ent&&c.has('DELETE')){const id=ent.obj.id;if(typeof deleteTotp==='function')deleteTotp(id);const still=aurA(typeof totp!=='undefined'?totp:[]).some(t=>t.id===id);return aurSay(still?'Ficou tudo como estava.':'🗑️ Código 2FA de <b>'+aurEsc(ent.name)+'</b> apagado.');}
   if(ent)return aurShowCode(ent.obj);
-  if(!strong&&F.confident&&F.best.type==='vault')return AUR_PASS;
+  if(F.confident&&F.best.type==='vault'){const v=F.best;return aurSay('Não tens um código 2FA guardado para <b>'+aurEsc(v.name)+'</b>.',[{label:'Ver o acesso',fn:()=>aurOpenEnt(v,F,false)},{label:'Adicionar código 2FA',fn:()=>{aurTab('totp');if(typeof openTotpModal==='function'){aurClose();openTotpModal();}}}]);}
   if(!T.length)return aurSay('Ainda não tens códigos 2FA guardados.',[{label:'Adicionar código 2FA',fn:()=>{aurTab('totp');if(typeof openTotpModal==='function')openTotpModal();aurClose();}}]);
   if(c.has('OPEN')&&!F.terms.length)return aurGoTab('totp');
   if(F.terms.length&&!tc.length)return aurSay('Não encontrei um código 2FA para «'+aurEsc(F.terms.join(' '))+'». Tens estes — toca para ver o código:',T.slice(0,12).map(t=>({label:t.name||t.issuer||'Código',fn:()=>aurShowCode(t)})));
@@ -12694,65 +12711,168 @@ function aurFind(F,tab){
 }
 
 /* ═══════════ INTERFACE ═══════════ */
+const AUR_SVG={
+ spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/></svg>',
+ arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+ send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+ reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+ chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
+};
+function aurGreet(){
+  const nm=typeof vaultName!=='undefined'&&vaultName?', '+aurEsc(String(vaultName).split(' ')[0]):'';
+  aurSay('Olá'+nm+'! Sou a <b>Aurora</b> ✨ — tenho acesso a todo o teu cofre e trabalho 100% offline.\nPede-me o que precisares: "qual o meu NIF", "código da Trade Republic", "o que expira este mês", "muda a password do Gmail"…',aurQuickChips().concat([{label:'Tudo o que sei fazer',fn:aurHelp}]));
+}
 function auroraOpen(){
   if(typeof masterKey==='undefined'||!masterKey){if(typeof toast==='function')toast('Desbloqueia o cofre primeiro.');return;}
-  const p=document.getElementById('aurora-panel');if(!p)return;p.classList.add('open');
-  const m=document.getElementById('aurora-msgs');
-  if(m&&!m.dataset.greeted){m.dataset.greeted='1';const nm=typeof vaultName!=='undefined'&&vaultName?', '+aurEsc(String(vaultName).split(' ')[0]):'';
-    aurSay('Olá'+nm+'! Sou a <b>Aurora</b> ✨ — tenho acesso a todo o teu cofre e trabalho 100% offline.\nPede-me o que precisares, por exemplo: "qual o meu NIF", "código da Trade Republic", "o que expira este mês", "muda a password do Gmail".',aurQuickChips().concat([{label:'Tudo o que sei fazer',fn:aurHelp}]));}
-  setTimeout(()=>{const i=document.getElementById('aurora-input');if(i)i.focus();},120);
+  const p=document.getElementById('aurora-panel');if(!p)return;
+  p.classList.add('open');p.classList.remove('min','has-new');document.body.classList.add('aur-docked');aurFab();
+  const m=document.getElementById('aurora-msgs');if(m&&!m.dataset.greeted){m.dataset.greeted='1';aurGreet();}
+  setTimeout(()=>{const i=document.getElementById('aurora-input');if(i)try{i.focus({preventScroll:true});}catch(e){i.focus();}},260);
 }
-function auroraClose(){aurClose();}
+function auroraClose(){aurClose(true);}
+function auroraToggleMin(){const p=document.getElementById('aurora-panel');if(!p)return;if(!p.classList.contains('open'))return auroraOpen();if(p.classList.contains('min'))p.classList.remove('min','has-new');else p.classList.add('min');}
+function auroraReset(){const m=document.getElementById('aurora-msgs');if(m){m.innerHTML='';m.dataset.greeted='1';}AUR.pending=null;AUR.last=null;AUR.resume=null;AUR.acts=[];aurGreet();}
 function auroraSend(){
   const i=document.getElementById('aurora-input');if(!i)return;const txt=(i.value||'').trim();if(!txt)return;i.value='';
+  const p=document.getElementById('aurora-panel');if(p)p.classList.remove('min','has-new');
   AUR.hist.push(txt);if(AUR.hist.length>50)AUR.hist.shift();AUR.hIdx=AUR.hist.length;
-  AUR.out(aurEsc(txt),'me');const typing=AUR.out('<span class="a-dim">a pensar…</span>','ai typing');
-  setTimeout(()=>{if(typing&&typing.remove)typing.remove();try{aurHandle(txt);}catch(e){aurSay('Tive um problema a processar isso ('+aurEsc(e.message)+'). Tenta de outra forma ou escreve <b>ajuda</b>.');}},220);
+  AUR.out(aurEsc(txt),'me');const typing=AUR.out('<span class="a-typing"><i></i><i></i><i></i></span>','ai typing');
+  setTimeout(()=>{if(typing&&typing.remove)typing.remove();try{aurHandle(txt);}catch(e){aurSay('Tive um problema a processar isso ('+aurEsc(e.message)+'). Tenta de outra forma ou escreve <b>ajuda</b>.');}},260);
 }
+/* ideias que se escrevem sozinhas na caixa do Dashboard (tiradas do próprio cofre) */
+function aurLaunchIdeas(){
+  if(typeof currentLang!=='undefined'&&currentLang==='en')return ['How can I help?'];
+  const I=['Em que posso ajudar?'];
+  try{const T=aurA(typeof totp!=='undefined'?totp:[]);if(T[0]&&T[0].name)I.push('Código da '+T[0].name);}catch(e){}
+  I.push('O que expira este mês?','Qual o meu NIF?');
+  try{const D=aurA(typeof documents!=='undefined'?documents:[]);if(D[0]&&(D[0].title||D[0].name))I.push('Abre o '+(D[0].title||D[0].name));}catch(e){}
+  I.push('Quanto gasto em subscrições?','Gera uma password forte');
+  return I;
+}
+(function aurTypewriter(){
+  if(typeof document==='undefined')return;
+  const still=typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let k=0,j=0,del=false,ideas=aurLaunchIdeas();
+  function tick(){
+    const el=document.getElementById('aur-launch-ph');let wait=80;
+    if(el&&!document.hidden){
+      if(still){el.textContent=ideas[0];wait=4000;}
+      else{const w=ideas[k%ideas.length];
+        if(!del){j++;el.textContent=w.slice(0,j);if(j>=w.length){del=true;wait=k===0?3400:2200;}else wait=55+Math.random()*45;}
+        else{j--;el.textContent=w.slice(0,Math.max(0,j));if(j<=0){del=false;k++;if(k%ideas.length===0)ideas=aurLaunchIdeas();wait=420;}else wait=28;}}
+    }else wait=600;
+    setTimeout(tick,wait);
+  }
+  setTimeout(tick,900);
+})();
 (function aurInit(){
   if(typeof document==='undefined'||!document.body)return;
-  const css='#aurora-fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:900;width:56px;height:56px;border-radius:50%;border:1px solid var(--accent);background:var(--panel);color:var(--accent);cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.45);transition:transform .2s}'
-  +'#aurora-fab:hover{transform:scale(1.07)}#aurora-fab svg{width:26px;height:26px}'
-  +'#aurora-panel{position:fixed;inset:0;z-index:1400;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}#aurora-panel.open{display:flex}'
-  +'.aurora-box{width:100%;max-width:540px;height:84vh;background:var(--panel);border:1px solid var(--border);border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}'
-  +'@media(min-width:580px){.aurora-box{border-radius:16px;height:74vh;margin-bottom:3vh}}'
-  +'.aurora-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}'
-  +'.aurora-head .ttl{font-family:"Playfair Display",serif;color:var(--accent);letter-spacing:1px;font-size:1.15rem;flex:1}'
-  +'.aurora-head .sub{font-size:.62rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase}'
-  +'.aurora-head button{background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer}'
-  +'.aurora-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}'
-  +'.aurora-msg{max-width:90%;padding:10px 13px;border-radius:13px;font-size:.85rem;line-height:1.6;white-space:pre-wrap;word-break:break-word}'
-  +'.aurora-msg.me{align-self:flex-end;background:var(--accent);color:#0a0e1a}'
-  +'.aurora-msg.ai{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text)}'
+  const G='#00e6a8,#1fb6ff,#7b5cff,#ff5fb8,#ffcf5a,#00e6a8';
+  const css=':root{--aur-w:400px}'
+  +'@keyframes aurFlow{0%{background-position:0% 50%}100%{background-position:300% 50%}}'
+  +'@keyframes aurFlowY{0%{background-position:50% 0%}100%{background-position:50% 300%}}'
+  +'@keyframes aurBreath{0%,100%{opacity:.34;transform:scale(1)}50%{opacity:.68;transform:scale(1.025)}}'
+  +'@keyframes aurDrift{0%,100%{transform:translateX(-18%) skewX(-10deg)}50%{transform:translateX(14%) skewX(-4deg)}}'
+  +'@keyframes aurCaret{0%,49%{opacity:1}50%,100%{opacity:0}}'
+  +'@keyframes aurSpark{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(16deg) scale(1.14)}}'
+  +'@keyframes aurDot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}'
+  /* anel aurora (contorno a fluir + brilho a respirar) */
+  +'.aur-ring{position:relative;isolation:isolate;border-radius:16px;padding:1.6px;background:linear-gradient(110deg,'+G+');background-size:300% 100%;animation:aurFlow 9s linear infinite}'
+  +'.aur-ring::before{content:"";position:absolute;inset:-7px 3px;border-radius:24px;background:linear-gradient(110deg,'+G+');background-size:300% 100%;animation:aurFlow 9s linear infinite,aurBreath 5s ease-in-out infinite;filter:blur(18px);z-index:-1;pointer-events:none}'
+  +'.aur-ring:hover::before,.aur-ring:focus-within::before{opacity:.9}'
+  /* caixa do Dashboard */
+  +'.dash-greeting{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px 30px}'
+  +'.dash-greet-left{min-width:0;flex:0 1 auto}'
+  +'.aur-launch{flex:1 1 360px;min-width:0;max-width:560px;box-sizing:border-box;cursor:pointer;outline:none;transition:transform .25s}'
+  +'.aur-launch:hover{transform:translateY(-1px)}'
+  +'.aur-launch-in{position:relative;overflow:hidden;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-radius:14.5px;background:var(--panel)}'
+  +'.aur-launch-in::before{content:"";position:absolute;inset:-60% -20%;background:radial-gradient(38% 55% at 18% 50%,rgba(0,230,168,.24),transparent 70%),radial-gradient(34% 55% at 52% 45%,rgba(123,92,255,.22),transparent 70%),radial-gradient(30% 50% at 84% 58%,rgba(31,182,255,.2),transparent 70%);animation:aurDrift 13s ease-in-out infinite;pointer-events:none}'
+  +'.aur-launch-in>*{position:relative}'
+  +'.aur-launch-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:#5ef2c9;background:linear-gradient(135deg,rgba(0,230,168,.2),rgba(123,92,255,.26));box-shadow:inset 0 0 0 1px rgba(94,242,201,.25)}'
+  +'.aur-launch-ico svg{width:19px;height:19px;animation:aurSpark 3.4s ease-in-out infinite}'
+  +'.aur-launch-txt{flex:1;min-width:0;font-size:.85rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+  +'.aur-launch-txt b{color:var(--text);font-weight:600;letter-spacing:.3px}'
+  +'.aur-caret{display:inline-block;width:1.5px;height:1.05em;background:var(--accent);margin-left:2px;vertical-align:-2px;animation:aurCaret 1s step-end infinite}'
+  +'.aur-launch-go{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;background:var(--accent);color:#0a0e1a;transition:transform .25s}'
+  +'.aur-launch-go svg{width:17px;height:17px}.aur-launch:hover .aur-launch-go{transform:translateX(3px)}'
+  +'@media(max-width:760px){.aur-launch{flex-basis:100%;max-width:none}}'
+  /* botão flutuante (fora do Dashboard) */
+  +'#aurora-fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:140;width:56px;height:56px;border-radius:50%;border:none;padding:0;cursor:pointer;display:none;align-items:center;justify-content:center;background:linear-gradient(110deg,'+G+');background-size:300% 100%;animation:aurFlow 9s linear infinite;box-shadow:0 8px 26px rgba(0,0,0,.45),0 0 22px rgba(94,242,201,.35);transition:transform .2s}'
+  +'#aurora-fab span{position:absolute;inset:2px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:#5ef2c9}'
+  +'#aurora-fab svg{width:24px;height:24px;animation:aurSpark 3.4s ease-in-out infinite}#aurora-fab:hover{transform:scale(1.07)}'
+  /* painel lateral */
+  +'#aurora-panel{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:var(--aur-w);max-width:100vw;z-index:150;display:flex;flex-direction:column;background:var(--panel);border-left:1px solid var(--border);box-shadow:-18px 0 50px rgba(0,0,0,.35);transform:translateX(105%);visibility:hidden;transition:transform .38s cubic-bezier(.2,.8,.2,1),visibility 0s linear .38s}'
+  +'#aurora-panel.open{transform:none;visibility:visible;transition:transform .38s cubic-bezier(.2,.8,.2,1),visibility 0s}'
+  +'#aurora-panel::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,'+G+');background-size:100% 300%;animation:aurFlowY 7s linear infinite;box-shadow:0 0 16px rgba(94,242,201,.55);z-index:2}'
+  +'body.aur-docked #app{transition:margin-right .38s cubic-bezier(.2,.8,.2,1)}'
+  +'@media(min-width:1100px){body.aur-docked #app{margin-right:var(--aur-w)}}'
+  +'.aurora-grab{display:none}'
+  +'@media(min-width:761px){body.aur-docked .toast,body.aur-docked .clipboard-toast{right:calc(var(--aur-w) + 20px)}}'
+  +'.aurora-head{display:flex;align-items:center;gap:11px;padding:14px 14px 14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--border)}'
+  +'.a-logo{position:relative;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:#5ef2c9;background:linear-gradient(135deg,rgba(0,230,168,.2),rgba(123,92,255,.28));box-shadow:inset 0 0 0 1px rgba(94,242,201,.28),0 0 18px rgba(94,242,201,.18)}'
+  +'.a-logo svg{width:21px;height:21px;animation:aurSpark 3.4s ease-in-out infinite}'
+  +'.a-ttl{display:flex;flex-direction:column;flex:1;min-width:0;gap:2px}'
+  +'.a-ttl b{font-family:"Playfair Display",serif;color:var(--text);font-size:1.12rem;letter-spacing:.4px;font-weight:600}'
+  +'.a-ttl span{font-size:.58rem;letter-spacing:1.3px;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}'
+  +'.a-ttl span i{width:6px;height:6px;border-radius:50%;background:#2ee6a6;box-shadow:0 0 8px #2ee6a6}'
+  +'.a-hbtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:color .2s,border-color .2s}'
+  +'.a-hbtn:hover{color:var(--text);border-color:var(--accent)}.a-hbtn svg{width:16px;height:16px;transition:transform .3s}.a-hbtn.min-only{display:none}'
+  +'.aurora-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}'
+  +'.aurora-msg{max-width:92%;padding:10px 13px;border-radius:14px;font-size:.84rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;animation:appFadeIn .25s ease}'
+  +'.aurora-msg.me{align-self:flex-end;background:var(--accent);color:#0a0e1a;border-bottom-right-radius:5px}'
+  +'.aurora-msg.ai{align-self:flex-start;background:rgba(255,255,255,.045);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:5px}'
   +'.aurora-msg.ai b{color:var(--accent)}'
   +'.a-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;white-space:normal}'
-  +'.a-btn{display:inline-block;padding:6px 12px;border:1px solid var(--accent);border-radius:20px;color:var(--accent);cursor:pointer;font-size:.76rem;line-height:1.3}'
+  +'.a-btn{display:inline-block;padding:6px 12px;border:1px solid var(--accent);border-radius:20px;color:var(--accent);cursor:pointer;font-size:.75rem;line-height:1.3;transition:background .2s}'
   +'.a-btn:hover{background:rgba(201,168,76,.12)}.a-btn.danger{border-color:#e05270;color:#e05270}'
   +'.a-code{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:1.05rem;letter-spacing:1.5px;color:var(--accent);background:rgba(0,0,0,.25);padding:4px 10px;border-radius:8px;margin:3px 0;word-break:break-all}'
-  +'.a-dim{opacity:.6;font-size:.78rem}'
-  +'.aurora-in{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}'
-  +'.aurora-in input{flex:1;background:rgba(0,0,0,.22);border:1px solid var(--border);border-radius:22px;padding:11px 15px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}'
-  +'.aurora-in input:focus{border-color:var(--accent)}'
-  +'.aurora-in button{background:var(--accent);color:#0a0e1a;border:none;border-radius:22px;padding:0 18px;font-size:1rem;font-weight:700;cursor:pointer}';
-  const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
-  const fab=document.createElement('button');fab.id='aurora-fab';fab.title='Aurora';fab.setAttribute('onclick','auroraOpen()');
-  fab.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><circle cx="18.5" cy="17.5" r="1"/><circle cx="6" cy="16" r="1"/></svg>';
-  document.body.appendChild(fab);
-  const panel=document.createElement('div');panel.id='aurora-panel';
-  panel.innerHTML='<div class="aurora-box"><div class="aurora-head"><span class="ttl">✨ Aurora</span><span class="sub">100% offline</span><button onclick="auroraClose()" title="Fechar">✕</button></div><div class="aurora-msgs" id="aurora-msgs"></div><div class="aurora-in"><input id="aurora-input" placeholder="Pede-me qualquer coisa do cofre…" autocomplete="off" autocapitalize="sentences"><button onclick="auroraSend()">➤</button></div></div>';
+  +'.a-dim{opacity:.6;font-size:.77rem}'
+  +'.a-typing{display:inline-flex;gap:4px;padding:3px 2px}.a-typing i{width:6px;height:6px;border-radius:50%;background:#5ef2c9;animation:aurDot 1.1s ease-in-out infinite}.a-typing i:nth-child(2){animation-delay:.15s;background:#1fb6ff}.a-typing i:nth-child(3){animation-delay:.3s;background:#7b5cff}'
+  +'.aurora-in{padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border)}'
+  +'.aurora-in-box{display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:14.5px;padding:5px 5px 5px 14px}'
+  +'.aurora-in input,.aurora-in input:focus{flex:1;min-width:0;width:auto!important;height:auto!important;margin:0!important;background:transparent!important;border:0 solid transparent!important;box-shadow:none!important;outline:none!important;border-radius:0!important;color:var(--text);font:inherit;font-size:.9rem;padding:9px 0!important}'
+  +'.aurora-in button{width:38px;height:38px;border-radius:11px;border:none;background:var(--accent);color:#0a0e1a;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto}'
+  +'.aurora-in button svg{width:17px;height:17px}'
+  /* telemóvel: folha que sobe de baixo e encolhe para a barra */
+  +'@media(max-width:760px){'
+  +'#aurora-panel{top:auto;bottom:0;width:100vw;height:74vh;height:74dvh;border-left:none;border-top:1px solid var(--border);border-radius:20px 20px 0 0;transform:translateY(105%);box-shadow:0 -18px 50px rgba(0,0,0,.5)}'
+  +'#aurora-panel.open{transform:none}#aurora-panel.open.min{transform:translateY(calc(100% - 74px))}'
+  +'#aurora-panel::before{left:18px;right:18px;top:-1px;bottom:auto;width:auto;height:2px;border-radius:2px;background:linear-gradient(90deg,'+G+');background-size:300% 100%;animation:aurFlow 7s linear infinite}'
+  +'.aurora-grab{display:block;width:40px;height:4px;border-radius:2px;background:var(--border);margin:9px auto 0}'
+  +'body.aur-docked .toast,body.aur-docked .clipboard-toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px));right:14px;left:14px;text-align:center}'
+  +'.a-sub2{display:none}'
+  +'.aurora-head{padding-top:8px;cursor:pointer}.a-hbtn.min-only{display:flex}'
+  +'#aurora-panel.min .a-hbtn.min-only svg{transform:rotate(180deg)}'
+  +'#aurora-panel.has-new .a-logo::after{content:"";position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#ff5fb8;box-shadow:0 0 10px #ff5fb8}'
+  +'}'
+  +'@media(prefers-reduced-motion:reduce){.aur-ring,.aur-ring::before,.aur-launch-in::before,#aurora-panel::before,#aurora-fab,.aur-launch-ico svg,.a-logo svg,#aurora-fab svg,.aur-caret{animation:none!important}}';
+  const st=document.createElement('style');st.id='aurora-css';st.textContent=css;document.head.appendChild(st);
+  const fab=document.createElement('button');fab.id='aurora-fab';fab.title='Aurora AI';fab.setAttribute('aria-label','Abrir a Aurora AI');fab.setAttribute('onclick','auroraOpen()');
+  fab.innerHTML='<span>'+AUR_SVG.spark+'</span>';document.body.appendChild(fab);
+  const panel=document.createElement('aside');panel.id='aurora-panel';panel.setAttribute('aria-label','Aurora AI');
+  panel.innerHTML='<div class="aurora-grab"></div>'
+   +'<div class="aurora-head" onclick="if(window.matchMedia(\'(max-width:760px)\').matches)auroraToggleMin()">'
+   +'<div class="a-logo">'+AUR_SVG.spark+'</div>'
+   +'<div class="a-ttl"><b>Aurora AI</b><span><i></i>100% offline<em class="a-sub2" style="font-style:normal">&nbsp;· o teu cofre</em></span></div>'
+   +'<button class="a-hbtn" title="Nova conversa" onclick="event.stopPropagation();auroraReset()">'+AUR_SVG.reset+'</button>'
+   +'<button class="a-hbtn min-only" title="Minimizar" onclick="event.stopPropagation();auroraToggleMin()">'+AUR_SVG.chev+'</button>'
+   +'<button class="a-hbtn" title="Fechar" onclick="event.stopPropagation();auroraClose()">'+AUR_SVG.x+'</button>'
+   +'</div>'
+   +'<div class="aurora-msgs" id="aurora-msgs"></div>'
+   +'<div class="aurora-in"><div class="aur-ring"><div class="aurora-in-box"><input id="aurora-input" placeholder="Pede-me qualquer coisa do cofre…" autocomplete="off" autocapitalize="sentences" enterkeyhint="send"><button onclick="auroraSend()" title="Enviar">'+AUR_SVG.send+'</button></div></div></div>';
   document.body.appendChild(panel);
-  panel.addEventListener('click',e=>{if(e.target===panel)aurClose();});
   const inp=document.getElementById('aurora-input');
   if(inp)inp.addEventListener('keydown',e=>{
     if(e.key==='Enter'){e.preventDefault();auroraSend();}
     else if(e.key==='ArrowUp'&&AUR.hist.length){AUR.hIdx=Math.max(0,AUR.hIdx-1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
     else if(e.key==='ArrowDown'&&AUR.hist.length){AUR.hIdx=Math.min(AUR.hist.length,AUR.hIdx+1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
-    else if(e.key==='Escape')aurClose();
   });
+  let aurRaf=0;document.addEventListener('scroll',()=>{if(aurRaf)return;aurRaf=requestAnimationFrame(()=>{aurRaf=0;aurFab();});},true);
   setInterval(function(){
     const on=typeof masterKey!=='undefined'&&!!masterKey;
-    const f=document.getElementById('aurora-fab');if(f)f.style.display=on?'flex':'none';
-    if(!on){aurClose();AUR.resume=null;AUR.pending=null;return;}
+    if(!on){if(document.getElementById('aurora-panel').classList.contains('open'))aurClose(true);AUR.resume=null;AUR.pending=null;aurFab();return;}
+    aurFab();
     if(AUR.resume&&!aurTotpLocked()){const t=AUR.resume;AUR.resume=null;auroraOpen();aurSay('🔓 Cofre 2FA desbloqueado — a continuar o teu pedido…');try{aurHandle(t);}catch(e){}}
   },700);
 })();
