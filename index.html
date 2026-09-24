@@ -1869,7 +1869,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.59</span>
+      <span>Aurora Vault © 2026 · v9.60</span>
     </div>
   </div>
 </div>
@@ -2275,7 +2275,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.59</span>
+      <span>Aurora Vault © 2026 · v9.60</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3368,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.59';
+const APP_VERSION='9.60';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -11779,436 +11779,982 @@ self.addEventListener('fetch',e=>{const r=e.request;
   lockApp=function(){_origLockApp();if(window.__cvUpdateReady)setTimeout(()=>location.reload(),300);};
 }
 
-/* ═══════════════════ AURORA AI — assistente local de comandos ═══════════════════ */
-/* Interpreta pedidos e liga-os às funções que já existem na app. 100% local. */
+/* ═══════════════════ AURORA AI v2 — motor semântico local ═══════════════════ */
+/* Normaliza → extrai conceitos, entidades, campos e datas → decide → executa com as funções reais da app.
+   100% local e offline: nada sai do dispositivo. */
+const AUR={last:null,pending:null,resume:null,acts:[],hist:[],hIdx:-1};
+const AUR_PASS={pass:true};
+const aurA=x=>Array.isArray(x)?x:[];
 
-let auroraPending=null;   // ação à espera de confirmação ou de dado em falta
+/* ── texto ── */
+function aurNorm(s){return (s==null?'':String(s)).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[º°ª]/g,' ').replace(/\s+/g,' ').trim();}
+function aurEsc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function aurCap(s){s=(s||'').trim();return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+function aurLev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;const d=[];for(let i=0;i<=m;i++)d[i]=[i];for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);}return d[m][n];}
 
-function auroraNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
-function auroraGenPw(len){len=len||18;const chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';let p='';const a=new Uint8Array(len);crypto.getRandomValues(a);a.forEach(b=>p+=chars[b%chars.length]);return p;}
-const AURORA_WORDS=['aurora','estrela','oceano','floresta','montanha','trovoada','cristal','veludo','girassol','relampago','cascata','labareda','nevoeiro','peixe','tigre','falcao','castelo','muralha','bussola','ancora','farol','duna','coral','jasmim','canela','ambar','safira','esmeralda','carvalho','sereno','vulcao','pantera','cometa','orquidea','abelha','raposa'];
-function auroraMemPw(){const idx=new Uint32Array(5);crypto.getRandomValues(idx);const w=[];for(let i=0;i<4;i++){const x=AURORA_WORDS[idx[i]%AURORA_WORDS.length];w.push(x[0].toUpperCase()+x.slice(1));}return w.join('-')+'-'+(10+idx[4]%90);}
-function auroraQuick(cmd){const i=document.getElementById('aurora-input');if(i){i.value=cmd;auroraSend();}}
-function auroraEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const AUR_PHR=[
+ [/-(me|nos|te|lhe)\b/g,' '],
+ [/\b(dame|damos)\b/g,' da '],[/\bmostrame\b/g,' mostra '],[/\bdizme\b/g,' diz '],[/\blembrame\b/g,' lembra '],
+ [/\bo que (sabes|consegues|podes) fazer\b|\bo que fazes\b|\bcomo funcionas\b/g,' ajuda '],
+ [/\bbo(m|a) (dia|tarde|noite)\b/g,' ola '],
+ [/\b(f2a|fa2|2 fa|2-fa|2af|dois fatores|2 fatores|duplo fator|two factor|2 step|2step|dois passos)\b/g,' 2fa '],
+ [/\b(autenticacao|verificacao) (de |em )?2fa\b/g,' 2fa '],
+ [/\b(password|palavra[ -]?passe|senha|chave) mestra\b/g,' passmestra '],
+ [/\bpalavras?[ -]?passes?\b|\bpalavras?[ -]chaves?\b/g,' password '],
+ [/\b(senhas?|passwords?|pass|pws?|pwd)\b/g,' password '],
+ [/\bcartao (de |do )?cidadao\b/g,' cartao cidadao '],
+ [/\bcarta (de )?conducao\b/g,' carta conducao '],
+ [/\bseguranca social\b/g,' segsocial '],
+ [/\b(numero|n|nr) (de |do )?utente\b/g,' utente '],
+ [/\bcartao (de |do )?(credito|debito|multibanco|bancario|banco)\b/g,' cartao bancario '],
+ [/\bcartao (de |da )?(loja|fidelizacao|fidelidade|cliente|pontos|supermercado)\b/g,' cartao loja '],
+ [/\bponto (de|da) situacao\b|\bcomo esta o cofre\b|\bestado do cofre\b|\bcomo estou\b/g,' resumo '],
+ [/\bcopias? de seguranca\b/g,' backup '],
+ [/\bwi ?-?fi\b/g,' wifi '],
+ [/\bcodigos? de barras\b/g,' barras '],
+ [/\binformac(ao|oes)\b/g,' info '],
+ [/\bdados pessoais\b/g,' info pessoal '],
+ [/\bmodo (de )?(privado|oculto|privacidade)\b/g,' privacidade '],
+ [/\bheranca digital\b|\bkit de emergencia\b/g,' heranca '],
+ [/\bpor do sol\b/g,' porsol '],[/\bmeia[ -]noite\b/g,' meianoite '],[/\bclassico claro\b/g,' classico '],
+ [/\bdatas? importantes?\b/g,' datasimportantes '],
+ [/\bauto[ -]?bloqueio\b/g,' autobloqueio '],[/\bimpressao digital\b/g,' biometria '],
+ [/\bdepois de amanha\b/g,' depoisdeamanha '],
+];
+function aurCanon(s){let n=' '+aurNorm(s).replace(/[?!,;:()"“”«»\[\]{}]/g,' ').replace(/\s+/g,' ')+' ';AUR_PHR.forEach(p=>{n=n.replace(p[0],p[1]);});return n.replace(/\s+/g,' ').trim();}
 
+const AUR_STOP=new Set('o a os as um uma uns umas de do da dos das no na nos nas ao aos e ou que me te se por para pra pro com em meu minha meus minhas teu tua seu sua este esta estes estas isto esse essa isso aquele aquela ai ali aqui la eu tu ele ela voce lhe qual quais quero queria preciso favor pf pff tenho tens ha sao era ola oi ok entao so mais ja ate tambem como onde quando quanto quantos quantas agora sobre pelo pela pelos pelas num numa dum duma sem mim etc tudo todo toda todos todas completo completa inteira cada is the of'.split(' '));
+
+/* ── vocabulário: palavra → conceitos ── */
+const AUR_VOCAB={};
+function aurV(c,w){w.split(' ').forEach(x=>{if(x)(AUR_VOCAB[x]=AUR_VOCAB[x]||[]).push(c);});}
+aurV('OPEN','abre abrir abra abras mostra mostrar mostre ver ve veja vai ir entra entrar leva levar exibe exibir consulta consultar visualiza');
+aurV('GET','qual quais diz dizer dizes saber quero queria preciso precisava');
+aurV('ADD','adiciona adicionar adicione acrescenta acrescentar cria criar crie regista registar registe guarda guardar guarde insere inserir mete meter poe coloca colocar novo nova novos novas');
+aurV('CHANGE','renova muda mudar mude altera alterar altere troca trocar troque atualiza atualizar atualize edita editar edite redefine redefinir modifica modificar corrige corrigir substitui substituir');
+aurV('DELETE','apaga apagar apague elimina eliminar elimine remove remover remova exclui excluir tira tirar deleta');
+aurV('COPY','copia copiar copie');
+aurV('ARCHIVE','arquiva arquivar arquive');
+aurV('RESTORE','recupera recuperar recupere restaura restaurar restaure repoe repor desarquiva desarquivar devolve');
+aurV('EMPTY','esvazia esvaziar esvazie limpa limpar limpe');
+aurV('GEN','gera gerar gere inventa inventar sugere sugerir');
+aurV('APPLY','aplica aplicar aplique usa usar use');
+aurV('ON','ativa ativar ative liga ligar ligue');
+aurV('OFF','desativa desativar desative desliga desligar desligue');
+aurV('SCHEDULE','agenda agendar agende lembra lembrar lembre lembrete lembretes marca marcar marque avisa avisar');
+aurV('EXPORT','exporta exportar exporte exportacao');
+aurV('SYNC','sincroniza sincronizar sincronize sincronizacao sync drive nuvem');
+aurV('SAVE','grava gravar grave salva salvar');
+aurV('LOCK','bloqueia bloquear bloqueie tranca trancar');
+aurV('CLOSE','fecha fechar feche sai sair');
+aurV('FIND','procura procurar procure pesquisa pesquisar encontra encontrar encontre localiza localizar onde');
+aurV('COUNT','quantos quantas');
+aurV('LIST','lista listar enumera enumerar');
+aurV('HOWMUCH','quanto');
+aurV('WHEN','quando');
+aurV('HELP','ajuda ajudar help comandos instrucoes');
+aurV('HELLO','ola oi hey hello');
+aurV('THANKS','obrigado obrigada obg brigado brigada valeu thanks agradecido');
+aurV('MOD_STRONG','forte fortes segura seguras robusta aleatoria complexa');
+aurV('MOD_MEM','memoravel memoraveis decorar facil faceis frase');
+aurV('NUM','numero numeros nr num');
+aurV('ALL','completa completo tudo toda todo todos todas etc inteira inteiro');
+aurV('MINE','meu minha meus minhas eu mim');
+aurV('MOD_LIGHT','claro clara claros');aurV('MOD_DARK','escuro escura escuros');
+aurV('D_PW','password');
+aurV('D_VAULT','acesso acessos conta contas login logins entrada entradas credencial credenciais cofre');
+aurV('D_EMAIL','email mail utilizador user username');
+aurV('D_2FA','2fa otp autenticador authenticator token tokens totp');
+aurV('D_2FAW','codigo codigos');
+aurV('D_CARD','cartao cartoes');
+aurV('D_BANK','bancario bancarios credito debito visa mastercard multibanco banco bancos');
+aurV('D_STORE','loja lojas fidelizacao fidelidade pontos barras supermercado');
+aurV('D_DOC','documento documentos doc docs digitalizacao scan');
+aurV('D_NOTE','nota notas apontamento apontamentos');
+aurV('D_INFO','info pessoal pessoais identificacao');
+aurV('D_FIELD','nif contribuinte iban nib utente sns segsocial niss matricula passaporte socio');
+aurV('D_WARRANTY','garantia garantias fatura faturas recibo recibos');
+aurV('D_VEHICLE','veiculo veiculos carro carros mota motas viatura');
+aurV('D_LICENSE','licenca licencas software');
+aurV('D_ASSETS','bens');
+aurV('D_DATES','datasimportantes aniversario aniversarios');
+aurV('D_SUBS','subscricao subscricoes assinatura assinaturas mensalidade mensalidades streaming');
+aurV('D_WIFI','wifi rede redes router');
+aurV('D_CAL','calendario eventos');
+aurV('D_THEME','tema temas aspeto aparencia cores cor fundo visual');
+aurV('D_SETTINGS','definicoes definicao ajustes configuracoes configuracao settings opcoes preferencias');
+aurV('D_SEC','seguranca');
+aurV('D_MASTER','passmestra pin biometria autobloqueio');
+aurV('D_TRASH','reciclagem lixo lixeira papeleira apagados apagadas eliminados eliminadas');
+aurV('D_ARCHIVE','arquivo arquivados arquivadas');
+aurV('D_DASH','dashboard inicio painel');
+aurV('D_BACKUP','backup backups');
+aurV('D_PRIV','privacidade privado oculto ocultar esconder');
+aurV('D_HERITAGE','heranca testamento');
+aurV('D_LANG','idioma lingua ingles english portugues');
+aurV('D_EXPIRY','expirou caducou venceu renova renovam expira expiram expirar expirado expirados expirada expiradas caduca caducam caducar caducado caducados vence vencem vencer vencido vencidos validade validades renovar renovacao renovacoes termina terminam acaba acabam');
+aurV('D_AUDIT','fracas fraca repetidas repetida duplicadas reutilizadas antigas vulneraveis auditoria auditar pontuacao score health');
+aurV('D_SUMMARY','resumo situacao panorama');
+aurV('D_FUEL','consumo combustivel gasolina gasoleo diesel litros abastecimento abastecimentos abastecer quilometros');
+aurV('D_MONEY','gasto gastos gasta gastas gastar custo custos custa pago pagas pagar despesa despesas dinheiro');
+aurV('D_FILE','ficheiro ficheiros');
+aurV('D_PDF','pdf');aurV('D_CSV','csv excel');
+const AUR_ACTIONS=new Set(['LIST','OPEN','GET','ADD','CHANGE','DELETE','COPY','ARCHIVE','RESTORE','EMPTY','GEN','APPLY','ON','OFF','SCHEDULE','EXPORT','SYNC','SAVE','LOCK','CLOSE','FIND','COUNT','HOWMUCH','WHEN']);
+const AUR_VKEYS=Object.keys(AUR_VOCAB).filter(k=>k.length>=5);
+const AUR_RISKY=new Set(['LOCK','CLOSE','EMPTY','DELETE','ARCHIVE','SAVE','SYNC','EXPORT']);
+function aurAffinity(a,b){let p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;let q=0;while(q<a.length-p&&q<b.length-p&&a[a.length-1-q]===b[b.length-1-q])q++;return p+q;}
+function aurFuzzyVocab(t){
+  let safe=null,sd=99,risky=null,rd=99;const tol=t.length>=8?2:1;
+  for(const k of AUR_VKEYS){if(Math.abs(k.length-t.length)>2)continue;const d=aurLev(t,k);if(d>tol)continue;
+    const sc=d*10-aurAffinity(t,k);const isR=AUR_VOCAB[k].some(x=>AUR_RISKY.has(x));
+    if(isR){if(sc<rd){rd=sc;risky=k;}}else if(sc<sd){sd=sc;safe=k;}}
+  return {safe:safe?AUR_VOCAB[safe]:null,risky:(risky&&(!safe||rd<sd))?risky:null};
+}
+
+/* ── campos da aba Info ── */
+const AUR_FIELDS=[
+ {k:'nif',label:'NIF',q:/\b(nif|contribuinte)\b|numero fiscal/,l:/\bnif\b|contribuinte|fiscal|tax id/,rk:/\b(?:nif|n[uú]mero de contribuinte|contribuinte)\b/i},
+ {k:'valcc',label:'Validade do CC',q:/validade (do |da )?(cc|cartao cidadao)/,l:/validade/,rk:/validade (?:do |da )?(?:cc|cart[aã]o (?:de )?cidad[aã]o)/i},
+ {k:'cc',label:'Cartão de Cidadão',q:/\b(cc|bi)\b|cartao cidadao|\bidentidade\b/,l:/cartao cidadao|\bcc\b|identidade|id card|\bbi\b/,rk:/\b(?:cc|bi|cart[aã]o (?:de |do )?cidad[aã]o)\b/i},
+ {k:'ss',label:'Nº Segurança Social',q:/\b(segsocial|niss)\b/,l:/segsocial|niss|social security/,rk:/(?:seguran[cç]a social|niss)/i},
+ {k:'utente',label:'Nº de Utente (SNS)',q:/\b(utente|sns)\b/,l:/utente|sns|health/,rk:/(?:utente(?: \(sns\))?|\bsns\b)/i},
+ {k:'carta',label:'Carta de Condução',q:/carta conducao/,l:/carta conducao|driving/,rk:/carta (?:de )?condu[cç][aã]o/i},
+ {k:'iban',label:'IBAN',q:/\biban\b/,l:/\biban\b/,rk:/\biban\b/i},
+ {k:'nib',label:'NIB',q:/\bnib\b/,l:/\bnib\b|bank n/,rk:/\bnib\b/i},
+ {k:'matricula',label:'Matrícula',q:/\bmatricula\b/,l:/matricula|plate/,rk:/matr[ií]cula/i},
+ {k:'passaporte',label:'Passaporte',q:/\bpassaporte\b/,l:/passaporte|passport/,rk:/passaporte/i},
+ {k:'socio',label:'Nº de Sócio',q:/\bsocio\b/,l:/socio|member/,rk:/s[oó]cio/i},
+ {k:'tel',label:'Telemóvel',q:/\b(telefone|telemovel|contacto)\b/,l:/telefone|telemovel|phone|contacto/,rk:/(?:telem[oó]vel|telefone|contacto)/i},
+ {k:'morada',label:'Morada',q:/\b(morada|endereco)\b/,l:/morada|endereco|address/,rk:/(?:morada|endere[cç]o)/i},
+ {k:'nasc',label:'Data de nascimento',q:/\bnascimento\b/,l:/nascimento|birth/,rk:/(?:data de )?nascimento/i},
+];
+const AUR_ALIAS={'cartao cidadao':['cc','bi'],'carta conducao':['carta']};
+
+/* ── rótulos ── */
+const AUR_TYPE_LBL={vault:'acesso',doc:'documento',bank:'cartão bancário',store:'cartão de loja',totp:'código 2FA',wifi:'Wi-Fi',note:'nota',asset:'bem',sub:'subscrição',person:'pessoa',theme:'tema'};
+const AUR_TYPE_DOM={vault:['D_PW','D_VAULT','D_EMAIL'],doc:['D_DOC'],bank:['D_BANK','D_CARD'],store:['D_STORE','D_CARD'],totp:['D_2FA','D_2FAW'],wifi:['D_WIFI'],note:['D_NOTE'],asset:['D_WARRANTY','D_VEHICLE','D_LICENSE','D_DATES','D_ASSETS'],sub:['D_SUBS','D_MONEY'],person:['D_INFO','D_FIELD'],theme:['D_THEME']};
+const AUR_ASSET_LBL={warranty:'garantia',license:'licença',vehicle:'veículo',dates:'data importante'};
+const AUR_TAB_LBL={dashboard:'o Dashboard',vault:'as Passwords',totp:'os códigos 2FA',cards:'os Cartões bancários',store:'os Cartões de loja',docs:'os Documentos',notes:'as Notas',info:'a Informação Pessoal',archive:'o Arquivo',trash:'a Reciclagem',warranty:'as Garantias',license:'as Licenças',vehicle:'os Veículos',dates:'as Datas importantes'};
+const AUR_EV_ICON={renew:'🔁',doc:'📄',card:'💳',warranty:'🧾',license:'🔑',vehicle:'🚗',date:'📅'};
+
+/* ── utilitários de data e dinheiro ── */
+function aurToday(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function aurAddDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function aurAddMonths(d,n){const x=new Date(d);x.setMonth(x.getMonth()+n);return x;}
+function aurDate(d){return new Date(d).toLocaleDateString('pt-PT');}
+function aurRel(d){const x=new Date(d);x.setHours(0,0,0,0);const n=Math.round((x-aurToday())/864e5);return n===0?'hoje':n===1?'amanhã':n===-1?'ontem':n>0?'em '+n+' dias':'há '+(-n)+' dias';}
+function aurMoney(v){v=+v||0;return typeof fmtMoney==='function'?fmtMoney(v):v.toFixed(2)+' €';}
+function aurIsDate(d){return Object.prototype.toString.call(d)==='[object Date]'&&!isNaN(d);}
+const AUR_NUMW={um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,quinze:15,vinte:20,trinta:30};
+function aurNumWords(n){return n.replace(/\b(um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|quinze|vinte|trinta)\b(?=\s+(dia|dias|semana|semanas|mes|meses|ano|anos)\b)/g,m=>String(AUR_NUMW[m]));}
+function aurPeriod(n0){
+  const n=aurNumWords(n0),h=aurToday();let m;
+  const mk=(from,to,label,ex,past)=>({from,to,label,explicit:ex!==false,past:!!past});
+  if(/\b(expirados|expiradas|caducados|vencidos|passados|expirou|caducou|venceu|expiraram|caducaram)\b|\bja (expir|caduc|venc)/.test(n))return mk(aurAddDays(h,-365),aurAddDays(h,-1),'no último ano',true,true);
+  if(/\bhoje\b/.test(n))return mk(h,h,'hoje');
+  if(/\bamanha\b/.test(n)){const d=aurAddDays(h,1);return mk(d,d,'amanhã');}
+  if(/\b(este|neste|deste) mes\b/.test(n))return mk(h,new Date(h.getFullYear(),h.getMonth()+1,0),'este mês');
+  if(/\b(proximo mes|mes que vem)\b/.test(n))return mk(new Date(h.getFullYear(),h.getMonth()+1,1),new Date(h.getFullYear(),h.getMonth()+2,0),'no próximo mês');
+  if(/\b(esta|nesta) semana\b/.test(n)){const d=aurAddDays(h,(7-h.getDay())%7);return mk(h,d,'esta semana');}
+  if(/\b(proxima semana|semana que vem)\b/.test(n))return mk(h,aurAddDays(h,14),'nas próximas 2 semanas');
+  if(/\b(este|neste) ano\b/.test(n))return mk(h,new Date(h.getFullYear(),11,31),'este ano');
+  if((m=n.match(/(\d+)\s*(dia|dias)\b/)))return mk(h,aurAddDays(h,+m[1]),'nos próximos '+m[1]+' dias');
+  if((m=n.match(/(\d+)\s*(semana|semanas)\b/)))return mk(h,aurAddDays(h,+m[1]*7),'nas próximas '+m[1]+' semanas');
+  if((m=n.match(/(\d+)\s*(mes|meses)\b/)))return mk(h,aurAddMonths(h,+m[1]),+m[1]===1?'no próximo mês':'nos próximos '+m[1]+' meses');
+  if((m=n.match(/(\d+)\s*(ano|anos)\b/)))return mk(h,aurAddMonths(h,+m[1]*12),+m[1]===1?'no próximo ano':'nos próximos '+m[1]+' anos');
+  if(/\bproximos meses\b/.test(n))return mk(h,aurAddMonths(h,3),'nos próximos 3 meses');
+  return mk(h,aurAddMonths(h,3),'nos próximos 3 meses',false);
+}
+const AUR_MESES=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const AUR_DIAS=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
+function aurParseDate(n0){
+  const n=aurNumWords(n0),t=aurToday();let m;
+  if((m=n.match(/\b(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?\b/))){let d=+m[1],mo=+m[2]-1,y=m[3]?+m[3]:t.getFullYear();if(y<100)y+=2000;if(mo<0||mo>11||d<1||d>31)return null;let dt=new Date(y,mo,d);if(dt.getMonth()!==mo)return null;if(!m[3]&&dt<t)dt=new Date(y+1,mo,d);return dt;}
+  if((m=n.match(/\b(?:dia\s+)?(\d{1,2})\s+de\s+(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)(?:\s+de\s+(\d{4}))?/))){const mo=AUR_MESES.indexOf(m[2]);let y=m[3]?+m[3]:t.getFullYear();let dt=new Date(y,mo,+m[1]);if(!m[3]&&dt<t)dt=new Date(y+1,mo,+m[1]);return dt;}
+  if(/\bdepoisdeamanha\b/.test(n))return aurAddDays(t,2);
+  if(/\bamanha\b/.test(n))return aurAddDays(t,1);
+  if(/\bhoje\b/.test(n))return t;
+  if((m=n.match(/\b(?:daqui a|dentro de)\s+(\d+)\s+(dia|dias|semana|semanas|mes|meses|ano|anos)\b/))){const k=+m[1],u=m[2];return /^dia/.test(u)?aurAddDays(t,k):/^semana/.test(u)?aurAddDays(t,k*7):/^mes/.test(u)?aurAddMonths(t,k):aurAddMonths(t,k*12);}
+  if((m=n.match(/\b(?:proxima|proximo|na|no|esta|este)?\s*(domingo|segunda|terca|quarta|quinta|sexta|sabado)\b/))){const wd=AUR_DIAS.indexOf(m[1]);let k=(wd-t.getDay()+7)%7;if(k===0)k=7;return aurAddDays(t,k);}
+  if((m=n.match(/\bdia\s+(\d{1,2})\b/))){let dt=new Date(t.getFullYear(),t.getMonth(),+m[1]);if(dt<t)dt=new Date(t.getFullYear(),t.getMonth()+1,+m[1]);return dt;}
+  return null;
+}
+function aurReason(raw){
+  let r=' '+raw+' ';
+  r=r.replace(/\b\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?\b/g,' ');
+  r=r.replace(/\b(?:(?:no|ao|a|o)\s+)?(?:dia\s+)?\d{1,2}\s+de\s+(?:janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)(?:\s+de\s+\d{4})?/gi,' ');
+  r=r.replace(/\b(depois de amanh[aã]|amanh[aã]|hoje)\b/gi,' ');
+  r=r.replace(/\b(?:daqui a|dentro de)\s+\S+\s+(?:dias?|semanas?|m[eê]s(?:es)?|anos?)\b/gi,' ');
+  r=r.replace(/\b(?:na |no |esta |este |pr[oó]xim[ao] )?(?:domingo|segunda|ter[cç]a|quarta|quinta|sexta|s[aá]bado)(?:-feira)?\b/gi,' ');
+  r=r.replace(/\b(?:no |ao )?dia\s+\d{1,2}\b/gi,' ');
+  r=r.replace(/\b(todos os anos|anualmente|cada ano|repete)\b/gi,' ');
+  r=r.replace(/\b(?:no|ao|na)\s+calend[aá]rio\b/gi,' ');
+  r=r.replace(/^\s*(?:aurora[,:]?\s+)?(?:por favor\s+)?(?:lembra(?:[- ]?me)?|lembrar|avisa(?:[- ]?me)?|agenda(?:r)?|marca(?:r)?|cria(?:r)?\s+(?:um\s+)?lembrete|adiciona(?:r)?|coloca(?:r)?|p[oõ]e|mete)\b/i,' ');
+  r=r.replace(/\b(?:um|uma)\s+(?:lembrete|evento|data)\b/gi,' ');
+  r=r.replace(/\s+/g,' ').trim();
+  for(let k=0;k<4;k++){r=r.replace(/^(de|da|do|das|dos|que|para|a|o|um|uma|no|na|dia|em|:|-)\s+/i,'').replace(/\s+(a|no|na|dia|em|para|de|do|da|as|às|às)$/i,'').trim();}
+  r=r.replace(/[.,;:!?]+$/,'').trim();
+  return aurCap(r);
+}
+
+/* ── índice de entidades de TODO o cofre ── */
+function aurSig(n){return n.split(' ').map(t=>t.replace(/^[.\-]+|[.\-]+$/g,'')).filter(t=>t&&!AUR_STOP.has(t));}
+function aurIndex(){
+  const E=[];
+  const add=(type,obj,name,extra)=>{if(!name)return;const nn=aurCanon(name);const toks=aurSig(nn);if(!toks.length)return;let alias=[];Object.keys(AUR_ALIAS).forEach(k=>{if(nn.indexOf(k)>=0)alias=alias.concat(AUR_ALIAS[k]);});E.push({type,obj,name:String(name).trim(),norm:nn,toks,alias,extra:aurNorm(extra||''),archived:!!(obj&&obj.archived)});};
+  try{aurA(typeof vault!=='undefined'?vault:[]).forEach(v=>add('vault',v,v.name,[v.user,v.url].join(' ')));}catch(e){}
+  try{aurA(typeof documents!=='undefined'?documents:[]).forEach(d=>add('doc',d,d.title||d.name));}catch(e){}
+  try{aurA(typeof bankCards!=='undefined'?bankCards:[]).forEach(c=>add('bank',c,c.name||c.bank||c.title,c.bank));}catch(e){}
+  try{aurA(typeof storeCards!=='undefined'?storeCards:[]).forEach(s=>add('store',s,s.name||s.store));}catch(e){}
+  try{aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>add('totp',t,t.name||t.issuer||t.label,t.issuer));}catch(e){}
+  try{aurA(typeof wifiNets!=='undefined'?wifiNets:[]).forEach(w=>add('wifi',w,w.name||w.ssid,w.ssid));}catch(e){}
+  try{aurA(typeof notes!=='undefined'?notes:[]).forEach(n=>add('note',n,n.title));}catch(e){}
+  try{aurA(typeof assets!=='undefined'?assets:[]).forEach(a=>add('asset',a,a.name,a.plate));}catch(e){}
+  try{aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>add('sub',s,s.name));}catch(e){}
+  try{aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>{if(p&&Array.isArray(p.fields))add('person',p,p.name);});}catch(e){}
+  try{aurA(typeof THEME_PRESETS!=='undefined'?THEME_PRESETS:[]).forEach(t=>add('theme',t,t.name));}catch(e){}
+  return E;
+}
+function aurMatchEnt(e,Q,Qset){
+  if(!e.toks.length)return 0;
+  let got=0,total=0,spec=0;
+  e.toks.forEach(t=>{
+    const w=AUR_VOCAB[t]?0.35:1;total+=w;
+    let hit=Qset.has(t);
+    if(!hit&&t.length>=4){for(const q of Q){if(q.length>=4&&Math.abs(q.length-t.length)<=2&&aurLev(q,t)<=(t.length>=8?2:1)){hit=true;break;}}}
+    if(!hit&&t.length>=5){for(const q of Q){if(q.length>=4&&t.startsWith(q)){hit=true;break;}}}
+    if(hit){got+=w;if(w===1)spec++;}
+  });
+  let s=got/total;
+  if(!spec&&s<1)s=0;
+  if(s>0&&(' '+Q.join(' ')+' ').indexOf(' '+e.toks.join(' ')+' ')>=0)s+=0.2;
+  if(e.alias&&e.alias.some(a=>Qset.has(a)))s=Math.max(s,0.95);
+  return s;
+}
+
+/* ── frame: compreensão do pedido ── */
+function aurFrame(raw){
+  const r=(raw||'').trim().replace(/^\s*aurora\s*[,:!\-]?\s+/i,'');
+  const n=aurCanon(r);
+  const toks=n.split(' ').map(t=>t.replace(/^[.\-]+|[.\-]+$/g,'')).filter(Boolean);
+  const E=aurIndex();
+  const entTok=new Set();E.forEach(e=>e.toks.forEach(t=>entTok.add(t)));
+  const c=new Set(),conceptTok=new Set();let suggest=null;
+  toks.forEach((t,i)=>{
+    if(t==='da'){if(i===0)c.add('GET');return;}
+    let v=AUR_VOCAB[t];
+    if(!v&&t.length>=5&&!entTok.has(t)&&!/\d/.test(t)){const fz=aurFuzzyVocab(t);v=fz.safe;if(fz.risky&&!suggest)suggest={from:t,to:fz.risky};}
+    if(v){v.forEach(x=>c.add(x));conceptTok.add(t);}
+  });
+  if(c.has('ADD')&&/\b(guarda|guardar|guarde)\b/.test(n)&&/\b(ficheiro|cofre|alteracoes|tudo|isto|agora)\b/.test(n)&&!c.has('D_PW')&&!c.has('D_EMAIL')){c.delete('ADD');c.add('SAVE');}
+  if(c.has('CLOSE')&&(c.has('D_VAULT')||/\bapp\b/.test(n))){c.delete('CLOSE');c.add('LOCK');}
+  let fields=AUR_FIELDS.filter(f=>f.q.test(' '+n+' '));
+  if(fields.some(f=>f.k==='valcc'))fields=fields.filter(f=>f.k!=='cc');
+  if(fields.some(f=>f.k==='cc'||f.k==='carta'))c.delete('D_CARD');
+  if(c.has('D_SEC')&&!c.has('OPEN')&&!c.has('D_SETTINGS')&&!c.has('D_MASTER'))c.add('D_AUDIT');
+  const Q=toks.filter(t=>!AUR_STOP.has(t));
+  const Qset=new Set(Q);
+  const allowTheme=c.has('D_THEME')||c.has('APPLY');
+  let cands=E.filter(e=>e.type!=='theme'||allowTheme).map(e=>Object.assign({},e,{score:aurMatchEnt(e,Q,Qset)})).filter(e=>e.score>=0.34);
+  cands.forEach(e=>{const d=AUR_TYPE_DOM[e.type];if(d&&d.some(x=>c.has(x)))e.score+=0.15;if(e.archived)e.score-=0.05;});
+  cands.sort((a,b)=>b.score-a.score);
+  const best=cands[0]||null,second=cands[1]||null;
+  const confident=!!best&&best.score>=0.5&&(!second||best.score-second.score>=0.15);
+  const persons=cands.filter(e=>e.type==='person'&&e.score>=0.5);
+  const labelHits=[];
+  aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>aurA(p&&p.fields).forEach(f=>{const lt=aurSig(aurCanon(f.label||'')).filter(t=>t.length>=4&&!AUR_VOCAB[t]);if(lt.length&&lt.every(t=>Qset.has(t)))labelHits.push(f);}));
+  const terms=Q.filter(t=>!conceptTok.has(t)&&!/^\d{1,2}$/.test(t));
+  let stab='';
+  if(c.has('D_THEME'))stab='aspeto';else if(c.has('D_SEC')||c.has('D_MASTER'))stab='seguranca';else if(c.has('D_BACKUP')||c.has('EXPORT')||/\b(dados|importar|importacao)\b/.test(n))stab='dados';else if(c.has('D_HERITAGE'))stab='heranca';else if(/\b(sobre|versao)\b/.test(n))stab='sobre';
+  const hasAction=[...c].some(x=>AUR_ACTIONS.has(x));
+  const hasDomain=[...c].some(x=>x.indexOf('D_')===0);
+  const yes=/^(sim|s|siga|confirmo|confirma|confirmar|ok|okay|okey|pode|podes|pode ser|avanca|avancar|claro|isso|exato|certo|faz|faz isso|sim por favor|yes|y|bora|vamos|vai|confirmado)$/.test(n);
+  const no=/^(nao|n|cancela|cancelar|esquece|deixa|deixa estar|nao obrigado|para|stop|no|nada)$/.test(n);
+  return {raw:r,n,toks,Q,Qset,c,fields,cands,best,confident,persons,labelHits,terms,stab,hasAction,hasDomain,yes,no,date:null,suggest};
+}
+
+/* ── saída ── */
+AUR.out=function(h,cls){if(typeof document==='undefined')return null;const m=document.getElementById('aurora-msgs');if(!m)return null;const d=document.createElement('div');d.className='aurora-msg '+cls;d.innerHTML=h;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;};
+function aurSay(html,chips,cls){
+  const list=(chips||[]).filter(Boolean);let h=html;
+  if(list.length){if(AUR.acts.length>3000)AUR.acts=[];h+='<div class="a-chips">'+list.map(ch=>{const i=AUR.acts.push(ch.fn)-1;return '<span class="a-btn'+(ch.danger?' danger':'')+'" onclick="aurAct('+i+')">'+aurEsc(ch.label)+'</span>';}).join('')+'</div>';}
+  AUR.out(h,cls||'ai');return true;
+}
+function aurAct(i){const f=AUR.acts[i];if(typeof f==='function'){try{f();}catch(e){aurSay('Não consegui concluir essa ação ('+aurEsc(e.message)+').');}}}
+function aurClose(){if(typeof document==='undefined')return;const p=document.getElementById('aurora-panel');if(p)p.classList.remove('open');}
+function aurTab(t){if(typeof switchTab==='function')switchTab(t);}
+function aurGoTab(t){aurTab(t);aurClose();return aurSay('Abri '+(AUR_TAB_LBL[t]||t)+'.');}
+function aurCopy(txt,msg){if(txt==null||txt==='')return false;if(typeof copyText==='function')copyText(String(txt),msg||'Copiado ✓');else if(typeof navigator!=='undefined'&&navigator.clipboard)navigator.clipboard.writeText(String(txt));return true;}
+function aurDirty(){if(typeof renderAll==='function')renderAll();if(typeof markUnsaved==='function')markUnsaved();}
+function aurLog(t,n,i){if(typeof logActivity==='function')logActivity(t,n,i);}
+function aurYes(){const p=AUR.pending;AUR.pending=null;if(p&&p.ok)return p.ok();return aurSay('Não havia nada à espera de confirmação.');}
+function aurNo(){AUR.pending=null;return aurSay('Ok, cancelado.');}
+function aurConfirmChips(){return [{label:'Confirmar',fn:aurYes},{label:'Cancelar',fn:aurNo}];}
+function aurQuick(t){AUR.out(aurEsc(t),'me');return aurHandle(t);}
+function aurEntLabel(e){const o=e.obj||{};let sub=AUR_TYPE_LBL[e.type]||'';if(e.type==='vault'&&o.user)sub=o.user;if(e.type==='asset')sub=AUR_ASSET_LBL[o.kind]||sub;return e.name+(sub?' · '+sub:'')+(e.archived?' (arquivado)':'');}
+function aurChoose(cs,F,title,fn){return aurSay(title||'Encontrei várias opções — qual é?',cs.slice(0,8).map(e=>({label:aurEntLabel(e),fn:()=>fn?fn(e):aurOpenEnt(e,F,F.c.has('OPEN'))})));}
+function aurTotpLocked(){try{return typeof totpRecWrap!=='undefined'&&!!totpRecWrap&&typeof totpUnlocked!=='undefined'&&!totpUnlocked;}catch(e){return false;}}
+function aurNeed2fa(raw){AUR.resume=raw;aurTab('totp');aurClose();return aurSay('🔒 O teu cofre 2FA está bloqueado. Abri-o — desbloqueia com o PIN (ou biometria) e eu continuo o pedido sozinha.');}
+function aurOwner(){const P=aurA(typeof personalInfo!=='undefined'?personalInfo:[]).filter(p=>p&&Array.isArray(p.fields));if(!P.length)return null;const vn=aurNorm(typeof vaultName!=='undefined'?vaultName:'').split(' ')[0];if(vn){const f=P.find(p=>aurNorm(p.name).split(' ')[0]===vn);if(f)return f;}return P[0];}
+function aurEvents(){try{return typeof calCollectEvents==='function'?calCollectEvents().filter(e=>e&&aurIsDate(e.date)):[];}catch(e){return [];}}
+const AUR_QUICK=[['O que expira?','o que expira nos proximos 3 meses'],['Ponto de situação','resumo'],['Códigos 2FA','codigos 2fa'],['A minha info','a minha info completa'],['Gerar password','gera uma password forte'],['Segurança','tenho passwords fracas']];
+function aurQuickChips(){return AUR_QUICK.map(q=>({label:q[0],fn:()=>aurQuick(q[1])}));}
+
+/* ═══════════ DECISÃO ═══════════ */
+function aurHandle(raw){
+  raw=(raw||'').trim();if(!raw)return;
+  const F=aurFrame(raw);const c=F.c;
+  F.date=aurParseDate(F.n);
+  if(AUR.pending){const p=AUR.pending;
+    if(F.yes){AUR.pending=null;return p.ok?p.ok():aurSay('Ok.');}
+    if(F.no){AUR.pending=null;return aurSay('Ok, cancelado.');}
+    if(p.withText&&(!F.hasAction||p.type==='askDate')){AUR.pending=null;return p.withText(raw,F);}
+    AUR.pending=null;
+  }
+  if(c.has('HELP'))return aurHelp();
+  if((c.has('HELLO')||c.has('THANKS'))&&!c.has('HELP')&&![...c].some(x=>AUR_ACTIONS.has(x)||x.indexOf('D_')===0)&&!F.confident)return aurSmall(F);
+  if(c.has('CLOSE')&&!F.hasDomain){aurClose();return aurSay('Até já! ✨');}
+  if(c.has('D_MASTER'))return aurSettings('seguranca','A palavra-passe mestra, o PIN, a biometria e o auto-bloqueio mudam-se em Definições → Segurança — por segurança não os altero pela conversa. Abri-te lá.');
+  if(c.has('D_2FA')||c.has('D_2FAW')){const r=aur2fa(F);if(r!==AUR_PASS)return r;}
+  if(c.has('D_EXPIRY')&&!(c.has('SCHEDULE')&&F.date)&&!(c.has('D_PW')&&!/expir|caduc|venc|validade/.test(F.n)))return aurExpiry(F);
+  if(c.has('D_SUMMARY'))return aurSummary();
+  if(c.has('D_AUDIT'))return aurAudit(F);
+  if((c.has('GEN')&&(c.has('D_PW')||c.has('MOD_STRONG')||c.has('MOD_MEM')))||(c.has('D_PW')&&(c.has('MOD_STRONG')||c.has('MOD_MEM'))&&!c.has('CHANGE')&&!(F.confident&&F.best.type==='vault')))return aurGenerate(F);
+  if(c.has('CHANGE')&&c.has('D_PW'))return aurChangePw(F);
+  if(c.has('CHANGE')&&c.has('D_EMAIL')&&!F.fields.length&&F.cands.some(e=>e.type==='vault'))return aurChangeUser(F);
+  if(c.has('CHANGE')&&/\bnome\b/.test(F.n)&&F.cands.some(e=>e.score>=0.5&&e.type==='vault'))return aurRename(F);
+  if(c.has('CHANGE')&&F.fields.length)return aurInfoSet(F,true);
+  if((c.has('SCHEDULE')&&!(c.has('OPEN')&&!F.date))||(F.date&&(c.has('ADD')||c.has('D_CAL'))&&!c.has('D_EXPIRY')))return aurSchedule(F);
+  const other=x=>[...c].some(k=>k.indexOf('D_')===0&&k!==x&&k!=='D_SETTINGS');
+  if(c.has('D_THEME')&&!c.has('D_PW')&&!c.has('D_NOTE')&&!c.has('D_DOC'))return aurTheme(F);
+  if(c.has('D_PRIV')&&!other('D_PRIV'))return aurPriv(F);
+  if(c.has('D_LANG')&&!other('D_LANG'))return aurLang(F);
+  if(c.has('EMPTY')&&(c.has('D_TRASH')||!F.hasDomain))return aurEmptyTrash();
+  if(c.has('RESTORE'))return aurRestore(F);
+  if(c.has('ARCHIVE'))return aurArchive(F);
+  if(c.has('DELETE'))return aurDelete(F);
+  if(c.has('ADD'))return aurAdd(F);
+  if(c.has('COPY'))return aurCopyCmd(F);
+  if(F.fields.length||F.labelHits.length||c.has('D_INFO')||(F.best&&F.best.type==='person'&&F.best.score>=0.5)){const r=aurInfo(F);if(r!==AUR_PASS)return r;}
+  if(c.has('D_THEME')||(c.has('APPLY')&&F.cands.some(e=>e.type==='theme')))return aurTheme(F);
+  if(c.has('D_PRIV'))return aurPriv(F);
+  if(c.has('D_LANG'))return aurLang(F);
+  if(c.has('LOCK')){aurSay('🔒 Cofre bloqueado.');if(typeof lockApp==='function'){aurClose();lockApp();}return true;}
+  if(c.has('SYNC')){if(typeof driveSyncNow==='function'){driveSyncNow();return aurSay('☁️ A sincronizar com o Google Drive…');}return aurSay('A sincronização com o Drive não está disponível.');}
+  if(c.has('D_BACKUP')){if(typeof downloadBackupNow==='function'){downloadBackupNow();return aurSay('💾 Descarreguei uma cópia de segurança do cofre (encriptada).');}return aurSettings('dados');}
+  if(c.has('EXPORT'))return aurExport(F);
+  if(c.has('SAVE')){if(typeof saveFile==='function'){saveFile();return aurSay('💾 A gravar o cofre…');}return aurSay('Não consegui gravar.');}
+  if(c.has('D_HERITAGE'))return aurSettings('heranca');
+  if(c.has('D_SETTINGS')||(c.has('D_SEC')&&c.has('OPEN')))return aurSettings(F.stab);
+  if(c.has('LIST')){const r=aurList(F);if(r!==AUR_PASS)return r;}
+  if(c.has('D_EMAIL')&&!F.confident&&!F.cands.some(e=>e.score>=0.5))return aurEmails();
+  if(c.has('D_FUEL'))return aurFuel(F);
+  if(c.has('D_SUBS')||c.has('D_MONEY'))return aurSubs(F);
+  if(c.has('COUNT'))return aurCount(F);
+  if(c.has('D_CAL'))return aurCal(F);
+  if(c.has('D_WIFI')&&!(F.best&&F.best.type==='wifi'&&F.confident))return aurWifi(F);
+  if(!F.hasDomain&&!F.confident&&/\b(tenho|ha|acontece|marcado)\b/.test(F.n)&&aurPeriod(F.n).explicit)return aurCal(Object.assign({},F,{n:F.n+' eventos'}));
+  if(F.confident)return aurOpenEnt(F.best,F,c.has('OPEN'));
+  if(F.suggest&&!F.confident){const fixed=F.n.split(' ').map(w=>w===F.suggest.from?F.suggest.to:w).join(' ');return aurSay('Querias dizer «<b>'+aurEsc(fixed)+'</b>»?',[{label:'Sim, '+F.suggest.to,fn:()=>aurQuick(fixed)},{label:'Não',fn:()=>aurSay('Ok — diz-me de outra forma.')}]);}
+  const strong=F.cands.filter(e=>e.score>=0.5);
+  if(strong.length>1)return aurChoose(strong,F);
+  const tab=aurDomainTab(c);
+  if(tab&&!F.terms.length)return aurGoTab(tab);
+  return aurFind(F,tab);
+}
+
+function aurDomainTab(c){
+  const map=[['D_2FA','totp'],['D_BANK','cards'],['D_STORE','store'],['D_CARD','cards'],['D_DOC','docs'],['D_NOTE','notes'],['D_INFO','info'],['D_FIELD','info'],['D_WARRANTY','warranty'],['D_LICENSE','license'],['D_VEHICLE','vehicle'],['D_DATES','dates'],['D_ASSETS','warranty'],['D_TRASH','trash'],['D_ARCHIVE','archive'],['D_DASH','dashboard'],['D_PW','vault'],['D_VAULT','vault']];
+  for(const m of map)if(c.has(m[0]))return m[1];return null;
+}
+
+/* ── ajuda e cortesia ── */
+function aurHelp(){
+  return aurSay('✨ <b>O que eu sei fazer — em todo o cofre</b>\n'+
+  '🔑 <b>Passwords</b>: "abre o gmail", "qual a password da revolut", "copia a password do paypal", "muda a password do gmail", "adiciona a netflix com user x e pass y", "gera uma password forte / fácil de decorar"\n'+
+  '🔐 <b>2FA</b>: "código da trade republic", "adicionar 2fa", "abre o 2fa" (se estiver bloqueado, peço-te o PIN e continuo)\n'+
+  '👤 <b>Info</b>: "qual o meu nif", "número de cc", "info completa do carlos", "adiciona o meu iban PT50…", "muda o meu telemóvel para…"\n'+
+  '📄 <b>Documentos e notas</b>: "abre o cartão de cidadão", "cria uma nota", "adiciona um documento"\n'+
+  '💳 <b>Cartões</b>: "abre o cartão do continente", "adiciona um cartão de crédito"\n'+
+  '⏳ <b>Validades</b>: "o que expira este mês", "quando expira a carta de condução", "o que já expirou"\n'+
+  '📅 <b>Calendário</b>: "lembra-me da revisão do carro a 15/03/2027", "o que tenho esta semana"\n'+
+  '🏠 <b>Bens</b>: "adiciona uma garantia", "consumo do carro", "abre os veículos"\n'+
+  '🔁 <b>Subscrições</b>: "quanto gasto por mês", "quanto pago da netflix"\n'+
+  '🛡️ <b>Segurança</b>: "tenho passwords fracas", "ponto de situação"\n'+
+  '🗑️ <b>Arquivo/Reciclagem</b>: "arquiva o hotmail", "recupera o paypal", "esvazia a reciclagem"\n'+
+  '🎨 <b>Aspeto</b>: "aplica o tema oceano", "temas claros", "ativa o modo privado", "muda para inglês"\n'+
+  '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"',aurQuickChips());
+}
+function aurSmall(F){
+  if(F.c.has('THANKS'))return aurSay('De nada! 😊 Estou aqui sempre que precisares.');
+  const nm=typeof vaultName!=='undefined'&&vaultName?', '+aurEsc(String(vaultName).split(' ')[0]):'';
+  return aurSay('Olá'+nm+'! Em que te posso ajudar?',aurQuickChips());
+}
+
+/* ── 2FA ── */
+function aur2fa(F){
+  const c=F.c,strong=c.has('D_2FA');
+  if(!strong&&(c.has('D_WIFI')||c.has('D_STORE')||c.has('D_CARD')||c.has('D_BANK')))return AUR_PASS;
+  if(!strong&&F.confident&&F.best.type!=='totp'&&F.best.type!=='vault')return AUR_PASS;
+  if(aurTotpLocked())return aurNeed2fa(F.raw);
+  const T=aurA(typeof totp!=='undefined'?totp:[]);
+  const tc=F.cands.filter(e=>e.type==='totp'&&e.score>=0.5);
+  const ent=(tc.length===1||(tc.length>1&&tc[0].score-tc[1].score>=0.15))?tc[0]:null;
+  if(c.has('ADD')){aurTab('totp');if(typeof openTotpModal==='function')openTotpModal();aurClose();return aurSay('🔐 Abri o formulário de novo código 2FA — cola a chave secreta ou lê o QR do serviço.');}
+  if(c.has('COUNT'))return aurSay('Tens <b>'+T.length+'</b> '+(T.length===1?'código':'códigos')+' 2FA.');
+  if(!ent&&tc.length>1)return aurChoose(tc,F,'Qual destes códigos?',e=>aurShowCode(e.obj));
+  if(ent&&c.has('CHANGE')){aurTab('totp');if(typeof openTotpModal==='function')openTotpModal(ent.obj.id);aurClose();return aurSay('✏️ Abri o código 2FA de <b>'+aurEsc(ent.name)+'</b> para editares.');}
+  if(ent&&c.has('DELETE')){const id=ent.obj.id;if(typeof deleteTotp==='function')deleteTotp(id);const still=aurA(typeof totp!=='undefined'?totp:[]).some(t=>t.id===id);return aurSay(still?'Ficou tudo como estava.':'🗑️ Código 2FA de <b>'+aurEsc(ent.name)+'</b> apagado.');}
+  if(ent)return aurShowCode(ent.obj);
+  if(!strong&&F.confident&&F.best.type==='vault')return AUR_PASS;
+  if(!T.length)return aurSay('Ainda não tens códigos 2FA guardados.',[{label:'Adicionar código 2FA',fn:()=>{aurTab('totp');if(typeof openTotpModal==='function')openTotpModal();aurClose();}}]);
+  if(c.has('OPEN')&&!F.terms.length)return aurGoTab('totp');
+  if(F.terms.length&&!tc.length)return aurSay('Não encontrei um código 2FA para «'+aurEsc(F.terms.join(' '))+'». Tens estes — toca para ver o código:',T.slice(0,12).map(t=>({label:t.name||t.issuer||'Código',fn:()=>aurShowCode(t)})));
+  return aurSay('🔐 Os teus códigos 2FA ('+T.length+') — toca para ver o código atual:',T.slice(0,12).map(t=>({label:t.name||t.issuer||'Código',fn:()=>aurShowCode(t)})).concat([{label:'Abrir 2FA',fn:()=>aurGoTab('totp')}]));
+}
+async function aurShowCode(t){
+  if(aurTotpLocked())return aurNeed2fa('codigo '+(t.name||''));
+  let code=null;try{code=await computeTOTP(t.secret,t.digits,t.period,t.algorithm,t.type==='hotp'?(t.counter||0):null);}catch(e){}
+  const nm=aurEsc(t.name||t.issuer||'2FA');
+  if(!code)return aurSay('Não consegui calcular o código de <b>'+nm+'</b>. Abre o separador 2FA.',[{label:'Abrir 2FA',fn:()=>aurGoTab('totp')}]);
+  const per=+t.period||30,left=per-Math.floor(Date.now()/1000)%per;
+  const f=typeof fmtTotpCode==='function'?fmtTotpCode(code,t.digits):code;
+  aurCopy(code,'Código copiado ✓');
+  return aurSay('🔐 <b>'+nm+'</b>\n<span class="a-code">'+aurEsc(f)+'</span>\n<span class="a-dim">válido mais '+left+'s · copiado para a área de transferência</span>',[{label:'Novo código',fn:()=>aurShowCode(t)},{label:'Copiar de novo',fn:()=>aurCopy(code,'Código copiado ✓')}]);
+}
+
+/* ── validades ── */
+function aurExpiry(F){
+  if(F.fields.some(f=>f.k==='valcc')){const r=aurInfo(F,true);if(r!==AUR_PASS)return r;}
+  const ev=aurEvents(),today=aurToday();
+  const ent=F.confident&&['doc','bank','sub','asset'].includes(F.best.type)?F.best:null;
+  if(ent){
+    const nm=aurNorm(ent.name);
+    const mine=ev.filter(e=>aurNorm(e.label).indexOf(nm)===0).sort((a,b)=>a.date-b.date);
+    const nx=mine.find(e=>e.date>=today)||mine[mine.length-1];
+    if(nx){const past=nx.date<today;return aurSay((past?'⚠️ ':'⏳ ')+'<b>'+aurEsc(ent.name)+'</b> '+(past?'expirou a ':(ent.type==='sub'?'renova a ':'expira a '))+aurDate(nx.date)+' ('+aurRel(nx.date)+').',[{label:'Abrir',fn:()=>aurOpenEnt(ent,F,true)},{label:'Ver calendário',fn:aurOpenCal}]);}
+    return aurSay('<b>'+aurEsc(ent.name)+'</b> não tem validade registada.',[{label:'Abrir para adicionar',fn:()=>aurOpenEnt(ent,F,true)}]);
+  }
+  const P=aurPeriod(F.n);const c=F.c;
+  let list=ev.filter(e=>e.date>=P.from&&e.date<=P.to);
+  const tf=[];if(c.has('D_DOC'))tf.push('doc');if(c.has('D_BANK')||c.has('D_CARD'))tf.push('card');if(c.has('D_SUBS'))tf.push('renew');if(c.has('D_WARRANTY'))tf.push('warranty');if(c.has('D_LICENSE'))tf.push('license');if(c.has('D_VEHICLE'))tf.push('vehicle');
+  if(tf.length)list=list.filter(e=>tf.includes(e.type));
+  list.sort((a,b)=>a.date-b.date);
+  if(!list.length)return aurSay((P.past?'✅ Nada expirou ':'✅ Nada a expirar ')+P.label+'.',[P.past?null:{label:'Próximos 12 meses',fn:()=>aurQuick('o que expira nos proximos 12 meses')},{label:'Ver calendário',fn:aurOpenCal}]);
+  const lines=list.slice(0,20).map(e=>'• '+(AUR_EV_ICON[e.type]||'📅')+' <b>'+aurEsc(e.label)+'</b> — '+aurDate(e.date)+' <span class="a-dim">('+aurRel(e.date)+')</span>'+(e.type==='renew'&&e.amount?' · '+aurMoney(e.amount):''));
+  return aurSay((P.past?'⚠️ Expirados ':'⏳ A expirar ')+P.label+' ('+list.length+'):\n'+lines.join('\n')+(list.length>20?'\n…e mais '+(list.length-20)+'.':''),[{label:'Ver calendário',fn:aurOpenCal}]);
+}
+function aurOpenCal(){if(typeof openCalendar==='function'){aurClose();openCalendar();}return true;}
+function aurCal(F){
+  const P=aurPeriod(F.n);
+  if(P.explicit||/\b(tenho|ha|eventos)\b/.test(F.n)){const ev=aurEvents().filter(e=>e.date>=P.from&&e.date<=P.to).sort((a,b)=>a.date-b.date);
+    if(!ev.length)return aurSay('📅 Nada no calendário '+P.label+'.',[{label:'Abrir calendário',fn:aurOpenCal}]);
+    return aurSay('📅 No calendário '+P.label+':\n'+ev.slice(0,20).map(e=>'• '+(AUR_EV_ICON[e.type]||'📅')+' <b>'+aurEsc(e.label)+'</b> — '+aurDate(e.date)+' <span class="a-dim">('+aurRel(e.date)+')</span>').join('\n'),[{label:'Abrir calendário',fn:aurOpenCal}]);}
+  aurOpenCal();return aurSay('📅 Abri o calendário.');
+}
+
+/* ── resumo e auditoria ── */
+function aurSummary(){
+  const V=aurA(vault).filter(v=>!v.archived);
+  const sc=typeof calcSecurityScore==='function'?calcSecurityScore():null;
+  let sub=0;aurA(subscriptions).forEach(s=>{try{sub+=subMonthly(s)||0;}catch(e){}});
+  const t=aurToday(),lim=aurAddDays(t,30),soon=aurEvents().filter(e=>e.date>=t&&e.date<=lim).sort((a,b)=>a.date-b.date);
+  const T=aurA(typeof totp!=='undefined'?totp:[]);
+  const L=['🔑 <b>'+V.length+'</b> acessos · 🔐 '+(aurTotpLocked()?'2FA bloqueado':'<b>'+T.length+'</b> códigos 2FA'),
+   '📄 <b>'+aurA(documents).length+'</b> documentos · 💳 <b>'+aurA(bankCards).length+'</b> cartões · 🎟️ <b>'+aurA(storeCards).length+'</b> de loja',
+   '📝 <b>'+aurA(notes).length+'</b> notas · 🏠 <b>'+aurA(assets).length+'</b> bens · 👤 <b>'+aurA(personalInfo).length+'</b> pessoas',
+   sc!=null?'🛡️ Segurança: <b>'+sc+'/100</b>':null,
+   '🔁 Subscrições: <b>'+aurMoney(sub)+'/mês</b>',
+   soon.length?'⏳ <b>'+soon.length+'</b> a expirar em 30 dias — próximo: '+aurEsc(soon[0].label)+' ('+aurRel(soon[0].date)+')':'✅ Nada a expirar nos próximos 30 dias'];
+  return aurSay('📊 <b>Ponto de situação</b>\n'+L.filter(Boolean).join('\n'),[{label:'O que expira?',fn:()=>aurQuick('o que expira nos proximos 3 meses')},{label:'Auditoria',fn:()=>aurQuick('auditoria')},{label:'Subscrições',fn:()=>aurQuick('quanto gasto em subscricoes')}]);
+}
+function aurAudit(F){
+  const V=aurA(vault).filter(v=>!v.archived&&v.pw);
+  if(!V.length)return aurSay('Ainda não tens passwords para auditar.');
+  const weak=V.filter(v=>typeof getPwScore==='function'&&getPwScore(v.pw)<2);
+  const map={};V.forEach(v=>{map[v.pw]=(map[v.pw]||0)+1;});
+  const dup=V.filter(v=>map[v.pw]>1);
+  const old=V.filter(v=>v.pwUpdated&&Date.now()-v.pwUpdated>180*864e5);
+  const sc=typeof calcSecurityScore==='function'?calcSecurityScore():null;
+  const n=F.n;let focus=null;
+  if(/\b(fraca|fracas)\b/.test(n))focus=['fracas',weak];else if(/\b(repetida|repetidas|duplicadas|reutilizadas)\b/.test(n))focus=['repetidas',dup];else if(/\bantigas\b/.test(n))focus=['antigas',old];
+  const openFull={label:'Auditoria completa',fn:()=>{if(typeof openHealthCheck==='function'){aurClose();openHealthCheck();}}};
+  if(focus){const L=focus[1];if(!L.length)return aurSay('✅ Não tens passwords '+focus[0]+'.',[openFull]);
+    return aurSay('⚠️ Tens <b>'+L.length+'</b> '+(L.length===1?'password '+focus[0].replace(/s$/,''):'passwords '+focus[0])+' — toca numa para gerar uma nova:',L.slice(0,10).map(v=>({label:v.name+(v.user?' · '+v.user:''),fn:()=>aurChangePwOn(v,{raw:'',n:'',c:new Set()})})).concat([openFull]));}
+  const prob=[...new Set([...weak,...dup,...old])];
+  const head='🛡️ '+(sc!=null?'Pontuação: <b>'+sc+'/100</b>\n':'')+'• Fracas: <b>'+weak.length+'</b>\n• Repetidas: <b>'+dup.length+'</b>\n• Antigas (+6 meses): <b>'+old.length+'</b>';
+  if(!prob.length)return aurSay(head+'\n\n✅ Tudo em ordem.',[openFull]);
+  return aurSay(head+'\n\nPara corrigir — toca para gerar uma nova:',prob.slice(0,8).map(v=>({label:v.name+(v.user?' · '+v.user:''),fn:()=>aurChangePwOn(v,{raw:'',n:'',c:new Set()})})).concat([openFull]));
+}
+
+/* ── passwords ── */
+function aurGenPw(len){len=Math.max(8,Math.min(64,len||20));const U='ABCDEFGHJKLMNPQRSTUVWXYZ',L='abcdefghijkmnopqrstuvwxyz',D='23456789',S='!@#$%&*?-_+=';const all=U+L+D+S;const r=new Uint32Array(len),s=new Uint32Array(len);crypto.getRandomValues(r);crypto.getRandomValues(s);const p=[U[r[0]%U.length],L[r[1]%L.length],D[r[2]%D.length],S[r[3]%S.length]];for(let i=4;i<len;i++)p.push(all[r[i]%all.length]);for(let i=p.length-1;i>0;i--){const j=s[i]%(i+1);const x=p[i];p[i]=p[j];p[j]=x;}return p.join('');}
+const AUR_WORDS='aurora estrela oceano floresta montanha trovoada cristal veludo girassol relampago cascata labareda nevoeiro tigre falcao castelo muralha bussola ancora farol duna coral jasmim canela ambar safira esmeralda carvalho sereno vulcao pantera cometa orquidea abelha raposa lince baleia glaciar planeta galaxia neblina brisa savana tulipa cedro granito marfim cobalto rubi topazio condor golfinho'.split(' ');
+function aurMemPw(){const r=new Uint32Array(6);crypto.getRandomValues(r);const w=[];for(let i=0;i<4;i++){const x=AUR_WORDS[r[i]%AUR_WORDS.length];w.push(x.charAt(0).toUpperCase()+x.slice(1));}return w.join('-')+'-'+(10+r[4]%90)+'!?#&'.charAt(r[5]%4);}
+function aurPwStrength(pw){if(!pw)return '—';const s=typeof getPwScore==='function'?getPwScore(pw):3;return s<2?'fraca ⚠️':s<4?'razoável':'forte ✓';}
+function aurVaultPick(F){
+  const vc=F.cands.filter(e=>e.type==='vault'&&e.score>=0.5);
+  if(vc.length===1||(vc.length>1&&vc[0].score-vc[1].score>=0.15))return {one:vc[0]};
+  if(vc.length>1)return {many:vc};
+  if(AUR.last&&AUR.last.type==='vault'&&/\b(essa|esse|dela|dele|isso|esta|este)\b/.test(F.n))return {one:AUR.last};
+  return {};
+}
+function aurGenerate(F){
+  const mem=F.c.has('MOD_MEM');let len=20;const m=F.n.match(/(\d{1,2})\s*(caracteres|carateres|letras|digitos|chars|simbolos)/);if(m)len=+m[1];
+  const pw=mem?aurMemPw():aurGenPw(len);
+  const pk=aurVaultPick(F);let chips=[{label:'Copiar',fn:()=>aurCopy(pw,'Password copiada ✓')},{label:'Gerar outra',fn:()=>aurGenerate(F)}];
+  if(pk.one)chips.unshift({label:'Usar em '+pk.one.name,fn:()=>aurSetPw(pk.one.obj,pw)});
+  else{const nm=(F.raw.match(/\bpara\s+(?:o |a |os |as )?(.+?)\s*$/i)||[])[1];if(nm&&!/\b(mim|decorar|lembrar)\b/i.test(nm))chips.unshift({label:'Criar acesso «'+aurCap(nm)+'»',fn:()=>aurConfirmAdd({name:aurCap(nm),user:'',pw})});else chips.push({label:'Guardar num acesso novo',fn:()=>aurAskName(pw)});}
+  return aurSay('🔐 Password '+(mem?'memorável':'forte')+' ('+pw.length+' caracteres):\n<span class="a-code">'+aurEsc(pw)+'</span>',chips);
+}
+function aurAskName(pw){AUR.pending={type:'askName',withText:(t)=>aurConfirmAdd({name:aurCap(t.trim()),user:'',pw})};return aurSay('Para que serviço é esta password? (ex.: Netflix)');}
+function aurSetPw(v,pw){
+  if(!v)return aurSay('Não encontrei essa entrada.');
+  if(v.pw===pw)return aurSay('Essa já é a password atual.');
+  v.pwHistory=[v.pw,...aurA(v.pwHistory)].filter(x=>typeof x==='string'&&x).slice(0,3);
+  v.pw=pw;v.pwUpdated=Date.now();aurLog('edit',v.name,'🔑');aurDirty();
+  AUR.last={type:'vault',obj:v,name:v.name};
+  return aurSay('✓ Password de <b>'+aurEsc(v.name)+'</b> atualizada — a anterior ficou no histórico.\n⚠️ Lembra-te de a mudar também no site/app do serviço, e de gravar.',[{label:'Copiar nova password',fn:()=>aurCopy(pw,'Password copiada ✓')},{label:'Gravar agora',fn:()=>{if(typeof saveFile==='function')saveFile();}}]);
+}
+function aurChangePw(F){
+  const pk=aurVaultPick(F);
+  if(pk.many)return aurChoose(pk.many,F,'De qual destas contas?',e=>aurChangePwOn(e.obj,F));
+  if(!pk.one){const V=aurA(vault).filter(v=>!v.archived);return aurSay('De que conta queres mudar a password?',V.slice(0,12).map(v=>({label:v.name+(v.user?' · '+v.user:''),fn:()=>aurChangePwOn(v,F)})));}
+  return aurChangePwOn(pk.one.obj,F);
+}
+function aurChangePwOn(v,F){
+  let nova=null;const m=(F.raw||'').match(/\bpara\s+(\S+)\s*$/i);
+  if(m){const w=aurNorm(m[1]);const isName=aurNorm(v.name).indexOf(w)>=0;if(!isName&&!/^(forte|segura|nova|outra|aleatoria|memoravel|facil|uma|isso)$/.test(w)&&m[1].length>=4)nova=m[1];}
+  const gen=!nova;if(gen)nova=F.c&&F.c.has('MOD_MEM')?aurMemPw():aurGenPw(20);
+  AUR.pending={ok:()=>aurSetPw(v,nova)};
+  return aurSay('Vou mudar a password de <b>'+aurEsc(v.name)+'</b>'+(v.user?' ('+aurEsc(v.user)+')':'')+' para:\n<span class="a-code">'+aurEsc(nova)+'</span>'+(gen?' <span class="a-dim">(gerada · '+aurPwStrength(nova)+')</span>':' <span class="a-dim">('+aurPwStrength(nova)+')</span>')+'\nConfirmas?',[{label:'Confirmar',fn:aurYes},{label:'Gerar outra',fn:()=>aurChangePwOn(v,{raw:'',n:'',c:F.c||new Set()})},{label:'Cancelar',fn:aurNo}]);
+}
+function aurChangeUser(F){
+  const pk=aurVaultPick(F);if(!pk.one)return pk.many?aurChoose(pk.many,F,'De qual?',e=>aurChangeUser(Object.assign({},F,{cands:[Object.assign({},e,{score:1})]}))):aurSay('De que conta?');
+  const v=pk.one.obj;const nv=(F.raw.match(/([\w.+-]+@[\w-]+\.[\w.-]+)\s*$/)||F.raw.match(/\bpara\s+(\S+)\s*$/i)||[])[1];
+  if(!nv)return aurSay('Qual é o novo utilizador/email para <b>'+aurEsc(v.name)+'</b>? Ex.: "muda o email do '+aurEsc(v.name)+' para novo@mail.com"');
+  AUR.pending={ok:()=>{v.user=nv;aurLog('edit',v.name,'✏️');aurDirty();return aurSay('✓ Utilizador de <b>'+aurEsc(v.name)+'</b> atualizado para '+aurEsc(nv)+'.');}};
+  return aurSay('Vou mudar o utilizador de <b>'+aurEsc(v.name)+'</b>: '+aurEsc(v.user||'—')+' → <b>'+aurEsc(nv)+'</b>\nConfirmas?',aurConfirmChips());
+}
+function aurRename(F){
+  const pk=aurVaultPick(F);if(!pk.one)return pk.many?aurChoose(pk.many,F,'Qual?',e=>aurOpenEnt(e,F)):aurSay('Que entrada queres renomear?');
+  const v=pk.one.obj;const nv=(F.raw.match(/\bpara\s+(.+?)\s*$/i)||[])[1];
+  if(!nv)return aurSay('Para que nome? Ex.: "muda o nome do '+aurEsc(v.name)+' para Gmail Pessoal"');
+  AUR.pending={ok:()=>{const old=v.name;v.name=aurCap(nv);aurLog('edit',v.name,'✏️');aurDirty();return aurSay('✓ «'+aurEsc(old)+'» passou a chamar-se <b>'+aurEsc(v.name)+'</b>.');}};
+  return aurSay('Renomear <b>'+aurEsc(v.name)+'</b> para <b>'+aurEsc(aurCap(nv))+'</b>?',aurConfirmChips());
+}
+function aurEntryCard(v){
+  const upd=v.pwUpdated?' · alterada '+aurRel(new Date(v.pwUpdated)):'';
+  return aurSay('🔑 <b>'+aurEsc(v.name)+'</b>'+(v.archived?' <span class="a-dim">(arquivado)</span>':'')+'\n'+(v.user?'Utilizador: '+aurEsc(v.user)+'\n':'')+'Password: ●●●●●●●● · '+aurPwStrength(v.pw)+upd+(v.url?'\nSite: '+aurEsc(v.url):''),
+   [{label:'Copiar password',fn:()=>aurCopy(v.pw,'Password copiada ✓')},v.user?{label:'Copiar utilizador',fn:()=>aurCopy(v.user,'Utilizador copiado ✓')}:null,{label:'Mostrar',fn:()=>aurSay('Password de <b>'+aurEsc(v.name)+'</b>: <span class="a-code">'+aurEsc(v.pw)+'</span>')},{label:'Abrir',fn:()=>{if(typeof openReadMode==='function'){aurClose();openReadMode(v.id);}}},{label:'Mudar password',fn:()=>aurChangePwOn(v,{raw:'',n:'',c:new Set()})}]);
+}
+
+/* ── abrir qualquer entidade ── */
+function aurOpenEnt(e,F,open){
+  const o=e.obj,nm=aurEsc(e.name);F=F||{c:new Set(),raw:''};
+  switch(e.type){
+    case 'vault':AUR.last=e;if(open&&typeof openReadMode==='function'&&!F.c.has('GET')){aurClose();openReadMode(o.id);return aurSay('🔑 Abri <b>'+nm+'</b>.');}return aurEntryCard(o);
+    case 'doc':aurTab('docs');if(typeof openDocPreview==='function'){aurClose();openDocPreview(o.id);}return aurSay('📄 Abri o documento <b>'+nm+'</b>.'+(o.expiry&&aurIsDate(new Date(o.expiry))?' Validade: '+aurDate(o.expiry)+' ('+aurRel(o.expiry)+').':''));
+    case 'store':if(typeof showBarcode==='function'){aurClose();showBarcode(o.id);}return aurSay('🎟️ Aqui está o cartão <b>'+nm+'</b>.');
+    case 'bank':{if(open){aurTab('cards');aurClose();}return aurSay('💳 <b>'+nm+'</b>'+(o.bank&&o.bank!==e.name?' · '+aurEsc(o.bank):'')+(o.expiry?'\nValidade: '+aurEsc(o.expiry):''),[{label:'Abrir / editar',fn:()=>{aurTab('cards');if(typeof openCardModal==='function'){aurClose();openCardModal(o.id);}}}]);}
+    case 'totp':return aurTotpLocked()?aurNeed2fa('codigo '+e.name):aurShowCode(o);
+    case 'wifi':if(typeof openWifiNetQR==='function'){aurClose();openWifiNetQR(o.id);}return aurSay('📶 QR do Wi-Fi <b>'+nm+'</b>.',o.pw?[{label:'Copiar password do Wi-Fi',fn:()=>aurCopy(o.pw,'Password do Wi-Fi copiada ✓')}]:null);
+    case 'note':aurTab('notes');if(typeof selectNote==='function'){aurClose();selectNote(o.id);}return aurSay('📝 Abri a nota <b>'+nm+'</b>.');
+    case 'asset':aurTab(o.kind);if(typeof openAssetModal==='function'){aurClose();openAssetModal(o.kind,o.id);}return aurSay('🏠 Abri '+(AUR_ASSET_LBL[o.kind]||'o bem')+' <b>'+nm+'</b>.');
+    case 'sub':return aurSubCard(o);
+    case 'person':return aurPersonCard([o],null,true);
+    case 'theme':return aurApplyTheme(o);
+  }
+  return aurSay('Não sei abrir esse tipo de item.');
+}
+
+/* ── Info pessoal ── */
+function aurFieldRows(persons,F,all){
+  const rows=[];
+  persons.forEach(p=>aurA(p&&p.fields).forEach(f=>{
+    if(f.value==null||f.value==='')return;const lab=aurCanon(f.label||'');
+    const ok=all||F.fields.some(q=>q.l.test(lab)&&!(q.k==='cc'&&/validade/.test(lab)))||F.labelHits.includes(f);
+    if(ok)rows.push({p,f});
+  }));return rows;
+}
+function aurPersonCard(persons,rows,all){
+  rows=rows||[];if(!rows.length)persons.forEach(p=>aurA(p.fields).forEach(f=>{if(f.value!=null&&f.value!=='')rows.push({p,f});}));
+  if(!rows.length)return aurSay('<b>'+aurEsc(persons.map(p=>p.name).join(', '))+'</b> ainda não tem dados guardados.',[{label:'Abrir Info',fn:()=>aurGoTab('info')}]);
+  const multi=new Set(rows.map(r=>r.p)).size>1;let out='',cur=null;
+  rows.forEach(r=>{if(r.p!==cur){cur=r.p;out+=(out?'\n':'')+'👤 <b>'+aurEsc(r.p.name)+'</b>\n';}out+='• '+aurEsc(r.f.label)+': <b>'+aurEsc(r.f.value)+'</b>\n';});
+  const chips=rows.slice(0,14).map(r=>({label:'Copiar '+r.f.label+(multi?' ('+String(r.p.name).split(' ')[0]+')':''),fn:()=>aurCopy(r.f.value,r.f.label+' copiado ✓')}));
+  chips.push({label:'Abrir Info',fn:()=>aurGoTab('info')});
+  return aurSay(out.trim(),chips);
+}
+function aurInfo(F,quiet){
+  const c=F.c;
+  const P=aurA(typeof personalInfo!=='undefined'?personalInfo:[]).filter(p=>p&&Array.isArray(p.fields));
+  const docEnt=F.cands.find(e=>e.type==='doc'&&e.score>=0.9);
+  const docLike=F.fields.some(f=>['cc','carta','passaporte'].includes(f.k));
+  if(docEnt&&docLike&&c.has('OPEN')&&!c.has('NUM')&&!c.has('COPY')&&!c.has('D_INFO')&&!c.has('GET'))return AUR_PASS;
+  if(!F.fields.length&&!F.labelHits.length&&!c.has('D_INFO')&&!(F.best&&F.best.type==='person'))return AUR_PASS;
+  if(!F.fields.length&&!F.labelHits.length&&!c.has('D_INFO')&&F.best&&F.best.type==='person'&&F.confident===false&&F.cands.filter(e=>e.score>=0.5).length>1)return AUR_PASS;
+  if(!P.length){if(quiet)return AUR_PASS;return aurSay('Ainda não tens pessoas na aba Info.',[{label:'Abrir Info',fn:()=>aurGoTab('info')}]);}
+  let persons=F.persons.map(e=>e.obj);
+  if(!persons.length&&c.has('MINE')){const o=aurOwner();if(o)persons=[o];}
+  const all=c.has('ALL')||(!F.fields.length&&!F.labelHits.length);
+  if(!persons.length)persons=all?[aurOwner()||P[0]]:P;
+  const rows=aurFieldRows(persons,F,all);
+  if(!rows.length){
+    if(F.fields.some(f=>f.k==='matricula')){const V=aurA(assets).filter(a=>a.kind==='vehicle'&&a.plate);if(V.length)return aurSay('🚗 Matrícula'+(V.length>1?'s':'')+':\n'+V.map(v=>'• '+aurEsc(v.name)+': <b>'+aurEsc(v.plate)+'</b>').join('\n'),V.map(v=>({label:'Copiar '+v.name,fn:()=>aurCopy(v.plate,'Matrícula copiada ✓')})));}
+    if(quiet)return AUR_PASS;
+    const labels=[...new Set([].concat(...persons.map(p=>aurA(p.fields).map(f=>f.label))).filter(Boolean))];
+    const want=F.fields.map(f=>f.label).join(', ')||'esse dado';
+    return aurSay('Não tenho '+aurEsc(want)+' guardado'+(persons.length===1?' para <b>'+aurEsc(persons[0].name)+'</b>':'')+'.'+(labels.length?'\nDados disponíveis: '+labels.map(aurEsc).join(', ')+'.':''),[F.fields.length?{label:'Adicionar '+F.fields[0].label,fn:()=>aurGoTab('info')}:null,{label:'Ver tudo',fn:()=>aurPersonCard(persons,null,true)}]);
+  }
+  if(rows.length===1&&!all){const r=rows[0];aurCopy(r.f.value,r.f.label+' copiado ✓');
+    return aurSay(aurEsc(r.f.label)+' de <b>'+aurEsc(r.p.name)+'</b>:\n<span class="a-code">'+aurEsc(r.f.value)+'</span>\n<span class="a-dim">copiado para a área de transferência</span>',[docEnt&&docLike?{label:'Abrir o documento',fn:()=>aurOpenEnt(docEnt,F,true)}:null,{label:'Info completa',fn:()=>aurPersonCard([r.p],null,true)}]);}
+  return aurPersonCard(persons,rows,all);
+}
+function aurFieldValue(F,fd){
+  const m=F.raw.match(new RegExp(fd.rk.source+'\\s*(?:[:=]|é|e\\s)?\\s*(.+)$','i'));if(!m)return '';
+  let v=m[m.length-1].trim();const pm=v.match(/\bpara\s+(.+)$/i);if(pm)v=pm[1].trim();
+  F.persons.forEach(pe=>{aurSig(aurNorm(pe.name)).forEach(t=>{v=v.replace(new RegExp('\\s+(?:d[aoe]s?)\\s+'+t+'\\b.*$','i'),'');});});
+  v=v.replace(/\s+(por favor|pf|obrigad[oa])$/i,'').replace(/^(o|a|do|da|de|meu|minha)\s+/i,'').replace(/[.;!?]+$/,'').trim();
+  if(!v||(!/\d/.test(v)&&v.length<3))return '';
+  if(aurSig(aurNorm(v)).every(t=>AUR_VOCAB[t]))return '';
+  return v;
+}
+function aurInfoSet(F,change){
+  const person=F.persons.length?F.persons[0].obj:aurOwner();
+  if(!person){aurTab('info');aurClose();return aurSay('Abri a aba Info — cria primeiro uma pessoa em "+ Nova pessoa".');}
+  const fd=F.fields[0];const val=fd?aurFieldValue(F,fd):'';
+  if(!fd||!val){
+    if(fd&&['cc','carta','passaporte'].includes(fd.k)&&!change)return aurSay('Queres guardar o <b>número</b> na Info, ou adicionar o <b>documento</b> (foto/scan)?',[{label:'Número na Info',fn:()=>aurGoTab('info')},{label:'Documento',fn:()=>{aurTab('docs');if(typeof openDocModal==='function'){aurClose();openDocModal();}}}]);
+    return aurSay('Diz-me o valor. Ex.: "'+(change?'muda o meu ':'adiciona o meu ')+(fd?fd.label.toLowerCase():'nif')+(change?' para ':' ')+'123456789".',[{label:'Abrir Info',fn:()=>aurGoTab('info')}]);
+  }
+  const ex=aurA(person.fields).find(f=>fd.l.test(aurCanon(f.label||''))&&!(fd.k==='cc'&&/validade/.test(aurNorm(f.label))));
+  AUR.pending={ok:()=>{if(ex)ex.value=val;else person.fields.push({id:Date.now().toString(36),label:fd.label,value:val});aurLog(ex?'edit':'add',person.name+' · '+fd.label,'👤');aurDirty();return aurSay('✓ '+(ex?'Atualizei':'Guardei')+' '+aurEsc(fd.label)+' de <b>'+aurEsc(person.name)+'</b>: '+aurEsc(val));}};
+  return aurSay((ex?'Vou atualizar ':'Vou adicionar ')+aurEsc(fd.label)+' de <b>'+aurEsc(person.name)+'</b>'+(ex?':\n'+aurEsc(ex.value)+' → <b>'+aurEsc(val)+'</b>':': <b>'+aurEsc(val)+'</b>')+'\nConfirmas?',aurConfirmChips());
+}
+function aurInfoDelete(F){
+  const persons=F.persons.length?F.persons.map(e=>e.obj):[aurOwner()].filter(Boolean);
+  const rows=aurFieldRows(persons,F,false);
+  if(!rows.length)return aurSay('Não encontrei esse dado na Info.');
+  const r=rows[0];
+  AUR.pending={ok:()=>{r.p.fields=aurA(r.p.fields).filter(f=>f!==r.f);aurLog('delete',r.p.name+' · '+r.f.label,'🗑️');aurDirty();return aurSay('🗑️ Removi '+aurEsc(r.f.label)+' de <b>'+aurEsc(r.p.name)+'</b>.');}};
+  return aurSay('Remover '+aurEsc(r.f.label)+' (<b>'+aurEsc(r.f.value)+'</b>) de '+aurEsc(r.p.name)+'?',[{label:'Remover',fn:aurYes,danger:true},{label:'Cancelar',fn:aurNo}]);
+}
+
+/* ── adicionar ── */
+function aurAdd(F){
+  const c=F.c;
+  if(F.fields.length&&!c.has('D_DOC'))return aurInfoSet(F,false);
+  if(c.has('D_NOTE')){aurTab('notes');if(typeof newNote==='function'){aurClose();newNote();}return aurSay('📝 Abri uma nota nova — escreve à vontade.');}
+  if(c.has('D_DOC')){aurTab('docs');if(typeof openDocModal==='function'){aurClose();openDocModal();}return aurSay('📄 Abri o formulário de documento novo.');}
+  if(c.has('D_SUBS')){if(typeof openSubModal==='function'){aurClose();openSubModal();}return aurSay('🔁 Abri o formulário de nova subscrição.');}
+  if(c.has('D_WIFI')){if(typeof openWifiManager==='function'){aurClose();openWifiManager();}return aurSay('📶 Abri as redes Wi-Fi — adiciona aí a nova rede.');}
+  if(c.has('D_FUEL')){aurTab('vehicle');aurClose();return aurSay('⛽ Abri os Veículos — regista o abastecimento no veículo.');}
+  const ak=c.has('D_WARRANTY')?'warranty':c.has('D_LICENSE')?'license':c.has('D_VEHICLE')?'vehicle':c.has('D_DATES')?'dates':c.has('D_ASSETS')?'warranty':null;
+  if(ak==='dates'&&F.date)return aurSchedule(F);
+  if(ak){aurTab(ak);if(typeof openAssetModal==='function'){aurClose();openAssetModal(ak);}return aurSay('🏠 Abri um registo novo de '+AUR_ASSET_LBL[ak]+'.');}
+  if(c.has('D_CARD')||c.has('D_BANK')||c.has('D_STORE')){
+    const store=c.has('D_STORE')||(F.best&&F.best.type==='store');const bank=c.has('D_BANK')||(F.best&&F.best.type==='bank');
+    const goS=()=>{aurTab('store');if(typeof openStoreModal==='function'){aurClose();openStoreModal();}return aurSay('🎟️ Abri o formulário de cartão de loja.');};
+    const goB=()=>{aurTab('cards');if(typeof openCardModal==='function'){aurClose();openCardModal();}return aurSay('💳 Abri o formulário de cartão bancário.');};
+    if(store&&!bank)return goS();if(bank&&!store)return goB();
+    return aurSay('Que tipo de cartão queres adicionar?',[{label:'💳 Bancário',fn:goB},{label:'🎟️ De loja',fn:goS}]);
+  }
+  if(c.has('D_INFO'))return aurInfoSet(F,false);
+  if(c.has('SCHEDULE')||c.has('D_CAL')||F.date)return aurSchedule(F);
+  const pk=aurVaultPick(F);
+  const hasCreds=/@/.test(F.raw)||/\b(user|utilizador|username|login)\b/i.test(F.raw);
+  if(c.has('D_PW')&&pk.one&&!hasCreds&&!/\b(adiciona|adicionar|cria|criar|regista|registar|insere|inserir)\b/.test(F.n))return aurChangePwOn(pk.one.obj,F);
+  return aurAddEntry(F);
+}
+function aurAddEntry(F){
+  const raw=F.raw;
+  const email=(raw.match(/([\w.+-]+@[\w-]+\.[\w.-]+)/)||[])[1]||'';
+  let pm=raw.match(/\b(?:password|palavra[- ]?passe|senha|pass|pw)\s*(?:[:=]|é|e\s)?\s*([^\s,;]+)/i),pw='';
+  if(pm){const w=aurNorm(pm[1]);if(/^(forte|segura|aleatoria|nova|gerada|memoravel|facil|do|da|de|para|com|e|o|a)$/.test(w))pm=null;else pw=pm[1];}
+  const um=raw.match(/\b(?:utilizador|username|user|login|nome de utilizador)\s*(?:[:=]|é|e\s)?\s*([^\s,;]+)/i);
+  let user=um?um[1]:'';if(!user&&email)user=email;
+  let rest=' '+raw+' ';[email,pm?pm[0]:'',um?um[0]:''].forEach(x=>{if(x)rest=rest.split(x).join(' ');});
+  const kept=rest.split(/\s+/).filter(w=>{const nw=aurNorm(w).replace(/[^a-z0-9]/g,'');if(!nw)return false;if(AUR_STOP.has(nw))return false;const v=AUR_VOCAB[nw];if(v&&v.some(x=>x==='ADD'||x==='D_VAULT'||x==='D_PW'||x==='D_EMAIL'||x==='MOD_STRONG'||x==='GEN'))return false;if(/^(com|password|palavra|passe|senha|chave|nova|novo|conta|acesso|servico|site|app)$/.test(nw))return false;return true;});
+  let name=kept.join(' ').replace(/^[,.;:\-]+|[,.;:\-]+$/g,'').trim();
+  if(!name&&email){const dm=email.split('@')[1].split('.')[0];name=aurCap(dm);}
+  if(!name){AUR.pending={type:'askName',withText:(t)=>aurConfirmAdd({name:aurCap(t.trim()),user,pw})};return aurSay('Para que serviço é este acesso? (ex.: Netflix)');}
+  name=name===name.toLowerCase()?aurCap(name):name;
+  const dup=aurA(vault).find(v=>aurNorm(v.name)===aurNorm(name)&&(!user||aurNorm(v.user)===aurNorm(user)));
+  if(dup)return aurSay('Já tens <b>'+aurEsc(dup.name)+'</b>'+(dup.user?' ('+aurEsc(dup.user)+')':'')+'. O que queres fazer?',[{label:'Mudar a password desse',fn:()=>aurChangePwOn(dup,F)},{label:'Criar outro na mesma',fn:()=>aurConfirmAdd({name,user,pw})},{label:'Cancelar',fn:aurNo}]);
+  return aurConfirmAdd({name,user,pw});
+}
+function aurConfirmAdd(d){
+  let gen=false;if(!d.pw){d.pw=aurGenPw(20);gen=true;}
+  AUR.pending={ok:()=>aurDoAdd(d)};
+  return aurSay('Vou criar este acesso:\n• Serviço: <b>'+aurEsc(d.name)+'</b>\n• Utilizador: '+(d.user?aurEsc(d.user):'—')+'\n• Password: '+(gen?'<span class="a-code">'+aurEsc(d.pw)+'</span> <span class="a-dim">(gerada)</span>':'●●●●●●●● <span class="a-dim">('+d.pw.length+' caracteres · '+aurPwStrength(d.pw)+')</span>')+'\nConfirmas?',aurConfirmChips());
+}
+function aurDoAdd(d){
+  const e={id:Date.now().toString(36),name:d.name,cat:'',user:d.user||'',pw:d.pw,url:d.url||'',notes:'',tags:[],flag:'',fields:[],folderId:null,isWifi:false,attachments:[],fav:false,archived:false,icon:'',createdAt:Date.now(),order:aurA(vault).length,pwUpdated:Date.now(),pwHistory:[],reviewedAt:null};
+  vault.push(e);aurLog('add',e.name,'✨');aurDirty();AUR.last={type:'vault',obj:e,name:e.name};
+  return aurSay('✓ Criei o acesso <b>'+aurEsc(e.name)+'</b>. Não te esqueças de gravar.',[{label:'Copiar password',fn:()=>aurCopy(e.pw,'Password copiada ✓')},{label:'Gravar agora',fn:()=>{if(typeof saveFile==='function')saveFile();}},{label:'Abrir',fn:()=>{if(typeof openReadMode==='function'){aurClose();openReadMode(e.id);}}}]);
+}
+
+/* ── agendar ── */
+function aurSchedule(F){
+  const d=F.date||aurParseDate(F.n);
+  if(!d){AUR.pending={type:'askDate',withText:(t)=>aurHandle(F.raw+' '+t)};return aurSay('📅 Para que dia? (ex.: 15/03/2027, "amanhã", "dia 3 de maio", "daqui a 2 semanas")');}
+  const reason=aurReason(F.raw);
+  const yearly=/\b(todos os anos|anualmente|cada ano|aniversario|anual)\b/.test(F.n);
+  if(!reason){AUR.pending={type:'askName',withText:(t)=>aurConfirmSchedule(aurCap(t.trim()),d,yearly)};return aurSay('📅 '+aurDate(d)+' — qual é o motivo do lembrete?');}
+  return aurConfirmSchedule(reason,d,yearly);
+}
+function aurConfirmSchedule(name,d,yearly){
+  AUR.pending={ok:()=>{const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const a={id:Date.now().toString(36),kind:'dates',name,date:iso,yearly:!!yearly,notes:'',attachments:[]};assets.push(a);aurLog('add',name,'🎂');aurDirty();return aurSay('✓ Agendado: <b>'+aurEsc(name)+'</b> a '+aurDate(d)+'. Aparece no calendário e nos avisos.',[{label:'Ver calendário',fn:aurOpenCal}]);}};
+  return aurSay('📅 Vou agendar:\n• <b>'+aurEsc(name)+'</b>\n• '+aurDate(d)+' ('+aurRel(d)+')'+(yearly?' · repete todos os anos':'')+'\nConfirmas?',aurConfirmChips());
+}
+
+/* ── apagar / arquivar / recuperar ── */
+function aurPickOne(F,types){
+  const cs=F.cands.filter(e=>e.score>=0.5&&(!types||types.includes(e.type)));
+  if(cs.length===1||(cs.length>1&&cs[0].score-cs[1].score>=0.15))return {one:cs[0]};
+  if(cs.length>1)return {many:cs};
+  if(AUR.last&&/\b(essa|esse|isso|dela|dele|esta|este)\b/.test(F.n))return {one:AUR.last};
+  return {};
+}
+const AUR_DEL={vault:['deleteEntry','vault'],doc:['deleteDoc','documents'],bank:['deleteCard','bankCards'],store:['deleteStoreCard','storeCards'],wifi:['deleteWifiNet','wifiNets'],note:['deleteNoteById','notes'],asset:['deleteAsset','assets'],sub:['deleteSub','subscriptions'],totp:['deleteTotp','totp']};
+function aurGlobal(n){switch(n){case 'vault':return typeof vault!=='undefined'?vault:undefined;case 'documents':return typeof documents!=='undefined'?documents:undefined;case 'bankCards':return typeof bankCards!=='undefined'?bankCards:undefined;case 'storeCards':return typeof storeCards!=='undefined'?storeCards:undefined;case 'wifiNets':return typeof wifiNets!=='undefined'?wifiNets:undefined;case 'notes':return typeof notes!=='undefined'?notes:undefined;case 'assets':return typeof assets!=='undefined'?assets:undefined;case 'subscriptions':return typeof subscriptions!=='undefined'?subscriptions:undefined;case 'totp':return typeof totp!=='undefined'?totp:undefined;case 'trash':return typeof trash!=='undefined'?trash:undefined;case 'deleteEntry':return typeof deleteEntry==='function'?deleteEntry:undefined;case 'deleteDoc':return typeof deleteDoc==='function'?deleteDoc:undefined;case 'deleteCard':return typeof deleteCard==='function'?deleteCard:undefined;case 'deleteStoreCard':return typeof deleteStoreCard==='function'?deleteStoreCard:undefined;case 'deleteWifiNet':return typeof deleteWifiNet==='function'?deleteWifiNet:undefined;case 'deleteNoteById':return typeof deleteNoteById==='function'?deleteNoteById:undefined;case 'deleteAsset':return typeof deleteAsset==='function'?deleteAsset:undefined;case 'deleteSub':return typeof deleteSub==='function'?deleteSub:undefined;case 'deleteTotp':return typeof deleteTotp==='function'?deleteTotp:undefined;case 'archiveEntry':return typeof archiveEntry==='function'?archiveEntry:undefined;case 'restoreEntry':return typeof restoreEntry==='function'?restoreEntry:undefined;case 'archiveDoc':return typeof archiveDoc==='function'?archiveDoc:undefined;case 'restoreDoc':return typeof restoreDoc==='function'?restoreDoc:undefined;case 'archiveCard':return typeof archiveCard==='function'?archiveCard:undefined;case 'restoreCard':return typeof restoreCard==='function'?restoreCard:undefined;case 'archiveNote':return typeof archiveNote==='function'?archiveNote:undefined;case 'restoreNote':return typeof restoreNote==='function'?restoreNote:undefined;}return undefined;}
+function aurDelete(F){
+  if(F.fields.length&&(F.c.has('D_INFO')||F.persons.length||F.c.has('MINE')))return aurInfoDelete(F);
+  const pk=aurPickOne(F,Object.keys(AUR_DEL));
+  if(pk.many)return aurChoose(pk.many,F,'Qual queres apagar?',e=>aurDeleteEnt(e));
+  if(!pk.one)return aurSay('O que queres apagar? Diz-me o nome — ex.: "apaga o acesso Netflix".');
+  return aurDeleteEnt(pk.one);
+}
+function aurDeleteEnt(e){
+  if(e.type==='totp'&&aurTotpLocked())return aurNeed2fa('apaga o 2fa '+e.name);
+  const d=AUR_DEL[e.type];if(!d)return aurSay('Esse tipo de item não se apaga por aqui.');
+  const fn=aurGlobal(d[0]);if(typeof fn!=='function')return aurSay('Não consegui apagar.');
+  const id=e.obj.id;fn(id);
+  const still=aurA(aurGlobal(d[1])).some(x=>x&&x.id===id);
+  if(still)return aurSay('Ficou tudo como estava.');
+  if(AUR.last&&AUR.last.obj===e.obj)AUR.last=null;
+  return aurSay('🗑️ <b>'+aurEsc(e.name)+'</b> apagado'+(['vault','doc','note','bank'].includes(e.type)?' — está na reciclagem se precisares.':'.'),[{label:'Desfazer',fn:()=>aurQuick('recupera '+e.name)}]);
+}
+const AUR_ARCH={vault:['archiveEntry','restoreEntry'],doc:['archiveDoc','restoreDoc'],bank:['archiveCard','restoreCard'],note:['archiveNote','restoreNote']};
+function aurArchive(F){
+  const pk=aurPickOne(F,Object.keys(AUR_ARCH));
+  if(pk.many)return aurChoose(pk.many,F,'Qual queres arquivar?',e=>aurArchiveEnt(e));
+  if(!pk.one){if(F.c.has('D_ARCHIVE')||!F.terms.length)return aurGoTab('archive');return aurSay('Não encontrei «'+aurEsc(F.terms.join(' '))+'» para arquivar.');}
+  return aurArchiveEnt(pk.one);
+}
+function aurArchiveEnt(e){const fn=aurGlobal(AUR_ARCH[e.type][0]);if(typeof fn!=='function')return aurSay('Esse item não se arquiva.');if(e.obj.archived)return aurSay('<b>'+aurEsc(e.name)+'</b> já está arquivado.');fn(e.obj.id);return aurSay('📦 <b>'+aurEsc(e.name)+'</b> foi para o Arquivo.',[{label:'Desfazer',fn:()=>{aurGlobal(AUR_ARCH[e.type][1])(e.obj.id);aurSay('↩️ Desarquivado.');}}]);}
+function aurRestore(F){
+  const TR=aurA(aurGlobal('trash'));
+  const hits=[];TR.forEach(it=>{const d=(it&&it.data)||{};const nm=d.name||d.title||'';if(!nm)return;const nn=aurCanon(nm);const s=aurMatchEnt({toks:aurSig(nn),alias:[]},F.Q,F.Qset);if(s>=0.5)hits.push({it,nm,s});});
+  hits.sort((a,b)=>b.s-a.s);
+  const doR=h=>{const i=aurA(aurGlobal('trash')).indexOf(h.it);if(i<0)return aurSay('Esse item já não está na reciclagem.');if(typeof restoreTrashItem==='function')restoreTrashItem(i);return aurSay('♻️ Recuperei <b>'+aurEsc(h.nm)+'</b> da reciclagem.');};
+  if(hits.length===1||(hits.length>1&&hits[0].s-hits[1].s>=0.15))return doR(hits[0]);
+  if(hits.length>1)return aurSay('Qual queres recuperar?',hits.slice(0,8).map(h=>({label:h.nm,fn:()=>doR(h)})));
+  const ar=F.cands.filter(e=>e.archived&&e.score>=0.5&&AUR_ARCH[e.type]);
+  if(ar.length){const e=ar[0];const fn=aurGlobal(AUR_ARCH[e.type][1]);if(typeof fn==='function'){fn(e.obj.id);return aurSay('📦↩️ Desarquivei <b>'+aurEsc(e.name)+'</b>.');}}
+  if(!TR.length)return aurSay('A reciclagem está vazia — não há nada para recuperar.');
+  if(!F.terms.length)return aurGoTab('trash');
+  return aurSay('Não encontrei «'+aurEsc(F.terms.join(' '))+'» na reciclagem nem no arquivo.',[{label:'Abrir reciclagem',fn:()=>aurGoTab('trash')}]);
+}
+function aurEmptyTrash(){
+  const TR=aurA(aurGlobal('trash'));if(!TR.length)return aurSay('A reciclagem já está vazia ✓');
+  if(typeof emptyTrash==='function')emptyTrash();
+  return aurSay(aurA(aurGlobal('trash')).length?'Ficou tudo como estava.':'🗑️ Reciclagem esvaziada ('+TR.length+' itens apagados definitivamente).');
+}
+
+/* ── copiar ── */
+function aurCopyCmd(F){
+  if(F.fields.length||F.labelHits.length){const r=aurInfo(F);if(r!==AUR_PASS)return r;}
+  const pk=aurPickOne(F,['vault','totp','wifi','person','store']);
+  if(pk.many)return aurChoose(pk.many,F,'De qual?',e=>aurCopyEnt(e,F));
+  if(!pk.one)return aurSay('O que queres copiar? Ex.: "copia a password do PayPal", "copia o meu NIF".');
+  return aurCopyEnt(pk.one,F);
+}
+function aurCopyEnt(e,F){
+  const o=e.obj;
+  if(e.type==='vault'){const wantUser=F.c.has('D_EMAIL')&&!F.c.has('D_PW');const val=wantUser?o.user:o.pw;if(!val)return aurSay('<b>'+aurEsc(e.name)+'</b> não tem '+(wantUser?'utilizador':'password')+' guardado.');aurCopy(val,wantUser?'Utilizador copiado ✓':'Password copiada ✓');AUR.last=e;return aurSay('📋 Copiei '+(wantUser?'o utilizador ('+aurEsc(o.user)+')':'a password')+' de <b>'+aurEsc(e.name)+'</b>.'+(wantUser?'':' <span class="a-dim">Limpa-se sozinha do clipboard.</span>'));}
+  if(e.type==='totp')return aurShowCode(o);
+  if(e.type==='wifi'){if(!o.pw)return aurSay('Essa rede não tem password.');aurCopy(o.pw,'Password do Wi-Fi copiada ✓');return aurSay('📋 Copiei a password do Wi-Fi <b>'+aurEsc(e.name)+'</b>.');}
+  if(e.type==='person')return aurPersonCard([o],null,true);
+  return aurOpenEnt(e,F);
+}
+
+/* ── temas, privacidade, idioma, definições, exportar ── */
+function aurApplyTheme(t){if(typeof applyThemePreset==='function'){applyThemePreset(t.id);return aurSay('🎨 Tema <b>'+(t.emoji?t.emoji+' ':'')+aurEsc(t.name)+'</b> aplicado.');}return aurSay('Não consegui aplicar o tema.');}
+function aurTheme(F){
+  const TH=aurA(typeof THEME_PRESETS!=='undefined'?THEME_PRESETS:[]);
+  const te=F.cands.find(e=>e.type==='theme'&&e.score>=0.5);if(te)return aurApplyTheme(te.obj);
+  if(F.c.has('MOD_LIGHT')||F.c.has('MOD_DARK')){const dark=F.c.has('MOD_DARK');return aurSay('Temas '+(dark?'escuros':'claros')+' — toca para aplicar:',TH.filter(t=>!!t.dark===dark).map(t=>({label:(t.emoji||'')+' '+t.name,fn:()=>aurApplyTheme(t)})));}
+  if(F.c.has('OPEN')&&!F.terms.length)return aurSettings('aspeto');
+  return aurSay('🎨 Escolhe um tema:',TH.map(t=>({label:(t.emoji||'')+' '+t.name,fn:()=>aurApplyTheme(t)})).concat([{label:'Personalizar cores',fn:()=>aurSettings('aspeto')}]));
+}
+function aurPriv(F){
+  if(typeof togglePrivacy!=='function')return aurSay('O modo de privacidade não está disponível.');
+  const on=typeof privacyOn!=='undefined'?!!privacyOn:null;
+  if(F.c.has('ON')&&on===true)return aurSay('O modo de privacidade já está ativo 🙈');
+  if(F.c.has('OFF')&&on===false)return aurSay('O modo de privacidade já está desligado 👁️');
+  togglePrivacy();const now=typeof privacyOn!=='undefined'?!!privacyOn:!on;
+  return aurSay(now?'🙈 Modo de privacidade ativado — os valores ficam ocultos.':'👁️ Modo de privacidade desligado.');
+}
+function aurLang(F){if(typeof setLang!=='function')return aurSay('Não consigo mudar o idioma.');const en=/\b(ingles|english|en)\b/.test(F.n);setLang(en?'en':'pt');return aurSay(en?'🇬🇧 App now in English. (Eu continuo a falar português contigo.)':'🇵🇹 App em português.');}
+function aurSettings(tab,msg){
+  if(typeof openSettings==='function'){aurClose();openSettings();if(tab&&typeof switchSettingsTab==='function')switchSettingsTab(tab);}
+  const L={aspeto:'Aspeto',seguranca:'Segurança',dados:'Dados',heranca:'Herança Digital',sobre:'Sobre'};
+  return aurSay(msg||('⚙️ Abri as Definições'+(tab?' → '+L[tab]:'')+'.'));
+}
+function aurExport(F){
+  if(F.c.has('D_PDF')&&typeof exportPDF==='function'){exportPDF();return aurSay('📄 A exportar para PDF…');}
+  if(F.c.has('D_CSV')&&typeof exportCSV==='function'){exportCSV();return aurSay('📊 A exportar para CSV…');}
+  return aurSay('Em que formato?',[{label:'PDF',fn:()=>{exportPDF();aurSay('📄 A exportar para PDF…');}},{label:'CSV',fn:()=>{exportCSV();aurSay('📊 A exportar para CSV…');}}]);
+}
+
+/* ── dinheiro, combustível, contagens, wifi ── */
+function aurSubCard(s){
+  let m=0;try{m=subMonthly(s)||0;}catch(e){}
+  let nx=null;try{nx=typeof subNextCharge==='function'?subNextCharge(s):null;}catch(e){}
+  return aurSay('🔁 <b>'+aurEsc(s.name)+'</b>\nValor: <b>'+aurMoney(s.amount)+'</b>'+(s.cycle?' ('+aurEsc(s.cycle)+')':'')+' · ≈ '+aurMoney(m)+'/mês · '+aurMoney(m*12)+'/ano'+(aurIsDate(nx)?'\nPróxima cobrança: '+aurDate(nx)+' ('+aurRel(nx)+')':''),[{label:'Gerir subscrições',fn:()=>{if(typeof openSubsScreen==='function'){aurClose();openSubsScreen();}}}]);
+}
+function aurSubs(F){
+  const S=aurA(subscriptions);
+  if(F.confident&&F.best.type==='sub')return aurSubCard(F.best.obj);
+  if(!S.length)return aurSay('Não tens subscrições registadas.',[{label:'Adicionar subscrição',fn:()=>{if(typeof openSubModal==='function'){aurClose();openSubModal();}}}]);
+  let tot=0;const rows=S.map(s=>{let m=0;try{m=subMonthly(s)||0;}catch(e){}tot+=m;return {s,m};}).sort((a,b)=>b.m-a.m);
+  const manage={label:'Gerir subscrições',fn:()=>{if(typeof openSubsScreen==='function'){aurClose();openSubsScreen();}}};
+  if(F.c.has('OPEN')&&!F.c.has('HOWMUCH')){if(typeof openSubsScreen==='function'){aurClose();openSubsScreen();}return aurSay('🔁 Abri as tuas subscrições.');}
+  if(F.c.has('HOWMUCH')||F.c.has('D_MONEY'))return aurSay('🔁 Gastas <b>'+aurMoney(tot)+'/mês</b> em subscrições (≈ '+aurMoney(tot*12)+'/ano) — '+S.length+' ativas.\nMais caras: '+rows.slice(0,3).map(r=>aurEsc(r.s.name)+' ('+aurMoney(r.m)+'/mês)').join(', ')+'.',[{label:'Ver todas',fn:()=>aurQuick('lista as subscricoes')},manage]);
+  return aurSay('🔁 <b>Subscrições</b> ('+S.length+') · '+aurMoney(tot)+'/mês\n'+rows.map(r=>'• '+aurEsc(r.s.name)+' — '+aurMoney(r.m)+'/mês').join('\n'),[manage]);
+}
+function aurFuel(F){
+  let V=aurA(assets).filter(a=>a.kind==='vehicle');
+  if(F.confident&&F.best.type==='asset'&&F.best.obj.kind==='vehicle')V=[F.best.obj];
+  if(!V.length)return aurSay('Ainda não tens veículos em Bens.',[{label:'Adicionar veículo',fn:()=>{aurTab('vehicle');if(typeof openAssetModal==='function'){aurClose();openAssetModal('vehicle');}}}]);
+  const L=V.map(v=>{const f=aurA(v.fuel);if(!f.length)return '🚗 <b>'+aurEsc(v.name)+'</b>: sem abastecimentos registados';let s=null;try{s=fuelStats(f);}catch(e){}if(!s)return '🚗 <b>'+aurEsc(v.name)+'</b>: não consegui calcular';
+    return '🚗 <b>'+aurEsc(v.name)+'</b>'+(v.plate?' ('+aurEsc(v.plate)+')':'')+'\n   Consumo médio: <b>'+(s.avg!=null&&isFinite(s.avg)?s.avg.toFixed(1)+' L/100km':'— (precisa de 2 depósitos cheios)')+'</b>\n   Custo: '+(s.eurPer100!=null&&isFinite(s.eurPer100)?aurMoney(s.eurPer100)+'/100 km':'—')+' · '+(s.perMonth!=null&&isFinite(s.perMonth)?aurMoney(s.perMonth)+'/mês':'—')+'\n   Total: '+aurMoney(s.eurTotal||0)+' · '+(+s.litTotal||0).toFixed(0)+' L · '+(+s.kmTotal||0).toFixed(0)+' km';});
+  return aurSay('⛽ <b>Combustível</b>\n'+L.join('\n'),[{label:'Abrir veículos',fn:()=>aurGoTab('vehicle')}]);
+}
+function aurCount(F){
+  const c=F.c,n=x=>aurA(x).filter(i=>i&&!i.archived).length;
+  if(c.has('D_PW')||c.has('D_VAULT'))return aurSay('Tens <b>'+n(vault)+'</b> acessos guardados'+(aurA(vault).length>n(vault)?' (+'+(aurA(vault).length-n(vault))+' arquivados)':'')+'.');
+  if(c.has('D_DOC'))return aurSay('Tens <b>'+n(documents)+'</b> documentos.');
+  if(c.has('D_STORE'))return aurSay('Tens <b>'+n(storeCards)+'</b> cartões de loja.');
+  if(c.has('D_BANK')||c.has('D_CARD'))return aurSay('Cartões bancários: <b>'+n(bankCards)+'</b> · de loja: <b>'+n(storeCards)+'</b>.');
+  if(c.has('D_NOTE'))return aurSay('Tens <b>'+n(notes)+'</b> notas.');
+  if(c.has('D_SUBS'))return aurSay('Tens <b>'+n(subscriptions)+'</b> subscrições.');
+  if(c.has('D_WIFI'))return aurSay('Tens <b>'+n(wifiNets)+'</b> redes Wi-Fi.');
+  if(c.has('D_INFO'))return aurSay('Tens <b>'+n(personalInfo)+'</b> pessoas na Info.');
+  if(c.has('D_TRASH'))return aurSay('A reciclagem tem <b>'+aurA(aurGlobal('trash')).length+'</b> itens.');
+  const kinds={D_WARRANTY:'warranty',D_LICENSE:'license',D_VEHICLE:'vehicle',D_DATES:'dates'};for(const k in kinds)if(c.has(k))return aurSay('Tens <b>'+aurA(assets).filter(a=>a.kind===kinds[k]).length+'</b> '+AUR_ASSET_LBL[kinds[k]]+(aurA(assets).filter(a=>a.kind===kinds[k]).length===1?'':'s')+'.');
+  return aurSummary();
+}
+function aurWifi(F){
+  const W=aurA(wifiNets);
+  if(!W.length)return aurSay('Ainda não tens redes Wi-Fi guardadas.',[{label:'Adicionar rede',fn:()=>{if(typeof openWifiManager==='function'){aurClose();openWifiManager();}}}]);
+  if(W.length===1)return aurOpenEnt({type:'wifi',obj:W[0],name:W[0].name||W[0].ssid},F,true);
+  return aurSay('📶 Qual rede?',W.map(w=>({label:w.name||w.ssid,fn:()=>aurOpenEnt({type:'wifi',obj:w,name:w.name||w.ssid},F,true)})).concat([{label:'Gerir redes',fn:()=>{if(typeof openWifiManager==='function'){aurClose();openWifiManager();}}}]));
+}
+
+function aurList(F){
+  const c=F.c;let items=[],title='';
+  const mk=(type,arr,nm)=>aurA(arr).filter(x=>x&&!x.archived).map(o=>({type,obj:o,name:nm(o)||'(sem nome)'}));
+  if(c.has('D_PW')||c.has('D_VAULT')){items=mk('vault',vault,o=>o.name);title='🔑 Acessos';}
+  else if(c.has('D_DOC')){items=mk('doc',documents,o=>o.title||o.name);title='📄 Documentos';}
+  else if(c.has('D_NOTE')){items=mk('note',notes,o=>o.title);title='📝 Notas';}
+  else if(c.has('D_STORE')){items=mk('store',storeCards,o=>o.name);title='🎟️ Cartões de loja';}
+  else if(c.has('D_BANK')||c.has('D_CARD')){items=mk('bank',bankCards,o=>o.name||o.bank);title='💳 Cartões bancários';}
+  else if(c.has('D_WIFI')){items=mk('wifi',wifiNets,o=>o.name||o.ssid);title='📶 Redes Wi-Fi';}
+  else if(c.has('D_INFO')){items=mk('person',personalInfo,o=>o.name);title='👤 Pessoas';}
+  else{const kinds={D_WARRANTY:'warranty',D_LICENSE:'license',D_VEHICLE:'vehicle',D_DATES:'dates'};for(const k in kinds)if(c.has(k)){items=aurA(assets).filter(a=>a.kind===kinds[k]).map(o=>({type:'asset',obj:o,name:o.name}));title='🏠 '+aurCap(AUR_ASSET_LBL[kinds[k]])+'s';}}
+  if(!title)return AUR_PASS;
+  if(!items.length)return aurSay(title+': ainda não tens nenhum.');
+  return aurSay(title+' ('+items.length+') — toca para abrir:',items.slice(0,24).map(e=>({label:aurEntLabel(e),fn:()=>aurOpenEnt(e,F,true)})));
+}
+function aurEmails(){
+  const set=[...new Set(aurA(vault).map(v=>(v.user||'').trim()).filter(u=>/@/.test(u)))];
+  if(!set.length)return aurSay('Não encontrei emails nos teus acessos.');
+  return aurSay('📧 Emails usados nos teus acessos — toca para copiar:',set.slice(0,12).map(u=>({label:u,fn:()=>aurCopy(u,'Email copiado ✓')})));
+}
+
+/* ── procura livre (último recurso — nunca fica sem resposta útil) ── */
+function aurFind(F,tab){
+  const terms=F.terms;
+  if(!terms.length)return aurSay('Diz-me um pouco mais — por exemplo:',aurQuickChips().concat([{label:'Tudo o que sei fazer',fn:aurHelp}]));
+  const q=terms.join(' ');const E=aurIndex();
+  let hits=F.cands.filter(e=>e.score>=0.34&&e.type!=='theme');
+  const seen=new Set(hits.map(h=>h.obj));
+  E.forEach(e=>{if(seen.has(e.obj)||e.type==='theme')return;if(e.extra&&terms.some(t=>t.length>=3&&e.extra.indexOf(t)>=0)){hits.push(Object.assign({},e,{score:0.3}));seen.add(e.obj);}});
+  const infoRows=[];aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>aurA(p&&p.fields).forEach(f=>{const hay=aurNorm((f.label||'')+' '+(f.value||''));if(terms.some(t=>t.length>=3&&hay.indexOf(t)>=0))infoRows.push({p,f});}));
+  if(hits.length===1&&hits[0].score>=0.5&&!infoRows.length)return aurOpenEnt(hits[0],F,true);
+  if(hits.length||infoRows.length){const ch=hits.slice(0,8).map(e=>({label:aurEntLabel(e),fn:()=>aurOpenEnt(e,F,true)}));infoRows.slice(0,4).forEach(r=>ch.push({label:r.f.label+' · '+String(r.p.name).split(' ')[0],fn:()=>aurPersonCard([r.p],[r],false)}));return aurSay('Encontrei isto sobre «'+aurEsc(q)+'»:',ch);}
+  const near=[];const used=new Set();
+  E.forEach(e=>{if(e.type==='theme')return;let bd=99;e.toks.forEach(t=>terms.forEach(x=>{if(x.length>=3&&t.length>=3){const d=aurLev(x,t);if(d<bd)bd=d;}}));const lim=Math.max(2,Math.floor(Math.max(...e.toks.map(t=>t.length))/3));if(bd<=lim&&!used.has(e.obj)){near.push({e,d:bd});used.add(e.obj);}});
+  near.sort((a,b)=>a.d-b.d);
+  if(near.length)return aurSay('Não encontrei «'+aurEsc(q)+'». Querias dizer:',near.slice(0,6).map(x=>({label:aurEntLabel(x.e),fn:()=>aurOpenEnt(x.e,F,true)})));
+  return aurSay('Não encontrei «'+aurEsc(q)+'» em nenhuma parte do cofre (passwords, 2FA, documentos, cartões, notas, Info, bens, subscrições, Wi-Fi).',[tab?{label:'Abrir '+(AUR_TAB_LBL[tab]||tab).replace(/^(o|a|os|as) /,''),fn:()=>aurGoTab(tab)}:null,{label:'Tudo o que sei fazer',fn:aurHelp}]);
+}
+
+/* ═══════════ INTERFACE ═══════════ */
 function auroraOpen(){
   if(typeof masterKey==='undefined'||!masterKey){if(typeof toast==='function')toast('Desbloqueia o cofre primeiro.');return;}
-  document.getElementById('aurora-panel').classList.add('open');
+  const p=document.getElementById('aurora-panel');if(!p)return;p.classList.add('open');
   const m=document.getElementById('aurora-msgs');
-  if(!m.dataset.greeted){m.dataset.greeted='1';auroraSay('Olá! Sou a <b>Aurora</b>. Diz-me o que precisas — por exemplo:\n• "o que expira nos próximos 3 meses"\n• "adiciona o email joao@mail.com com a password Abc12345"\n• "gera uma password forte"\n• "abre o cartão de cidadão"\n• "código da Trade Republic"\n• "tenho passwords fracas?"\n\nEscreve <b>ajuda</b> para veres tudo o que sei fazer.'+auroraChips());}
-  setTimeout(()=>{const i=document.getElementById('aurora-input');if(i)i.focus();},100);
+  if(m&&!m.dataset.greeted){m.dataset.greeted='1';const nm=typeof vaultName!=='undefined'&&vaultName?', '+aurEsc(String(vaultName).split(' ')[0]):'';
+    aurSay('Olá'+nm+'! Sou a <b>Aurora</b> ✨ — tenho acesso a todo o teu cofre e trabalho 100% offline.\nPede-me o que precisares, por exemplo: "qual o meu NIF", "código da Trade Republic", "o que expira este mês", "muda a password do Gmail".',aurQuickChips().concat([{label:'Tudo o que sei fazer',fn:aurHelp}]));}
+  setTimeout(()=>{const i=document.getElementById('aurora-input');if(i)i.focus();},120);
 }
-function auroraClose(){document.getElementById('aurora-panel').classList.remove('open');}
-function auroraSay(html,cls){const m=document.getElementById('aurora-msgs');const d=document.createElement('div');d.className='aurora-msg '+(cls||'ai');d.innerHTML=html;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;}
-function auroraSend(){const i=document.getElementById('aurora-input');const txt=(i.value||'').trim();if(!txt)return;i.value='';auroraSay(auroraEsc(txt),'me');const typing=auroraSay('<i style="opacity:.55">Aurora está a escrever…</i>');setTimeout(()=>{if(typing&&typing.remove)typing.remove();auroraProcess(txt);},350);}
-function auroraChips(){return '\n<span class="a-btn" onclick="auroraQuick(\'o que expira nos proximos 3 meses\')">O que expira?</span><span class="a-btn" onclick="auroraQuick(\'ponto de situacao\')">Ponto de situação</span><span class="a-btn" onclick="auroraQuick(\'gera uma password forte\')">Gerar password</span><span class="a-btn" onclick="auroraQuick(\'tenho passwords fracas\')">Passwords fracas</span>';}
-
-/* procura genérica por nome nos dados */
-function auroraFind(arr,q,fields){
-  q=auroraNorm(q);if(!q||!arr||!arr.length)return null;
-  let best=null,score=0;
-  arr.forEach(it=>{if(it.archived)return;
-    const hay=fields.map(f=>auroraNorm((it[f]||'')+'')).join(' ');
-    let s=0;if(hay.indexOf(q)>=0)s=q.length+5;
-    q.split(/\s+/).forEach(w=>{if(w.length>1&&hay.indexOf(w)>=0)s+=w.length;});
-    if(s>score){score=s;best=it;}
-  });
-  return score>0?best:null;
+function auroraClose(){aurClose();}
+function auroraSend(){
+  const i=document.getElementById('aurora-input');if(!i)return;const txt=(i.value||'').trim();if(!txt)return;i.value='';
+  AUR.hist.push(txt);if(AUR.hist.length>50)AUR.hist.shift();AUR.hIdx=AUR.hist.length;
+  AUR.out(aurEsc(txt),'me');const typing=AUR.out('<span class="a-dim">a pensar…</span>','ai typing');
+  setTimeout(()=>{if(typing&&typing.remove)typing.remove();try{aurHandle(txt);}catch(e){aurSay('Tive um problema a processar isso ('+aurEsc(e.message)+'). Tenta de outra forma ou escreve <b>ajuda</b>.');}},220);
 }
-
-/* confirmar / cancelar ações pendentes */
-function auroraConfirm(){
-  const p=auroraPending;auroraPending=null;if(!p)return;
-  if(p.type==='add'){
-    vault.push(p.entry);
-    if(typeof logActivity==='function')logActivity('add',p.entry.name,'✨');
-    if(typeof renderAll==='function')renderAll();
-    if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
-    auroraSay('Feito ✓ Criei a entrada <b>'+auroraEsc(p.entry.name)+'</b> e guardei.');
-  }else if(p.type==='del'){
-    if(typeof deleteEntry==='function'){deleteEntry(p.id);auroraSay('Apagado ✓ Foi para a reciclagem, dá para recuperar.');}
-  }else if(p.type==='date'){
-    assets.push(p.asset);
-    if(typeof renderAll==='function')renderAll();
-    if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
-    auroraSay('Feito ✓ Agendei <b>'+auroraEsc(p.asset.name)+'</b> para '+p.asset.dateLabel+'. Vais ser avisado.');
-  }else if(p.type==='setpw'){
-    const it=(vault||[]).find(v=>v.id===p.id);
-    if(it){if(!it.pwHistory)it.pwHistory=[];it.pwHistory.push({pw:it.pw,at:it.pwUpdated||it.createdAt||Date.now()});it.pw=p.pw;it.pwUpdated=Date.now();
-      if(typeof renderAll==='function')renderAll();
-      if(typeof saveFile==='function')saveFile();else if(typeof markUnsaved==='function')markUnsaved();
-      auroraLast=it;
-      auroraSay('Feito ✓ Password de <b>'+auroraEsc(it.name)+'</b> atualizada e guardada.\n⚠️ Não te esqueças de a mudar também no site do serviço.');
-    }
-  }else if(p.type==='emptytrash'){
-    if(typeof emptyTrash==='function'){emptyTrash();auroraSay('Reciclagem esvaziada ✓');}
-  }
-}
-function auroraCancel(){auroraPending=null;auroraSay('Ok, cancelei.');}
-
-/* ─────────── MOTOR DE INTENÇÕES ─────────── */
-function auroraProcess(raw){
-  const n=auroraNorm(raw);
-
-  // resposta a um dado em falta (ex.: serviço para uma password gerada)
-  if(auroraPending&&auroraPending.type==='needService'){
-    const pw=auroraPending.pw;auroraPending=null;
-    const e=auroraMakeEntry(raw.trim(),'',pw,'');
-    auroraPending={type:'add',entry:e};
-    return auroraSay('Vou criar a entrada <b>'+auroraEsc(e.name)+'</b> com a password gerada. Confirmas?'+auroraBtns());
-  }
-
-  // AJUDA
-  if(/\b(ajuda|help|comandos|o que sabes|o que podes|o que fazes)\b/.test(n))
-    return auroraSay('Eis o que sei fazer:\n• <b>Validades</b>: "o que expira nos próximos 2 meses"\n• <b>Adicionar</b>: "adiciona o gmail, user joao, pass Abc123"\n• <b>Gerar password</b>: "gera uma password forte"\n• <b>Procurar/abrir</b>: "abre o cartão de cidadão", "onde está o router"\n• <b>Copiar</b>: "copia a password do Continente"\n• <b>2FA</b>: "código da Trade Republic"\n• <b>Cartão de loja</b>: "abre o cartão do Continente"\n• <b>Wi-Fi</b>: "mostra o QR do wi-fi de casa"\n• <b>Segurança</b>: "tenho passwords fracas?"\n• <b>Custos</b>: "quanto gasto por mês em subscrições?"\n• <b>Carro</b>: "consumo médio do carro"\n• <b>Agendar</b>: "lembra-me da revisão do carro a 15/03/2027"\n• <b>Contagens</b>: "quantas passwords tenho?"\n• <b>Ações</b>: "faz uma cópia de segurança", "sincroniza", "bloqueia", "abre os documentos"');
-
-  // AÇÃO SOBRE O ÚLTIMO RESULTADO ("copia essa", "abre essa", "apaga essa")
-  if(auroraLast&&/\b(essa|esse|isso|este|esta|dela|dele|a mesma|o mesmo)\b/.test(n)){
-    if(/copia|copiar/.test(n)&&auroraLast.pw){if(typeof copyText==='function')copyText(auroraLast.pw);else if(navigator.clipboard)navigator.clipboard.writeText(auroraLast.pw);return auroraSay('Copiei a password de <b>'+auroraEsc(auroraLast.name)+'</b> ✓');}
-    if(/apaga|apagar|elimina|remove/.test(n)){auroraPending={type:'del',id:auroraLast.id};return auroraSay('Apago <b>'+auroraEsc(auroraLast.name)+'</b>? (vai para a reciclagem)'+auroraBtns('Apagar','auroraConfirm()',true));}
-    if(/abre|abrir|mostra|ver/.test(n)&&typeof openReadMode==='function'){openReadMode(auroraLast.id);auroraClose();return auroraSay('Abri <b>'+auroraEsc(auroraLast.name)+'</b>.');}
-  }
-
-  // RESUMO / PONTO DE SITUAÇÃO
-  if(/\b(resumo|ponto de situacao|como esta o cofre|como estou|estado do cofre|situacao|panorama|overview)\b/.test(n)){
-    const nP=(vault||[]).filter(v=>!v.archived).length,nD=(documents||[]).length,nT=(totp||[]).length;
-    let sub=0;if(typeof subMonthly==='function')(subscriptions||[]).forEach(s=>{sub+=subMonthly(s)||0;});
-    let prox='nada a expirar nos próximos 30 dias';
-    if(typeof calCollectEvents==='function'){const h=new Date();h.setHours(0,0,0,0);const lim=new Date(h.getTime()+30*864e5);const ev=calCollectEvents().filter(e=>e.date>=h&&e.date<=lim).length;if(ev)prox='<b>'+ev+'</b> a expirar nos próximos 30 dias';}
-    return auroraSay('📊 <b>Ponto de situação</b>\n• '+nP+' acessos · '+nD+' documentos · '+nT+' códigos 2FA\n• Subscrições: <b>'+(typeof fmtMoney==='function'?fmtMoney(sub):sub.toFixed(2)+'€')+'/mês</b>\n• '+prox+auroraBtns('Auditar segurança','auroraDo(\'health\')'));
-  }
-
-  // MUDAR PASSWORD DE UMA ENTRADA
-  if(/\b(muda|mudar|altera|alterar|atualiza|atualizar|troca|trocar|redefine|redefinir|renova|renovar)\b/.test(n)&&/\b(password|palavra|senha|pass)\b/.test(n)){
-    let nova=(raw.match(/\bpara\s+([^\s,;]+)\s*$/i)||[])[1]||'';
-    let alvoRaw=raw.replace(/.*\b(password|palavra[- ]?passe|senha|pass)\b\s*(do|da|de|ao|à|no|na)?\s*/i,'').replace(/\s+para\s+.*$/i,'');
-    const alvo=auroraTerms(alvoRaw||raw);
-    const it=auroraFind(vault,alvo,['name','user','url']);
-    if(!it){const ents=(vault||[]).filter(v=>!v.archived).map(v=>v.name).filter(Boolean);return auroraSay('Não encontrei essa conta. Tens: '+(ents.length?ents.slice(0,12).map(auroraEsc).join(', '):'(nenhuma)')+'.');}
-    let ger=false;if(!nova){nova=auroraGenPw(18);ger=true;}
-    auroraLast=it;auroraPending={type:'setpw',id:it.id,pw:nova};
-    return auroraSay('Vou mudar a password de <b>'+auroraEsc(it.name)+'</b> para:\n<b>'+auroraEsc(nova)+'</b>'+(ger?' (gerada)':'')+'\n\nConfirmas?'+auroraBtns());
-  }
-
-  // VALIDADES / RENOVAÇÕES
-  if(/\b(expir|expira|renov|caduc|acaba|acabam|vence|validade|a acabar|renovar)\b/.test(n)){
-    let meses=3;const mm=n.match(/(\d+)\s*(mes|meses|mês)/);const dd=n.match(/(\d+)\s*(dia|dias)/);
-    let dias=mm?parseInt(mm[1])*30:(dd?parseInt(dd[1]):90);
-    if(typeof calCollectEvents!=='function')return auroraSay('Não consegui ler as validades.');
-    const hoje=new Date();hoje.setHours(0,0,0,0);const lim=new Date(hoje.getTime()+dias*864e5);
-    const evs=calCollectEvents().filter(e=>e.date>=hoje&&e.date<=lim).sort((a,b)=>a.date-b.date);
-    if(!evs.length)return auroraSay('Nada a expirar nos próximos '+(mm?mm[1]+' meses':(dd?dd[1]+' dias':'3 meses'))+' ✓');
-    let out='Nos próximos '+(mm?mm[1]+' meses':(dd?dd[1]+' dias':'3 meses'))+':\n';
-    evs.forEach(e=>{const d=Math.ceil((e.date-hoje)/864e5);out+='• <b>'+auroraEsc(e.label)+'</b> — '+e.date.toLocaleDateString('pt-PT')+' ('+(d===0?'hoje':d===1?'amanhã':'em '+d+' dias')+')\n';});
-    return auroraSay(out);
-  }
-
-  // GERAR PASSWORD
-  if(/\b(gera|gerar|cria|criar|nova|preciso)\b.*\b(password|palavra|palavra-passe|senha|pass)\b/.test(n)||/^password forte|^senha forte/.test(n)){
-    const pw=/memoravel|decorar|lembrar|facil|frase|simples/.test(n)?auroraMemPw():auroraGenPw(18);
-    // menciona serviço? tenta "para o X"
-    const svc=raw.match(/para (?:o |a |os |as )?(.+)$/i);
-    if(svc&&svc[1]&&svc[1].trim().length>1){const e=auroraMakeEntry(svc[1].trim(),'',pw,'');auroraPending={type:'add',entry:e};return auroraSay('Password gerada:\n<b>'+auroraEsc(pw)+'</b>\n\nCrio a entrada <b>'+auroraEsc(e.name)+'</b> com ela? Confirmas?'+auroraBtns());}
-    auroraPending={type:'needService',pw};
-    return auroraSay('Aqui tens uma password forte:\n<b>'+auroraEsc(pw)+'</b>\n\nQueres que a guarde numa entrada? Diz-me o <b>serviço/email</b> (ou "não").');
-  }
-
-  // ADICIONAR ENTRADA
-  if(/\b(adiciona|adicionar|guarda|guardar|nova entrada|novo acesso|nova conta|regista|registar)\b/.test(n)&&(/\b(email|conta|acesso|login|entrada|password|palavra|senha|pass|utilizador|user)\b/.test(n)||/@/.test(raw))){
-    const email=(raw.match(/([\w.+-]+@[\w-]+\.[\w.-]+)/)||[])[1]||'';
-    let pw=(raw.match(/(?:password|palavra[- ]?passe|senha|pass)\s*[:=]?\s*([^\s,;]+)/i)||[])[1]||'';
-    let user=(raw.match(/(?:user|utilizador|username|nome de utilizador)\s*[:=]?\s*([^\s,;]+)/i)||[])[1]||email;
-    // nome do serviço: tenta "ao/do/para o X" ou a 1.ª palavra relevante
-    let name=(raw.match(/(?:ao |do |da |para o |para a |no |na |conta |acesso ao |acesso à )\s*([A-Za-zÀ-ÿ0-9][\w .-]{1,30})/)||[])[1]||'';
-    name=name.replace(/\b(com|user|utilizador|password|pass|senha|email)\b.*$/i,'').trim();
-    if(!name){let seg=raw.replace(/.*\b(adiciona|adicionar|guarda|guardar|nova entrada|novo acesso|nova conta|regista|registar)\b\s*/i,'');seg=seg.replace(/\b(com|,|:|user|utilizador|username|password|palavra|passe|pass|senha|email).*$/i,'');name=auroraTerms(seg);}
-    if(!name&&email)name=email.split('@')[1].split('.')[0];
-    if(!name)return auroraSay('Percebi que queres adicionar uma entrada, mas falta o <b>nome do serviço</b>. Ex.: "adiciona o Gmail com user X e pass Y".');
-    if(!pw){pw=auroraGenPw(18);var gerada=true;}
-    const e=auroraMakeEntry(name,user,pw,'');
-    auroraPending={type:'add',entry:e};
-    return auroraSay('Vou criar:\n• <b>'+auroraEsc(e.name)+'</b>\n• utilizador: '+(user?auroraEsc(user):'—')+'\n• password: '+(gerada?'(gerada) '+auroraEsc(pw):'●●●●●●')+'\n\nConfirmas?'+auroraBtns());
-  }
-
-  // AUDITORIA / PASSWORDS FRACAS
-  if(/\b(fracas|repetidas|duplicad|antigas|auditoria|auditar|health|quao seguro|pontuac|score|verifica.*password)\b/.test(n)){
-    if(typeof openHealthCheck==='function'){openHealthCheck();auroraClose();return auroraSay('Abri a <b>auditoria de segurança</b> — vês aí as passwords fracas, repetidas, antigas, sem 2FA e a tua pontuação.');}
-    return auroraSay('Não consegui abrir a auditoria.');
-  }
-
-  // CUSTO SUBSCRIÇÕES
-  if(/\b(quanto|custo|gasto|gasta|pago|pagas)\b.*\b(subscri|mes|mensal|ano|assinatura)\b/.test(n)||/\bsubscri.*(quanto|custo|total)\b/.test(n)){
-    if(typeof subMonthly==='function'&&subscriptions){let tot=0;subscriptions.forEach(s=>{tot+=subMonthly(s)||0;});
-      return auroraSay('Subscrições: <b>'+(typeof fmtMoney==='function'?fmtMoney(tot):tot.toFixed(2)+'€')+'/mês</b> (~'+(typeof fmtMoney==='function'?fmtMoney(tot*12):(tot*12).toFixed(2)+'€')+'/ano), '+subscriptions.length+' ativas.');}
-    return auroraSay('Não encontrei subscrições.');
-  }
-
-  // CONSUMO CARRO
-  if(/\b(consumo|litros|combustivel|gasolina|gasoleo|km|abastec)\b/.test(n)){
-    if(typeof fuelStats==='function'){const veic=(assets||[]).filter(a=>a.kind==='vehicle');
-      if(!veic.length)return auroraSay('Ainda não tens veículos registados nos Bens.');
-      let out='Consumo:\n';veic.forEach(v=>{try{const s=fuelStats(v);if(s&&s.l100!=null)out+='• <b>'+auroraEsc(v.name||'Veículo')+'</b>: '+(s.l100?s.l100.toFixed(1)+' L/100km':'sem dados')+'\n';}catch(e){}});
-      return auroraSay(out);
-    }
-    return auroraSay('Não consegui calcular o consumo.');
-  }
-
-  // CONTAGENS
-  if(/\bquant[ao]s?\b/.test(n)){
-    if(/password|entrada|acesso|conta/.test(n))return auroraSay('Tens <b>'+(vault?vault.filter(v=>!v.archived).length:0)+'</b> passwords guardadas.');
-    if(/document/.test(n))return auroraSay('Tens <b>'+(documents?documents.length:0)+'</b> documentos.');
-    if(/cartao|cartão/.test(n))return auroraSay('Cartões bancários: <b>'+(bankCards?bankCards.length:0)+'</b> · de loja: <b>'+(storeCards?storeCards.length:0)+'</b>.');
-    if(/2fa|codigo|autenticador/.test(n))return auroraSay('Tens <b>'+(totp?totp.length:0)+'</b> códigos 2FA.');
-  }
-
-  // AGENDAR / CALENDÁRIO
-  if(/\b(agenda|agendar|lembra|lembra-me|marca|marcar|coloca no calendario|adiciona.*data|nova data)\b/.test(n)){
-    const dm=raw.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-    if(!dm)return auroraSay('Diz-me a <b>data</b> (ex.: 15/03/2027) e o motivo. Ex.: "lembra-me da revisão do carro a 15/03/2027".');
-    let[_,d,mo,y]=dm;y=y.length===2?'20'+y:y;const dt=new Date(+y,+mo-1,+d);
-    let motivo=raw.replace(dm[0],'').replace(/\b(agenda|agendar|lembra-me|lembra|marca|marcar|coloca no calendario|para|a|no dia|no|de|da|do)\b/gi,' ').replace(/\s+/g,' ').trim();
-    if(!motivo)motivo='Lembrete';
-    const asset={id:Date.now().toString(36),kind:'dates',name:motivo,date:dt.toISOString().slice(0,10),yearly:false,dateLabel:dt.toLocaleDateString('pt-PT'),createdAt:Date.now()};
-    auroraPending={type:'date',asset};
-    return auroraSay('Vou agendar:\n• <b>'+auroraEsc(motivo)+'</b>\n• '+dt.toLocaleDateString('pt-PT')+'\n\nConfirmas?'+auroraBtns());
-  }
-
-  // BACKUP
-  if(/\b(copia de seguranca|cópia de segurança|backup|salvaguarda|exporta.*copia)\b/.test(n)){
-    if(typeof downloadBackupNow==='function'){downloadBackupNow();return auroraSay('Descarreguei uma cópia de segurança ✓');}
-    return auroraSay('Não encontrei a função de cópia.');
-  }
-  // SINCRONIZAR
-  if(/\b(sincroniza|sincronizar|sync|atualiza.*drive|drive)\b/.test(n)){
-    if(typeof driveSyncNow==='function'){driveSyncNow();return auroraSay('A sincronizar com o Drive…');}
-    return auroraSay('A sincronização com o Drive não está ligada.');
-  }
-  // BLOQUEAR
-  if(/\b(bloqueia|bloquear|fecha o cofre|tranca|lock)\b/.test(n)){
-    if(typeof lockApp==='function'){auroraClose();lockApp();return;}
-  }
-
-  // LISTAR SUBSCRIÇÕES
-  if(/\b(subscri|assinatura)\b/.test(n)&&/\b(mostra|mostrar|lista|listar|ver|abre|abrir|quais|minhas)\b/.test(n)){if(typeof openSubsScreen==='function'){openSubsScreen();auroraClose();return auroraSay('Abri as tuas subscrições.');}}
-
-  // ── COBERTURA TOTAL DO COFRE ──
-
-  // TEMAS (aplicar por nome)
-  if(/\b(tema|aspeto|aparencia|cor|cores)\b/.test(n)){
-    const TH=[['aurora','aurora'],['meia-noite','meianoite'],['meia noite','meianoite'],['floresta','floresta'],['oceano','oceano'],['por do sol','porsol'],['por-do-sol','porsol'],['rubi','rubi'],['ametista','ametista'],['esmeralda','esmeralda'],['classico','classico'],['papel','papel'],['menta','menta'],['ceu','ceu']];
-    for(let k=0;k<TH.length;k++){if(n.indexOf(TH[k][0])>=0&&typeof applyThemePreset==='function'){applyThemePreset(TH[k][1]);return auroraSay('Apliquei o tema <b>'+TH[k][0].charAt(0).toUpperCase()+TH[k][0].slice(1)+'</b> ✓');}}
-    if(typeof openSettings==='function'){openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('aspeto');auroraClose();return auroraSay('Abri o Aspeto — escolhe aí o tema e as cores. Ou diz-me, por ex., "aplica o tema Oceano".');}
-  }
-
-  // MODO PRIVADO
-  if(/\b(modo privado|modo oculto|esconde os valores|oculta os dados)\b/.test(n)||(/\bprivacidade\b/.test(n)&&/\b(ativa|liga|ativar|ligar|desliga|desativa)\b/.test(n))){if(typeof togglePrivacy==='function'){togglePrivacy();auroraClose();return auroraSay('Alternei o modo de privacidade 👁️');}}
-
-  // HERANÇA DIGITAL
-  if(/\b(heranca digital|herança digital|kit de emergencia|kit de emergência)\b/.test(n)){if(typeof openSettings==='function'){openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('heranca');auroraClose();return auroraSay('Abri a Herança Digital 📜');}}
-
-  // EXPORTAR
-  if(/\b(exporta|exportar)\b/.test(n)){if(/pdf/.test(n)&&typeof exportPDF==='function'){exportPDF();return auroraSay('A exportar para PDF…');}if(typeof exportCSV==='function'){exportCSV();return auroraSay('A exportar para CSV…');}}
-
-  // DEFINIÇÕES / ABAS
-  if(/\b(definicoes|definições|ajustes|configuracoes|configurações|settings)\b/.test(n)||(/\b(abre|abrir|vai|ir|mostra|mostrar)\b/.test(n)&&/\b(seguranca|segurança|sobre)\b/.test(n))){
-    let stab='';if(/seguranca|segurança/.test(n))stab='seguranca';else if(/heranca|herança/.test(n))stab='heranca';else if(/dados|exportar|importar|backup/.test(n))stab='dados';else if(/aspeto|tema|cor/.test(n))stab='aspeto';else if(/sobre|versao|versão|info do cofre/.test(n))stab='sobre';
-    if(typeof openSettings==='function'){openSettings();if(stab&&typeof switchSettingsTab==='function')switchSettingsTab(stab);auroraClose();return auroraSay('Abri as Definições'+(stab?' → '+stab:'')+' ⚙️');}
-  }
-
-  // RECICLAGEM
-  if(/\b(reciclagem|lixo|papeleira|apagados|eliminados)\b/.test(n)){
-    if(/esvazia|esvaziar|limpa|limpar|apaga tudo/.test(n)){auroraPending={type:'emptytrash'};return auroraSay('Esvaziar a reciclagem apaga tudo em <b>definitivo</b>, sem recuperação. Confirmas?'+auroraBtns('Esvaziar','auroraConfirm()',true));}
-    if(typeof switchTab==='function'){switchTab('trash');auroraClose();return auroraSay('Abri a Reciclagem 🗑️');}
-  }
-
-  // ARQUIVO
-  if(/\b(arquivo|arquivadas|arquivados)\b/.test(n)){if(typeof switchTab==='function'){switchTab('archive');auroraClose();return auroraSay('Abri o Arquivo 📦');}}
-
-  // NOVA NOTA
-  if(/\b(nota|apontamento)\b/.test(n)&&/\b(cria|criar|nova|novo|adiciona|adicionar|escreve|escrever)\b/.test(n)){if(typeof newNote==='function'){newNote();auroraClose();return auroraSay('Abri uma nota nova para escreveres 📝');}}
-
-  // CARTÃO BANCÁRIO (adicionar)
-  if(/\b(cartao|cartão)\b.*\b(banco|banco|credito|crédito|debito|débito|visa|mastercard|bancario|bancário)\b/.test(n)||(/\b(cartao|cartão)\b/.test(n)&&/\b(adiciona|adicionar|novo|nova|cria|criar)\b/.test(n)&&!/loja|fidelidad/.test(n))){if(typeof openCardModal==='function'){openCardModal();auroraClose();return auroraSay('Abri um cartão bancário novo para preencheres 💳');}}
-
-  // BENS (adicionar garantia/veículo/licença)
-  if(/\b(garantia|fatura|fatura|veiculo|veículo|carro|licenca|licença|software)\b/.test(n)&&/\b(adiciona|adicionar|nova|novo|cria|criar|regista|registar)\b/.test(n)){
-    let kind='warranty';if(/veiculo|veículo|carro/.test(n))kind='vehicle';else if(/licenca|licença|software/.test(n))kind='license';
-    if(typeof openAssetModal==='function'){openAssetModal(kind);auroraClose();return auroraSay('Abri um novo registo em Bens para preencheres 🏠');}
-  }
-
-  // ABRIR SEPARADOR
-  if(/\b(abre|abrir|vai|mostra|ir)\b.*\b(cartoes|cartões|documentos|notas|cofre|passwords|2fa|bens|reciclagem|dashboard|arquivo|info)\b/.test(n)){
-    const map={cartoes:'cards',cartões:'cards',documentos:'documents',notas:'notes',cofre:'vault',passwords:'vault','2fa':'totp',bens:'assets',reciclagem:'trash',dashboard:'dashboard',arquivo:'archive',info:'info'};
-    for(const k in map){if(n.indexOf(k)>=0&&typeof switchTab==='function'){switchTab(map[k]);auroraClose();return auroraSay('Abri '+k+'.');}}
-  }
-
-  // 2FA por serviço (com desbloqueio automático)
-  if(/\b(codigo|código|2fa|otp|autenticador|token)\b/.test(n)){
-    if(typeof totpUnlocked!=='undefined'&&!totpUnlocked){if(typeof switchTab==='function'){switchTab('totp');auroraClose();}return auroraSay('🔒 O teu cofre 2FA está bloqueado. Abri-o para desbloqueares com o PIN — depois volta a pedir-me o código.');}
-    const q=auroraTerms(raw.replace(/\b(codigo|código|2fa|otp|autenticador|token)\b/gi,' '));
-    const it=auroraFind(totp,q,['name','issuer','account','label']);
-    if(it&&typeof openTotpModal==='function'){openTotpModal(it.id);auroraClose();return auroraSay('Abri o código 2FA de <b>'+auroraEsc(it.name||it.issuer||q)+'</b>.');}
-    if(typeof openTotpModal==='function'){openTotpModal();auroraClose();return auroraSay('Abri os teus códigos 2FA.');}
-    return auroraSay('Não encontrei esse código 2FA.');
-  }
-
-  // CARTÃO DE LOJA
-  if(/\b(cartao|cartão)\b.*\b(loja|continente|pingo|barras|fidelidade|pontos)\b/.test(n)||/\b(codigo de barras|código de barras)\b/.test(n)){
-    const q=raw.replace(/.*\bcartao|cartão\b\s*(de |do |da )?/i,'').replace(/de loja|loja/i,'');
-    const it=auroraFind(storeCards,q,['name','store']);
-    if(it&&typeof showBarcode==='function'){showBarcode(it.id);auroraClose();return auroraSay('Aqui está o cartão <b>'+auroraEsc(it.name||q)+'</b>.');}
-    return auroraSay('Não encontrei esse cartão de loja.');
-  }
-
-  // WIFI
-  if(/\b(wifi|wi-fi|rede)\b/.test(n)){
-    const q=raw.replace(/.*\b(wifi|wi-fi|rede)\b\s*(de |do |da )?/i,'').replace(/\b(qr|codigo|código|mostra|casa)\b/gi,'').trim();
-    const it=auroraFind(wifiNets,q||'casa',['name','ssid']);
-    if(it&&typeof openWifiNetQR==='function'){openWifiNetQR(it.id);auroraClose();return auroraSay('Aqui está o QR do Wi-Fi <b>'+auroraEsc(it.name||it.ssid||'')+'</b>.');}
-    if(typeof openWifiManager==='function'){openWifiManager();auroraClose();return auroraSay('Abri as tuas redes Wi-Fi.');}
-    return auroraSay('Não encontrei essa rede Wi-Fi.');
-  }
-
-  // DADOS PESSOAIS (aba Info): NIF, CC, IBAN, matrícula, etc.
-  if((/\b(nif|contribuinte|iban|nib|matricula|utente|sns|niss|seguranca social)\b/.test(n))||(/\b(cc|cidadao|identidade)\b/.test(n)&&/\b(numero|qual|meu|minha|da|da-me|dame|diz|mostra|copia)\b/.test(n))||(/informacao pessoal|dados pessoais|meus dados|a minha informacao|a minha info/.test(n))){
-    if(/informacao pessoal|dados pessoais|meus dados|a minha informacao|a minha info/.test(n)&&!/\b(nif|cc|iban|nib|matricula|utente|passaporte|seguranca)\b/.test(n)){
-      if(typeof switchTab==='function'){switchTab('info');auroraClose();return auroraSay('Abri a tua Informação Pessoal 👤');}
-    }
-    const hits=auroraFindInfo(raw);
-    if(hits.length){const h=hits[0];if(typeof copyInfoField==='function')copyInfoField(h.person.id,h.field.id);return auroraSay(auroraEsc(h.field.label)+' de <b>'+auroraEsc(h.person.name)+'</b>:\n<b>'+auroraEsc(h.field.value)+'</b>\n(copiei para a área de transferência ✓)');}
-    const labels=[];(personalInfo||[]).forEach(p=>(p.fields||[]).forEach(f=>{if(f.label)labels.push(f.label);}));
-    if(labels.length)return auroraSay('Não encontrei esse dado. Na tua Info tens: '+[...new Set(labels)].slice(0,12).map(auroraEsc).join(', ')+'.');
-    return auroraSay('Ainda não tens dados guardados na aba Info.');
-  }
-
-  // DOCUMENTO
-  if(/\b(documento|cartao de cidadao|cartão de cidadão|carta de conducao|carta de condução|passaporte|fatura|contrato)\b/.test(n)||/\b(abre|abrir|mostra|ver)\b.*\bdoc/.test(n)){
-    const q=auroraTerms(raw);
-    const it=q?auroraFind(documents,q,['title','name']):null;
-    if(it&&typeof openDocPreview==='function'){openDocPreview(it.id);auroraClose();return auroraSay('Abri o documento <b>'+auroraEsc(it.title||it.name)+'</b>.');}
-    const docs=(documents||[]).map(d=>d.title||d.name).filter(Boolean);
-    if(docs.length)return auroraSay('Não encontrei "<b>'+auroraEsc(q||'esse')+'</b>" nos documentos. Tens estes:\n• '+docs.slice(0,12).map(auroraEsc).join('\n• ')+'\n\nDiz-me qual.');
-    return auroraSay('Ainda não tens documentos guardados no cofre.');
-  }
-
-  // COPIAR PASSWORD
-  if(/\b(copia|copiar)\b.*\b(password|palavra|senha|pass)\b/.test(n)){
-    const q=auroraTerms(raw);
-    const it=auroraFind(vault,q,['name','user','url']);
-    if(it){auroraLast=it;if(typeof copyText==='function')copyText(it.pw);else if(navigator.clipboard)navigator.clipboard.writeText(it.pw);return auroraSay('Copiei a password de <b>'+auroraEsc(it.name)+'</b> ✓ (limpa-se do clipboard em breve).');}
-    const ents=(vault||[]).filter(v=>!v.archived).map(v=>v.name).filter(Boolean);
-    return auroraSay('Não encontrei "<b>'+auroraEsc(q)+'</b>". Acessos que tens: '+(ents.length?ents.slice(0,12).map(auroraEsc).join(', '):'(nenhum)')+'.');
-  }
-
-  // APAGAR (com confirmação)
-  if(/\b(apaga|apagar|elimina|remove|remover)\b/.test(n)){
-    const q=raw.replace(/.*\b(apaga|apagar|elimina|remove|remover)\b\s*(a |o |entrada |password )?/i,'');
-    const it=auroraFind(vault,q,['name','user','url']);
-    if(it){auroraPending={type:'del',id:it.id};return auroraSay('Queres mesmo apagar <b>'+auroraEsc(it.name)+'</b>? (vai para a reciclagem)'+auroraBtns('Apagar','auroraConfirm()',true));}
-    return auroraSay('Não encontrei essa entrada para apagar.');
-  }
-
-  // PROCURAR / ABRIR (genérico — pesquisa universal, por último)
-  if(/\b(procura|procurar|encontra|encontrar|onde esta|onde está|abre|abrir|mostra|mostrar|ver|acesso|qual)\b/.test(n)){
-    const q=auroraTerms(raw);
-    if(!q)return auroraSay('O que queres abrir ou procurar? Diz-me o nome.');
-    const hits=auroraSearchAll(q);
-    if(!hits.length)return auroraSay('Não encontrei nada com "<b>'+auroraEsc(q)+'</b>".'+auroraSuggestions());
-    return auroraOfferHits(hits,'Abri');
-  }
-
-  // negação
-  if(/^(nao|não|nop|deixa|cancela|esquece)/.test(n)){auroraPending=null;return auroraSay('Ok 👍');}
-
-  // REDE DE SEGURANÇA — nunca ficar sem resposta: procura o texto todo no cofre
-  const fq=auroraTerms(raw);
-  if(fq){const hits=auroraSearchAll(fq);if(hits.length)return auroraSay('Não tenho um comando exato para isso, mas encontrei no teu cofre:\n'+auroraOfferInline(hits));}
-  return auroraSay('Não apanhei bem o pedido — mas eis o que tens e posso fazer:'+auroraSuggestions()+'\n\nExperimenta: "muda a password do Gmail", "o que expira este mês", "gera uma password", "quanto gasto em subscrições", "ponto de situação".');
-}
-
-let auroraCurrentHits=[];
-let auroraLast=null;
-function auroraOfferInline(hits){auroraCurrentHits=hits.slice(0,6);return auroraCurrentHits.map((h,i)=>'<span class="a-btn" onclick="auroraPick('+i+')">'+auroraEsc(h.label)+' · '+h.type+'</span>').join(' ');}
-const AURORA_STOP=['abre','abrir','mostra','mostrar','ver','procura','procurar','encontra','encontrar','quero','preciso','o','a','os','as','meu','minha','meus','minhas','do','da','de','dos','das','no','na','onde','esta','está','qual','quais','me','por','favor','uma','um','conta','acesso','entrada','documento','cartao','cartão','ao','à','que','tenho','ha','há','aurora','password','pass','senha','codigo','código'];
-function auroraTerms(raw){return auroraNorm(raw).split(/\s+/).filter(w=>w.length>1&&AURORA_STOP.indexOf(w)<0).join(' ').trim();}
-function auroraLev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;const d=[];for(let i=0;i<=m;i++){d[i]=[];d[i][0]=i;}for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);}return d[m][n];}
-function auroraScore(hay,qn){let s=0;if(!qn)return 0;if(hay.indexOf(qn)>=0)s=qn.length+10;const hw=hay.split(/\s+/);qn.split(/\s+/).forEach(w=>{if(w.length<2)return;if(hay.indexOf(w)>=0){s+=w.length;return;}if(w.length>=4){const tol=w.length>=7?2:1;for(let k=0;k<hw.length;k++){if(hw[k].length>=3&&auroraLev(w,hw[k])<=tol){s+=w.length-1;break;}}}});return s;}
-function auroraSearchAll(q){
-  const qn=auroraNorm(q),res=[];
-  const add=(arr,fields,type,openFn,labelFn)=>{(arr||[]).forEach(it=>{if(it.archived)return;const hay=fields.map(f=>auroraNorm((it[f]||'')+'')).join(' ');const s=auroraScore(hay,qn);if(s>0)res.push({type,score:s,item:it,open:()=>openFn(it),label:labelFn(it)||'(sem nome)'});});};
-  if(typeof openReadMode==='function')add(vault,['name','user','url','notes'],'acesso',it=>openReadMode(it.id),it=>it.name);
-  if(typeof openCardModal==='function')add(bankCards,['name','bank','title'],'cartão bancário',it=>openCardModal(it.id),it=>it.name||it.bank||it.title);
-  if(typeof openDocPreview==='function')add(documents,['title','name'],'documento',it=>openDocPreview(it.id),it=>it.title||it.name);
-  if(typeof showBarcode==='function')add(storeCards,['name','store'],'cartão de loja',it=>showBarcode(it.id),it=>it.name);
-  if(typeof openTotpModal==='function')add(totp,['name','label','issuer','account'],'código 2FA',it=>openTotpModal(it.id),it=>it.name||it.issuer||it.label);
-  if(typeof openWifiNetQR==='function')add(wifiNets,['name','ssid'],'Wi-Fi',it=>openWifiNetQR(it.id),it=>it.name||it.ssid);
-  if(typeof selectNote==='function')add(notes,['title','name'],'nota',it=>selectNote(it.id),it=>it.title||it.name);
-  if(typeof openAssetModal==='function')add(assets,['name'],'bem',it=>openAssetModal(it.kind,it.id),it=>it.name);
-  return res.sort((a,b)=>b.score-a.score);
-}
-function auroraSuggestions(){
-  const docs=(documents||[]).map(d=>d.title||d.name).filter(Boolean).slice(0,8);
-  const ents=(vault||[]).filter(v=>!v.archived).map(v=>v.name).filter(Boolean).slice(0,8);
-  let out='';
-  if(docs.length)out+='\n\n📄 Documentos: '+docs.map(auroraEsc).join(', ');
-  if(ents.length)out+='\n🔑 Acessos: '+ents.map(auroraEsc).join(', ');
-  return out||'\n\n(Ainda não tens documentos nem acessos guardados.)';
-}
-function auroraPick(i){const h=auroraCurrentHits[i];if(!h)return;if(h.type==='acesso')auroraLast=h.item;h.open();auroraClose();auroraSay('Abri o '+h.type+' <b>'+auroraEsc(h.label)+'</b>.');}
-function auroraOfferHits(hits,introUnique){
-  if(hits.length===1||hits[0].score>=hits[1].score+8){const h=hits[0];if(h.type==='acesso')auroraLast=h.item;h.open();auroraClose();return auroraSay((introUnique||'Abri')+' o '+h.type+' <b>'+auroraEsc(h.label)+'</b>.');}
-  auroraCurrentHits=hits.slice(0,6);let out='Encontrei vários — toca no que queres:';
-  auroraCurrentHits.forEach((h,i)=>{out+='\n<span class="a-btn" onclick="auroraPick('+i+')">'+auroraEsc(h.label)+' · '+h.type+'</span>';});
-  return auroraSay(out);
-}
-function auroraFindInfo(q){
-  const qn=auroraNorm(q),out=[];
-  const SYN=[[/nif|contribuinte|fiscal/,/nif|contribuinte|fiscal|tax/],[/\bcc\b|cidadao|identidade|\bbi\b/,/cidadao|id card|identidade/],[/iban|nib|conta/,/iban|nib/],[/matricula|carro/,/matricula|plate/],[/utente|sns|saude/,/utente|sns|health/],[/seguranca social|niss/,/seguranca social|social security|niss/],[/passaporte|passport/,/passaporte|passport/],[/carta|conducao/,/carta|conducao|driving/]];
-  (personalInfo||[]).forEach(p=>{(p.fields||[]).forEach(f=>{const lab=auroraNorm(f.label||'');let s=auroraScore(lab,qn);SYN.forEach(pair=>{if(pair[0].test(qn)&&pair[1].test(lab))s+=25;});if(s>0)out.push({person:p,field:f,score:s});});});
-  return out.sort((a,b)=>b.score-a.score);
-}
-function auroraMakeEntry(name,user,pw,url){
-  return {id:Date.now().toString(36),name:name,cat:'',user:user||'',pw:pw||'',url:url||'',notes:'',tags:[],flag:'',fields:[],folderId:null,isWifi:false,attachments:[],fav:false,archived:false,icon:'',createdAt:Date.now(),order:(typeof vault!=='undefined'&&vault?vault.length:0),pwUpdated:Date.now(),pwHistory:null,reviewedAt:null};
-}
-function auroraBtns(label,fn,danger){
-  label=label||'Confirmar';fn=fn||'auroraConfirm()';
-  return '\n<span class="a-btn'+(danger?' danger':'')+'" onclick="'+fn+'">'+label+'</span><span class="a-btn" onclick="auroraCancel()">Cancelar</span>';
-}
-function auroraDo(what){if(what==='health'&&typeof openHealthCheck==='function'){openHealthCheck();auroraClose();}}
-
-/* injeta estilos, botão flutuante e painel */
-(function auroraInit(){
-  const css='#aurora-fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:900;width:56px;height:56px;border-radius:50%;border:1px solid var(--accent);background:var(--panel);color:var(--accent);cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.45)}'
+(function aurInit(){
+  if(typeof document==='undefined'||!document.body)return;
+  const css='#aurora-fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:900;width:56px;height:56px;border-radius:50%;border:1px solid var(--accent);background:var(--panel);color:var(--accent);cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.45);transition:transform .2s}'
   +'#aurora-fab:hover{transform:scale(1.07)}#aurora-fab svg{width:26px;height:26px}'
   +'#aurora-panel{position:fixed;inset:0;z-index:1400;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}#aurora-panel.open{display:flex}'
-  +'.aurora-box{width:100%;max-width:520px;height:82vh;background:var(--panel);border:1px solid var(--border);border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}'
-  +'@media(min-width:560px){.aurora-box{border-radius:16px;height:72vh;margin-bottom:3vh}}'
+  +'.aurora-box{width:100%;max-width:540px;height:84vh;background:var(--panel);border:1px solid var(--border);border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}'
+  +'@media(min-width:580px){.aurora-box{border-radius:16px;height:74vh;margin-bottom:3vh}}'
   +'.aurora-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}'
   +'.aurora-head .ttl{font-family:"Playfair Display",serif;color:var(--accent);letter-spacing:1px;font-size:1.15rem;flex:1}'
+  +'.aurora-head .sub{font-size:.62rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase}'
   +'.aurora-head button{background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer}'
   +'.aurora-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}'
-  +'.aurora-msg{max-width:88%;padding:10px 13px;border-radius:13px;font-size:.86rem;line-height:1.55;white-space:pre-wrap;word-break:break-word}'
+  +'.aurora-msg{max-width:90%;padding:10px 13px;border-radius:13px;font-size:.85rem;line-height:1.6;white-space:pre-wrap;word-break:break-word}'
   +'.aurora-msg.me{align-self:flex-end;background:var(--accent);color:#0a0e1a}'
   +'.aurora-msg.ai{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text)}'
   +'.aurora-msg.ai b{color:var(--accent)}'
-  +'.a-btn{display:inline-block;margin:8px 6px 0 0;padding:6px 13px;border:1px solid var(--accent);border-radius:20px;color:var(--accent);cursor:pointer;font-size:.8rem}'
-  +'.a-btn.danger{border-color:#e05270;color:#e05270}'
+  +'.a-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;white-space:normal}'
+  +'.a-btn{display:inline-block;padding:6px 12px;border:1px solid var(--accent);border-radius:20px;color:var(--accent);cursor:pointer;font-size:.76rem;line-height:1.3}'
+  +'.a-btn:hover{background:rgba(201,168,76,.12)}.a-btn.danger{border-color:#e05270;color:#e05270}'
+  +'.a-code{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:1.05rem;letter-spacing:1.5px;color:var(--accent);background:rgba(0,0,0,.25);padding:4px 10px;border-radius:8px;margin:3px 0;word-break:break-all}'
+  +'.a-dim{opacity:.6;font-size:.78rem}'
   +'.aurora-in{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}'
   +'.aurora-in input{flex:1;background:rgba(0,0,0,.22);border:1px solid var(--border);border-radius:22px;padding:11px 15px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}'
+  +'.aurora-in input:focus{border-color:var(--accent)}'
   +'.aurora-in button{background:var(--accent);color:#0a0e1a;border:none;border-radius:22px;padding:0 18px;font-size:1rem;font-weight:700;cursor:pointer}';
   const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
-
   const fab=document.createElement('button');fab.id='aurora-fab';fab.title='Aurora';fab.setAttribute('onclick','auroraOpen()');
   fab.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><circle cx="18.5" cy="17.5" r="1"/><circle cx="6" cy="16" r="1"/></svg>';
   document.body.appendChild(fab);
-
   const panel=document.createElement('div');panel.id='aurora-panel';
-  panel.innerHTML='<div class="aurora-box"><div class="aurora-head"><span class="ttl">✨ Aurora</span><button onclick="auroraClose()">✕</button></div><div class="aurora-msgs" id="aurora-msgs"></div><div class="aurora-in"><input id="aurora-input" placeholder="Escreve um pedido…" autocomplete="off"><button onclick="auroraSend()">➤</button></div></div>';
+  panel.innerHTML='<div class="aurora-box"><div class="aurora-head"><span class="ttl">✨ Aurora</span><span class="sub">100% offline</span><button onclick="auroraClose()" title="Fechar">✕</button></div><div class="aurora-msgs" id="aurora-msgs"></div><div class="aurora-in"><input id="aurora-input" placeholder="Pede-me qualquer coisa do cofre…" autocomplete="off" autocapitalize="sentences"><button onclick="auroraSend()">➤</button></div></div>';
   document.body.appendChild(panel);
-  const inp=document.getElementById('aurora-input');if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')auroraSend();});
-
-  // mostra o botão só com o cofre aberto
-  setInterval(function(){const f=document.getElementById('aurora-fab');if(!f)return;const on=(typeof masterKey!=='undefined'&&masterKey);f.style.display=on?'flex':'none';if(!on){const p=document.getElementById('aurora-panel');if(p)p.classList.remove('open');}},800);
+  panel.addEventListener('click',e=>{if(e.target===panel)aurClose();});
+  const inp=document.getElementById('aurora-input');
+  if(inp)inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();auroraSend();}
+    else if(e.key==='ArrowUp'&&AUR.hist.length){AUR.hIdx=Math.max(0,AUR.hIdx-1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
+    else if(e.key==='ArrowDown'&&AUR.hist.length){AUR.hIdx=Math.min(AUR.hist.length,AUR.hIdx+1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
+    else if(e.key==='Escape')aurClose();
+  });
+  setInterval(function(){
+    const on=typeof masterKey!=='undefined'&&!!masterKey;
+    const f=document.getElementById('aurora-fab');if(f)f.style.display=on?'flex':'none';
+    if(!on){aurClose();AUR.resume=null;AUR.pending=null;return;}
+    if(AUR.resume&&!aurTotpLocked()){const t=AUR.resume;AUR.resume=null;auroraOpen();aurSay('🔓 Cofre 2FA desbloqueado — a continuar o teu pedido…');try{aurHandle(t);}catch(e){}}
+  },700);
 })();
 
 </script>
