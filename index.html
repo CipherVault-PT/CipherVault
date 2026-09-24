@@ -1534,6 +1534,52 @@ body::after{bottom:-32vmax;right:-24vmax;
   .lock-badge{font-size:.4rem;padding:2px 5px;}
   .card-actions{justify-content:flex-start;}
 }
+
+/* ══ BARRA COMPACTA NO TELEMÓVEL (v9.62) ══ */
+.topbar-actions .tb-m-only,.tb-m-only,.tb-more-menu{display:none}
+@media(max-width:768px){
+  .topbar{flex-direction:row!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 10px;padding:9px 12px 9px 16px!important;padding-top:calc(9px + env(safe-area-inset-top,0px))!important;background:var(--panel-glass);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+  .topbar-logo{width:auto!important;text-align:left!important;font-size:clamp(.8rem,3.7vw,1rem)!important;letter-spacing:clamp(.6px,.42vw,2px)!important;padding:0!important;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar-actions{width:auto!important;flex:0 0 auto;flex-wrap:nowrap!important;gap:5px!important;justify-content:flex-end;margin-left:auto}
+  .topbar-actions::after{display:none!important;content:none!important}
+  .topbar-actions>button{width:36px;height:36px;min-width:36px!important;padding:0!important;border-radius:11px!important;flex-direction:row!important;justify-content:center;align-items:center;gap:0!important}
+  .topbar-actions>button svg{width:17px!important;height:17px!important}
+  .topbar-actions .tb-mini,.topbar-actions .tb-label,#tb-save-txt,#tb-lock-txt{display:none!important}
+  .topbar-actions .lang-switcher,#cal-topbar-btn,#drive-sync-btn,.topbar-actions>button[onclick="openSettings()"]{display:none!important}
+  .topbar-actions .tb-m-only{display:flex}
+  @media(max-width:380px){.topbar{padding-left:12px!important;padding-right:10px!important}.topbar-actions{gap:4px!important}.topbar-actions>button{width:34px;height:34px;min-width:34px!important}}
+  @media(max-width:352px){.topbar{padding-left:10px!important;padding-right:8px!important;gap:6px!important}.topbar-actions{gap:3px!important}.topbar-actions>button{width:31px;height:31px;min-width:31px!important;border-radius:9px!important}.topbar-actions>button svg{width:15px!important;height:15px!important}.topbar-logo{font-size:.74rem!important;letter-spacing:.3px!important}}
+  #tb-search-btn{order:1}#privacy-btn{order:2}.topbar-actions .btn-save-file{order:3}.topbar-actions>button[onclick="lockApp()"]{order:4}#tb-more-btn{order:5}
+  .topbar .search-wrap{display:none!important}
+  .topbar.m-search .search-wrap{display:flex!important;flex:1 0 100%!important;order:99;max-width:none!important;animation:tbDrop .22s ease}
+  #tb-search-btn.on,#tb-more-btn.on{border-color:var(--accent)!important;color:var(--accent)!important}
+  .tb-more-menu{position:absolute;top:calc(100% + 6px);right:10px;width:236px;background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.5);padding:7px;z-index:60;transform-origin:top right}
+  .tb-more-menu.open{display:block;animation:tbPop .18s ease}
+  #tb-more-menu .tbm-item{display:flex!important;flex-direction:row!important;align-items:center;gap:12px!important;width:100%!important;min-width:0!important;height:auto!important;padding:11px 12px!important;margin:0!important;border:none!important;border-radius:11px!important;background:transparent!important;color:var(--text)!important;font-family:inherit!important;font-size:.84rem!important;letter-spacing:.2px!important;text-transform:none!important;text-align:left!important;line-height:1.3!important;cursor:pointer}
+  #tb-more-menu .tbm-item:hover,#tb-more-menu .tbm-item:active{background:rgba(var(--accent-rgb),.09)!important}
+  #tb-more-menu .tbm-item svg{width:18px!important;height:18px!important;flex:0 0 auto;color:var(--accent)}
+  #tb-more-menu .tbm-item small{display:block;font-size:.64rem;color:var(--text-muted);margin-top:2px;letter-spacing:.2px;text-transform:none}
+  .tbm-sep{height:1px;background:var(--border);margin:6px 8px}
+  .tbm-lang{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px;font-size:.64rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted)}
+  .tbm-seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+  #tb-more-menu .tbm-seg button{border:none!important;border-radius:0!important;background:transparent;color:var(--text-muted);font-family:inherit!important;font-size:.7rem!important;letter-spacing:1.5px;padding:7px 14px!important;min-width:0!important;height:auto!important;cursor:pointer}
+  #tb-more-menu .tbm-seg button.on{background:var(--accent);color:#0a0e1a;font-weight:700}
+}
+@keyframes tbPop{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes tbDrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+/* ══ SUBSCRIÇÕES RECOLHÍVEIS (v9.62) ══ */
+.subs-sec-toggle{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);color:var(--text);font:inherit;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.subs-sec-toggle:hover{border-color:var(--accent-dim);background:rgba(var(--accent-rgb),.05)}
+.subs-sec-toggle-lbl{font-size:.72rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+.subs-sec-next{flex:1;min-width:0;font-size:.7rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subs-sec-next b{color:var(--text);font-weight:600}.subs-sec-next .soon{color:#e05270}
+.subs-sec-toggle svg{width:16px;height:16px;flex:0 0 auto;color:var(--accent);transition:transform .3s}
+.subs-sec-toggle.open svg{transform:rotate(180deg)}
+.subs-sec-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.8,.2,1)}
+.subs-sec-collapse.open{grid-template-rows:1fr}
+.subs-sec-collapse>div{overflow:hidden;min-height:0}
+.subs-sec-collapse .subs-sec-chips{padding-top:12px}
+@media(max-width:560px){.subs-sec-toggle{flex-wrap:wrap;row-gap:4px}.subs-sec-toggle-lbl{flex:1}.subs-sec-next{order:3;flex-basis:100%;white-space:normal}}
 </style>
 </head>
 <body>
@@ -1869,7 +1915,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.61</span>
+      <span>Aurora Vault © 2026 · v9.62</span>
     </div>
   </div>
 </div>
@@ -1889,6 +1935,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button id="search-clear" onclick="closeGlobalSearch()" title="Limpar" style="display:none">✕</button>
     </div>
     <div class="topbar-actions">
+      <button class="tb-m-only" id="tb-search-btn" onclick="tbToggleSearch()" title="Pesquisar" aria-label="Pesquisar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4.2-4.2"/></svg></button>
       <button class="btn-save-file" onclick="saveFile()">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         <span id="tb-save-txt">Guardar ficheiro</span><span class="tb-mini" id="tbm-save">Guardar</span>
@@ -1907,6 +1954,8 @@ body::after{bottom:-32vmax;right:-24vmax;
         <button class="lang-btn active" id="lang-pt" onclick="setLang('pt')">PT</button>
         <button class="lang-btn" id="lang-en" onclick="setLang('en')">ENG</button>
       </div>
+      <button class="tb-m-only" id="tb-more-btn" onclick="tbToggleMore(event)" title="Mais opções" aria-label="Mais opções" aria-expanded="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></button>
+      <div class="tb-more-menu" id="tb-more-menu" role="menu" onclick="event.stopPropagation()"></div>
     </div>
   </div>
 
@@ -2275,7 +2324,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.61</span>
+      <span>Aurora Vault © 2026 · v9.62</span>
     </div>
   </div>
   </div>
@@ -3368,7 +3417,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.61';
+const APP_VERSION='9.62';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -8794,6 +8843,11 @@ function renderSubsSection(){
       <span class="sub-chip-next ${soon?'soon':''}">${en?'renews':'renova'} ${nextTxt}</span>
     </button>`;
   }).join('');
+  const open=subsSectionOpen();
+  const nxt=withNext.find(x=>x.next);
+  const nxtDays=nxt?Math.ceil((nxt.next-new Date().setHours(0,0,0,0))/86400000):null;
+  const nxtSoon=nxtDays!==null&&nxtDays<=7;
+  const nxtRel=nxt?(nxtDays<=0?(en?'today':'hoje'):nxtDays===1?(en?'tomorrow':'amanhã'):(en?'in '+nxtDays+' days':'em '+nxtDays+' dias')):'';
   box.innerHTML=`
     <div class="subs-sec-head">
       <div class="subs-sec-titlewrap"><span class="subs-sec-ico">💸</span><span class="subs-sec-title">${en?'Subscriptions':'Subscrições'}</span></div>
@@ -8804,7 +8858,51 @@ function renderSubsSection(){
       <div class="subs-sec-total dim"><span class="subs-sec-total-num">${fmtMoney(totalY)}</span><span class="subs-sec-total-lbl">${en?'per year':'por ano'}</span></div>
       <div class="subs-sec-count">${subscriptions.length} ${en?(subscriptions.length===1?'service':'services'):(subscriptions.length===1?'serviço':'serviços')}</div>
     </div>
-    <div class="subs-sec-chips">${chips}</div>`;
+    <button class="subs-sec-toggle ${open?'open':''}" onclick="toggleSubsSection()" aria-expanded="${open}">
+      <span class="subs-sec-toggle-lbl">${en?(open?'Hide subscriptions':'Show subscriptions'):(open?'Esconder subscrições':'Ver subscrições')}</span>
+      <span class="subs-sec-next">${nxt?`${en?'Next':'Próxima'}: <b>${esc(nxt.s.name||'')}</b> · <span class="${nxtSoon?'soon':''}">${nxtRel}</span>`:''}</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="subs-sec-collapse ${open?'open':''}"><div><div class="subs-sec-chips">${chips}</div></div></div>`;
+}
+
+// ══ BARRA COMPACTA NO TELEMÓVEL (v9.62) ══
+function tbToggleSearch(){
+  const tb=document.querySelector('.topbar');if(!tb)return;
+  const on=!tb.classList.contains('m-search');
+  if(!on&&typeof closeGlobalSearch==='function')closeGlobalSearch();
+  tb.classList.toggle('m-search',on);const b=document.getElementById('tb-search-btn');if(b)b.classList.toggle('on',on);
+  if(on){tbCloseMore();setTimeout(()=>{const i=document.getElementById('search-input');if(i)i.focus();},60);}
+}
+function tbCloseMore(){const m=document.getElementById('tb-more-menu'),b=document.getElementById('tb-more-btn');if(m)m.classList.remove('open');if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false');}}
+function tbToggleMore(ev){
+  if(ev)ev.stopPropagation();
+  const m=document.getElementById('tb-more-menu'),b=document.getElementById('tb-more-btn');if(!m)return;
+  if(m.classList.contains('open'))return tbCloseMore();
+  const en=currentLang==='en';
+  const I=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+  const item=(fn,ico,lbl,sub)=>'<button class="tbm-item" role="menuitem" onclick="tbCloseMore();'+fn+'">'+ico+'<span>'+lbl+(sub?'<small>'+sub+'</small>':'')+'</span></button>';
+  let driveOnNow=false;try{driveOnNow=typeof driveOn==='function'&&driveOn();}catch(e){}
+  const chip=document.getElementById('drive-chip');const chipTxt=chip&&chip.textContent?chip.textContent.trim():'';
+  let h=item('openCalendar()',I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),en?'Calendar':'Calendário','');
+  if(driveOnNow)h+=item('driveSyncNow()',I('<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>'),en?'Sync now':'Sincronizar agora',chipTxt||'Google Drive');
+  h+=item('openSettings()',I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),en?'Settings':'Definições','');
+  if(typeof auroraOpen==='function')h+=item('auroraOpen()',I('<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/>'),'Aurora AI',en?'Your offline assistant':'A tua assistente offline');
+  h+='<div class="tbm-sep"></div><div class="tbm-lang"><span>'+(en?'Language':'Idioma')+'</span><div class="tbm-seg"><button class="'+(en?'':'on')+'" onclick="setLang(\'pt\');tbCloseMore()">PT</button><button class="'+(en?'on':'')+'" onclick="setLang(\'en\');tbCloseMore()">ENG</button></div></div>';
+  m.innerHTML=h;m.classList.add('open');if(b){b.classList.add('on');b.setAttribute('aria-expanded','true');}
+}
+document.addEventListener('click',tbCloseMore);
+(function(){const m=document.getElementById('tb-more-menu'),tb=document.querySelector('.topbar');if(m&&tb&&m.parentElement!==tb)tb.appendChild(m);})();
+document.addEventListener('keydown',e=>{if(e.key==='Escape')tbCloseMore();});
+(function(){const si=document.getElementById('search-input');if(!si)return;si.addEventListener('blur',()=>setTimeout(()=>{const tb=document.querySelector('.topbar');if(tb&&tb.classList.contains('m-search')&&!si.value.trim()){tb.classList.remove('m-search');const b=document.getElementById('tb-search-btn');if(b)b.classList.remove('on');}},180));})();
+// ══ SUBSCRIÇÕES RECOLHÍVEIS (v9.62) ══
+function subsSectionOpen(){try{return localStorage.getItem('av_subs_open')==='1';}catch(e){return false;}}
+function toggleSubsSection(){
+  const o=!subsSectionOpen();try{localStorage.setItem('av_subs_open',o?'1':'0');}catch(e){}
+  const box=document.getElementById('dash-subs-section');if(!box)return;
+  const c=box.querySelector('.subs-sec-collapse'),t=box.querySelector('.subs-sec-toggle');
+  if(c)c.classList.toggle('open',o);
+  if(t){t.classList.toggle('open',o);t.setAttribute('aria-expanded',o?'true':'false');const l=t.querySelector('.subs-sec-toggle-lbl');if(l)l.textContent=currentLang==='en'?(o?'Hide subscriptions':'Show subscriptions'):(o?'Esconder subscrições':'Ver subscrições');}
 }
 function openSubsScreen(){
   const en=currentLang==='en';
