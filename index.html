@@ -1681,6 +1681,17 @@ body::after{bottom:-32vmax;right:-24vmax;
   #lock-screen.aurora .lock-footer{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 6px);}
   #lock-screen.aurora .lc-right .vault-icon{width:46px;height:46px;}
 }
+
+.aur-alerts{margin-top:10px;border:1px solid var(--border);border-radius:12px;background:var(--panel-glass,rgba(10,14,22,.6));padding:8px 10px 6px;max-width:560px;}
+.aur-al-h{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin:2px 4px 6px;}
+.aur-al-row{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:8px;cursor:pointer;font-size:.74rem;color:var(--text);transition:background .15s;}
+.aur-al-row+.aur-al-row{border-top:1px solid var(--border);}
+.aur-al-row:hover{background:rgba(var(--accent-rgb),.08);}
+.aur-al-ic{flex-shrink:0;width:22px;text-align:center;}
+.aur-al-tx{flex:1;min-width:0;line-height:1.45;}
+.aur-al-tx b{color:var(--accent);font-weight:600;}
+.aur-al-x{flex-shrink:0;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:.72rem;padding:4px 6px;border-radius:6px;opacity:.7;}
+.aur-al-x:hover{opacity:1;background:rgba(255,255,255,.06);}
 </style>
 </head>
 <body>
@@ -2026,7 +2037,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.68</span>
+      <span>Aurora Vault © 2026 · v9.69</span>
     </div>
   </div>
 </div>
@@ -2435,7 +2446,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.68</span>
+      <span>Aurora Vault © 2026 · v9.69</span>
     </div>
   </div>
   </div>
@@ -3529,7 +3540,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.68';
+const APP_VERSION='9.69';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -13713,6 +13724,45 @@ function aurLaunchIdeas(){
     if(AUR.resume&&!aurTotpLocked()){const t=AUR.resume;AUR.resume=null;auroraOpen();aurSay(aurL('🔓 Cofre 2FA desbloqueado — a continuar o teu pedido…','🔓 2FA vault unlocked — carrying on with your request…'));try{aurHandle(t);}catch(e){}}
   },700);
 })();
+
+
+/* ══ AURORA · AVISOS PROATIVOS (resumo no Dashboard; tocar abre a Aurora com o assunto resolvido) ══ */
+function aurAlertsDismissed(){try{return JSON.parse(localStorage.getItem('av_alerts_off')||'{}');}catch(e){return {};}}
+function aurAlertDismiss(k,ev){if(ev)ev.stopPropagation();const d=aurAlertsDismissed(),day=new Date().toISOString().slice(0,10);Object.keys(d).forEach(x=>{if(d[x]!==day)delete d[x];});d[k]=day;try{localStorage.setItem('av_alerts_off',JSON.stringify(d));}catch(e){}aurAlertsRender();}
+function aurAlerts(){
+  const keep=AUR.lang;AUR.lang=aurAppLang();const en=AUR.lang==='en',out=[];
+  try{
+    const t=aurToday(),ev=aurEvents();
+    ev.filter(e=>e.date>=t&&e.date<=aurAddDays(t,7)).sort((a,b)=>a.date-b.date).slice(0,2).forEach(e=>{
+      out.push({k:'soon:'+e.label+':'+aurDate(e.date),ic:AUR_EV_ICON[e.type]||'⏳',html:'<b>'+aurEsc(e.label)+'</b> '+(e.type==='renew'?aurL('renova ','renews '):aurL('expira ','expires '))+aurRel(e.date)+(e.type==='renew'&&e.amount?' · '+aurMoney(e.amount):''),run:()=>aurQ('o que expira nos proximos 7 dias','what expires in the next 7 days')});});
+    const past=ev.filter(e=>e.date<t&&e.date>=aurAddDays(t,-14)&&e.type!=='renew'&&e.type!=='date').sort((a,b)=>b.date-a.date);
+    if(past.length)out.push({k:'past:'+past.map(e=>e.label).join('|'),ic:'⚠️',html:past.length===1?'<b>'+aurEsc(past[0].label)+'</b> '+aurL('expirou ','expired ')+aurRel(past[0].date):aurL('<b>'+past.length+'</b> itens expiraram nas últimas 2 semanas','<b>'+past.length+'</b> items expired in the last 2 weeks'),run:()=>aurQ('o que ja expirou','what has expired')});
+    const V=aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived&&v.pw);
+    const old=V.filter(v=>v.pwUpdated&&Date.now()-v.pwUpdated>365*864e5);
+    if(old.length)out.push({k:'old:'+old.length,ic:'🔑',html:aurL('<b>'+old.length+'</b> '+(old.length===1?'password tem':'passwords têm')+' mais de 1 ano','<b>'+old.length+'</b> '+(old.length===1?'password is':'passwords are')+' over a year old'),run:()=>{aurSay(aurL('🔑 Passwords com mais de 1 ano — toca numa para gerar uma nova:','🔑 Passwords over a year old — tap one to generate a new one:'),old.slice(0,10).map(v=>({label:v.name+(v.user?' · '+v.user:''),fn:()=>aurChangePwOn(v,{raw:'',n:'',c:new Set()})})));}});
+    const cnt={};V.forEach(v=>{cnt[v.pw]=(cnt[v.pw]||0)+1;});
+    const bad=V.filter(v=>(typeof getPwScore==='function'&&getPwScore(v.pw)<2)||cnt[v.pw]>1).length;
+    if(bad)out.push({k:'bad:'+bad,ic:'🛡️',html:aurL('<b>'+bad+'</b> '+(bad===1?'password fraca ou repetida':'passwords fracas ou repetidas'),'<b>'+bad+'</b> weak or reused '+(bad===1?'password':'passwords')),run:()=>aurQ('auditoria','audit')});
+  }catch(e){}
+  AUR.lang=keep;
+  const off=aurAlertsDismissed(),day=new Date().toISOString().slice(0,10);
+  out.forEach(a=>{a.k=a.k.replace(/['"\\<>]/g,'');});
+  return out.filter(a=>off[a.k]!==day).slice(0,4);
+}
+let AUR_ALERT_RUN=[];
+function aurAlertGo(i){const a=AUR_ALERT_RUN[i];if(!a)return;auroraOpen();setTimeout(()=>{AUR.lang=aurAppLang();try{a.run();}catch(e){}},260);}
+function aurAlertsRender(){
+  if(typeof document==='undefined')return;
+  const launch=document.querySelector('.aur-launch');let box=document.getElementById('aur-alerts');
+  if(!launch||typeof masterKey==='undefined'||!masterKey){if(box)box.remove();return;}
+  const list=aurAlerts();AUR_ALERT_RUN=list;
+  if(!list.length){if(box)box.remove();return;}
+  if(!box){box=document.createElement('div');box.id='aur-alerts';box.className='aur-alerts';}
+  if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
+  const en=aurAppLang()==='en';
+  box.innerHTML='<div class="aur-al-h">✨ Aurora · '+(en?'Heads-up':'Avisos')+'</div>'+list.map((a,i)=>'<div class="aur-al-row" role="button" tabindex="0" onclick="aurAlertGo('+i+')" onkeydown="if(event.key===\'Enter\')aurAlertGo('+i+')"><span class="aur-al-ic">'+a.ic+'</span><span class="aur-al-tx">'+a.html+'</span><button class="aur-al-x" title="'+(en?'Dismiss until tomorrow':'Dispensar até amanhã')+'" onclick="aurAlertDismiss(\''+a.k.replace(/['"\\<>]/g,'')+'\',event)">✕</button></div>').join('');
+}
+(function(){if(typeof renderGreeting!=='function')return;const _rg=renderGreeting;renderGreeting=function(){const r=_rg.apply(this,arguments);try{aurAlertsRender();}catch(e){}return r;};})();
 
 </script>
 </body>
