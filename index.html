@@ -1761,7 +1761,9 @@ button[onclick="openAssetModal('warranty')"],button[onclick="openAssetModal('lic
 }
 .av-grab{display:none;width:42px;height:5px;border-radius:5px;background:rgba(255,255,255,.18);margin:2px auto 8px}
 .av-onb{margin-top:14px;border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:20px 22px}
-.av-onb-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.av-onb-h{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.av-onb-h>span{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.av-onb-h h3{white-space:nowrap}
 .av-onb-h h3{font-family:'Playfair Display',serif;font-weight:500;font-size:1.2rem;color:var(--text)}
 .av-onb-h button{background:none;border:none;color:var(--text-muted);font-size:.7rem;cursor:pointer;font-family:inherit}
 .av-onb-lead{color:var(--text-muted);font-size:.78rem;margin:4px 0 12px}
@@ -1790,6 +1792,42 @@ button[onclick="openAssetModal('warranty')"],button[onclick="openAssetModal('lic
 .av-seg button{border:none;background:transparent;color:var(--text-muted);padding:8px 12px;font-size:.68rem;cursor:pointer;font-family:inherit}
 .av-seg button.on{background:rgba(var(--accent-rgb),.9);color:#1b1407;font-weight:600}
 body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tabs-wifi,body.av-simple .dash-cards,body.av-simple #dash-subs-section.av-empty{display:none!important}
+
+/* ══ v9.74 — apresentação animada da Aurora ══ */
+#avt-root{position:fixed;inset:0;z-index:9000;pointer-events:none}
+#avt-root.paused{display:none}
+.avt-block{position:fixed;pointer-events:auto;background:transparent}
+#avt-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(3,6,12,.74),0 0 0 3px rgba(var(--accent-rgb),.95),0 0 30px 6px rgba(var(--accent-rgb),.5);transition:left .55s cubic-bezier(.2,.8,.2,1),top .55s cubic-bezier(.2,.8,.2,1),width .55s cubic-bezier(.2,.8,.2,1),height .55s cubic-bezier(.2,.8,.2,1),border-radius .55s;pointer-events:none}
+#avt-spot.center{box-shadow:0 0 0 9999px rgba(3,6,12,.74)}
+#avt-spot i{position:absolute;inset:-4px;border-radius:16px;border:2px solid rgba(var(--accent-rgb),.65);animation:avtPulse 1.6s ease-out infinite}
+#avt-spot.center i{display:none}
+@keyframes avtPulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+#avt-bub{position:fixed;width:370px;max-width:calc(100vw - 28px);pointer-events:auto;background:linear-gradient(180deg,rgba(14,20,34,.97),rgba(9,13,22,.97));border-radius:18px;padding:18px 18px 14px;box-shadow:0 30px 70px -20px #000;color:#ece8dc;font:14px/1.55 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;transition:left .5s cubic-bezier(.2,.8,.2,1),top .5s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0}
+#avt-bub.show{opacity:1}
+#avt-bub:before{content:'';position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(110deg,#3ce0a0,#6a8cff,#d05cff);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.avt-h{display:flex;align-items:center;gap:10px;margin-bottom:8px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:2px;color:var(--accent);text-transform:uppercase}
+.avt-h i{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(60,224,160,.14);font-style:normal;font-size:14px}
+.avt-t{font-weight:600;color:#fff;font-size:15px;margin-bottom:3px}
+.avt-d{color:rgba(236,232,220,.86);min-height:3em}
+.avt-task{margin-top:10px;padding:9px 11px;border-radius:10px;background:rgba(60,224,160,.08);border:1px dashed rgba(60,224,160,.4);font-size:12.5px;color:#bfe9d6}
+.avt-f{display:flex;align-items:center;gap:8px;margin-top:14px}
+.avt-dots{display:flex;gap:5px;margin-right:auto}
+.avt-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .3s}
+.avt-dots span.on{background:var(--accent);width:18px;border-radius:4px}
+.avt-dots span.ok{background:rgba(60,224,160,.6)}
+.avt-b{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:none;color:#dfe;font:600 12px system-ui;cursor:pointer}
+.avt-b:hover{border-color:rgba(var(--accent-rgb),.6)}
+.avt-b.go{background:linear-gradient(180deg,rgba(var(--accent-rgb),.95),rgba(var(--accent-rgb),.65));color:#1b1407;border-color:transparent}
+.avt-star{position:fixed;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px 2px rgba(var(--accent-rgb),.9);pointer-events:none;z-index:9003;animation:avtStar 1.3s cubic-bezier(.1,.7,.3,1) forwards}
+@keyframes avtStar{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+@media(prefers-reduced-motion:reduce){#avt-spot,#avt-bub{transition:none}#avt-spot i{animation:none}.avt-star{display:none}}
+
+/* ══ v9.74 — Aurora recebe ficheiros ══ */
+#aurora-clip{width:40px;height:40px;flex-shrink:0;border-radius:12px;border:1px solid rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.1);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:6px}
+#aurora-clip:hover{background:rgba(var(--accent-rgb),.2)}
+#aurora-panel.av-drop{outline:2px dashed rgba(var(--accent-rgb),.8);outline-offset:-10px}
+#aurora-panel.av-drop::after{content:attr(data-drop);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,9,16,.78);color:var(--accent);font:600 15px system-ui;z-index:50;pointer-events:none;border-radius:inherit}
+.av-fchip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(190,220,255,.14);margin:2px 4px 2px 0}
 </style>
 </head>
 <body>
@@ -2135,7 +2173,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.73</span>
+      <span>Aurora Vault © 2026 · v9.74</span>
     </div>
   </div>
 </div>
@@ -2546,7 +2584,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.73</span>
+      <span>Aurora Vault © 2026 · v9.74</span>
     </div>
   </div>
   </div>
@@ -3648,7 +3686,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     }
   }catch(e){}
 })();
-const APP_VERSION='9.73';
+const APP_VERSION='9.74';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -14094,7 +14132,8 @@ async function avOnboardRender(){
   if(!box){box=document.createElement('div');box.id='av-onboard';box.className='av-onb';}
   if(box.previousElementSibling!==host)host.insertAdjacentElement('afterend',box);
   const en=avEn(),nextK=(st.find(s=>!s.done&&!s.opt)||{}).k;let n=0;
-  box.innerHTML='<div class="av-onb-h"><h3>'+(en?'First steps':'Primeiros passos')+'</h3><button onclick="avOnbHide()">'+(en?'Hide':'Esconder')+'</button></div>'
+  if(avMode()==='simple')avTourOffer();
+  box.innerHTML='<div class="av-onb-h"><h3>'+(en?'First steps':'Primeiros passos')+'</h3><span><button onclick="avTourStart()" style="color:var(--accent);margin-right:10px">🎓 '+(en?'Guided tour':'Ver apresentação')+'</button><button onclick="avOnbHide()">'+(en?'Hide':'Esconder')+'</button></span></div>'
    +'<p class="av-onb-lead">'+(en?'A few quick steps and your vault is ready to use.':'Uns passos rápidos e o teu cofre fica pronto a usar.')+'</p>'
    +'<div class="av-onb-bar"><i style="width:'+Math.round(done/req.length*100)+'%"></i></div><div class="av-onb-prog">'+done+(en?' of ':' de ')+req.length+(en?' done':' concluídos')+'</div>'
    +st.map(s=>{if(!s.opt)n++;return '<div class="av-step'+(s.done?' done':'')+(s.k===nextK?' next':'')+'"><div class="dot">'+(s.done?'✓':(s.opt?'＋':n))+'</div><div><div class="st">'+avT(s.t)+(s.opt?'<span class="av-opt">'+(en?'optional':'opcional')+'</span>':'')+'</div>'+(s.done||!s.d?'':'<div class="sd">'+avT(s.d)+'</div>')+'</div>'+(s.done||!s.fn?'':'<button class="sb" onclick="'+s.fn+'">'+avT(s.b)+'</button>')+'</div>';}).join('')
@@ -14277,6 +14316,284 @@ function avEnhanceEmpty(){
 (function(){
   if(typeof switchTab==='function'){const st=switchTab;switchTab=function(){const r=st.apply(this,arguments);requestAnimationFrame(()=>{try{avEnhanceEmpty();}catch(e){}});return r;};}
   if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){const r=ra.apply(this,arguments);requestAnimationFrame(()=>{try{avEnhanceEmpty();}catch(e){}});return r;};}
+})();
+
+
+/* ══ v9.74 — APRESENTAÇÃO ANIMADA DA AURORA (tutorial em 8 passos) ══ */
+const AV_TOUR=[
+ {k:'hello',t:['Olá! Sou a Aurora ✨','Hi! I’m Aurora ✨'],d:['Este é o teu cofre: tudo o que guardas aqui fica encriptado e só tu o consegues abrir. Vou mostrar-te o essencial em 8 passos — demora 2 minutos.','This is your vault: everything you store here is encrypted and only you can open it. I’ll show you the essentials in 8 steps — it takes 2 minutes.']},
+ {k:'search',el:()=>avIsDesk()?document.getElementById('search-input'):document.getElementById('tb-search-btn'),t:['Pesquisa tudo','Search everything'],d:['Passwords, documentos, cartões, notas… escreve e encontras em segundos.','Passwords, documents, cards, notes… type and find it in seconds.']},
+ {k:'add',el:()=>avIsDesk()?document.getElementById('tb-add'):document.getElementById('av-fab-add'),t:['Tudo começa aqui: ＋ Adicionar','Everything starts here: ＋ Add'],d:['Passwords, cartões, documentos, notas, códigos 2FA… Em cada aba, este botão já sabe o que queres criar.','Passwords, cards, documents, notes, 2FA codes… In each tab this button already knows what you want to create.'],task:['Toca no ＋ e guarda a tua primeira password. Eu espero ✨','Tap ＋ and save your first password. I’ll wait ✨'],go:()=>avAddType('password'),check:s=>(typeof vault!=='undefined'?vault.length:0)>s.v0},
+ {k:'tabs',el:()=>{const g=document.getElementById('grp-btn-dashboard');return g&&g.parentElement;},t:['As tuas áreas','Your areas'],d:['Cofre (passwords e 2FA), Cartões (bancários e de loja), Documentos (e notas)… Toca numa para a abrir.','Vault (passwords and 2FA), Cards (bank and store), Documents (and notes)… Tap one to open it.']},
+ {k:'saved',el:()=>document.getElementById('tb-save-state'),t:['Grava sozinho','Saves by itself'],d:['Cada alteração fica gravada automaticamente — e, se ligares o Google Drive, sincronizada com os teus outros dispositivos.','Every change is saved automatically — and, if you connect Google Drive, synced with your other devices.']},
+ {k:'aurora',el:()=>{const l=document.querySelector('.aur-launch');return avtVisible(l)?l:document.getElementById('aurora-fab');},t:['Fala comigo','Talk to me'],d:['Pede-me coisas por palavras: «qual o meu NIF?», «o que expira este mês?». E carrega ficheiros com o 📎 — eu arrumo-os onde disseres.','Ask me things in plain words: “what’s my tax number?”, “what expires this month?”. And upload files with the 📎 — I’ll put them where you say.']},
+ {k:'more',el:()=>document.getElementById('tb-more-btn'),t:['Mais opções','More options'],d:['Definições, modo de privacidade, calendário e idioma estão aqui.','Settings, privacy mode, calendar and language live here.']},
+ {k:'lock',el:()=>document.querySelector('.topbar-actions .tb-lock-btn'),t:['Bloquear','Lock'],d:['Quando terminares, bloqueia. Para entrares mais depressa, ativa o PIN ou a impressão digital em Definições → Segurança.','When you’re done, lock it. To get in faster, turn on PIN or fingerprint in Settings → Security.']}
+];
+const AVT={on:false,i:0,st:{},typ:0,poll:0,paused:false};
+function avtReduce(){return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}
+function avTourStart(){
+  if(typeof masterKey==='undefined'||!masterKey)return;
+  try{if(typeof aurClose==='function')aurClose(true);}catch(e){}
+  try{avAddClose();tbCloseMore&&tbCloseMore();}catch(e){}
+  document.querySelectorAll('.modal-overlay.open,[id$="-overlay"].open').forEach(o=>o.classList.remove('open'));
+  try{if(avCurTab!=='dashboard')switchTab('dashboard');}catch(e){}
+  window.scrollTo({top:0});
+  let r=document.getElementById('avt-root');
+  if(!r){r=document.createElement('div');r.id='avt-root';r.innerHTML='<div class="avt-block"></div><div class="avt-block"></div><div class="avt-block"></div><div class="avt-block"></div><div id="avt-spot" class="center"><i></i></div><div id="avt-bub" role="dialog" aria-live="polite"></div>';document.body.appendChild(r);}
+  AVT.on=true;AVT.i=0;AVT.st={v0:typeof vault!=='undefined'?vault.length:0};AVT.paused=false;r.classList.remove('paused');
+  try{localStorage.setItem('av_tour_offered','1');}catch(e){}
+  document.addEventListener('keydown',avtKey,true);window.addEventListener('resize',avtPlace);
+  clearInterval(AVT.poll);AVT.poll=setInterval(avtTick,450);
+  avtRender();
+}
+function avtKey(e){if(!AVT.on||AVT.paused)return;if(e.key==='Escape'){e.preventDefault();avTourEnd();}else if(e.key==='ArrowRight'||e.key==='Enter'){if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;e.preventDefault();avtNext();}else if(e.key==='ArrowLeft'){e.preventDefault();avtPrev();}}
+function avtVisible(el){if(!el)return false;const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden'||+cs.opacity===0)return false;const r=el.getBoundingClientRect();return r.width>0&&r.height>0;}
+function avtTarget(){const s=AV_TOUR[AVT.i];if(!s||!s.el)return null;const el=s.el();if(!avtVisible(el))return null;return el.getBoundingClientRect();}
+function avtPlace(){
+  if(!AVT.on)return;
+  const spot=document.getElementById('avt-spot'),bub=document.getElementById('avt-bub'),bl=document.querySelectorAll('#avt-root .avt-block');if(!spot||!bub)return;
+  const W=innerWidth,H=innerHeight,r=avtTarget(),p=8;
+  let sx,sy,sw,sh;
+  if(r){sx=r.left-p;sy=r.top-p;sw=r.width+2*p;sh=r.height+2*p;spot.classList.remove('center');}
+  else{sx=W/2;sy=H/2;sw=0;sh=0;spot.classList.add('center');}
+  Object.assign(spot.style,{left:sx+'px',top:sy+'px',width:sw+'px',height:sh+'px'});
+  // bloqueia cliques fora do foco (o elemento em foco continua clicável)
+  const box=[[0,0,W,Math.max(0,sy)],[0,sy+sh,W,Math.max(0,H-sy-sh)],[0,sy,Math.max(0,sx),sh],[sx+sw,sy,Math.max(0,W-sx-sw),sh]];
+  bl.forEach((b,i)=>{const q=box[i];Object.assign(b.style,{left:q[0]+'px',top:q[1]+'px',width:q[2]+'px',height:q[3]+'px'});});
+  const bw=bub.offsetWidth||370,bh=bub.offsetHeight||200;let bx,by;
+  if(!r){bx=(W-bw)/2;by=(H-bh)/2;}
+  else{
+    bx=Math.min(W-bw-14,Math.max(14,r.left+r.width/2-bw/2));
+    if(r.bottom+22+bh<H)by=r.bottom+22;else if(r.top-22-bh>0)by=r.top-22-bh;else{by=Math.max(14,(H-bh)/2);bx=r.left>W/2?Math.max(14,r.left-bw-24):Math.min(W-bw-14,r.right+24);}
+  }
+  Object.assign(bub.style,{left:Math.round(bx)+'px',top:Math.round(by)+'px'});
+}
+function avtRender(){
+  const s=AV_TOUR[AVT.i],bub=document.getElementById('avt-bub');if(!s||!bub)return;
+  const en=avEn(),last=AVT.i===AV_TOUR.length-1,done=s.check&&s.check(AVT.st);
+  bub.classList.remove('show');
+  bub.innerHTML='<div class="avt-h"><i>✨</i>Aurora · '+(en?'step ':'passo ')+(AVT.i+1)+(en?' of ':' de ')+AV_TOUR.length+'</div><div class="avt-t">'+avT(s.t)+'</div><div class="avt-d" id="avt-d"></div>'
+   +(s.task&&!done?'<div class="avt-task">👉 '+avT(s.task)+'</div>':'')
+   +'<div class="avt-f"><div class="avt-dots">'+AV_TOUR.map((x,i)=>'<span class="'+(i===AVT.i?'on':(i<AVT.i?'ok':''))+'"></span>').join('')+'</div>'
+   +'<button class="avt-b" onclick="avTourEnd()">'+(en?'Skip':'Saltar')+'</button>'
+   +(s.task&&!done?'<button class="avt-b go" onclick="avtShowMe()">'+(en?'Show me':'Mostra-me')+'</button>':'<button class="avt-b go" onclick="avtNext()">'+(last?(en?'Finish ✨':'Terminar ✨'):(en?'Next →':'Seguinte →'))+'</button>')+'</div>';
+  avtPlace();requestAnimationFrame(()=>{avtPlace();bub.classList.add('show');});
+  const d=document.getElementById('avt-d'),txt=avT(s.d);clearInterval(AVT.typ);
+  if(avtReduce()){d.textContent=txt;}else{let n=0;AVT.typ=setInterval(()=>{n+=3;d.textContent=txt.slice(0,n);if(n>=txt.length)clearInterval(AVT.typ);},16);}
+}
+function avtNext(){if(AVT.i<AV_TOUR.length-1){AVT.i++;avtRender();}else avTourFinish();}
+function avtPrev(){if(AVT.i>0){AVT.i--;avtRender();}}
+function avtShowMe(){const s=AV_TOUR[AVT.i];AVT.paused=true;AVT.pauseAt=Date.now();document.getElementById('avt-root').classList.add('paused');try{s.go();}catch(e){}}
+function avtTick(){
+  if(!AVT.on)return;
+  const s=AV_TOUR[AVT.i],root=document.getElementById('avt-root');if(!root)return;
+  const busy=!!document.querySelector('.modal-overlay.open,[id$="-overlay"].open,#av-add-pop.open,#note-editor.open');
+  if(s&&s.check&&s.check(AVT.st)&&!busy){AVT.paused=false;root.classList.remove('paused');avtNext();return;}
+  if(busy&&!AVT.paused){AVT.paused=true;AVT.pauseAt=Date.now();root.classList.add('paused');return;}
+  if(!busy&&AVT.paused&&Date.now()-AVT.pauseAt>600){AVT.paused=false;root.classList.remove('paused');avtRender();return;}
+  if(!AVT.paused)avtPlace();
+}
+function avTourFinish(){
+  const en=avEn(),bub=document.getElementById('avt-bub');AVT.i=AV_TOUR.length;
+  const spot=document.getElementById('avt-spot');spot.classList.add('center');
+  bub.innerHTML='<div class="avt-h"><i>✨</i>Aurora</div><div class="avt-t">'+(en?'You’re ready ✨':'Estás pronto ✨')+'</div><div class="avt-d">'+(en?'That’s it! Whenever you need me, ask — or type «tutorial» to see this again.':'É isto! Sempre que precisares, pergunta-me — ou escreve «tutorial» para veres isto outra vez.')+'</div><div class="avt-f"><div class="avt-dots">'+AV_TOUR.map(()=>'<span class="ok"></span>').join('')+'</div><button class="avt-b" onclick="avTourStart()">'+(en?'Again':'Repetir')+'</button><button class="avt-b go" onclick="avTourEnd()">'+(en?'Done':'Terminar')+'</button></div>';
+  avtPlace();
+  try{localStorage.setItem('av_tour_done','1');}catch(e){}
+  if(!avtReduce()){const cx=innerWidth/2,cy=innerHeight/2;for(let k=0;k<40;k++){const s=document.createElement('i');s.className='avt-star';const a=Math.random()*Math.PI*2,dist=120+Math.random()*260;s.style.left=cx+'px';s.style.top=cy+'px';s.style.setProperty('--dx',Math.cos(a)*dist+'px');s.style.setProperty('--dy',Math.sin(a)*dist+'px');s.style.animationDelay=(Math.random()*.25)+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),1800);}}
+}
+function avTourEnd(){AVT.on=false;clearInterval(AVT.poll);clearInterval(AVT.typ);document.removeEventListener('keydown',avtKey,true);window.removeEventListener('resize',avtPlace);const r=document.getElementById('avt-root');if(r)r.remove();}
+function avTourOffer(){
+  if(AVT.on||typeof masterKey==='undefined'||!masterKey)return;
+  try{if(localStorage.getItem('av_tour_offered')==='1')return;localStorage.setItem('av_tour_offered','1');}catch(e){}
+  setTimeout(()=>{try{auroraOpen();AUR.lang=aurAppLang();aurSay(aurL('✨ Olá! Queres que te mostre como funciona o cofre? Demora 2 minutos.','✨ Hi! Would you like me to show you how the vault works? It takes 2 minutes.'),[{label:aurL('Sim, mostra-me','Yes, show me'),fn:()=>avTourStart()},{label:aurL('Agora não','Not now'),fn:()=>aurSay(aurL('Ok! Quando quiseres, escreve «tutorial».','Ok! Whenever you like, type “tutorial”.'))}]);}catch(e){}},900);
+}
+const AV_TOUR_RX=/\b(tutorial|apresentacao|visita guiada|tour|guia rapido)\b|como funciona (a app|isto|o cofre|a aplicacao)|mostra[- ]?me como (funciona|se usa)|ensina[- ]?me|show me around|how does (this|the app|it) work/;
+(function(){
+  if(typeof aurHandle==='function'){const ah=aurHandle;aurHandle=function(raw){
+    if(typeof avFileHandleText==='function'&&avFileHandleText(raw))return true;
+    if(AV_TOUR_RX.test(aurNorm(raw||''))){const dl=aurDetectLang(raw);if(dl)AUR.lang=dl;aurSay(aurL('Vamos a isso! ✨','Let’s go! ✨'));setTimeout(avTourStart,500);return true;}
+    return ah.apply(this,arguments);};}
+  if(typeof aurHelp==='function'){const hp=aurHelp;aurHelp=function(){const r=hp.apply(this,arguments);aurSay(aurL('🎓 Queres uma apresentação guiada? Escreve «tutorial». 📎 Para guardar ficheiros, usa o clipe ou arrasta-os para aqui.','🎓 Want a guided tour? Type “tutorial”. 📎 To store files, use the paperclip or drag them here.'),[{label:aurL('Ver a apresentação','Start the tour'),fn:()=>avTourStart()}]);return r;};}
+})();
+
+
+/* ══ v9.74 — AURORA RECEBE FICHEIROS: lê, propõe o destino, cria pastas e guarda (sempre com confirmação) ══ */
+const AV_PDF_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+const AV_PDF_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+let _avPdf=null;
+function avLoadPdf(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(_avPdf)return _avPdf;
+  _avPdf=new Promise((res,rej)=>{const s=document.createElement('script');s.src=AV_PDF_URL;s.async=true;s.onload=()=>{if(!window.pdfjsLib)return rej(new Error('load'));try{if(!pdfjsLib.GlobalWorkerOptions.workerSrc)pdfjsLib.GlobalWorkerOptions.workerSrc=AV_PDF_WORKER;}catch(e){}res(window.pdfjsLib);};s.onerror=()=>{_avPdf=null;s.remove();rej(new Error('load'));};document.head.appendChild(s);});
+  return _avPdf;
+}
+async function avPdfText(dataUrl){
+  const lib=await avLoadPdf();
+  const buf=new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());
+  const doc=await lib.getDocument({data:buf}).promise;let out='';
+  for(let p=1;p<=Math.min(3,doc.numPages);p++){const pg=await doc.getPage(p);const tc=await pg.getTextContent();out+=tc.items.map(x=>x.str).join(' ')+'\n';}
+  try{doc.destroy();}catch(e){}
+  return out.slice(0,8000);
+}
+async function avOcrText(dataUrl){
+  const T=await avLoadTesseract();const w=await T.createWorker(['por','eng'],1,{});
+  try{const r=await w.recognize(dataUrl);return (r&&r.data&&r.data.text)||'';}finally{try{await w.terminate();}catch(e){}}
+}
+const AVF_KINDS=[
+ {k:'identidade',cat:'pessoal',rx:/cartao de cidadao|citizen card|passaporte|passport|carta de conducao|driving licen|bilhete de identidade|titulo de residencia/,t:['documento de identificação','ID document'],f:['identificacao','identidade','pessoal','documentos pessoais']},
+ {k:'seguro',cat:'pessoal',rx:/apolice|seguro|seguradora|insurance|policy/,t:['apólice de seguro','insurance policy'],f:['seguros','seguro']},
+ {k:'carro',cat:'pessoal',rx:/\b(iuc|inspecao|ipo|dua|livrete|imposto unico de circulacao|oficina|revisao do carro)\b/,t:['documento do carro','car document'],f:['carro','automovel','veiculo','viatura','carros']},
+ {k:'fatura',cat:'outro',rx:/fatura|factura|invoice|recibo|receipt|talao|garantia|warranty|nota de credito/,t:['fatura / recibo','invoice / receipt'],f:['faturas','garantias','compras','recibos']},
+ {k:'saude',cat:'saude',rx:/receita medica|analises|relatorio medico|consulta|hospital|clinica|vacina|atestado medico/,t:['documento de saúde','health document'],f:['saude','medico','medicos']},
+ {k:'banco',cat:'banco',rx:/extrato|credito habitacao|emprestimo|contrato de credito|bank statement|mortgage|\biban\b/,t:['documento bancário','bank document'],f:['banco','bancos','financas']},
+ {k:'impostos',cat:'juridico',rx:/\birs\b|autoridade tributaria|\bimi\b|declaracao de rendimentos|nota de liquidacao|tax return/,t:['documento de impostos','tax document'],f:['impostos','irs','financas']},
+ {k:'trabalho',cat:'trabalho',rx:/contrato de trabalho|recibo de vencimento|entidade patronal|payslip|employment contract/,t:['documento de trabalho','work document'],f:['trabalho','emprego']},
+ {k:'casa',cat:'juridico',rx:/escritura|caderneta predial|licenca de utilizacao|contrato de arrendamento|condominio|projeto de arquitetura/,t:['documento da casa','home document'],f:['casa','habitacao']},
+ {k:'escola',cat:'educacao',rx:/certificado de habilitacoes|diploma|matricula escolar|universidade|escola|certificado de formacao/,t:['documento de educação','education document'],f:['educacao','escola','formacao']}
+];
+const AVF={q:null};
+function avFolderPath(id){const out=[];let f=docFolders.find(x=>x.id===id),guard=0;while(f&&guard++<20){out.unshift(f.name);f=docFolders.find(x=>x.id===f.parentId);}return out;}
+function avToks(s){return aurNorm(s||'').replace(/[^a-z0-9]+/g,' ').split(' ').filter(t=>t.length>=3);}
+function avFileSuggest(q){
+  const nameT=new Set(avToks(q.files.map(f=>f.name).join(' ')+' '+(q.kind?q.kind.f.join(' '):'')));
+  const folders=(typeof docFolders!=='undefined'?docFolders:[]).map(f=>{const path=avFolderPath(f.id);let s=0;path.forEach(seg=>avToks(seg).forEach(t=>{if(nameT.has(t))s+=2;if(q.kind&&q.kind.f.includes(t))s+=3;}));return {f,path,s};}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||b.path.length-a.path.length).slice(0,2);
+  const allT=new Set(avToks(q.files.map(f=>f.name).join(' ')+' '+(q.text||'').slice(0,1500)));
+  const assetsM=(typeof assets!=='undefined'?assets:[]).map(a=>({a,s:avToks(a.name).filter(t=>allT.has(t)).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,1);
+  return {folders,assetsM};
+}
+function avAssetLabelFull(a){const m={warranty:['Garantia','Warranty'],license:['Licença','Licence'],vehicle:['Veículo','Vehicle'],dates:['Data','Date']}[a.kind]||['Bem','Asset'];return avT(m)+' · '+a.name;}
+async function avFilesReceive(list){
+  const en=avEn(),files=[...(list||[])].filter(f=>f&&f.size>=0).slice(0,10);if(!files.length)return;
+  try{auroraOpen();}catch(e){}AUR.lang=aurAppLang();
+  const big=files.filter(f=>f.size>50*1048576);
+  if(big.length){aurSay(aurL('⚠️ Ficheiros acima de 50 MB não podem ir para o cofre: ','⚠️ Files over 50 MB can’t go into the vault: ')+big.map(f=>'<b>'+esc(f.name)+'</b>').join(', ')+'.');}
+  const ok=files.filter(f=>f.size<=50*1048576);if(!ok.length)return;
+  AUR.out(ok.map(f=>'<span class="av-fchip">📎 <b>'+esc(f.name)+'</b> <span class="a-dim">· '+(typeof formatFileSize==='function'?formatFileSize(f.size):Math.round(f.size/1024)+' KB')+'</span></span>').join(''),'me');
+  const typing=AUR.out('<span class="a-dim">'+aurL('A ler…','Reading…')+'</span>','ai');
+  const read=await Promise.all(ok.map(f=>new Promise(res=>{const r=new FileReader();r.onload=()=>res({name:f.name,type:f.type||'',size:f.size,data:r.result});r.onerror=()=>res(null);r.readAsDataURL(f);})));
+  const fl=read.filter(Boolean);
+  let text='';
+  for(const f of fl){if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)){try{text+=await Promise.race([avPdfText(f.data),new Promise((_,rj)=>setTimeout(()=>rj(new Error('t')),12000))]);}catch(e){}}}
+  if(typing&&typing.remove)typing.remove();
+  const nt=aurNorm(fl.map(f=>f.name.replace(/[_\-.]+/g,' ')).join(' ')+' '+text);
+  const kind=AVF_KINDS.find(k=>k.rx.test(nt))||null;
+  let expiry='';try{const d=text&&avFindExpiry(text);if(d)expiry=d;}catch(e){}
+  AVF.q={files:fl,kind,text,expiry,plan:null,awaiting:true};
+  avFileAsk();
+}
+function avFileAsk(){
+  const q=AVF.q;if(!q)return;const en=avEn(),n=q.files.length;
+  const sug=avFileSuggest(q),chips=[];
+  sug.assetsM.forEach(x=>chips.push({label:'🏠 '+aurL('Anexar a ','Attach to ')+avAssetLabelFull(x.a),fn:()=>avFilePlan({dest:{type:'asset',id:x.a.id}})}));
+  sug.folders.forEach(x=>chips.push({label:'📁 '+aurL('Documentos','Documents')+' › '+x.path.join(' › '),fn:()=>avFilePlan({dest:{type:'doc',path:x.path}})}));
+  chips.push({label:'📁 '+aurL('Documentos (sem pasta)','Documents (no folder)'),fn:()=>avFilePlan({dest:{type:'doc',path:[]}})});
+  chips.push({label:'➕ '+aurL('Nova pasta…','New folder…'),fn:()=>{AVF.q.ask='folder';aurSay(aurL('Como se chama a pasta? Podes pôr subpastas: «Casa/Seguros».','What’s the folder called? You can nest: “Home/Insurance”.'));}});
+  if(typeof assets!=='undefined'&&assets.length)chips.push({label:'🏠 '+aurL('Anexar a um bem…','Attach to an asset…'),fn:()=>aurSay(aurL('A qual?','Which one?'),assets.slice(0,10).map(a=>({label:avAssetLabelFull(a),fn:()=>avFilePlan({dest:{type:'asset',id:a.id}})})))});
+  if(!q.expiry&&q.files.length===1&&/^image\//.test(q.files[0].type))chips.push({label:'🔍 '+aurL('Ler validade da foto','Read expiry from photo'),fn:()=>avFileOcr()});
+  chips.push({label:aurL('Cancelar','Cancel'),fn:()=>{AVF.q=null;aurSay(aurL('Ok, não guardei nada.','Ok, nothing was saved.'));}});
+  const what=q.kind?aurL(' Parece '+(n>1?'ser ':'uma ')+'<b>'+q.kind.t[0]+'</b>.',' Looks like '+(n>1?'':'a ')+'<b>'+q.kind.t[1]+'</b>.'):'';
+  const exp=q.expiry?aurL('\n⏳ Encontrei a validade <b>','\n⏳ I found the expiry <b>')+aurDate(q.expiry)+'</b>.':'';
+  const heavy=q.files.reduce((s,f)=>s+f.size,0)>15*1048576?aurL('\n⚠️ São ficheiros grandes — o cofre fica mais pesado de gravar e sincronizar.','\n⚠️ These are large files — the vault gets heavier to save and sync.'):'';
+  aurSay('📄 '+aurL(n>1?'Recebi <b>'+n+' ficheiros</b>.':'Recebi <b>'+esc(q.files[0].name)+'</b>.',n>1?'I got <b>'+n+' files</b>.':'I got <b>'+esc(q.files[0].name)+'</b>.')+what+exp+heavy+aurL('\nOnde queres guardar?','\nWhere should I store it?')+'<div class="a-dim" style="margin-top:6px">'+aurL('Ou diz-me por palavras: <i>«cria a pasta Casa/Seguros e guarda lá, chama-lhe Apólice Casa»</i>','Or tell me: <i>“create the folder Home/Insurance and put it there, call it Home Policy”</i>')+'</div>',chips);
+}
+async function avFileOcr(){
+  const q=AVF.q;if(!q)return;aurSay(aurL('🔍 A ler a foto… (na 1.ª vez descarrega o leitor)','🔍 Reading the photo… (the first time it downloads the reader)'));
+  try{const t=await avOcrText(q.files[0].data);q.text=(q.text||'')+'\n'+t;const d=avFindExpiry(t);if(d){q.expiry=d;}const nt=aurNorm(t);if(!q.kind)q.kind=AVF_KINDS.find(k=>k.rx.test(nt))||null;}
+  catch(e){aurSay(aurL('Não consegui ler a foto (sem internet na 1.ª vez?).','Couldn’t read the photo (no Internet the first time?).'));}
+  avFileAsk();
+}
+function avFileParse(raw){
+  const r=' '+raw.trim()+' ',n=aurNorm(raw),out={};
+  const STOP='(?=\\s+(?:e|and)\\s+(?:guarda|guardar|guarde|p[õo]e|mete|coloca|save|put|store)|\\s*[,;.]|\\s+(?:chama|call|name|com\\s+(?:a\\s+)?validade|validade|v[aá]lid|expir)|\\s*$)';
+  if(/^(cancela|cancelar|nao|não|esquece|cancel|no|stop)$/i.test(raw.trim()))return {cancel:true};
+  let m;
+  if((m=r.match(new RegExp('(?:cria|criar|crie|faz|faca|faça|nova|novo|create|make|new)\\s+(?:uma\\s+|a\\s+|the\\s+|a new\\s+)?(?:nova\\s+)?(?:pasta|folder)\\s+(?:chamada\\s+|called\\s+|com o nome\\s+|named\\s+)?[«"]?([^»",;]+?)[»"]?'+STOP,'i'))))out.dest={type:'doc',path:m[1].split(/\s*[\/›>]\s*/).filter(Boolean),create:true};
+  else if((m=r.match(new RegExp('(?:documentos|documents)\\s*[›>\\/]\\s*([^,;]+?)'+STOP,'i'))))out.dest={type:'doc',path:m[1].split(/\s*[\/›>]\s*/).filter(Boolean)};
+  else if((m=r.match(new RegExp('(?:na|numa|para a|em|dentro da|in|into|to)\\s+(?:the\\s+)?(?:pasta|folder)\\s+[«"]?([^»",;]+?)[»"]?'+STOP,'i'))))out.dest={type:'doc',path:m[1].split(/\s*[\/›>]\s*/).filter(Boolean)};
+  else if((m=r.match(new RegExp('(?:garantia|ve[íi]culo|carro|mota|licen[cç]a|\\bbem\\b|\\bbens\\b|warranty|vehicle|\\bcar\\b|licen[cs]e|asset)s?\\s*(?:d[oa]s?|of|to|for)?\\s+([^,;]+?)'+STOP,'i')))&&/\b(anexa|anexar|junta|juntar|poe|mete|coloca|guarda|attach|add|put)\b/.test(n)){
+    const w=aurNorm(m[1]);const kw=/garantia|warranty/.test(n)?'warranty':/veiculo|carro|mota|vehicle|\bcar\b/.test(n)?'vehicle':/licen/.test(n)?'license':null;
+    let best=null,bs=0;(assets||[]).forEach(a=>{const s=avToks(a.name).filter(t=>w.includes(t)).length+(kw&&a.kind===kw?.5:0);if(s>bs){bs=s;best=a;}});
+    if(!best&&kw){const k=(assets||[]).filter(a=>a.kind===kw);if(k.length===1)best=k[0];}
+    out.dest=best?{type:'asset',id:best.id}:{type:'unknown',what:m[1]};
+  }
+  else if((m=r.match(new RegExp('(?:password|acesso|conta|entrada|account|entry)\\s*(?:d[oa]|of|to|for)?\\s+([^,;]+?)'+STOP,'i')))&&/\b(anexa|anexar|junta|juntar|attach)\b/.test(n)){
+    const w=aurNorm(m[1]);let best=null,bs=0;(vault||[]).forEach(v=>{const s=avToks(v.name).filter(t=>w.includes(t)).length;if(s>bs){bs=s;best=v;}});
+    out.dest=best?{type:'entry',id:best.id}:{type:'unknown',what:m[1]};
+  }
+  else if(/\b(sem pasta|na raiz|raiz|so nos documentos|nos documentos|no folder|root)\b/.test(n))out.dest={type:'doc',path:[]};
+  if((m=r.match(/(?:chama[- ]?lhe|chama-se|com o nome|d[aá]-lhe o nome|t[íi]tulo|call it|name it|named|title)\s+[«"]?([^»",;]+?)[»"]?(?=\s*[,;.]|\s+(?:com|e|and|validade|v[aá]lid|expir|na|em|in|into)\b|\s*$)/i)))out.name=m[1].trim();
+  if((m=n.match(/(?:validade|valido ate|valida ate|expira(?:\s+a|\s+em)?|expiry|expires|valid until)\s*:?\s*(.{4,40})/))){const d=aurParseDate(m[1]);if(d){const z=x=>String(x).padStart(2,'0');out.expiry=d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());}}
+  return out;
+}
+function avFileHandleText(raw){
+  const q=AVF.q;if(!q||!q.awaiting||!raw)return false;
+  const dl=aurDetectLang(raw);if(dl)AUR.lang=dl;
+  if(q.ask==='folder'){q.ask=null;const path=raw.split(/\s*[\/›>]\s*/).map(s=>s.trim()).filter(Boolean);if(path.length){avFilePlan({dest:{type:'doc',path,create:true}});return true;}}
+  const p=avFileParse(raw);
+  if(p.cancel){AVF.q=null;aurSay(aurL('Ok, não guardei nada.','Ok, nothing was saved.'));return true;}
+  if(!p.dest&&!p.name&&!p.expiry)return false;
+  if(p.dest&&p.dest.type==='unknown'){aurSay(aurL('Não encontrei «','I couldn’t find “')+esc(p.dest.what)+aurL('». Escolhe um destino:','”. Pick a destination:'));avFileAsk();return true;}
+  avFilePlan(p);return true;
+}
+function avFilePlan(p){
+  const q=AVF.q;if(!q)return;const plan=q.plan||{};
+  if(p.dest)plan.dest=p.dest;if(p.name)plan.name=p.name;if(p.expiry)plan.expiry=p.expiry;
+  if(!plan.dest)plan.dest={type:'doc',path:[]};if(!plan.expiry&&q.expiry)plan.expiry=q.expiry;
+  q.plan=plan;
+  const en=avEn(),n=q.files.length;let where='';
+  if(plan.dest.type==='doc'){
+    let parent=null,exists=true;for(const seg of plan.dest.path){const f=docFolders.find(x=>(x.parentId||null)===parent&&aurNorm(x.name)===aurNorm(seg));if(!f){exists=false;break;}parent=f.id;}
+    where='<b>'+aurL('Documentos','Documents')+(plan.dest.path.length?' › '+plan.dest.path.map(esc).join(' › '):'')+'</b>'+(exists?'':' <span class="a-dim">('+aurL('pasta nova','new folder')+')</span>');
+  }else if(plan.dest.type==='asset'){const a=assets.find(x=>x.id===plan.dest.id);where='<b>'+esc(a?avAssetLabelFull(a):'?')+'</b> <span class="a-dim">('+aurL('anexo','attachment')+')</span>';}
+  else if(plan.dest.type==='entry'){const v=vault.find(x=>x.id===plan.dest.id);where='<b>'+esc(v?v.name:'?')+'</b> <span class="a-dim">('+aurL('anexo da password','password attachment')+')</span>';}
+  const nm=plan.dest.type==='doc'?(n===1?'• <b>'+esc(plan.name||q.files[0].name.replace(/\.[^.]+$/,''))+'</b> ('+esc(q.files[0].name)+')\n':'• <b>'+n+aurL(' ficheiros',' files')+'</b>\n'):'• '+q.files.map(f=>esc(f.name)).join(', ')+'\n';
+  const ex=plan.expiry&&plan.dest.type!=='entry'?'• '+aurL('validade ','expiry ')+'<b>'+aurDate(plan.expiry)+'</b> — '+aurL('aviso-te antes de expirar','I’ll remind you before it expires')+'\n':'';
+  aurSay(aurL('Vou guardar:\n','I’ll store:\n')+nm+'• '+aurL('em ','in ')+where+'\n'+ex+aurL('Confirmas?','Confirm?'),[{label:aurL('Confirmar','Confirm'),fn:()=>avFileSave()},{label:aurL('Mudar destino','Change destination'),fn:()=>{q.plan.dest=null;avFileAsk();}},{label:aurL('Cancelar','Cancel'),fn:()=>{AVF.q=null;aurSay(aurL('Ok, não guardei nada.','Ok, nothing was saved.'));}}]);
+}
+function avFileSave(){
+  const q=AVF.q;if(!q||!q.plan)return;const plan=q.plan,en=avEn(),n=q.files.length;const nid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  let openFn=null,where='';
+  if(plan.dest.type==='doc'){
+    let parent=null;
+    for(const seg of plan.dest.path){let f=docFolders.find(x=>(x.parentId||null)===parent&&aurNorm(x.name)===aurNorm(seg));if(!f){f={id:'f'+nid(),name:seg,icon:'📁',parentId:parent};docFolders.push(f);}parent=f.id;}
+    const made=q.files.map(f=>{const d={id:nid(),title:(n===1&&plan.name)?plan.name:(f.name.replace(/\.[^.]+$/,'')||f.name),cat:(q.kind&&q.kind.cat)||'outro',date:'',expiry:n===1?(plan.expiry||''):'',desc:'',folderId:parent,file:{name:f.name,size:f.size,type:f.type,data:f.data},createdAt:Date.now()};documents.push(d);return d;});
+    where=aurL('Documentos','Documents')+(plan.dest.path.length?' › '+plan.dest.path.join(' › '):'');
+    openFn=()=>{switchTab('docs');currentFolderId=parent;try{renderDocs();}catch(e){}setTimeout(()=>{try{openDocModal(made[0].id);}catch(e){}},200);};
+  }else if(plan.dest.type==='asset'){
+    const a=assets.find(x=>x.id===plan.dest.id);if(!a){aurSay(aurL('Esse bem já não existe.','That asset no longer exists.'));return;}
+    a.attachments=(Array.isArray(a.attachments)?a.attachments:[]).concat(q.files.map(f=>({id:nid(),name:f.name,type:f.type,size:f.size,data:f.data})));
+    if(plan.expiry&&'expiry' in a&&!a.expiry)a.expiry=plan.expiry;
+    where=avAssetLabelFull(a);openFn=()=>{switchTab(a.kind);setTimeout(()=>{try{openAssetModal(a.kind,a.id);}catch(e){}},200);};
+  }else if(plan.dest.type==='entry'){
+    const v=vault.find(x=>x.id===plan.dest.id);if(!v){aurSay(aurL('Essa password já não existe.','That password no longer exists.'));return;}
+    v.attachments=(Array.isArray(v.attachments)?v.attachments:[]).concat(q.files.map(f=>({id:nid(),name:f.name,type:f.type,size:f.size,data:f.data})));
+    where=v.name;openFn=()=>{try{openReadMode(v.id);}catch(e){}};
+  }
+  AVF.q=null;
+  try{logActivity('add',q.files.map(f=>f.name).join(', '),'📎');}catch(e){}
+  markUnsaved();try{renderAll();}catch(e){}
+  aurSay('✓ '+aurL(n>1?'Guardei '+n+' ficheiros em <b>':'Guardado em <b>',n>1?'Stored '+n+' files in <b>':'Stored in <b>')+esc(where)+'</b>.',[{label:aurL('Abrir','Open'),fn:()=>{aurClose();openFn&&openFn();}}]);
+}
+(function(){
+  function wire(){
+    const panel=document.getElementById('aurora-panel'),send=document.getElementById('aurora-send');
+    if(send&&!document.getElementById('aurora-clip')){
+      const b=document.createElement('button');b.id='aurora-clip';b.type='button';b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+      const inp=document.createElement('input');inp.type='file';inp.multiple=true;inp.id='aurora-file';inp.style.display='none';inp.onchange=()=>{const f=inp.files;avFilesReceive(f);inp.value='';};
+      b.onclick=()=>inp.click();send.parentNode.insertBefore(b,send);send.parentNode.appendChild(inp);
+    }
+    const c=document.getElementById('aurora-clip');if(c){const l=avEn()?'Upload files':'Carregar ficheiros';c.title=l;c.setAttribute('aria-label',l);}
+    if(panel&&!panel.dataset.avDrop){
+      panel.dataset.avDrop='1';let dc=0;
+      panel.addEventListener('dragenter',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){dc++;panel.dataset.drop=avEn()?'Drop here to store in the vault':'Larga aqui para guardar no cofre';panel.classList.add('av-drop');}});
+      panel.addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault();});
+      panel.addEventListener('dragleave',()=>{dc=Math.max(0,dc-1);if(!dc)panel.classList.remove('av-drop');});
+      panel.addEventListener('drop',e=>{if(!e.dataTransfer||!e.dataTransfer.files.length)return;e.preventDefault();dc=0;panel.classList.remove('av-drop');avFilesReceive(e.dataTransfer.files);});
+    }
+  }
+  if(typeof auroraOpen==='function'){const ao=auroraOpen;auroraOpen=function(){const r=ao.apply(this,arguments);try{wire();}catch(e){}return r;};}
+  setInterval(()=>{try{if(document.getElementById('aurora-panel'))wire();}catch(e){}},1500);
 })();
 
 </script>
