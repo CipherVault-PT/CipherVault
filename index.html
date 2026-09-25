@@ -1692,6 +1692,96 @@ body::after{bottom:-32vmax;right:-24vmax;
 .aur-al-tx b{color:var(--accent);font-weight:600;}
 .aur-al-x{flex-shrink:0;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:.72rem;padding:4px 6px;border-radius:6px;opacity:.7;}
 .aur-al-x:hover{opacity:1;background:rgba(255,255,255,.06);}
+
+/* ══ v9.70 — barra arrumada (Opção B), ＋ Adicionar, gravação automática, modo simples, primeiros passos ══ */
+.tb-saved{display:inline-flex;align-items:center;gap:7px;background:none!important;border:1px solid transparent!important;color:var(--green,#4caf82)!important;font-family:inherit;font-size:.62rem!important;letter-spacing:1px;text-transform:none!important;padding:6px 8px!important;cursor:pointer;white-space:nowrap}
+.tb-saved .tb-saved-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;flex-shrink:0}
+.tb-saved.dirty{color:var(--accent)!important}.tb-saved.saving .tb-saved-dot{animation:avPulse 1s ease-in-out infinite}
+.tb-saved:hover{border-color:var(--border)!important}
+@keyframes avPulse{50%{opacity:.25}}
+.tb-add{display:inline-flex;align-items:stretch;border-radius:10px;overflow:hidden;border:1px solid rgba(var(--accent-rgb),.75);background:linear-gradient(180deg,rgba(var(--accent-rgb),.92),rgba(var(--accent-rgb),.62));box-shadow:0 8px 22px -12px rgba(var(--accent-rgb),.9);flex-shrink:0}
+.tb-add button{background:none!important;border:none!important;color:#1b1407!important;font-family:inherit;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;letter-spacing:.3px!important;text-transform:none!important;font-size:.72rem!important;padding:8px 13px!important;white-space:nowrap;min-width:0!important;height:auto!important;margin:0!important;box-shadow:none!important}
+.tb-add .tb-add-plus{font-size:.9rem;line-height:1}
+.tb-add .tb-add-chev{border-left:1px solid rgba(27,20,7,.25)!important;padding:8px 10px!important;font-size:.62rem!important}
+.tb-add button:hover{background:rgba(255,255,255,.14)!important}
+@media(min-width:769px){
+  .topbar-actions>.btn-save-file,.topbar-actions>#privacy-btn,.topbar-actions>#cal-topbar-btn,.topbar-actions>button[onclick="openSettings()"],.topbar-actions>#drive-sync-btn,.topbar-actions>.lang-switcher{display:none!important}
+  .topbar-actions #tb-more-btn{display:inline-flex!important;align-items:center;justify-content:center}
+  .topbar-actions .tb-lock-btn #tb-lock-txt{display:none}
+  .topbar{position:relative}
+  .tb-more-menu{position:absolute;top:calc(100% + 6px);right:10px;width:236px;background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.5);padding:7px;z-index:60;transform-origin:top right}
+  .tb-more-menu.open{display:block;animation:tbPop .18s ease}
+  #tb-more-menu .tbm-item{display:flex!important;flex-direction:row!important;align-items:center;gap:12px!important;width:100%!important;min-width:0!important;height:auto!important;padding:11px 12px!important;margin:0!important;border:none!important;border-radius:11px!important;background:transparent!important;color:var(--text)!important;font-family:inherit!important;font-size:.84rem!important;letter-spacing:.2px!important;text-transform:none!important;text-align:left!important;line-height:1.3!important;cursor:pointer}
+  #tb-more-menu .tbm-item:hover,#tb-more-menu .tbm-item:active{background:rgba(var(--accent-rgb),.09)!important}
+  #tb-more-menu .tbm-item svg{width:18px!important;height:18px!important;flex:0 0 auto;color:var(--accent)}
+  #tb-more-menu .tbm-item small{display:block;font-size:.64rem;color:var(--text-muted);margin-top:2px;letter-spacing:.2px;text-transform:none}
+  .tbm-sep{height:1px;background:var(--border);margin:6px 8px}
+  .tbm-lang{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px;font-size:.64rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted)}
+  .tbm-seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+  #tb-more-menu .tbm-seg button{border:none!important;border-radius:0!important;background:transparent;color:var(--text-muted);font-family:inherit!important;font-size:.7rem!important;letter-spacing:1.5px;padding:7px 14px!important;min-width:0!important;height:auto!important;cursor:pointer}
+  #tb-more-menu .tbm-seg button.on{background:var(--accent);color:#0a0e1a;font-weight:700}
+}
+@media(max-width:768px){
+  .topbar-actions>.btn-save-file,#tb-add{display:none!important}
+  .tb-saved{padding:6px 4px!important}.tb-saved #tb-saved-txt{display:none}
+}
+#av-fab-add{display:none;position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:140;width:58px;height:58px;border-radius:50%;border:1px solid rgba(var(--accent-rgb),.8);background:linear-gradient(180deg,rgba(var(--accent-rgb),1),rgba(var(--accent-rgb),.72));color:#1b1407;font-size:1.9rem;line-height:1;align-items:center;justify-content:center;box-shadow:0 14px 30px -10px rgba(var(--accent-rgb),.9);cursor:pointer}
+@media(max-width:768px){body.av-app-on #av-fab-add{display:flex}body.av-app-on #aurora-fab{bottom:calc(env(safe-area-inset-bottom,0px) + 90px)!important}}
+.av-dim{position:fixed;inset:0;z-index:180;background:rgba(3,6,11,.5);display:none}
+.av-dim.open{display:block}
+.av-pop{position:fixed;z-index:190;width:380px;max-width:calc(100vw - 20px);background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 30px 70px -20px rgba(0,0,0,.85);padding:8px;display:none;max-height:calc(100vh - 90px);overflow-y:auto}
+.av-pop.open{display:block;animation:tbPop .18s ease}
+.av-pop h4{font-family:'JetBrains Mono',monospace;font-size:.56rem;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);padding:10px 12px 6px}
+.av-it{display:flex;align-items:center;gap:13px;width:100%;padding:10px 12px;border:none;background:none;border-radius:11px;color:var(--text);text-align:left;cursor:pointer;font-family:inherit}
+.av-it:hover,.av-it.hl{background:rgba(var(--accent-rgb),.1)}
+.av-it .ic{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.av-it.hl .ic{background:rgba(var(--accent-rgb),.2)}
+.av-it b{display:block;font-size:.84rem;font-weight:600}
+.av-it i{display:block;font-style:normal;color:var(--text-muted);font-size:.7rem;margin-top:2px}
+.av-more{display:flex;flex-wrap:wrap;gap:6px;padding:6px 10px 8px}
+.av-more button{border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);border-radius:20px;padding:6px 11px;font-size:.7rem;cursor:pointer;font-family:inherit}
+.av-more button:hover{border-color:rgba(var(--accent-rgb),.6)}
+.av-aur{margin:6px 4px 4px;padding:10px 12px;border-radius:11px;border:1px dashed rgba(106,140,255,.4);background:rgba(106,140,255,.07);color:var(--text-muted);font-size:.74rem;cursor:pointer;width:calc(100% - 8px);text-align:left;font-family:inherit}
+.av-aur b{color:var(--text)}
+@media(max-width:768px){
+  .av-pop.sheet{left:0!important;right:0!important;top:auto!important;bottom:0;width:100%;max-width:none;border-radius:22px 22px 0 0;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:82vh}
+  .av-pop.sheet .av-grab{display:block}
+  .av-pop.sheet .av-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px}
+  .av-pop.sheet .av-it{flex-direction:column;text-align:center;gap:6px;border:1px solid var(--border);padding:12px 6px;background:rgba(255,255,255,.03)}
+  .av-pop.sheet .av-it i{display:none}
+  .av-pop.sheet .av-it b{font-size:.74rem;font-weight:500}
+}
+.av-grab{display:none;width:42px;height:5px;border-radius:5px;background:rgba(255,255,255,.18);margin:2px auto 8px}
+.av-onb{margin-top:14px;border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:20px 22px}
+.av-onb-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.av-onb-h h3{font-family:'Playfair Display',serif;font-weight:500;font-size:1.2rem;color:var(--text)}
+.av-onb-h button{background:none;border:none;color:var(--text-muted);font-size:.7rem;cursor:pointer;font-family:inherit}
+.av-onb-lead{color:var(--text-muted);font-size:.78rem;margin:4px 0 12px}
+.av-onb-bar{height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}
+.av-onb-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#3ce0a0,var(--accent));transition:width .5s ease}
+.av-onb-prog{font-size:.68rem;color:var(--text-muted);margin:6px 0 10px}
+.av-step{display:flex;align-items:center;gap:14px;padding:12px 4px;border-top:1px solid var(--border)}
+.av-step>div:nth-child(2){flex:1;min-width:0}
+.av-step .dot{flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(var(--accent-rgb),.6);display:flex;align-items:center;justify-content:center;font-size:.76rem;color:var(--accent);font-weight:600}
+.av-step.done .dot{background:var(--green,#4caf82);border-color:var(--green,#4caf82);color:#06140d}
+.av-step.done .st{color:var(--text-muted);text-decoration:line-through}
+.av-step .st{font-size:.86rem;color:var(--text)}
+.av-step .sd{font-size:.72rem;color:var(--text-muted);margin-top:2px}
+.av-step .sb{flex-shrink:0;padding:7px 14px;border-radius:9px;border:1px solid rgba(var(--accent-rgb),.55);color:var(--accent);background:none;font-size:.74rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.av-step.next{background:rgba(var(--accent-rgb),.06);border-radius:12px;border-top-color:transparent}
+.av-step.next .sb{background:linear-gradient(180deg,rgba(var(--accent-rgb),.92),rgba(var(--accent-rgb),.62));color:#1b1407;font-weight:600;border-color:transparent}
+.av-opt{font-size:.6rem;color:var(--text-muted);border:1px solid var(--border);border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.av-tip{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed rgba(106,140,255,.35);background:rgba(106,140,255,.06);font-size:.76rem;color:var(--text-muted);line-height:1.55;cursor:pointer}
+.av-tip b{color:var(--text)}
+@media(max-width:768px){.av-step{flex-wrap:wrap;gap:6px 12px}.av-step>div:nth-child(2){flex:1 1 calc(100% - 44px)}.av-step .sb{margin-left:40px}}
+.av-set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--border)}
+.av-set-row:first-of-type{border-top:none}
+.av-set-row b{display:block;font-size:.76rem;color:var(--text);font-weight:600}
+.av-set-row small{display:block;font-size:.66rem;color:var(--text-muted);line-height:1.5;margin-top:3px}
+.av-seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;flex-shrink:0}
+.av-seg button{border:none;background:transparent;color:var(--text-muted);padding:8px 12px;font-size:.68rem;cursor:pointer;font-family:inherit}
+.av-seg button.on{background:rgba(var(--accent-rgb),.9);color:#1b1407;font-weight:600}
+body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tabs-wifi,body.av-simple .dash-cards,body.av-simple #dash-subs-section.av-empty{display:none!important}
 </style>
 </head>
 <body>
@@ -2037,7 +2127,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.69</span>
+      <span>Aurora Vault © 2026 · v9.71</span>
     </div>
   </div>
 </div>
@@ -2068,7 +2158,9 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button onclick="driveSyncNow()" id="drive-sync-btn" title="Sincronizar agora" style="display:none"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span class="tb-label" id="tb-sync-txt">Sincronizar</span><span class="tb-mini" id="tbm-sync">Sinc.</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
       <span class="autolock-badge" id="drive-chip" style="display:none;cursor:pointer" onclick="openSettings()"></span>
-      <button onclick="lockApp()">
+      <button class="tb-saved" id="tb-save-state" onclick="avSaveClick()" title="Guardado"><i class="tb-saved-dot"></i><span id="tb-saved-txt">Guardado</span></button>
+      <div class="tb-add" id="tb-add"><button class="tb-add-main" id="tb-add-main" onclick="avAddMain(event)"><span class="tb-add-plus">＋</span><span id="tb-add-txt">Adicionar</span></button><button class="tb-add-chev" id="tb-add-chev" onclick="avAddMenu(event)" aria-label="Escolher o que adicionar" title="Escolher o que adicionar">▾</button></div>
+      <button onclick="lockApp()" class="tb-lock-btn">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span id="tb-lock-txt">Bloquear</span><span class="tb-mini" id="tbm-lock">Bloquear</span>
       </button>
@@ -2446,7 +2538,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.69</span>
+      <span>Aurora Vault © 2026 · v9.71</span>
     </div>
   </div>
   </div>
@@ -2733,6 +2825,11 @@ body::after{bottom:-32vmax;right:-24vmax;
       <button class="btn btn-ghost" onclick="toggleNotifs()" style="width:100%;padding:11px">🔔 <span id="s-notif-btn-txt">Avisos</span>: <span id="notif-state">Desligadas</span></button>
     </div>
 
+    <div class="settings-section">
+      <div class="settings-title" id="s-use-title">🧭 Utilização</div>
+      <div class="av-set-row"><div><b id="s-autosave-lbl">Gravação automática</b><small id="s-autosave-desc">Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.</small></div><button class="btn btn-ghost" id="s-autosave-btn" onclick="avToggleAutosave()">Ligada</button></div>
+      <div class="av-set-row"><div><b id="s-mode-lbl">Modo da app</b><small id="s-mode-desc">Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).</small></div><div class="av-seg"><button id="s-mode-simple" onclick="avSetMode('simple')">Simples</button><button id="s-mode-full" onclick="avSetMode('full')">Completo</button></div></div>
+    </div>
     <div class="settings-section">
       <div class="settings-title" id="s-drive-title">☁️ Sincronizar com a Google Drive</div>
       <div id="s-drive-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Mantém o mesmo cofre no computador e no telemóvel. O que vai para a Drive é o ficheiro já encriptado — a Google nunca vê o conteúdo. Sem rede, a app usa a cópia guardada por dentro e envia as alterações quando voltares a ter ligação.</div>
@@ -3033,6 +3130,7 @@ body::after{bottom:-32vmax;right:-24vmax;
       <label id="sc-number-lbl">Número do cartão</label>
       <input type="text" id="sc-number" placeholder="O número por baixo do código de barras" inputmode="numeric">
       <div id="sc-number-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Escreve os dígitos que aparecem no teu cartão (por baixo do código de barras).</div>
+      <button type="button" class="btn btn-ghost" id="sc-scan-btn" onclick="avScanStore()" style="display:none;width:100%;margin-top:8px;padding:9px">📷 Ler com a câmara</button>
     </div>
     <div class="form-group">
       <label id="sc-color-lbl">Cor</label>
@@ -3421,6 +3519,8 @@ body::after{bottom:-32vmax;right:-24vmax;
     <div class="form-group">
       <label id="doc-expiry-lbl">Validade <span style="font-size:.56rem;color:var(--text-muted)">(opcional)</span></label>
       <input type="date" id="doc-expiry">
+      <button type="button" class="btn btn-ghost" id="doc-ocr-btn" onclick="avOcrDoc()" style="width:100%;margin-top:8px;padding:9px">🔍 Ler a validade da foto</button>
+      <div id="doc-ocr-status" style="display:none;font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6"></div>
     </div>
     <div class="form-group">
       <label id="doc-desc-lbl">Descrição</label>
@@ -3540,7 +3640,7 @@ body::after{bottom:-32vmax;right:-24vmax;
     }
   }catch(e){}
 })();
-const APP_VERSION='9.69';
+const APP_VERSION='9.71';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4795,6 +4895,7 @@ async function submitNewVault(){
   const salt=crypto.getRandomValues(new Uint8Array(16));
   masterKey=await deriveKey(p1,salt);
   window._salt=salt;vault=[];notes=[];bankCards=[];
+  try{localStorage.setItem('av_mode','simple');localStorage.removeItem('av_onb_hide');}catch(e){}
   doUnlock();
 }
 // Keep old names as aliases for drag-drop compatibility
@@ -5412,6 +5513,10 @@ function applyPendingGo(){
   setTimeout(()=>{
     try{
       if(g==='cal'){if(typeof openCalendar==='function')openCalendar();}
+      else if(g==='add'){if(typeof avAddMenu==='function')avAddMenu();}
+      else if(g==='note'){if(typeof avAddType==='function')avAddType('note');}
+      else if(g==='share'){if(typeof avShareImport==='function')avShareImport();}
+      else if(g==='search'){const si=document.getElementById('search-input');if(window.matchMedia&&matchMedia('(max-width:768px)').matches&&typeof tbToggleSearch==='function')tbToggleSearch();else if(si)si.focus();}
       else if(['vault','totp','store','cards','docs','notes','info','warranty','license','vehicle','dates'].includes(g))switchTab(g);
     }catch(e){}
   },700);
@@ -8398,10 +8503,12 @@ async function downloadBackupNow(){
     toast(en?'Could not create the backup.':'Não foi possível criar a cópia.');
   }
 }
-async function saveFile(){
-  if(presentationMode){toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
+async function saveFile(opts){
+  const auto=!!(opts&&opts.auto);
+  if(presentationMode){if(auto)return;toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
   if(vaultReadOnly){
+    if(auto)return;
     alert(currentLang==='en'
       ?'Saving is blocked: this vault comes from a newer version of the app. Update Aurora Vault first.'
       :'Gravação bloqueada: este cofre vem de uma versão mais recente da app. Atualiza o Aurora Vault primeiro.');
@@ -8413,9 +8520,16 @@ async function saveFile(){
   const json=JSON.stringify(container);pendingVaultText=json;
   const dateStr=new Date().toISOString().slice(0,10);
   lastSavedAt=Date.now();
-  pushSnapshot(container);
+  if(!auto||Date.now()-(+localStorage.getItem('av_snap_at')||0)>10*60e3){pushSnapshot(container);try{localStorage.setItem('av_snap_at',String(Date.now()));}catch(e){}}
   try{await localVaultSave(json,!driveOn());}catch(e){}
-  try{driveAfterSave(json);}catch(e){}
+  if(auto){try{await driveAfterSave(json);}catch(e){}}else{try{driveAfterSave(json);}catch(e){}}
+  if(auto){ // gravação automática: nunca abre janelas nem descarrega ficheiros
+    let wrote=false,synced=false;
+    if(vaultFileHandle){try{if((await vaultFileHandle.queryPermission({mode:'readwrite'}))==='granted'){const w=await vaultFileHandle.createWritable();await w.write(pendingVaultText||json);await w.close();wrote=true;}}catch(e){}}
+    try{if(driveOn()){const loc=await localVaultGet();synced=!(loc&&loc.pending);}}catch(e){}
+    if(wrote||synced)markSaved();
+    return {wrote,synced};
+  }
   // Sem handle mas com API: escolher onde guardar (uma vez)
   if(!vaultFileHandle&&FSA_OK){
     try{
@@ -9287,8 +9401,9 @@ function tbToggleMore(ev){
   const item=(fn,ico,lbl,sub)=>'<button class="tbm-item" role="menuitem" onclick="tbCloseMore();'+fn+'">'+ico+'<span>'+lbl+(sub?'<small>'+sub+'</small>':'')+'</span></button>';
   let driveOnNow=false;try{driveOnNow=typeof driveOn==='function'&&driveOn();}catch(e){}
   const chip=document.getElementById('drive-chip');const chipTxt=chip&&chip.textContent?chip.textContent.trim():'';
-  let h=item('openCalendar()',I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),en?'Calendar':'Calendário','');
+  let h=avMoreTop(item,I,en)+item('openCalendar()',I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),en?'Calendar':'Calendário','');
   if(driveOnNow)h+=item('driveSyncNow()',I('<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>'),en?'Sync now':'Sincronizar agora',chipTxt||'Google Drive');
+  h+=avMoreMid(item,I,en);
   h+=item('openSettings()',I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),en?'Settings':'Definições','');
   if(typeof auroraOpen==='function')h+=item('auroraOpen()',I('<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/>'),'Aurora AI',en?'Your offline assistant':'A tua assistente offline');
   h+='<div class="tbm-sep"></div><div class="tbm-lang"><span>'+(en?'Language':'Idioma')+'</span><div class="tbm-seg"><button class="'+(en?'':'on')+'" onclick="setLang(\'pt\');tbCloseMore()">PT</button><button class="'+(en?'on':'')+'" onclick="setLang(\'en\');tbCloseMore()">ENG</button></div></div>';
@@ -10804,12 +10919,14 @@ function buildManifest(){
   const mf={name:prefs.name,short_name:prefs.name.slice(0,12),description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:'.',display:'standalone',background_color:bg,theme_color:bg,orientation:'any',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
   const en_=currentLang==='en';
   const shIc=e=>`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='${encBg}'/%3E%3Ctext x='48' y='68' font-size='52' text-anchor='middle'%3E${encodeURIComponent(e)}%3C/text%3E%3C/svg%3E`;
+  let base='./';try{if(/^https?:$/.test(location.protocol))base=new URL('./',location.href).href;}catch(e){}
   mf.shortcuts=[
-    {name:en_?'2FA codes':'Códigos 2FA',short_name:'2FA',url:'./?go=totp',icons:[{src:shIc('🔢'),sizes:'96x96',type:'image/svg+xml'}]},
-    {name:en_?'Store cards':'Cartões Loja',short_name:en_?'Cards':'Lojas',url:'./?go=store',icons:[{src:shIc('🎟️'),sizes:'96x96',type:'image/svg+xml'}]},
-    {name:en_?'Passwords':'Passwords',short_name:en_?'Vault':'Cofre',url:'./?go=vault',icons:[{src:shIc('🔐'),sizes:'96x96',type:'image/svg+xml'}]},
-    {name:en_?'Calendar':'Calendário',short_name:en_?'Calendar':'Datas',url:'./?go=cal',icons:[{src:shIc('📅'),sizes:'96x96',type:'image/svg+xml'}]}
+    {name:en_?'Add':'Adicionar',short_name:en_?'Add':'Adicionar',url:base+'?go=add',icons:[{src:shIc('＋'),sizes:'96x96',type:'image/svg+xml'}]},
+    {name:en_?'2FA codes':'Códigos 2FA',short_name:'2FA',url:base+'?go=totp',icons:[{src:shIc('🔢'),sizes:'96x96',type:'image/svg+xml'}]},
+    {name:en_?'Store cards':'Cartões de loja',short_name:en_?'Cards':'Lojas',url:base+'?go=store',icons:[{src:shIc('🎟️'),sizes:'96x96',type:'image/svg+xml'}]},
+    {name:en_?'Search':'Pesquisar',short_name:en_?'Search':'Pesquisar',url:base+'?go=search',icons:[{src:shIc('🔍'),sizes:'96x96',type:'image/svg+xml'}]}
   ];
+  mf.share_target={action:base+'share-target',method:'POST',enctype:'multipart/form-data',params:{title:'title',text:'text',url:'url',files:[{name:'files',accept:['image/*','application/pdf','.pdf']}]}};
   const link=document.getElementById('pwa-manifest');
   if(link)link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
 }
@@ -13763,6 +13880,307 @@ function aurAlertsRender(){
   box.innerHTML='<div class="aur-al-h">✨ Aurora · '+(en?'Heads-up':'Avisos')+'</div>'+list.map((a,i)=>'<div class="aur-al-row" role="button" tabindex="0" onclick="aurAlertGo('+i+')" onkeydown="if(event.key===\'Enter\')aurAlertGo('+i+')"><span class="aur-al-ic">'+a.ic+'</span><span class="aur-al-tx">'+a.html+'</span><button class="aur-al-x" title="'+(en?'Dismiss until tomorrow':'Dispensar até amanhã')+'" onclick="aurAlertDismiss(\''+a.k.replace(/['"\\<>]/g,'')+'\',event)">✕</button></div>').join('');
 }
 (function(){if(typeof renderGreeting!=='function')return;const _rg=renderGreeting;renderGreeting=function(){const r=_rg.apply(this,arguments);try{aurAlertsRender();}catch(e){}return r;};})();
+
+
+/* ══ v9.70 — ＋ ADICIONAR · GRAVAÇÃO AUTOMÁTICA · MODO SIMPLES/COMPLETO · PRIMEIROS PASSOS ══ */
+const AV_ADD=[
+ {k:'password',ic:'🔑',t:['Password','Password'],d:['Login de um site ou app','Login for a site or app'],n:['Nova password','New password'],tab:'vault',run:()=>openModal()},
+ {k:'card',ic:'💳',t:['Cartão bancário','Bank card'],d:['Número, validade e banco','Number, expiry and bank'],n:['Novo cartão','New card'],tab:'cards',run:()=>openCardModal()},
+ {k:'store',ic:'🎟️',t:['Cartão de loja','Store card'],d:['Mostra o código de barras na caixa','Shows the barcode at the till'],n:['Novo cartão de loja','New store card'],tab:'store',run:()=>openStoreModal()},
+ {k:'doc',ic:'📄',t:['Documento','Document'],d:['Foto ou PDF — CC, seguro, fatura','Photo or PDF — ID, insurance, invoice'],n:['Novo documento','New document'],tab:'docs',run:()=>openDocModal()},
+ {k:'note',ic:'📝',t:['Nota','Note'],d:['Texto privado e encriptado','Private, encrypted text'],n:['Nova nota','New note'],tab:'notes',run:()=>newNote()},
+ {k:'totp',ic:'🔐',t:['Código 2FA','2FA code'],d:['Os códigos de 6 dígitos','The 6-digit codes'],n:['Novo código 2FA','New 2FA code'],tab:'totp',run:()=>{if(typeof aurTotpLocked==='function'&&aurTotpLocked()){toast(currentLang==='en'?'Unlock the 2FA vault first — then tap “New 2FA code”.':'Desbloqueia primeiro o cofre 2FA — depois toca em «Novo código 2FA».');return;}openTotpModal();}}
+];
+const AV_ADD_MORE=[
+ {k:'warranty',ic:'🧾',t:['Garantia','Warranty'],n:['Nova garantia','New warranty'],tab:'warranty',run:()=>openAssetModal('warranty')},
+ {k:'vehicle',ic:'🚗',t:['Veículo','Vehicle'],n:['Novo veículo','New vehicle'],tab:'vehicle',run:()=>openAssetModal('vehicle')},
+ {k:'license',ic:'🪪',t:['Licença','Licence'],n:['Nova licença','New licence'],tab:'license',run:()=>openAssetModal('license')},
+ {k:'date',ic:'📅',t:['Data importante','Important date'],n:['Nova data','New date'],tab:'dates',run:()=>openAssetModal('dates')},
+ {k:'sub',ic:'🔁',t:['Subscrição','Subscription'],tab:null,run:()=>openSubModal()},
+ {k:'wifi',ic:'📶',t:['Rede Wi-Fi','Wi-Fi network'],tab:null,run:()=>openWifiManager()}
+];
+const AV_TAB_ADD={vault:'password',totp:'totp',cards:'card',store:'store',docs:'doc',notes:'note',warranty:'warranty',vehicle:'vehicle',license:'license',dates:'date'};
+let avCurTab='dashboard';
+const avEn=()=>typeof currentLang!=='undefined'&&currentLang==='en';
+const avT=a=>a?(avEn()?a[1]:a[0]):'';
+function avIsDesk(){return !(window.matchMedia&&matchMedia('(max-width:768px)').matches);}
+function avFind(k){return AV_ADD.concat(AV_ADD_MORE).find(x=>x.k===k);}
+function avAddType(k){
+  const t=avFind(k);if(!t)return;avAddClose();
+  try{if(t.tab&&typeof switchTab==='function')switchTab(t.tab);}catch(e){}
+  setTimeout(()=>{try{t.run();}catch(e){console.warn('Adicionar:',e);}},80);
+}
+function avAddMain(e){if(e)e.stopPropagation();const k=AV_TAB_ADD[avCurTab];if(k)avAddType(k);else avAddMenu(e);}
+function avAddLabel(){
+  const el=document.getElementById('tb-add-txt');if(!el)return;
+  const k=AV_TAB_ADD[avCurTab],t=k&&avFind(k);
+  el.textContent=t?avT(t.n):(avEn()?'Add':'Adicionar');
+  const main=document.getElementById('tb-add-main');if(main)main.title=el.textContent;
+  const ch=document.getElementById('tb-add-chev');if(ch){const l=avEn()?'Choose what to add':'Escolher o que adicionar';ch.title=l;ch.setAttribute('aria-label',l);}
+  const fab=document.getElementById('av-fab-add');if(fab)fab.setAttribute('aria-label',avEn()?'Add':'Adicionar');
+}
+function avAddClose(){const p=document.getElementById('av-add-pop'),d=document.getElementById('av-add-dim');if(p)p.classList.remove('open');if(d)d.classList.remove('open');}
+function avAddMenu(e){
+  if(e)e.stopPropagation();
+  let p=document.getElementById('av-add-pop'),d=document.getElementById('av-add-dim');
+  if(p&&p.classList.contains('open')){avAddClose();return;}
+  if(!p){d=document.createElement('div');d.id='av-add-dim';d.className='av-dim';d.onclick=avAddClose;document.body.appendChild(d);
+    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';p.setAttribute('role','menu');p.onclick=ev=>ev.stopPropagation();document.body.appendChild(p);}
+  const en=avEn(),full=avMode()==='full';
+  p.innerHTML='<div class="av-grab"></div><h4>'+(en?'What do you want to store?':'O que queres guardar?')+'</h4><div class="av-list">'
+   +AV_ADD.map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" onclick="avAddType(\''+t.k+'\')"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
+   +(full?'<h4>'+(en?'More':'Mais')+'</h4><div class="av-more">'+AV_ADD_MORE.map(t=>'<button onclick="avAddType(\''+t.k+'\')">'+t.ic+' '+avT(t.t)+'</button>').join('')+'</div>':'')
+   +'<button class="av-aur" onclick="avAddClose();if(typeof auroraOpen===\'function\')auroraOpen()">✨ '+(en?'Or tell Aurora: <b>"add Netflix"</b>':'Ou escreve à Aurora: <b>"adiciona a Netflix"</b>')+'</button>';
+  if(avIsDesk()){
+    p.classList.remove('sheet');d.classList.remove('open');
+    const a=document.getElementById('tb-add');const r=a?a.getBoundingClientRect():{bottom:60,right:window.innerWidth-20};
+    p.style.top=Math.round(r.bottom+8)+'px';p.style.right=Math.max(10,Math.round(window.innerWidth-r.right))+'px';p.style.left='auto';p.style.bottom='auto';
+  }else{p.classList.add('sheet');p.style.top='auto';p.style.right='0';p.style.left='0';d.classList.add('open');}
+  p.classList.add('open');
+}
+document.addEventListener('click',e=>{const p=document.getElementById('av-add-pop');if(p&&p.classList.contains('open')&&!p.contains(e.target))avAddClose();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')avAddClose();});
+
+/* ── gravação automática ── */
+let avSeq=0,avSaving=false,_avAsT=0,_avAsBusy=false;
+function autoSaveOn(){try{return localStorage.getItem('av_autosave')!=='0';}catch(e){return true;}}
+function avToggleAutosave(){try{localStorage.setItem('av_autosave',autoSaveOn()?'0':'1');}catch(e){}avRenderSettings();avRenderSaveState();if(autoSaveOn()&&hasUnsaved)avScheduleAutoSave();toast(autoSaveOn()?(avEn()?'Autosave on.':'Gravação automática ligada.'):(avEn()?'Autosave off — use “Save file now” in the ⋯ menu.':'Gravação automática desligada — usa «Guardar ficheiro agora» no menu ⋯.'));}
+function avScheduleAutoSave(){
+  if(!autoSaveOn()||presentationMode||!masterKey||(typeof vaultReadOnly!=='undefined'&&vaultReadOnly))return;
+  clearTimeout(_avAsT);_avAsT=setTimeout(avAutoSaveRun,2500);
+}
+async function avAutoSaveRun(){
+  if(!hasUnsaved||!masterKey)return;
+  if(_avAsBusy||document.querySelector('.modal-overlay.open,.open[id$="-overlay"]')){_avAsT=setTimeout(avAutoSaveRun,2500);return;}
+  _avAsBusy=true;avSaving=true;avRenderSaveState();
+  const seq=avSeq;
+  try{await saveFile({auto:true});}catch(e){}
+  _avAsBusy=false;avSaving=false;
+  if(avSeq!==seq){hasUnsaved=true;const b=document.querySelector('.btn-save-file');if(b)b.classList.add('has-changes');avScheduleAutoSave();}
+  avRenderSaveState();
+}
+function avRenderSaveState(){
+  const b=document.getElementById('tb-save-state'),tx=document.getElementById('tb-saved-txt');if(!b||!tx)return;
+  const en=avEn();let cls='',txt,tip;
+  if(avSaving){cls='saving';txt=en?'Saving…':'A gravar…';tip=txt;}
+  else if(hasUnsaved){cls='dirty';txt=autoSaveOn()?(en?'Saving soon':'Por gravar'):(en?'Not saved':'Por gravar');tip=en?'Unsaved changes — tap to save now':'Alterações por gravar — toca para gravar já';}
+  else{txt=en?'Saved':'Guardado';tip=autoSaveOn()?(en?'Saved automatically — tap to save the file now':'Gravado automaticamente — toca para gravar o ficheiro já'):(en?'Saved':'Gravado');}
+  b.className='tb-saved'+(cls?' '+cls:'');tx.textContent=txt;b.title=tip;b.setAttribute('aria-label',tip);
+}
+function avSaveClick(){clearTimeout(_avAsT);saveFile();}
+(function(){
+  if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){const r=mu.apply(this,arguments);if(!presentationMode){avSeq++;avRenderSaveState();avScheduleAutoSave();}return r;};}
+  if(typeof markSaved==='function'){const ms=markSaved;markSaved=function(){const r=ms.apply(this,arguments);avRenderSaveState();setTimeout(()=>{try{avOnboardRender();}catch(e){}},50);return r;};}
+})();
+
+/* ── modo simples / completo ── */
+function avMode(){try{return localStorage.getItem('av_mode')==='simple'?'simple':'full';}catch(e){return 'full';}}
+function avApplyMode(){
+  const simple=avMode()==='simple';document.body.classList.toggle('av-simple',simple);
+  const subs=document.getElementById('dash-subs-section');if(subs)subs.classList.toggle('av-empty',!(typeof subscriptions!=='undefined'&&subscriptions.length));
+  if(simple&&typeof groupOfTab==='function'&&['bens','archive'].includes(groupOfTab(avCurTab))&&typeof switchTab==='function')switchTab('dashboard');
+}
+function avSetMode(m){try{localStorage.setItem('av_mode',m==='simple'?'simple':'full');}catch(e){}avApplyMode();avRenderSettings();try{renderDashboard();}catch(e){}toast(m==='simple'?(avEn()?'Simple mode — only the essentials.':'Modo Simples — só o essencial.'):(avEn()?'Complete mode — every feature visible.':'Modo Completo — todas as funções à vista.'));}
+function avRenderSettings(){
+  const en=avEn(),s=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
+  s('s-use-title',en?'🧭 Usage':'🧭 Utilização');
+  s('s-autosave-lbl',en?'Autosave':'Gravação automática');
+  s('s-autosave-desc',en?'Saves by itself after every change — to the file (once it has permission) and to Drive.':'Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.');
+  s('s-autosave-btn',autoSaveOn()?(en?'On':'Ligada'):(en?'Off':'Desligada'));
+  s('s-mode-lbl',en?'App mode':'Modo da app');
+  s('s-mode-desc',en?'Simple: just the essentials. Complete: every feature (assets, archive, reports…).':'Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).');
+  s('s-mode-simple',en?'Simple':'Simples');s('s-mode-full',en?'Complete':'Completo');
+  const a=document.getElementById('s-mode-simple'),b=document.getElementById('s-mode-full');
+  if(a)a.classList.toggle('on',avMode()==='simple');if(b)b.classList.toggle('on',avMode()==='full');
+}
+function avMoreTop(item,I,en){
+  if(!avIsDesk())return '';
+  const on=typeof privacyOn!=='undefined'&&privacyOn;
+  return item('togglePrivacy()',I('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),on?(en?'Privacy mode · on':'Modo privado · ligado'):(en?'Privacy mode':'Modo de privacidade'),'');
+}
+function avMoreMid(item,I,en){
+  let h=item('saveFile()',I('<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'),en?'Save file now':'Guardar ficheiro agora',autoSaveOn()?(en?'Autosave is on':'Gravação automática ligada'):'');
+  if(avMode()==='simple')h+=item("switchGroup('archive')",I('<rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/>'),en?'Archive & trash':'Arquivo e reciclagem','');
+  return h;
+}
+
+/* ── primeiros passos (cofres novos) ── */
+async function avOnbSteps(){
+  let quick=false;
+  try{quick=!!(await getPinRec());}catch(e){}
+  if(!quick){try{quick=!!(await idbGet('qu_bio'));}catch(e){}}
+  let bk=false;try{bk=(typeof driveOn==='function'&&driveOn())||!!localStorage.getItem('cv_lastbk')||localStorage.getItem('av_bk_done')==='1';}catch(e){}
+  const V=typeof vault!=='undefined'?vault:[];
+  return [
+    {k:'create',done:true,t:['Criar o teu cofre','Create your vault']},
+    {k:'pw',done:V.length>0,t:['Guardar a primeira password','Store your first password'],d:['Por exemplo, a do teu email. Demora 30 segundos.','For example, your email. Takes 30 seconds.'],b:['Adicionar','Add'],fn:"avAddType('password')"},
+    {k:'quick',done:quick,t:['Entrar com PIN ou impressão digital','Unlock with PIN or fingerprint'],d:['Para não teres de escrever a palavra-passe mestra sempre.','So you don’t have to type the master password every time.'],b:['Configurar','Set up'],fn:"openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('seguranca')"},
+    {k:'bk',done:bk,t:['Guardar uma cópia de segurança','Make a backup copy'],d:['Se perderes o telemóvel, não perdes nada.','If you lose your phone, you lose nothing.'],b:['Fazer cópia','Back up'],fn:'avOnbBackup()'},
+    {k:'imp',opt:true,done:localStorage.getItem('av_imp_done')==='1',t:['Trazer as passwords do Chrome','Bring your passwords from Chrome'],d:['Importa tudo de uma vez em vez de escrever.','Import everything at once instead of typing.'],b:['Importar','Import'],fn:"openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('dados')"}
+  ];
+}
+function avOnbBackup(){try{downloadBackupNow();localStorage.setItem('av_bk_done','1');}catch(e){}setTimeout(()=>{try{avOnboardRender();}catch(e){}},600);}
+function avOnbHide(){try{localStorage.setItem('av_onb_hide','1');}catch(e){}const b=document.getElementById('av-onboard');if(b)b.remove();}
+let _avOnbRun=0;
+async function avOnboardRender(){
+  const run=++_avOnbRun;
+  const host=document.getElementById('dash-greeting');
+  let box=document.getElementById('av-onboard');
+  if(!host||typeof masterKey==='undefined'||!masterKey||presentationMode||localStorage.getItem('av_onb_hide')==='1'){if(box)box.remove();return;}
+  const st=await avOnbSteps();if(run!==_avOnbRun)return;
+  const req=st.filter(s=>!s.opt),done=req.filter(s=>s.done).length;
+  if(done===req.length){if(box)box.remove();return;}
+  if(!box){box=document.createElement('div');box.id='av-onboard';box.className='av-onb';}
+  if(box.previousElementSibling!==host)host.insertAdjacentElement('afterend',box);
+  const en=avEn(),nextK=(st.find(s=>!s.done&&!s.opt)||{}).k;let n=0;
+  box.innerHTML='<div class="av-onb-h"><h3>'+(en?'First steps':'Primeiros passos')+'</h3><button onclick="avOnbHide()">'+(en?'Hide':'Esconder')+'</button></div>'
+   +'<p class="av-onb-lead">'+(en?'A few quick steps and your vault is ready to use.':'Uns passos rápidos e o teu cofre fica pronto a usar.')+'</p>'
+   +'<div class="av-onb-bar"><i style="width:'+Math.round(done/req.length*100)+'%"></i></div><div class="av-onb-prog">'+done+(en?' of ':' de ')+req.length+(en?' done':' concluídos')+'</div>'
+   +st.map(s=>{if(!s.opt)n++;return '<div class="av-step'+(s.done?' done':'')+(s.k===nextK?' next':'')+'"><div class="dot">'+(s.done?'✓':(s.opt?'＋':n))+'</div><div><div class="st">'+avT(s.t)+(s.opt?'<span class="av-opt">'+(en?'optional':'opcional')+'</span>':'')+'</div>'+(s.done||!s.d?'':'<div class="sd">'+avT(s.d)+'</div>')+'</div>'+(s.done||!s.fn?'':'<button class="sb" onclick="'+s.fn+'">'+avT(s.b)+'</button>')+'</div>';}).join('')
+   +'<div class="av-tip" onclick="if(typeof auroraOpen===\'function\')auroraOpen()">💡 '+(en?'Not sure where to start? Tell Aurora, for example: <b>"save my Gmail password"</b> — she does the rest.':'Não sabes por onde começar? Escreve à Aurora, por exemplo: <b>"guarda a password do Gmail"</b> — ela trata do resto.')+'</div>';
+}
+
+/* ── ligações à app existente ── */
+(function(){
+  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const r=st.apply(this,arguments);avCurTab=t;avAddLabel();return r;};}
+  if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avApplyMode();avOnboardRender();}catch(e){}return r;};}
+  if(typeof setLang==='function'){const sl=setLang;setLang=function(){const r=sl.apply(this,arguments);try{avAddLabel();avRenderSaveState();avRenderSettings();avOnboardRender();}catch(e){}return r;};}
+  if(typeof openSettings==='function'){const os=openSettings;openSettings=function(){const r=os.apply(this,arguments);try{avRenderSettings();}catch(e){}return r;};}
+  if(typeof importCSV==='function'){const ic=importCSV;importCSV=function(){try{localStorage.setItem('av_imp_done','1');}catch(e){}return ic.apply(this,arguments);};}
+  const fab=document.createElement('button');fab.id='av-fab-add';fab.type='button';fab.textContent='＋';fab.setAttribute('aria-label','Adicionar');fab.onclick=e=>avAddMenu(e);document.body.appendChild(fab);
+  setInterval(()=>{const on=typeof masterKey!=='undefined'&&!!masterKey&&!presentationMode&&document.getElementById('app')&&document.getElementById('app').classList.contains('visible');document.body.classList.toggle('av-app-on',!!on);},800);
+  avAddLabel();avRenderSaveState();avApplyMode();avRenderSettings();
+})();
+
+
+/* ══ v9.70 — PARTILHAR → AURORA VAULT · LER CÓDIGO DE BARRAS · LER VALIDADE (OCR) ══ */
+async function avShareImport(){
+  const en=avEn();let c;
+  try{c=await caches.open('av-share');}catch(e){return;}
+  const mr=await c.match('./__share/meta');
+  try{history.replaceState(null,'',location.pathname);}catch(e){}
+  if(!mr)return;
+  let meta=null;try{meta=await mr.json();}catch(e){}
+  const files=[];
+  if(meta&&Array.isArray(meta.files))for(const f of meta.files){try{const r=await c.match(f.key);if(r){const bl=await r.blob();files.push(new File([bl],f.name||'ficheiro',{type:f.type||bl.type||''}));}}catch(e){}}
+  try{for(const k of await c.keys())await c.delete(k);}catch(e){}
+  if(files.length){
+    const made=[];
+    for(const f of files){
+      const data=await new Promise(res=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.onerror=()=>res(null);rd.readAsDataURL(f);});if(!data)continue;
+      const d={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:(f.name||'').replace(/\.[^.]+$/,'')||(en?'Shared document':'Documento partilhado'),cat:'outro',date:'',expiry:'',desc:((meta&&meta.text)||'').slice(0,500),folderId:null,file:{name:f.name,size:f.size,type:f.type,data},createdAt:Date.now()};
+      documents.push(d);made.push(d);
+    }
+    if(!made.length)return;
+    try{logActivity('add',made.map(d=>d.title).join(', '),'📥');}catch(e){}
+    markUnsaved();renderAll();switchTab('docs');
+    setTimeout(()=>{try{openDocModal(made[0].id);}catch(e){}},300);
+    toast(made.length===1?(en?'📥 Shared file saved in Documents — check the name and expiry.':'📥 Ficheiro partilhado guardado em Documentos — confirma o nome e a validade.'):(en?`📥 ${made.length} shared files saved in Documents.`:`📥 ${made.length} ficheiros partilhados guardados em Documentos.`));
+  }else if(meta&&(meta.text||meta.url)){
+    switchTab('notes');newNote();
+    const n=notes.find(x=>x.id===editingNoteId);
+    if(n){n.title=(meta.title||(en?'Shared':'Partilhado')).slice(0,80);n.body=[meta.text,meta.url].filter(Boolean).join('\n');try{showNoteEditor(n);renderNotesList();}catch(e){}}
+    markUnsaved();toast(en?'📥 Shared text saved as a note.':'📥 Texto partilhado guardado numa nota.');
+  }
+}
+
+/* ── ④ ler o código de barras do cartão de loja ── */
+let _avScan=null;
+function avScanClose(){
+  const s=_avScan;_avScan=null;
+  if(s){s.stop=true;try{s.stream.getTracks().forEach(t=>t.stop());}catch(e){}}
+  const o=document.getElementById('av-scan');if(o)o.remove();
+}
+async function avScanStore(){
+  const en=avEn();
+  if(!('BarcodeDetector' in window)){toast(en?'This browser can’t read barcodes — type the number.':'Este browser não lê códigos de barras — escreve o número.');return;}
+  const want=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','codabar','qr_code','data_matrix','pdf417','aztec'];
+  let formats=want;try{const sup=await BarcodeDetector.getSupportedFormats();formats=want.filter(f=>sup.includes(f));}catch(e){}
+  let det;try{det=new BarcodeDetector({formats});}catch(e){toast(en?'Barcode reading unavailable.':'Leitura de códigos indisponível.');return;}
+  const o=document.createElement('div');o.id='av-scan';
+  o.style.cssText='position:fixed;inset:0;z-index:400;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  o.innerHTML='<video playsinline muted style="width:100%;height:100%;object-fit:cover"></video><div style="position:absolute;left:8%;right:8%;top:38%;height:24%;border:2px solid rgba(201,168,76,.9);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)"></div><div style="position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:0;right:0;text-align:center;color:#fff;font:600 .9rem system-ui;text-shadow:0 1px 6px #000">'+(en?'Point the camera at the card’s barcode':'Aponta a câmara ao código de barras do cartão')+'</div><button type="button" onclick="avScanClose()" style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);padding:12px 26px;border-radius:30px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.55);color:#fff;font:600 .9rem system-ui">'+(en?'Cancel':'Cancelar')+'</button>';
+  document.body.appendChild(o);
+  let stream;
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});}
+  catch(e){avScanClose();toast(en?'Camera not allowed — you can type the number.':'Sem autorização da câmara — podes escrever o número.');return;}
+  const v=o.querySelector('video');v.srcObject=stream;try{await v.play();}catch(e){}
+  _avScan={stream,stop:false};const me=_avScan;
+  const tick=async()=>{
+    if(me.stop)return;
+    try{const r=await det.detect(v);if(r&&r.length&&r[0].rawValue){avScanFill(r[0].rawValue);return;}}catch(e){}
+    setTimeout(tick,180);
+  };
+  tick();
+}
+function avScanFill(raw){
+  avScanClose();
+  const en=avEn(),val=String(raw).trim(),inp=document.getElementById('sc-number');
+  if(inp){inp.value=/^[\d\s-]+$/.test(val)?val.replace(/[\s-]/g,''):val;inp.dispatchEvent(new Event('input',{bubbles:true}));}
+  try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}
+  toast((en?'✓ Code read: ':'✓ Código lido: ')+val);
+}
+(function(){
+  if(typeof openStoreModal!=='function')return;
+  const osm=openStoreModal;
+  openStoreModal=function(){const r=osm.apply(this,arguments);const b=document.getElementById('sc-scan-btn');if(b){b.style.display=('BarcodeDetector' in window)?'block':'none';b.textContent=avEn()?'📷 Scan with the camera':'📷 Ler com a câmara';}return r;};
+})();
+
+/* ── ⑤ ler a validade de uma foto (OCR local, motor descarregado 1× e guardado offline) ── */
+const AV_OCR_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+let _avTess=null;
+function avLoadTesseract(){
+  if(window.Tesseract)return Promise.resolve(window.Tesseract);
+  if(_avTess)return _avTess;
+  _avTess=new Promise((res,rej)=>{const s=document.createElement('script');s.src=AV_OCR_URL;s.async=true;s.onload=()=>window.Tesseract?res(window.Tesseract):rej(new Error('load'));s.onerror=()=>{_avTess=null;s.remove();rej(new Error('load'));};document.head.appendChild(s);});
+  return _avTess;
+}
+const AV_MON={jan:1,fev:2,feb:2,mar:3,abr:4,apr:4,mai:5,may:5,jun:6,jul:7,ago:8,aug:8,set:9,sep:9,out:10,oct:10,nov:11,dez:12,dec:12};
+function avFindExpiry(text){
+  if(!text)return null;
+  const t=String(text).replace(/(?<=\d)[oO]|[oO](?=\d)/g,'0').replace(/(?<=\d)[lI|]|[lI|](?=\d)/g,'1');
+  const lines=t.split(/\r?\n/),today=new Date();today.setHours(0,0,0,0);
+  const KEY=/(v[aá]lid|validade|expir|until|at[eé]\b|date of expiry|expiry|4\s?b\b|caduc)/i,BAD=/(nasc|birth|emiss|issue|emitid|4\s?a\b|\b3\b)/i;
+  const out=[];
+  const push=(d,m,y,li)=>{y=+y;if(y<100)y+=2000;d=+d;m=+m;if(m<1||m>12||d<1||d>31||y<1990||y>2099)return;const dt=new Date(y,m-1,d);if(dt.getMonth()!==m-1)return;
+    const ctx=(lines[li]||'')+' '+(lines[li-1]||'');let s=0;if(KEY.test(ctx))s+=3;if(BAD.test(lines[li]||''))s-=3;if(dt>=today)s+=1;else s-=2;out.push({dt,s});};
+  lines.forEach((ln,i)=>{
+    let m;const re=/(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4}|\d{2})(?!\d)/g;
+    while((m=re.exec(ln)))push(m[1],m[2],m[3],i);
+    const re2=/(?<!\d)(\d{2})\s(\d{2})\s(\d{4})(?!\d)/g;while((m=re2.exec(ln)))push(m[1],m[2],m[3],i);
+    const re3=/(\d{1,2})\s*([A-Za-zÀ-ú]{3})[A-Za-zÀ-ú\/]*\s*(\d{4}|\d{2})(?!\d)/g;
+    while((m=re3.exec(ln))){const mo=AV_MON[m[2].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')];if(mo)push(m[1],mo,m[3],i);}
+  });
+  if(!out.length)return null;
+  out.sort((a,b)=>b.s-a.s||b.dt-a.dt);
+  const d=out[0].dt,z=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+}
+async function avOcrDoc(){
+  const en=avEn(),btn=document.getElementById('doc-ocr-btn'),st=document.getElementById('doc-ocr-status');
+  const f=typeof pendingDocFile!=='undefined'?pendingDocFile:null;
+  if(!f||!/^image\//.test(f.type||'')||!f.data){toast(en?'Attach a photo of the document first (JPG/PNG).':'Junta primeiro uma foto do documento (JPG/PNG).');return;}
+  const say=m=>{if(st){st.style.display='block';st.textContent=m;}};
+  if(btn)btn.disabled=true;
+  say(en?'Preparing the reader… (the first time it downloads ~10 MB; after that it works offline)':'A preparar o leitor… (na 1.ª vez descarrega ~10 MB; depois funciona sem internet)');
+  let worker=null;
+  try{
+    const T=await avLoadTesseract();
+    worker=await T.createWorker(['por','eng'],1,{logger:m=>{if(m&&m.status==='recognizing text')say((en?'Reading… ':'A ler… ')+Math.round((m.progress||0)*100)+'%');}});
+    say(en?'Reading the photo…':'A ler a foto…');
+    const res=await worker.recognize(f.data);
+    const d=avFindExpiry(res&&res.data&&res.data.text);
+    if(d){const inp=document.getElementById('doc-expiry');if(inp)inp.value=d;const p=d.split('-');say((en?'✓ Expiry found: ':'✓ Validade encontrada: ')+p[2]+'/'+p[1]+'/'+p[0]+(en?' — check it before saving.':' — confirma antes de gravar.'));}
+    else say(en?'I couldn’t find an expiry date in this photo — fill it in by hand.':'Não encontrei uma data de validade nesta foto — preenche à mão.');
+  }catch(e){
+    say(e&&e.message==='load'?(en?'No Internet: the reader must be downloaded once (about 10 MB).':'Sem internet: o leitor tem de ser descarregado uma vez (cerca de 10 MB).'):(en?'Couldn’t read the photo.':'Não consegui ler a foto.'));
+  }finally{if(worker){try{await worker.terminate();}catch(e){}}if(btn)btn.disabled=false;}
+}
+(function(){
+  if(typeof openDocModal!=='function')return;
+  const odm=openDocModal;
+  openDocModal=function(){const r=odm.apply(this,arguments);const b=document.getElementById('doc-ocr-btn'),s=document.getElementById('doc-ocr-status');if(b)b.textContent=avEn()?'🔍 Read the expiry from the photo':'🔍 Ler a validade da foto';if(s){s.style.display='none';s.textContent='';}return r;};
+})();
 
 </script>
 </body>
