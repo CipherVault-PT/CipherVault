@@ -1828,6 +1828,30 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
 #aurora-panel.av-drop{outline:2px dashed rgba(var(--accent-rgb),.8);outline-offset:-10px}
 #aurora-panel.av-drop::after{content:attr(data-drop);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,9,16,.78);color:var(--accent);font:600 15px system-ui;z-index:50;pointer-events:none;border-radius:inherit}
 .av-fchip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(190,220,255,.14);margin:2px 4px 2px 0}
+
+/* ══ v9.77 — Wi-Fi no Dashboard (sai da barra das abas) ══ */
+#tabs-wifi{display:none!important}
+#av-side{display:flex;flex-direction:column;gap:12px;align-self:flex-start;min-width:0}
+#av-side:empty{display:none}
+.av-wifi{min-width:230px;max-width:340px;border:1px solid var(--border);border-radius:14px;background:var(--panel);padding:12px 14px}
+.av-wifi-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.av-wifi-h span{display:flex;align-items:center;gap:7px;font:500 .56rem 'JetBrains Mono',monospace;letter-spacing:2.5px;color:var(--accent);text-transform:uppercase}
+.av-wifi-h button{background:none;border:none;color:var(--text-muted);font-size:.66rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px}
+.av-wifi-h button:hover{color:var(--text)}
+.av-wifi-n{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;margin-top:6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);font-family:inherit;font-size:.8rem;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.av-wifi-n:hover{border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.07)}
+.av-wifi-n svg{color:var(--accent);flex-shrink:0}
+.av-wifi-n b{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av-wifi-n i{font-style:normal;font-size:.66rem;color:var(--text-muted);white-space:nowrap}
+@media(max-width:768px){#av-side{width:100%;margin-top:12px}.av-wifi{max-width:none;width:100%;box-sizing:border-box}}
+.av-wico{display:inline-block;vertical-align:-2px}
+
+/* v9.78 — modo privado: o botão mostra o estado; ligado = olho riscado a dourado */
+#privacy-btn.priv-active{color:var(--accent)!important;border-color:rgba(var(--accent-rgb),.75)!important;background:rgba(var(--accent-rgb),.16)!important;box-shadow:0 0 12px -3px rgba(var(--accent-rgb),.7)}
+
+/* v9.79 — abas vazias: dica a apontar para o ＋ (sem segundo botão) */
+.av-empty-hint{display:block;margin-top:12px;font-size:.7rem;letter-spacing:.4px;color:var(--accent);opacity:.85;text-transform:none}
+#notes-empty{flex-direction:column;gap:4px;text-align:center}
 </style>
 </head>
 <body>
@@ -2173,7 +2197,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.76</span>
+      <span>Aurora Vault © 2026 · v9.79</span>
     </div>
   </div>
 </div>
@@ -2584,7 +2608,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.76</span>
+      <span>Aurora Vault © 2026 · v9.79</span>
     </div>
   </div>
   </div>
@@ -3691,7 +3715,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     }
   }catch(e){}
 })();
-const APP_VERSION='9.76';
+const APP_VERSION='9.79';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7447,7 +7471,7 @@ function renderNotesList(){
   const el=document.getElementById('notes-list-items');el.innerHTML='';
   const titleEl=document.getElementById('notes-title');if(titleEl)titleEl.textContent=t('notesTitle');
   if(!notes.filter(n=>!n.archived).length){
-    el.innerHTML=`<div style="padding:14px;font-size:.62rem;color:var(--text-muted);text-align:center">${t('notesEmpty')}</div>`;
+    el.innerHTML=`<div style="padding:14px;font-size:.62rem;color:var(--text-muted);text-align:center">${currentLang==='en'?'No notes yet':'Sem notas'}</div>`;
     hideNoteEditor();return;
   }
   notes.filter(n=>!n.archived).forEach(note=>{
@@ -10946,7 +10970,8 @@ function applyPrivacy(){
     const miniTxt=mini?mini.textContent:(currentLang==='en'?'Privacy':'Privado');
     const icoOff='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
     const icoOn='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-    b.innerHTML=(privacyOn?icoOn:icoOff)+'<span class="tb-label" id="tb-privacy-txt">'+(label||(currentLang==='en'?'Privacy mode':'Modo de privacidade'))+'</span><span class="tb-mini" id="tbm-priv">'+miniTxt+'</span>';
+    b.classList.toggle('priv-active',privacyOn);
+    b.innerHTML=(privacyOn?icoOff:icoOn)+'<span class="tb-label" id="tb-privacy-txt">'+(label||(currentLang==='en'?'Privacy mode':'Modo de privacidade'))+'</span><span class="tb-mini" id="tbm-priv">'+miniTxt+'</span>';
     b.title=privacyOn
       ?(currentLang==='en'?'Privacy mode ON — click to show values':'Modo de privacidade ATIVO — clica para mostrar valores')
       :(currentLang==='en'?'Privacy mode':'Modo de privacidade');
@@ -12133,7 +12158,7 @@ function showWifiQR(ssid,pass,label){
   ctx.fillStyle='#000';
   for(let r=0;r<m.length;r++)for(let cc=0;cc<m.length;cc++)
     if(m[r][cc])ctx.fillRect((cc+quiet)*scale,(r+quiet)*scale,scale,scale);
-  document.getElementById('qr-title').textContent=currentLang==='en'?'📶 WiFi QR Code':'📶 QR Code do WiFi';
+  document.getElementById('qr-title').innerHTML=avWifiIcon(20)+'&nbsp;'+(currentLang==='en'?'WiFi QR Code':'QR Code do WiFi');
   document.getElementById('qr-ssid').textContent=`📡 ${ssid}`+(label&&label!==ssid?`  ·  ${label}`:'');
   document.getElementById('qr-hint').textContent=currentLang==='en'
     ?'Point the phone camera at the code to connect automatically'
@@ -13978,7 +14003,9 @@ function aurAlertsRender(){
   const list=aurAlerts();AUR_ALERT_RUN=list;
   if(!list.length){if(box)box.remove();return;}
   if(!box){box=document.createElement('div');box.id='aur-alerts';box.className='aur-alerts';}
-  if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
+  const side=document.getElementById('av-side');
+  if(side&&side.previousElementSibling===launch){if(box.parentElement!==side)side.insertBefore(box,side.firstChild);}
+  else if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
   const en=aurAppLang()==='en';
   box.innerHTML='<div class="aur-al-h">✨ Aurora · '+(en?'Heads-up':'Avisos')+'</div>'+list.map((a,i)=>'<div class="aur-al-row" role="button" tabindex="0" onclick="aurAlertGo('+i+')" onkeydown="if(event.key===\'Enter\')aurAlertGo('+i+')"><span class="aur-al-ic">'+a.ic+'</span><span class="aur-al-tx">'+a.html+'</span><button class="aur-al-x" title="'+(en?'Dismiss until tomorrow':'Dispensar até amanhã')+'" onclick="aurAlertDismiss(\''+a.k.replace(/['"\\<>]/g,'')+'\',event)">✕</button></div>').join('');
 }
@@ -14000,7 +14027,7 @@ const AV_ADD_MORE=[
  {k:'license',ic:'🪪',t:['Licença','Licence'],n:['Nova licença','New licence'],tab:'license',run:()=>openAssetModal('license')},
  {k:'date',ic:'📅',t:['Data importante','Important date'],n:['Nova data','New date'],tab:'dates',run:()=>openAssetModal('dates')},
  {k:'sub',ic:'🔁',t:['Subscrição','Subscription'],tab:null,run:()=>openSubModal()},
- {k:'wifi',ic:'📶',t:['Rede Wi-Fi','Wi-Fi network'],tab:null,run:()=>openWifiManager()},
+ {k:'wifi',ic:'WIFI_ICON',t:['Rede Wi-Fi','Wi-Fi network'],tab:null,simple:true,run:()=>openWifiManager()},
  {k:'person',ic:'🆔',t:['Pessoa (Info)','Person (Info)'],n:['Nova pessoa','New person'],tab:'info',simple:true,run:()=>addPerson()}
 ];
 const AV_TAB_ADD={info:'person',vault:'password',totp:'totp',cards:'card',store:'store',docs:'doc',notes:'note',warranty:'warranty',vehicle:'vehicle',license:'license',dates:'date'};
@@ -14114,7 +14141,7 @@ function avRenderSettings(){
 function avMoreTop(item,I,en){
   if(!avIsDesk())return item('avAddMenu()',I('<path d="M12 5v14M5 12h14"/>'),en?'Add…':'Adicionar…',en?'Choose what to add':'Escolher o que adicionar');
   const on=typeof privacyOn!=='undefined'&&privacyOn;
-  return item('togglePrivacy()',I('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),on?(en?'Privacy mode · on':'Modo privado · ligado'):(en?'Privacy mode':'Modo de privacidade'),'');
+  return item('togglePrivacy()',I(on?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),on?(en?'Privacy mode · on':'Modo privado · ligado'):(en?'Privacy mode':'Modo de privacidade'),'');
 }
 function avMoreMid(item,I,en){
   let h=item('saveFile()',I('<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'),FSA_OK?(en?'Save file now':'Guardar ficheiro agora'):(en?'Save now':'Guardar agora'),autoSaveOn()?(en?'Autosave is on':'Gravação automática ligada'):'');
@@ -14164,7 +14191,7 @@ async function avOnboardRender(){
 (function(){
   if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const r=st.apply(this,arguments);avCurTab=t;avAddLabel();return r;};}
   if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avApplyMode();avOnboardRender();}catch(e){}return r;};}
-  if(typeof setLang==='function'){const sl=setLang;setLang=function(){const r=sl.apply(this,arguments);try{avAddLabel();avRenderSaveState();avRenderSettings();avOnboardRender();}catch(e){}return r;};}
+  if(typeof setLang==='function'){const sl=setLang;setLang=function(){const r=sl.apply(this,arguments);try{avAddLabel();avRenderSaveState();avRenderSettings();avOnboardRender();avEnhanceEmpty();}catch(e){}return r;};}
   if(typeof openSettings==='function'){const os=openSettings;openSettings=function(){const r=os.apply(this,arguments);try{avRenderSettings();}catch(e){}return r;};}
   if(typeof importCSV==='function'){const ic=importCSV;importCSV=function(){try{localStorage.setItem('av_imp_done','1');}catch(e){}return ic.apply(this,arguments);};}
   const fab=document.createElement('button');fab.id='av-fab-add';fab.type='button';fab.textContent='＋';fab.setAttribute('aria-label','Adicionar');let _lp=0,_lpDone=false;fab.addEventListener('pointerdown',()=>{_lpDone=false;clearTimeout(_lp);_lp=setTimeout(()=>{_lpDone=true;avAddMenu();try{navigator.vibrate&&navigator.vibrate(30);}catch(e){}},550);});['pointerup','pointerleave','pointercancel'].forEach(ev=>fab.addEventListener(ev,()=>clearTimeout(_lp)));fab.onclick=e=>{if(_lpDone){_lpDone=false;e.stopPropagation();return;}avAddMain(e);};fab.oncontextmenu=e=>e.preventDefault();document.body.appendChild(fab);
@@ -14325,13 +14352,28 @@ function avFlushChunks(){const c=_avChunk;if(c.grid&&c.arr&&c.i<c.arr.length){c.
 
 /* ── abas vazias: botão para começar (só aparece quando a aba não tem nada) ── */
 function avEnhanceEmpty(){
-  const k=AV_TAB_ADD[avCurTab],t=k&&avFind(k);if(!t)return;
+  const k=AV_TAB_ADD[avCurTab],t=k&&avFind(k);
   const tab=document.getElementById('tab-'+avCurTab);if(!tab)return;
-  tab.querySelectorAll('.empty-state,.notes-empty,.av-empty').forEach(es=>{
-    let b=es.querySelector('.av-empty-cta');
-    if(!b){b=document.createElement('button');b.type='button';b.className='btn btn-gold av-empty-cta';b.onclick=e=>{e.stopPropagation();avAddType(k);};es.appendChild(document.createElement('br'));es.appendChild(b);}
-    b.textContent='＋ '+avT(t.n);
+  tab.querySelectorAll('.av-empty-cta').forEach(b=>{const br=b.previousElementSibling;if(br&&br.tagName==='BR')br.remove();b.remove();});
+  const en=avEn(),desk=avIsDesk();
+  // Notas: a mensagem é o espaço «nenhuma nota aberta» — com notas, não precisa de dica nem de botão
+  if(avCurTab==='notes'){
+    const txt=document.getElementById('notes-empty-txt'),has=typeof notes!=='undefined'&&notes.some(n=>!n.archived);
+    if(txt)txt.textContent=has?(en?'Select a note':'Seleciona uma nota'):(en?'No notes yet':'Ainda não tens notas');
+    const ne=document.getElementById('notes-empty');if(ne){let hint=ne.querySelector('.av-empty-hint');if(has){if(hint)hint.remove();}else{if(!hint){hint=document.createElement('div');hint.className='av-empty-hint';ne.appendChild(hint);}hint.textContent=avHintText(t,en,desk);}}
+    return;
+  }
+  if(!t)return;
+  tab.querySelectorAll('.empty-state,.av-empty').forEach(es=>{
+    if(/＋/.test(es.textContent.replace((es.querySelector('.av-empty-hint')||{}).textContent||'','')))return; // já aponta para o ＋
+    let hint=es.querySelector('.av-empty-hint');
+    if(!hint){hint=document.createElement('div');hint.className='av-empty-hint';es.appendChild(hint);}
+    hint.textContent=avHintText(t,en,desk);
   });
+}
+function avHintText(t,en,desk){
+  const lbl=t?avT(t.n):(en?'Add':'Adicionar');
+  return desk?(en?'↗ Tap “＋ '+lbl+'” at the top to get started.':'↗ Toca em «＋ '+lbl+'», em cima, para começar.'):(en?'↘ Tap the ＋ at the bottom right to get started.':'↘ Toca no ＋ em baixo, à direita, para começar.');
 }
 (function(){
   if(typeof switchTab==='function'){const st=switchTab;switchTab=function(){const r=st.apply(this,arguments);requestAnimationFrame(()=>{try{avEnhanceEmpty();}catch(e){}});return r;};}
@@ -14732,6 +14774,31 @@ function avDevHint(show){
     },2500);return r;};}
   if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){try{avAutoBackupMaybe();}catch(e){}return la.apply(this,arguments);};}
   if(typeof markSaved==='function'){const ms=markSaved;markSaved=function(){const r=ms.apply(this,arguments);try{if(vaultFileHandle&&FSA_OK)localStorage.removeItem('av_dev_mode');}catch(e){}return r;};}
+})();
+
+
+/* ══ v9.77 — WI-FI NO DASHBOARD (com o símbolo de Wi-Fi a sério) ══ */
+function avWifiIcon(sz){sz=sz||16;return '<svg class="av-wico" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5.2 12.6a10.3 10.3 0 0 1 13.6 0"/><path d="M8.6 16.3a5.2 5.2 0 0 1 6.8 0"/><circle cx="12" cy="19.9" r="1.35" fill="currentColor" stroke="none"/></svg>';}
+(function(){const w=AV_ADD_MORE.find(x=>x.k==='wifi');if(w)w.ic=avWifiIcon(14);})();
+function avWifiCard(){
+  const launch=document.querySelector('.aur-launch');let card=document.getElementById('av-wifi-card');
+  const nets=(typeof wifiNets!=='undefined'?wifiNets:[]);
+  if(!launch||!nets.length||presentationMode){if(card)card.remove();return;}
+  if(!card){card=document.createElement('div');card.id='av-wifi-card';card.className='av-wifi';}
+  let side=document.getElementById('av-side');
+  if(!side){side=document.createElement('div');side.id='av-side';}
+  if(side.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',side);
+  const al=document.getElementById('aur-alerts');if(al&&al.parentElement!==side)side.insertBefore(al,side.firstChild);
+  if(card.parentElement!==side)side.appendChild(card);
+  const en=avEn();
+  card.innerHTML='<div class="av-wifi-h"><span>'+avWifiIcon(13)+' Wi-Fi</span><button onclick="openWifiManager()" title="'+(en?'Manage Wi-Fi networks':'Gerir redes Wi-Fi')+'">⚙ '+(en?'Manage':'Gerir')+'</button></div>'
+   +nets.slice(0,4).map(n=>'<button class="av-wifi-n" onclick="openWifiNetQR(\''+n.id+'\')" title="'+(en?'Show QR code and password':'Mostrar QR code e password')+'">'+avWifiIcon(17)+'<b>'+esc(n.name||n.ssid)+'</b><i>'+(en?'Show QR ›':'Mostrar QR ›')+'</i></button>').join('')
+   +(nets.length>4?'<button class="av-wifi-n" onclick="openWifiManager()"><b style="font-weight:500;color:var(--text-muted)">+'+(nets.length-4)+(en?' more':' mais')+'</b></button>':'');
+}
+(function(){
+  if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
+  if(typeof renderWifiBar==='function'){const rw=renderWifiBar;renderWifiBar=function(){const r=rw.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
+  if(typeof aurAlertsRender==='function'){const ar=aurAlertsRender;aurAlertsRender=function(){const r=ar.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
 })();
 
 </script>
