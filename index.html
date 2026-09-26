@@ -1852,6 +1852,17 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
 /* v9.79 — abas vazias: dica a apontar para o ＋ (sem segundo botão) */
 .av-empty-hint{display:block;margin-top:12px;font-size:.7rem;letter-spacing:.4px;color:var(--accent);opacity:.85;text-transform:none}
 #notes-empty{flex-direction:column;gap:4px;text-align:center}
+
+/* ══ v9.81 — iniciais dos serviços · sugestões da Aurora ══ */
+.av-mono{display:inline-flex!important;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;color:#fff;font:700 .7rem system-ui,-apple-system,sans-serif;letter-spacing:.2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 10px -6px rgba(0,0,0,.6);flex-shrink:0;text-transform:uppercase}
+#av-nudge{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:175;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(560px,calc(100vw - 24px));padding:10px 10px 10px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(16,22,36,.98),rgba(10,14,24,.98));border:1px solid rgba(190,220,255,.14);box-shadow:0 22px 50px -18px #000;transition:opacity .25s,transform .25s;color:var(--text);font:13px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+#av-nudge.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.av-nudge-ic{font-size:16px}.av-nudge-tx{flex:1;min-width:0}.av-nudge-tx b{color:#fff}
+.av-nudge-b{flex-shrink:0;padding:7px 12px;border-radius:10px;border:1px solid rgba(var(--accent-rgb),.55);background:none;color:var(--accent);font:600 12px system-ui;cursor:pointer;white-space:nowrap}
+.av-nudge-b.go{background:linear-gradient(180deg,rgba(var(--accent-rgb),.95),rgba(var(--accent-rgb),.65));color:#1b1407;border-color:transparent}
+.av-nudge-x{flex-shrink:0;background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:4px 6px}
+@media(max-width:768px){#av-nudge{bottom:calc(env(safe-area-inset-bottom,0px) + 92px);flex-wrap:wrap;width:calc(100vw - 24px)}.av-nudge-tx{flex:1 1 70%}}
+.av-cal-exp{margin-left:auto;padding:7px 12px;border-radius:10px;border:1px solid rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.1);color:var(--accent);font:600 12px system-ui;cursor:pointer;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2197,7 +2208,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.79</span>
+      <span>Aurora Vault © 2026 · v9.81</span>
     </div>
   </div>
 </div>
@@ -2608,7 +2619,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.79</span>
+      <span>Aurora Vault © 2026 · v9.81</span>
     </div>
   </div>
   </div>
@@ -2818,6 +2829,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <!-- TEMAS PREDEFINIDOS -->
     <div class="settings-section">
       <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
+      <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" onclick="avSetThemeAuto(true)">Ligado</button><button id="s-auto-off" onclick="avSetThemeAuto(false)">Desligado</button></div></div>
       <div class="theme-grid" id="theme-grid"></div>
     </div>
 
@@ -2899,6 +2911,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
       <div class="settings-title" id="s-use-title">🧭 Utilização</div>
       <div class="av-set-row"><div><b id="s-autosave-lbl">Gravação automática</b><small id="s-autosave-desc">Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.</small></div><button class="btn btn-ghost" id="s-autosave-btn" onclick="avToggleAutosave()">Ligada</button></div>
       <div class="av-set-row" id="s-bk-row" style="display:none"><div><b id="s-bk-lbl">Cópia automática para as Transferências</b><small id="s-bk-desc">Este browser guarda o cofre na app. Por segurança, é feita uma cópia encriptada nas Transferências, só quando há alterações.</small></div><div class="av-seg"><button id="s-bk-weekly" onclick="avSetBkFreq('weekly')">Semanal</button><button id="s-bk-daily" onclick="avSetBkFreq('daily')">Diária</button><button id="s-bk-off" onclick="avSetBkFreq('off')">Desligada</button></div></div>
+      <div class="av-set-row"><div><b id="s-nudge-lbl">Sugestões da Aurora</b><small id="s-nudge-desc">Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).</small></div><div class="av-seg"><button id="s-nudge-on" onclick="avSetNudges(true)">Ligadas</button><button id="s-nudge-off" onclick="avSetNudges(false)">Desligadas</button></div></div>
       <div class="av-set-row"><div><b id="s-mode-lbl">Modo da app</b><small id="s-mode-desc">Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).</small></div><div class="av-seg"><button id="s-mode-simple" onclick="avSetMode('simple')">Simples</button><button id="s-mode-full" onclick="avSetMode('full')">Completo</button></div></div>
     </div>
     <div class="settings-section">
@@ -3715,7 +3728,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     }
   }catch(e){}
 })();
-const APP_VERSION='9.79';
+const APP_VERSION='9.81';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -5200,7 +5213,7 @@ function toggleTheme(){setTheme(currentTheme==='dark'?'light':'dark');}
 function setTheme(t2){
   currentTheme=t2;
   document.documentElement.setAttribute('data-theme',t2);
-  document.getElementById('theme-btn').textContent=t2==='dark'?'🌙':'☀️';
+  {const tb=document.getElementById('theme-btn');if(tb)tb.textContent=t2==='dark'?'🌙':'☀️';}
   applyThemeColors(t2);
   try{localStorage.setItem('cv_theme_mode',t2);}catch(e){}
   // Update settings tab if open
@@ -6405,7 +6418,7 @@ function renderCards(){
     return `<div class="entry-card cat-${entry.cat}${entry.fav?' is-fav':''}" id="card-${entry.id}"${ci.custom?` style="border-left:3px solid ${ci.color}"`:''} draggable="true" ondragstart="dragStart(event,'${entry.id}')" ondragover="dragOver(event,'${entry.id}')" ondrop="dragDrop('${entry.id}')" ondragend="dragEnd()">
       <div class="card-top">
         <div class="card-badge-row">
-          ${svcIcon?`<span class="service-icon">${svcIcon}</span>`:''}
+          ${svcIcon?`<span class="service-icon">${svcIcon}</span>`:avMono(entry.name)}
           <span class="card-cat-badge" style="background:${ci.color}26;color:${ci.color}">${ci.icon} ${esc(ci.label)}</span>
           ${tagsHtml}
         </div>
@@ -6475,7 +6488,9 @@ function getServiceIcon(name){
   if(!name)return null;
   const lower=name.toLowerCase();
   for(const[key,icon] of Object.entries(SERVICE_ICONS)){
-    if(lower.includes(key))return icon;
+    // chaves curtas (x, cgd, bpi, bcp) só contam como palavra inteira — «Xpto» não é o X/Twitter
+    if(key.length<=3){if(new RegExp('(^|[^a-z0-9])'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)').test(lower))return icon;}
+    else if(lower.includes(key))return icon;
   }
   return null;
 }
@@ -13801,8 +13816,38 @@ const AUR_SVG={
 function aurGreet(){
   AUR.lang=aurAppLang();
   const nm=typeof vaultName!=='undefined'&&vaultName?', '+aurEsc(String(vaultName).split(' ')[0]):'';
-  aurSay(aurL('Olá'+nm+'! Sou a <b>Aurora</b> ✨ — tenho acesso a todo o teu cofre e trabalho 100% offline.\nPede-me o que precisares: "qual o meu NIF", "código da Trade Republic", "o que expira este mês", "muda a password do Gmail"…\n🌍 Também percebo inglês.','Hi'+nm+'! I’m <b>Aurora</b> ✨ — I can reach your whole vault and I work 100% offline.\nAsk me anything: "what’s my tax number", "code for Trade Republic", "what expires this month", "change the Gmail password"…\n🌍 I understand Portuguese too.'),aurQuickChips().concat([{label:aurL('Tudo o que sei fazer','Everything I can do'),fn:aurHelp}]));
+  const ex=aurGreetExamples();
+  const chips=ex.list.map(x=>({label:x[0],fn:()=>aurQuick(x[1])}));
+  const foot=ex.fresh?aurL('Também podes escrever o que precisares — percebo português e inglês.','You can also type what you need — I understand English and Portuguese.'):aurL('O que perguntares, eu procuro no teu cofre — também percebo inglês.','Whatever you ask, I’ll look it up in your vault — I understand Portuguese too.');
+  const msg=ex.fresh?aurL('Olá'+nm+'! Sou a <b>Aurora</b> ✨ Vou ajudar-te a começar.\nExperimenta:','Hi'+nm+'! I’m <b>Aurora</b> ✨ I’ll help you get started.\nTry:'):aurL('Olá'+nm+'! Sou a <b>Aurora</b> ✨ Conheço o teu cofre e trabalho 100% offline.\nExperimenta:','Hi'+nm+'! I’m <b>Aurora</b> ✨ I know your vault and work 100% offline.\nTry:');
+  aurSay(msg,chips);
+  const last=[...document.querySelectorAll('#aurora-msgs .aurora-msg.ai')].pop();
+  if(last){const f=document.createElement('div');f.className='a-dim';f.style.marginTop='8px';f.textContent=foot;last.appendChild(f);}
 }
+/* 3 exemplos tirados do cofre de cada pessoa (nunca sugere o que a pessoa não tem) */
+function aurGreetExamples(){
+  const L=(pt,en)=>aurL(pt,en),out=[];
+  const V=(typeof vault!=='undefined'?vault:[]).filter(v=>v&&!v.archived&&v.name);
+  const D=typeof documents!=='undefined'?documents:[],C=typeof bankCards!=='undefined'?bankCards:[],N=typeof notes!=='undefined'?notes:[];
+  const T=(!aurTotpLocked()&&typeof totp!=='undefined'&&Array.isArray(totp))?totp.filter(Boolean):[];
+  const fresh=!V.length&&!D.length&&!C.length&&!N.length&&!T.length;
+  if(fresh)return {fresh:true,list:[
+    ['🔑 '+L('Guarda a password do email','Save my email password'),L('guarda a password do email','save my email password')],
+    ['✨ '+L('Gera uma password forte','Generate a strong password'),L('gera uma password forte','generate a strong password')],
+    ['🎓 '+L('Mostra-me como funciona','Show me how it works'),L('mostra-me como funciona','show me around')]]};
+  const tn=T.map(x=>x.issuer||x.name||x.label||'').find(s=>s&&String(s).trim());
+  if(tn)out.push(['🔢 '+L('Código 2FA · ','2FA code · ')+tn,L('código de '+tn,tn+' code')]);
+  try{const now=new Date(),y=now.getFullYear(),m=now.getMonth(),today=now.toISOString().slice(0,10);
+    const t0=new Date(now);t0.setHours(0,0,0,0);
+    if(aurEvents().some(ev=>{const v=ev.date;let dt=v instanceof Date?new Date(v.getTime()):(/^\d{4}-\d\d-\d\d/.test(String(v))?new Date(String(v).slice(0,10)+'T00:00:00'):new Date(v));if(isNaN(dt))return false;dt.setHours(0,0,0,0);return dt>=t0&&dt.getFullYear()===y&&dt.getMonth()===m;}))out.push(['⏳ '+L('O que expira este mês','What expires this month'),L('o que expira este mês','what expires this month')]);}catch(e){}
+  try{const P=typeof personalInfo!=='undefined'?personalInfo:[];if(P.some(p=>(p.fields||[]).some(f=>f&&f.value&&/\b(nif|contribuinte|tax)\b/i.test(aurNorm(f.label||'')))))out.push(['🪪 '+L('Qual o meu NIF','What’s my tax number'),L('qual o meu nif','what is my tax number')]);}catch(e){}
+  if(out.length<3&&V.length){const v=V.slice().sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||((b.pwUpdated||b.updatedAt||b.createdAt||0)-(a.pwUpdated||a.updatedAt||a.createdAt||0)))[0];
+    out.push(['🔑 Password · '+v.name,L('password de '+v.name,v.name+' password')]);}
+  if(out.length<3)out.push(['✨ '+L('Gera uma password forte','Generate a strong password'),L('gera uma password forte','generate a strong password')]);
+  if(out.length<3)out.push(['📊 '+L('Resumo do cofre','Vault summary'),L('resumo do cofre','vault summary')]);
+  return {fresh:false,list:out.slice(0,3)};
+}
+
 let aurUILangNow='';
 function aurUILang(){
   if(typeof document==='undefined')return;const en=aurAppLang()==='en';aurUILangNow=aurAppLang();
@@ -13987,7 +14032,7 @@ function aurAlerts(){
     if(old.length)out.push({k:'old:'+old.length,ic:'🔑',html:aurL('<b>'+old.length+'</b> '+(old.length===1?'password tem':'passwords têm')+' mais de 1 ano','<b>'+old.length+'</b> '+(old.length===1?'password is':'passwords are')+' over a year old'),run:()=>{aurSay(aurL('🔑 Passwords com mais de 1 ano — toca numa para gerar uma nova:','🔑 Passwords over a year old — tap one to generate a new one:'),old.slice(0,10).map(v=>({label:v.name+(v.user?' · '+v.user:''),fn:()=>aurChangePwOn(v,{raw:'',n:'',c:new Set()})})));}});
     const cnt={};V.forEach(v=>{cnt[v.pw]=(cnt[v.pw]||0)+1;});
     const bad=V.filter(v=>(typeof getPwScore==='function'&&getPwScore(v.pw)<2)||cnt[v.pw]>1).length;
-    if(bad)out.push({k:'bad:'+bad,ic:'🛡️',html:aurL('<b>'+bad+'</b> '+(bad===1?'password fraca ou repetida':'passwords fracas ou repetidas'),'<b>'+bad+'</b> weak or reused '+(bad===1?'password':'passwords')),run:()=>aurQ('auditoria','audit')});
+    if(bad)out.push({k:'bad:'+bad,ic:'🛡️',html:aurL('<b>'+bad+'</b> '+(bad===1?'password fraca ou repetida':'passwords fracas ou repetidas'),'<b>'+bad+'</b> weak or reused '+(bad===1?'password':'passwords')),run:()=>avCleanupStart()});
   }catch(e){}
   AUR.lang=keep;
   const off=aurAlertsDismissed(),day=new Date().toISOString().slice(0,10);
@@ -14130,6 +14175,12 @@ function avRenderSettings(){
   s('s-mode-lbl',en?'App mode':'Modo da app');
   s('s-mode-desc',en?'Simple: just the essentials. Complete: every feature (assets, archive, reports…).':'Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).');
   s('s-mode-simple',en?'Simple':'Simples');s('s-mode-full',en?'Complete':'Completo');
+  s('s-nudge-lbl',en?'Aurora suggestions':'Sugestões da Aurora');s('s-nudge-desc',en?'Small tips after you save (e.g. store the 2FA code, read an expiry date from a photo).':'Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).');
+  s('s-nudge-on',en?'On':'Ligadas');s('s-nudge-off',en?'Off':'Desligadas');
+  {const a=document.getElementById('s-nudge-on'),b=document.getElementById('s-nudge-off');if(a)a.classList.toggle('on',avNudgesOn());if(b)b.classList.toggle('on',!avNudgesOn());}
+  s('s-auto-lbl',en?'Automatic theme':'Tema automático');s('s-auto-desc',en?'Follows your phone or computer light/dark mode: your dark theme at night, your light theme by day.':'Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.');
+  s('s-auto-on',en?'On':'Ligado');s('s-auto-off',en?'Off':'Desligado');
+  {const a=document.getElementById('s-auto-on'),b=document.getElementById('s-auto-off');if(a)a.classList.toggle('on',avThemeAuto());if(b)b.classList.toggle('on',!avThemeAuto());}
   const bkr=document.getElementById('s-bk-row');if(bkr){bkr.style.display=FSA_OK?'none':'';
     s('s-bk-lbl',en?'Automatic copy to Downloads':'Cópia automática para as Transferências');
     s('s-bk-desc',en?'This browser keeps the vault inside the app. For safety, an encrypted copy is saved to Downloads — only when something changed. You can delete older copies; the newest is enough.':'Este browser guarda o cofre na app. Por segurança, é feita uma cópia encriptada nas Transferências — só quando há alterações. Podes apagar as cópias antigas; basta a mais recente.');
@@ -14799,6 +14850,206 @@ function avWifiCard(){
   if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
   if(typeof renderWifiBar==='function'){const rw=renderWifiBar;renderWifiBar=function(){const r=rw.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
   if(typeof aurAlertsRender==='function'){const ar=aurAlertsRender;aurAlertsRender=function(){const r=ar.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
+})();
+
+
+/* ══ v9.81 — ASPETO (iniciais · OLED · automático) · CALENDÁRIO DO TELEMÓVEL · AURORA (alcunhas · sugestões · resumo semanal · limpeza guiada) ══ */
+function avHash(s){let h=5381;s=String(s||'');for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
+function avMono(name){
+  const w=String(name||'?').replace(/[^\p{L}\p{N} ]/gu,' ').trim().split(/\s+/).filter(Boolean);
+  const ini=(w.length>1?(w[0][0]+w[1][0]):(w[0]||'?').slice(0,2)).toUpperCase();
+  let h=0;const n=String(name||'');for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%360;
+  return '<span class="service-icon av-mono" style="background:linear-gradient(135deg,hsl('+h+',52%,46%),hsl('+((h+28)%360)+',58%,34%))" aria-hidden="true">'+esc(ini)+'</span>';
+}
+/* tema OLED: preto puro (poupa bateria nos ecrãs AMOLED), com o dourado da Aurora */
+(function(){try{if(!THEME_PRESETS.some(t=>t.id==='oled')){const i=THEME_PRESETS.findIndex(t=>!t.dark);THEME_PRESETS.splice(i<0?THEME_PRESETS.length:i,0,{id:'oled',name:'OLED',emoji:'🖤',dark:true,bg:'#000000',accent:'#c9a84c',text:'#ece8dc'});}}catch(e){}})();
+/* tema automático: alterna entre o teu tema escuro e o teu tema claro conforme o sistema */
+function avThemeAuto(){try{return localStorage.getItem('av_theme_auto')==='1';}catch(e){return false;}}
+function avApplyAutoTheme(){if(!avThemeAuto()||!window.matchMedia||typeof setTheme!=='function')return;const want=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(typeof currentTheme==='undefined'||currentTheme!==want)setTheme(want);}
+function avSetThemeAuto(on){try{localStorage.setItem('av_theme_auto',on?'1':'0');}catch(e){}if(on)avApplyAutoTheme();avRenderSettings();toast(on?(avEn()?'Automatic theme on — follows your device.':'Tema automático ligado — segue o teu dispositivo.'):(avEn()?'Automatic theme off.':'Tema automático desligado.'));}
+(function(){
+  try{if(window.matchMedia){const mq=matchMedia('(prefers-color-scheme: dark)');(mq.addEventListener?mq.addEventListener('change',avApplyAutoTheme):mq.addListener(avApplyAutoTheme));}}catch(e){}
+  if(typeof toggleTheme==='function'){const tt=toggleTheme;toggleTheme=function(){if(avThemeAuto()){try{localStorage.setItem('av_theme_auto','0');}catch(e){}toast(avEn()?'Automatic theme turned off (you chose manually).':'Tema automático desligado (escolheste à mão).');}return tt.apply(this,arguments);};}
+  setTimeout(avApplyAutoTheme,50);
+})();
+
+/* ── calendário do telemóvel (.ics): só nomes e datas, nunca passwords ── */
+function avIcsEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');}
+function avIcsFold(l){if(l.length<=73)return l;let o='',r=l;while(r.length>73){o+=r.slice(0,73)+'\r\n ';r=r.slice(73);}return o+r;}
+function avCalEvents(onlyLabel){
+  let ev=[];try{ev=calCollectEvents();}catch(e){}
+  const t0=new Date();t0.setHours(0,0,0,0);const lim=new Date(t0);lim.setFullYear(lim.getFullYear()+2);
+  return ev.map(e=>{const v=e.date;const d=v instanceof Date?new Date(v.getTime()):new Date(String(v).slice(0,10)+'T00:00:00');d.setHours(0,0,0,0);return Object.assign({},e,{d});})
+    .filter(e=>!isNaN(e.d)&&e.d>=t0&&e.d<=lim&&(!onlyLabel||e.label===onlyLabel));
+}
+function avBuildIcs(ev){
+  const en=avEn(),z=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+z(d.getMonth()+1)+z(d.getDate());
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z');
+  const K={renew:['Renova','Renews'],doc:['Validade','Expires'],card:['Cartão expira','Card expires']};
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Aurora Vault//PT','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Aurora Vault'];
+  ev.forEach(e=>{const nx=new Date(e.d);nx.setDate(nx.getDate()+1);const k=K[e.type];
+    const title=(k?avT(k)+': ':'⏳ ')+e.label+(e.type==='renew'&&e.amount?' ('+e.amount+' €)':'');
+    L.push('BEGIN:VEVENT','UID:av-'+e.type+'-'+avHash(e.label+'|'+ymd(e.d))+'@aurora-vault','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+ymd(e.d),'DTEND;VALUE=DATE:'+ymd(nx),'SUMMARY:'+avIcsEsc(title),'DESCRIPTION:'+avIcsEsc(en?'Reminder from Aurora Vault':'Lembrete do Aurora Vault'),'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+avIcsEsc(title),'TRIGGER:-P7D','END:VALARM','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+avIcsEsc(title),'TRIGGER:-P1D','END:VALARM','END:VEVENT');});
+  L.push('END:VCALENDAR');return L.map(avIcsFold).join('\r\n');
+}
+async function avExportICS(onlyLabel){
+  const en=avEn(),ev=avCalEvents(onlyLabel);
+  if(!ev.length){toast(en?'No upcoming renewals or expiry dates to export.':'Não há renovações nem validades futuras para exportar.');return 0;}
+  const file=new File([avBuildIcs(ev)],onlyLabel?'aurora-vault-'+avHash(onlyLabel)+'.ics':'aurora-vault-renovacoes.ics',{type:'text/calendar'});
+  if(!avIsDesk()&&navigator.canShare&&navigator.share){try{if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Aurora Vault'});toast(en?'📲 Choose your calendar app to add the dates.':'📲 Escolhe a app de calendário para juntar as datas.');return ev.length;}}catch(e){if(e&&e.name==='AbortError')return 0;}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+  toast(en?'📲 '+ev.length+' dates exported (names and dates only) — open the file to add them to your calendar.':'📲 '+ev.length+(ev.length===1?' data exportada':' datas exportadas')+' (só nomes e datas) — abre o ficheiro para as juntar ao calendário.');
+  return ev.length;
+}
+(function(){
+  if(typeof openCalendar!=='function')return;const oc=openCalendar;
+  openCalendar=function(){const r=oc.apply(this,arguments);setTimeout(()=>{try{
+    const ov=[...document.querySelectorAll('[id$="-overlay"].open,.modal-overlay.open')].find(o=>/cal/i.test(o.id))||[...document.querySelectorAll('[id$="-overlay"].open')].pop();
+    const t=ov&&ov.querySelector('.modal-title');if(!t)return;let b=t.querySelector('.av-cal-exp');
+    if(!b){b=document.createElement('button');b.className='av-cal-exp';b.type='button';b.onclick=e=>{e.stopPropagation();avExportICS();};t.style.display='flex';t.style.alignItems='center';t.style.gap='10px';t.appendChild(b);}
+    b.textContent=avEn()?'📲 Send to phone calendar':'📲 Enviar para o calendário do telemóvel';
+  }catch(e){}},60);return r;};
+})();
+
+/* ── sugestões discretas da Aurora (depois de gravar) ── */
+function avNudgesOn(){try{return localStorage.getItem('av_nudges')!=='0';}catch(e){return true;}}
+function avSetNudges(on){try{localStorage.setItem('av_nudges',on?'1':'0');}catch(e){}avRenderSettings();}
+function avNudgeClose(){const n=document.getElementById('av-nudge');if(n){n.classList.remove('show');clearTimeout(n._t);}}
+function avNudge(html,actions,ms){
+  if(typeof AVT!=='undefined'&&AVT.on)return;
+  let n=document.getElementById('av-nudge');if(!n){n=document.createElement('div');n.id='av-nudge';n.setAttribute('role','status');document.body.appendChild(n);}
+  clearTimeout(n._t);
+  n.innerHTML='<span class="av-nudge-ic">✨</span><div class="av-nudge-tx">'+html+'</div>'+(actions||[]).map((a,i)=>'<button class="av-nudge-b'+(i===0?' go':'')+'" data-i="'+i+'">'+a.label+'</button>').join('')+'<button class="av-nudge-x" aria-label="'+(avEn()?'Close':'Fechar')+'">✕</button>';
+  n.querySelectorAll('.av-nudge-b').forEach(b=>b.onclick=()=>{avNudgeClose();try{actions[+b.dataset.i].fn();}catch(e){}});
+  n.querySelector('.av-nudge-x').onclick=avNudgeClose;
+  requestAnimationFrame(()=>n.classList.add('show'));n._t=setTimeout(avNudgeClose,ms||12000);
+}
+function avTotpHas(name){try{if(typeof aurTotpLocked==='function'&&aurTotpLocked())return true;const k=aurNorm(name||'');return (typeof totp!=='undefined'?totp:[]).some(t=>{const x=aurNorm(t.issuer||t.name||'');return x&&(x.includes(k)||k.includes(x));});}catch(e){return true;}}
+function avSuggestEntry(e){
+  if(!avNudgesOn()||!e||e.isWifi)return;const en=avEn(),nm='<b>'+esc(e.name)+'</b>';
+  if(typeof getPwScore==='function'&&e.pw&&getPwScore(e.pw)<2){avNudge(en?'The password for '+nm+' is weak.':'A password do '+nm+' é fraca.',[{label:en?'Make a strong one':'Gerar uma forte',fn:()=>{editEntry(e.id);setTimeout(()=>{try{openPwGen();}catch(x){}},350);}}]);return;}
+  if(!avTotpHas(e.name))avNudge(en?'Saved '+nm+'. Does this account use 2FA? Keep the code here too.':'Guardaste '+nm+'. Esta conta tem 2FA? Guarda cá também o código.',[{label:en?'Add 2FA code':'Adicionar código 2FA',fn:()=>avAddType('totp')}]);
+}
+function avSuggestDoc(d){
+  if(!avNudgesOn()||!d)return;const en=avEn(),nm='<b>'+esc(d.title||d.name||'')+'</b>';
+  if(d.expiry)avNudge(en?'I’ll remind you before '+nm+' expires. Add it to your phone calendar too?':'Aviso-te antes de '+nm+' expirar. Juntar também ao calendário do telemóvel?',[{label:en?'📲 Add to calendar':'📲 Juntar ao calendário',fn:()=>avExportICS(d.title||d.name)}]);
+  else if(d.file&&/^image\//.test(d.file.type||''))avNudge(en?'Want me to read the expiry date of '+nm+' from the photo?':'Queres que eu leia a validade de '+nm+' da foto?',[{label:en?'🔍 Read expiry':'🔍 Ler validade',fn:()=>{openDocModal(d.id);setTimeout(()=>{try{avOcrDoc();}catch(x){}},450);}}]);
+}
+(function(){
+  if(typeof saveEntry==='function'){const se=saveEntry;saveEntry=function(){const ids=new Set((vault||[]).map(v=>v.id));const r=se.apply(this,arguments);setTimeout(()=>{try{const nw=vault.find(v=>!ids.has(v.id));if(nw)avSuggestEntry(nw);}catch(e){}},450);return r;};}
+  if(typeof saveDoc==='function'){const sd=saveDoc;saveDoc=function(){const ids=new Set((documents||[]).map(v=>v.id));const r=sd.apply(this,arguments);setTimeout(()=>{try{const nw=documents.find(v=>!ids.has(v.id));if(nw)avSuggestDoc(nw);}catch(e){}},450);return r;};}
+})();
+
+/* ── alcunhas: «quando eu disser banco, é o Millennium» ── */
+function avAliases(){try{return JSON.parse(localStorage.getItem('av_aliases')||'{}')||{};}catch(e){return {};}}
+function avAliasSaveAll(o){try{localStorage.setItem('av_aliases',JSON.stringify(o));}catch(e){}}
+function avAliasItems(){const out=[];const add=(a,f)=>(a||[]).forEach(x=>{const n=x&&f(x);if(n)out.push(String(n));});
+  try{add(vault,x=>!x.archived&&x.name);add(bankCards,x=>x.name||x.bank);add(storeCards,x=>x.name);add(documents,x=>x.title||x.name);add(assets,x=>x.name);add(personalInfo,x=>x.name);add(typeof subscriptions!=='undefined'?subscriptions:[],x=>x.name);}catch(e){}return out;}
+function avAliasResolve(t){const k=aurNorm(t).trim();if(!k)return null;const items=avAliasItems();return items.find(n=>aurNorm(n)===k)||items.find(n=>aurNorm(n).includes(k))||items.find(n=>k.includes(aurNorm(n))&&aurNorm(n).length>=3)||null;}
+function avAliasCmd(raw){
+  const n=aurNorm(raw).replace(/[«»"“”]/g,'').replace(/[?!.]+$/,'').trim();let m;
+  if(/^(que |quais )?(as )?(minhas )?(alcunhas|apelidos)( tenho)?$|^(my )?aliases$/.test(n))return {list:true};
+  if((m=n.match(/^(?:esquece|apaga|remove|tira|forget|delete)(?: a| the)? (?:alcunha|apelido|alias) (.+)$/)))return {del:m[1].trim()};
+  if((m=n.match(/^(?:alcunha|apelido|alias)\s*:?\s*(.+?)\s*(?:=|->|e|é|means|is)\s*(?:o |a |the )?(.+)$/)))return {set:[m[1],m[2]],explicit:true};
+  if((m=n.match(/^quando (?:eu )?(?:disser|escrever|digo)\s+(.+?)\s*,?\s*(?:e|é|quero dizer|refiro-me a|refiro me a|significa)\s+(?:o |a )?(.+)$/)))return {set:[m[1],m[2]],explicit:true};
+  if((m=n.match(/^when i (?:say|type) (.+?),? i mean (?:the |my )?(.+)$/)))return {set:[m[1],m[2]],explicit:true};
+  if((m=n.match(/^(?:o|a) (?:meu |minha )?([a-z0-9 ]{2,24}?) (?:e|é) (?:o|a) (.+)$/))&&!/^(que|qual|quanto|onde|como)\b/.test(m[1])&&avAliasResolve(m[2]))return {set:[m[1],m[2]]};
+  return null;
+}
+function avAliasHandle(raw){
+  const c=avAliasCmd(raw);if(!c)return false;const dl=aurDetectLang(raw);if(dl)AUR.lang=dl;const A=avAliases();
+  if(c.list){const ks=Object.keys(A);aurSay(ks.length?aurL('🏷️ As tuas alcunhas:\n','🏷️ Your aliases:\n')+ks.map(k=>'• <b>'+aurEsc(k)+'</b> → '+aurEsc(A[k])).join('\n'):aurL('Ainda não tens alcunhas. Experimenta: «quando eu disser banco, é o Millennium».','No aliases yet. Try: “when I say bank, I mean Millennium”.'));return true;}
+  if(c.del){const k=aurNorm(c.del).trim();if(A[k]){delete A[k];avAliasSaveAll(A);aurSay(aurL('🏷️ Esqueci a alcunha «','🏷️ Forgot the alias “')+aurEsc(k)+aurL('».','”.'));}else aurSay(aurL('Não tenho nenhuma alcunha «','I don’t have an alias “')+aurEsc(k)+aurL('».','”.'));return true;}
+  const alias=aurNorm(c.set[0]).trim(),target=avAliasResolve(c.set[1])||c.set[1].trim();
+  if(!alias||alias.length>30){return false;}
+  A[alias]=target;avAliasSaveAll(A);
+  const found=!!avAliasResolve(c.set[1]);
+  aurSay(aurL('🏷️ Combinado: quando disseres <b>«'+aurEsc(alias)+'»</b>, percebo <b>'+aurEsc(target)+'</b>.','🏷️ Got it: when you say <b>“'+aurEsc(alias)+'”</b>, I’ll understand <b>'+aurEsc(target)+'</b>.')+(found?'':aurL('\n<span class="a-dim">(Ainda não encontrei nada com esse nome no cofre.)</span>','\n<span class="a-dim">(I couldn’t find anything with that name in the vault yet.)</span>')),[{label:aurL('Experimentar: password do '+alias,'Try: '+alias+' password'),fn:()=>aurQuick(aurL('password do '+alias,alias+' password'))}]);
+  return true;
+}
+function avApplyAliases(raw){
+  const A=avAliases(),ks=Object.keys(A).sort((a,b)=>b.length-a.length);if(!ks.length)return raw;
+  let n=' '+aurNorm(raw)+' ',hit=false;
+  ks.forEach(k=>{const re=new RegExp('([\\s,.;:!?«»"“”(])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=[\\s,.;:!?«»"“”)])','g');if(re.test(n)){hit=true;n=n.replace(re,'$1'+aurNorm(A[k]));}});
+  return hit?n.trim():raw;
+}
+
+/* ── resumo semanal (aviso discreto ao entrar numa semana nova; não é mais uma caixa no Dashboard) ── */
+function avWeekId(d){const t=new Date(d||Date.now());t.setHours(0,0,0,0);t.setDate(t.getDate()-((t.getDay()+6)%7));return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+function avWeakList(){const V=(typeof vault!=='undefined'?vault:[]).filter(v=>v&&!v.archived&&v.pw);const cnt={};V.forEach(v=>{cnt[v.pw]=(cnt[v.pw]||0)+1;});return V.filter(v=>(typeof getPwScore==='function'&&getPwScore(v.pw)<2)||cnt[v.pw]>1);}
+function avWeekSummary(){
+  AUR.lang=aurAppLang();const en=avEn();
+  const t0=new Date();t0.setHours(0,0,0,0);const t7=new Date(t0);t7.setDate(t7.getDate()+7);
+  const ev=avCalEvents().filter(e=>e.d<t7).sort((a,b)=>a.d-b.d);
+  const subs=ev.filter(e=>e.type==='renew'),other=ev.filter(e=>e.type!=='renew');
+  const tot=subs.reduce((s,e)=>s+(parseFloat(String(e.amount||0).replace(',','.'))||0),0);
+  const weak=avWeakList().length,old=(typeof vault!=='undefined'?vault:[]).filter(v=>v&&!v.archived&&v.pw&&v.pwUpdated&&Date.now()-v.pwUpdated>365*864e5).length;
+  const dd=d=>d.toLocaleDateString(en?'en-GB':'pt-PT',{weekday:'short',day:'2-digit',month:'2-digit'});
+  let h=aurL('🗓️ <b>A tua semana</b>\n','🗓️ <b>Your week</b>\n');
+  h+=other.length?other.slice(0,5).map(e=>'• ⏳ '+aurEsc(e.label)+' — '+dd(e.d)).join('\n')+'\n':aurL('• Nada expira esta semana ✓\n','• Nothing expires this week ✓\n');
+  if(subs.length)h+='• 🔁 '+subs.length+aurL(subs.length===1?' subscrição renova':' subscrições renovam',subs.length===1?' subscription renews':' subscriptions renew')+(tot?' · '+tot.toFixed(2).replace('.',en?'.':',')+' €':'')+'\n';
+  h+=weak?'• 🛡️ '+weak+aurL(weak===1?' password fraca ou repetida':' passwords fracas ou repetidas',weak===1?' weak or reused password':' weak or reused passwords')+'\n':aurL('• 🛡️ Passwords em ordem ✓\n','• 🛡️ Passwords look good ✓\n');
+  if(old)h+='• 🔑 '+old+aurL(old===1?' password com mais de 1 ano':' passwords com mais de 1 ano',old===1?' password older than a year':' passwords older than a year');
+  const ch=[];if(weak)ch.push({label:aurL('🛡️ Rever passwords fracas','🛡️ Fix weak passwords'),fn:()=>avCleanupStart()});if(ev.length)ch.push({label:aurL('📲 Enviar para o calendário','📲 Send to calendar'),fn:()=>avExportICS()});
+  aurSay(h.replace(/\n$/,''),ch);
+}
+(function(){
+  if(typeof doUnlock!=='function')return;const du=doUnlock;
+  doUnlock=function(){const r=du.apply(this,arguments);setTimeout(()=>{try{
+    if(!masterKey||presentationMode)return;const wk=avWeekId();if(localStorage.getItem('av_week_seen')===wk)return;
+    if(!(typeof vault!=='undefined'&&vault.length))return;
+    localStorage.setItem('av_week_seen',wk);
+    avNudge(avEn()?'Your <b>weekly summary</b> is ready.':'O teu <b>resumo da semana</b> está pronto.',[{label:avEn()?'See':'Ver',fn:()=>{auroraOpen();avWeekSummary();}}],15000);
+  }catch(e){}},5000);return r;};
+})();
+
+/* ── limpeza guiada das passwords fracas ou repetidas (uma a uma) ── */
+const AVC={q:[],i:0,newPw:null,done:0,undo:null};
+function avCleanupStart(){
+  try{auroraOpen();}catch(e){}AUR.lang=aurAppLang();
+  AVC.q=avWeakList().map(v=>v.id);AVC.i=0;AVC.done=0;AVC.newPw=null;AVC.undo=null;
+  if(!AVC.q.length){aurSay(aurL('🛡️ Não tens passwords fracas nem repetidas. Excelente!','🛡️ You have no weak or reused passwords. Excellent!'));return;}
+  aurSay(aurL('🛡️ Vamos rever <b>'+AVC.q.length+'</b> '+(AVC.q.length===1?'password':'passwords')+', uma de cada vez. Para cada uma: eu gero uma nova, tu mudas no site e eu guardo aqui.','🛡️ Let’s review <b>'+AVC.q.length+'</b> '+(AVC.q.length===1?'password':'passwords')+', one at a time. For each: I make a new one, you change it on the site, and I save it here.'));
+  avCleanupStep();
+}
+function avCleanupCur(){return vault.find(v=>v.id===AVC.q[AVC.i]);}
+function avCleanupStep(){
+  while(AVC.i<AVC.q.length&&!avWeakList().some(v=>v.id===AVC.q[AVC.i]))AVC.i++;
+  if(AVC.i>=AVC.q.length){aurSay(aurL('✅ Terminado! Atualizaste <b>'+AVC.done+'</b> '+(AVC.done===1?'password':'passwords')+'.','✅ Done! You updated <b>'+AVC.done+'</b> '+(AVC.done===1?'password':'passwords')+'.'));return;}
+  const v=avCleanupCur(),V=avWeakList(),reused=(vault||[]).filter(x=>x.id!==v.id&&!x.archived&&x.pw===v.pw).map(x=>x.name);
+  const why=reused.length?aurL('repetida também em: '+reused.slice(0,3).map(aurEsc).join(', '),'also used in: '+reused.slice(0,3).map(aurEsc).join(', ')):aurL('password fraca','weak password');
+  aurSay('🛡️ <b>'+(AVC.i+1)+aurL(' de ',' of ')+AVC.q.length+'</b> · <b>'+aurEsc(v.name)+'</b>'+(v.user?' <span class="a-dim">('+aurEsc(v.user)+')</span>':'')+'\n'+why,
+    [{label:aurL('🔑 Gerar nova e copiar','🔑 Make a new one & copy'),fn:()=>avCleanupGen()},{label:aurL('↩ Saltar','↩ Skip'),fn:()=>{AVC.i++;avCleanupStep();}},{label:aurL('⏹ Parar','⏹ Stop'),fn:()=>aurSay(aurL('Ok, parei. Continuas quando quiseres: «rever passwords fracas».','Ok, stopped. Continue anytime: “fix weak passwords”.'))}]);
+}
+function avCleanupGen(){
+  const v=avCleanupCur();if(!v)return avCleanupStep();
+  AVC.newPw=aurGenPw(20);try{copyText(AVC.newPw,aurL('Password nova copiada','New password copied'));}catch(e){}
+  const ch=[];
+  if(v.url)ch.push({label:aurL('🌐 Abrir o site','🌐 Open the site'),fn:()=>{let u=String(v.url).trim();if(!/^https?:\/\//i.test(u))u='https://'+u;try{window.open(u,'_blank','noopener');}catch(e){}}});
+  ch.push({label:aurL('✓ Já mudei — guardar','✓ Changed it — save'),fn:()=>avCleanupSave()},{label:aurL('↩ Saltar','↩ Skip'),fn:()=>{AVC.newPw=null;AVC.i++;avCleanupStep();}});
+  aurSay(aurL('📋 Copiei uma password nova (20 caracteres).\n1) Abre o site e muda lá a password — cola esta.\n2) Volta aqui e toca em «Já mudei — guardar».','📋 I copied a new password (20 characters).\n1) Open the site and change the password there — paste this one.\n2) Come back and tap “Changed it — save”.'),ch);
+}
+function avCleanupSave(){
+  const v=avCleanupCur();if(!v||!AVC.newPw)return avCleanupStep();
+  AVC.undo={id:v.id,pw:v.pw,at:v.pwUpdated};v.pw=AVC.newPw;v.pwUpdated=Date.now();AVC.newPw=null;AVC.done++;
+  try{logActivity('edit',v.name,'🛡️');}catch(e){}markUnsaved();try{renderAll();}catch(e){}
+  aurSay(aurL('✓ Guardado: <b>'+aurEsc(v.name)+'</b> tem agora uma password forte.','✓ Saved: <b>'+aurEsc(v.name)+'</b> now has a strong password.'),[{label:aurL('Próxima →','Next →'),fn:()=>{AVC.i++;avCleanupStep();}},{label:aurL('↶ Desfazer','↶ Undo'),fn:()=>{const u=AVC.undo,x=u&&vault.find(y=>y.id===u.id);if(x){x.pw=u.pw;x.pwUpdated=u.at;AVC.done=Math.max(0,AVC.done-1);markUnsaved();try{renderAll();}catch(e){}aurSay(aurL('↶ Voltei a pôr a password anterior do <b>'+aurEsc(x.name)+'</b>.','↶ Restored the previous password for <b>'+aurEsc(x.name)+'</b>.'),[{label:aurL('Continuar','Continue'),fn:()=>avCleanupStep()}]);}}}]);
+}
+
+/* ── ligação à Aurora: alcunhas, resumo semanal, limpeza, calendário ── */
+(function(){
+  if(typeof aurHandle!=='function')return;const ah=aurHandle;
+  aurHandle=function(raw){
+    if(typeof AVF!=='undefined'&&AVF.q&&AVF.q.awaiting)return ah.call(this,raw); // ficheiro à espera de destino: nomes de pastas ficam tal e qual
+    if(raw&&avAliasHandle(raw))return true;
+    const n=aurNorm(raw||'').replace(/[?!.]+$/,'').trim();
+    const setL=()=>{const dl=aurDetectLang(raw);if(dl)AUR.lang=dl;};
+    if(/^(resumo (da|desta) semana|a minha semana|como (esta|vai) a minha semana|weekly summary|my week|week summary)$/.test(n)){setL();avWeekSummary();return true;}
+    if(/^(limpeza( das passwords)?|limpa(r)? (as )?passwords( fracas)?|rev(er|e) (as )?passwords( fracas)?|melhora(r)? (as )?(minhas )?passwords|passwords fracas|fix (my )?weak passwords|clean ?up (my )?passwords|weak passwords)$/.test(n)){setL();avCleanupStart();return true;}
+    if(/\b(envia|enviar|exporta|exportar|mete|meter|poe|por|junta|juntar|adiciona|adicionar)\b.*\b(renovacoes|datas|validades|lembretes|avisos)\b.*\bcalendario\b|\b(export|send|add)\b.*\b(renewals|dates|reminders)\b.*\bcalendar\b/.test(n)){setL();aurSay(aurL('📲 A preparar as datas para o teu calendário…','📲 Preparing the dates for your calendar…'));avExportICS();return true;}
+    return ah.call(this,avApplyAliases(raw));
+  };
 })();
 
 </script>
