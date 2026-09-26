@@ -1931,6 +1931,9 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
 .av-tp-note b{color:var(--text)}
 body.av-sw-done [id^="tab-"].active{animation:none!important}
 .av-sw-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:61;box-shadow:0 0 0 3px rgba(60,224,160,.75),0 0 16px 5px rgba(106,140,255,.55),inset 0 0 14px 4px rgba(208,92,255,.45);opacity:0}
+
+/* v9.85 — deslizar sem bloquear o scroll: o browser trata do scroll vertical; o gesto horizontal é da app */
+@media(max-width:768px){#tab-dashboard,#tab-vault,#tab-notes,#tab-cards,#tab-store,#tab-info,#tab-archive,#tab-docs,#tab-totp,#tab-trash,#tab-warranty,#tab-license,#tab-vehicle,#tab-dates{touch-action:pan-y pinch-zoom}}
 </style>
 </head>
 <body>
@@ -2276,7 +2279,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.84</span>
+      <span>Aurora Vault © 2026 · v9.85</span>
     </div>
   </div>
 </div>
@@ -2688,7 +2691,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.84</span>
+      <span>Aurora Vault © 2026 · v9.85</span>
     </div>
   </div>
   </div>
@@ -3811,7 +3814,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     }
   }catch(e){}
 })();
-const APP_VERSION='9.84';
+const APP_VERSION='9.85';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -15420,24 +15423,27 @@ function avSwStart(dir){
   if(AV_SW.reduce)return true;
   inn.classList.add('active');
   Object.assign(inn.style,{position:'fixed',left:'0',right:'0',top:AV_SW.top+'px',bottom:'0',zIndex:'60',overflow:'hidden',background:'var(--bg)',animation:'none',willChange:'transform,opacity,clip-path'});
-  const r=out.getBoundingClientRect();out.style.animation='none';out.style.willChange='transform,filter,opacity';out.style.transformOrigin='50% '+Math.round(innerHeight/2-r.top)+'px';
+  const r=out.getBoundingClientRect();out.style.animation='none';out.style.willChange='transform,opacity';out.style.transformOrigin='50% '+Math.round(innerHeight/2-r.top)+'px';
+  if(avSwStyle()==='stack'){const it=Math.max(0,AV_SW.top-r.top),ib=Math.max(0,r.bottom-innerHeight);out.style.clipPath='inset('+it+'px 0 '+ib+'px 0 round 22px)';}
+  let dim=document.getElementById('av-sw-dim');if(!dim){dim=document.createElement('div');dim.id='av-sw-dim';document.body.appendChild(dim);}
+  Object.assign(dim.style,{position:'fixed',left:'0',right:'0',top:AV_SW.top+'px',bottom:'0',background:'#000',opacity:'0',zIndex:'59',pointerEvents:'none',willChange:'opacity',display:'block'});
   if(avSwStyle()==='reveal'){let ring=document.getElementById('av-sw-ring');if(!ring){ring=document.createElement('div');ring.id='av-sw-ring';ring.className='av-sw-ring';document.body.appendChild(ring);}}
   return true;
 }
 function avSwRender(){
   if(AV_SW.reduce)return;const {out,inn,dir}=AV_SW,P=AV_SW.p,st=avSwStyle(),s=dir,edge=P>0&&P<1;
-  AV_SW_PROPS.slice(8).forEach(k=>{if(k!=='transformOrigin'){out.style[k]='';}});['transform','filter','opacity','borderRadius','boxShadow','clipPath'].forEach(k=>inn.style[k]='');
-  if(st==='parallax'){out.style.transform='translateX('+(-s*30*P)+'%)';out.style.filter='brightness('+(1-0.45*P)+')';inn.style.transform='translateX('+(s*100*(1-P))+'%)';inn.style.boxShadow=edge?(s>0?'-18px':'18px')+' 0 30px -8px rgba(0,0,0,.7)':'';}
-  else if(st==='stack'){out.style.transform='translateX('+(-s*6*P)+'%) scale('+(1-0.1*P)+')';out.style.filter='brightness('+(1-0.5*P)+')';
-    const r=out.getBoundingClientRect(),it=Math.max(0,AV_SW.top-r.top),ib=Math.max(0,r.bottom-innerHeight);out.style.clipPath='inset('+it+'px 0 '+ib+'px 0 round '+Math.round(26*P)+'px)';
+  ['transform','opacity','boxShadow'].forEach(k=>{out.style[k]='';inn.style[k]='';});inn.style.borderRadius='';if(st!=='reveal')inn.style.clipPath='';
+  const dim=document.getElementById('av-sw-dim');if(dim)dim.style.opacity=st==='fade'?0:String((st==='stack'?0.5:st==='reveal'?0.35:0.45)*P);
+  if(st==='parallax'){out.style.transform='translateX('+(-s*30*P)+'%)';inn.style.transform='translateX('+(s*100*(1-P))+'%)';inn.style.boxShadow=edge?(s>0?'-18px':'18px')+' 0 30px -8px rgba(0,0,0,.7)':'';}
+  else if(st==='stack'){out.style.transform='translateX('+(-s*6*P)+'%) scale('+(1-0.1*P)+')';
     inn.style.transform='translateX('+(s*100*(1-P))+'%)';inn.style.borderRadius=Math.round(22*(1-P))+'px';inn.style.boxShadow=edge?(s>0?'-20px':'20px')+' 0 34px -8px rgba(0,0,0,.8)':'';}
-  else if(st==='reveal'){out.style.transform='scale('+(1-0.05*P)+')';out.style.filter='brightness('+(1-0.35*P)+')';
+  else if(st==='reveal'){out.style.transform='scale('+(1-0.05*P)+')';
     const w=innerWidth,hh=innerHeight-AV_SW.top,cx=AV_SW.fx,cy=AV_SW.fy-AV_SW.top,R=Math.hypot(Math.max(cx,w-cx),Math.max(cy,hh-cy))*1.02*P;
     inn.style.clipPath='circle('+R+'px at '+cx+'px '+cy+'px)';const ring=document.getElementById('av-sw-ring');
     if(ring){ring.style.opacity=edge&&P<0.985?Math.min(1,P*4)*(1-Math.max(0,(P-0.8)/0.2)):0;ring.style.width=ring.style.height=(2*R)+'px';ring.style.left=(AV_SW.fx-R)+'px';ring.style.top=(AV_SW.fy-R)+'px';}}
   else{out.style.opacity=String(1-P);out.style.transform='translateX('+(-s*46*P)+'px)';inn.style.opacity=String(P);inn.style.transform='translateX('+(s*46*(1-P))+'px)';}
 }
-function avSwCleanup(){const {out,inn}=AV_SW;[out,inn].forEach(el=>{if(el)AV_SW_PROPS.forEach(k=>el.style[k]='');});if(inn&&inn!==out)inn.classList.remove('active');const ring=document.getElementById('av-sw-ring');if(ring)ring.style.opacity=0;}
+function avSwCleanup(){const {out,inn}=AV_SW;[out,inn].forEach(el=>{if(el)AV_SW_PROPS.forEach(k=>{if(!(el===out&&k==='animation'))el.style[k]='';});});if(inn&&inn!==out)inn.classList.remove('active');const ring=document.getElementById('av-sw-ring');if(ring)ring.style.opacity=0;const dim=document.getElementById('av-sw-dim');if(dim)dim.style.display='none';}
 function avSwEnd(done){
   const tg=AV_SW.tg;avSwCleanup();AV_SW.on=false;
   if(done&&tg){document.body.classList.add('av-sw-done');try{window.scrollTo(0,0);}catch(e){}switchGroup(tg);setTimeout(()=>document.body.classList.remove('av-sw-done'),450);}
@@ -15453,15 +15459,31 @@ document.addEventListener('touchmove',e=>{
   if(!AV_SW.cand)return;const t=e.touches[0],dx=t.clientX-AV_SW.sx,dy=t.clientY-AV_SW.sy;
   if(AV_SW.lock===null){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;AV_SW.lock=Math.abs(dx)>Math.abs(dy)*1.3;if(!AV_SW.lock){AV_SW.cand=false;return;}}
   if(!AV_SW.on){if(!avSwStart(dx<0?1:-1)){AV_SW.cand=false;return;}}
-  if(e.cancelable)e.preventDefault();
   AV_SW.p=Math.min(1,Math.max(0,(AV_SW.dir>0?-dx:dx)/innerWidth));AV_SW.fx=t.clientX;AV_SW.fy=t.clientY;avSwRender();
-},{passive:false});
+},{passive:true});
 document.addEventListener('touchend',()=>{
   if(!AV_SW.cand){return;}AV_SW.cand=false;if(!AV_SW.on)return;
   const dt=performance.now()-AV_SW.t0,v=AV_SW.p*innerWidth/Math.max(1,dt);
   avSwAnimate(AV_SW.p>0.3||(v>0.55&&AV_SW.p>0.08)?1:0);
 },{passive:true});
 document.addEventListener('touchcancel',()=>{if(AV_SW.on)avSwAnimate(0);AV_SW.cand=false;},{passive:true});
+
+
+/* ══ v9.85 — ENVIOS PARA O DRIVE EM FILA (um de cada vez) · SEMPRE A VERSÃO MAIS RECENTE ══
+   Dois envios ao mesmo tempo (ex.: ao sair da app) podiam fazer uma versão antiga chegar por último ao Drive e
+   à cópia local (que, nos browsers sem acesso a ficheiros, é o próprio cofre). */
+let _avDQ=Promise.resolve();
+(function(){
+  if(typeof driveSafeUpload!=='function')return;const inner=driveSafeUpload;
+  driveSafeUpload=function(json,interactive){
+    const run=async()=>{let j=json;
+      try{const l=await localVaultGet();if(l&&l.json&&l.json!==j){if(!l.pending&&typeof l.at==='number')return null;/* já enviada uma mais recente */ j=l.json;}}catch(e){}
+      return inner(j,interactive);};
+    const p=_avDQ.then(run,run);_avDQ=p.catch(()=>{});return p;
+  };
+})();
+/* limpa o animation:none deixado por um gesto cancelado, para a animação de entrada normal das abas funcionar */
+(function(){if(typeof switchTab!=='function')return;const st=switchTab;switchTab=function(){try{document.querySelectorAll('[id^="tab-"]').forEach(el=>{if(el.style.animationName==='none'&&!(typeof AV_SW!=='undefined'&&AV_SW.on))el.style.animation='';});}catch(e){}return st.apply(this,arguments);};})();
 
 </script>
 </body>
