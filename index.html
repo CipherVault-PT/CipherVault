@@ -2257,7 +2257,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.82</span>
+      <span>Aurora Vault © 2026 · v9.83</span>
     </div>
   </div>
 </div>
@@ -2668,7 +2668,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.82</span>
+      <span>Aurora Vault © 2026 · v9.83</span>
     </div>
   </div>
   </div>
@@ -3009,10 +3009,16 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <!-- AUTO-LOCK -->
     <div class="settings-section">
       <div class="settings-title" id="s-timeout-title">⏱️ Auto-bloqueio</div>
-      <label style="display:flex;align-items:center;gap:10px;font-size:.72rem;color:var(--text);cursor:pointer;margin-bottom:12px">
-        <input type="checkbox" id="s-lockhide" onchange="setLockHide(this.checked)" style="accent-color:var(--accent);width:16px;height:16px">
-        <span id="s-lockhide-lbl">Bloquear ao minimizar / mudar de app</span>
-      </label>
+      <div style="font-size:.72rem;color:var(--text);margin-bottom:8px"><span id="s-lockhide-lbl">Ao sair da app (segundo plano), bloquear:</span></div>
+      <div class="timeout-btns" style="margin-bottom:6px">
+        <button class="timeout-btn" onclick="avSetBgLock(0)" id="bg-0">Logo</button>
+        <button class="timeout-btn" onclick="avSetBgLock(15)" id="bg-15">15 s</button>
+        <button class="timeout-btn" onclick="avSetBgLock(60)" id="bg-60">1 min</button>
+        <button class="timeout-btn" onclick="avSetBgLock(300)" id="bg-300">5 min</button>
+        <button class="timeout-btn" onclick="avSetBgLock(-1)" id="bg--1">∞ Nunca</button>
+      </div>
+      <div id="s-bglock-hint" style="font-size:.62rem;color:var(--text-muted);line-height:1.6;margin-bottom:14px">Dá-te tempo para copiares uma password e colares noutra app. Depois disso, pede a impressão digital / PIN.</div>
+      <div style="font-size:.72rem;color:var(--text);margin-bottom:8px"><span id="s-idlelock-lbl">Sem mexer na app, bloquear depois de:</span></div>
       <div class="timeout-btns">
         <button class="timeout-btn" onclick="setTimeout2(1)" id="to-1">1 min</button>
         <button class="timeout-btn active" onclick="setTimeout2(5)" id="to-5">5 min</button>
@@ -3784,7 +3790,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     }
   }catch(e){}
 })();
-const APP_VERSION='9.82';
+const APP_VERSION='9.83';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -11068,10 +11074,6 @@ function setLockHide(v){
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     if(masterKey&&!presentationMode)document.body.classList.add('bg-blur');
-    if(lockHideOn&&masterKey&&!presentationMode){
-      clearTimeout(lockHideTimer);
-      lockHideTimer=setTimeout(()=>{if(document.hidden&&masterKey&&!presentationMode)lockApp();},1200);
-    }
   }else{document.body.classList.remove('bg-blur');clearTimeout(lockHideTimer);try{driveCheckOnFocus();}catch(e){}}
 });
 window.addEventListener('blur',()=>{if(masterKey&&!presentationMode)document.body.classList.add('bg-blur');});
@@ -14233,6 +14235,10 @@ function avRenderSettings(){
   s('s-mode-lbl',en?'App mode':'Modo da app');
   s('s-mode-desc',en?'Simple: just the essentials. Complete: every feature (assets, archive, reports…).':'Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).');
   s('s-mode-simple',en?'Simple':'Simples');s('s-mode-full',en?'Complete':'Completo');
+  s('s-lockhide-lbl',en?'When you leave the app (background), lock:':'Ao sair da app (segundo plano), bloquear:');s('bg-0',en?'Now':'Logo');s('bg--1',en?'∞ Never':'∞ Nunca');
+  s('s-bglock-hint',en?'Gives you time to copy a password and paste it in another app. After that it asks for your fingerprint / PIN.':'Dá-te tempo para copiares uma password e colares noutra app. Depois disso, pede a impressão digital / PIN.');
+  s('s-idlelock-lbl',en?'Without using the app, lock after:':'Sem mexer na app, bloquear depois de:');
+  [0,15,60,300,-1].forEach(v=>{const b=document.getElementById('bg-'+v);if(b)b.classList.toggle('active',avBgLockSecs()===v);});
   s('s-nudge-lbl',en?'Aurora suggestions':'Sugestões da Aurora');s('s-nudge-desc',en?'Small tips after you save (e.g. store the 2FA code, read an expiry date from a photo).':'Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).');
   s('s-nudge-on',en?'On':'Ligadas');s('s-nudge-off',en?'Off':'Desligadas');
   {const a=document.getElementById('s-nudge-on'),b=document.getElementById('s-nudge-off');if(a)a.classList.toggle('on',avNudgesOn());if(b)b.classList.toggle('on',!avNudgesOn());}
@@ -15224,6 +15230,88 @@ function avAuth(sub){
   if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){avCardHideAll(true);AV_CC.authAt=0;return la.apply(this,arguments);};}
   document.addEventListener('visibilitychange',()=>{if(document.hidden){avCardHideAll(true);AV_CC.authAt=0;}});
   if(typeof openCardModal==='function'){const oc=openCardModal;openCardModal=function(){const r=oc.apply(this,arguments);try{const l=document.getElementById('card-cvv-lbl');if(l)l.innerHTML='CVV <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">'+(avEn()?'(optional · encrypted)':'(opcional · encriptado)')+'</span>';}catch(e){}return r;};}
+})();
+
+
+/* ══ v9.83 — BLOQUEAR EM SEGUNDO PLANO (com margem para copiar/colar) · BOTÃO «VOLTAR» DENTRO DA APP ══ */
+function avBgLockSecs(){try{const v=localStorage.getItem('av_bg_lock');if(v===null||v==='')return 15;const n=parseInt(v,10);return [0,15,60,300,-1].includes(n)?n:15;}catch(e){return 15;}}
+function avSetBgLock(v){try{localStorage.setItem('av_bg_lock',String(v));}catch(e){}avRenderSettings();const en=avEn();
+  toast(v<0?(en?'The app won’t lock when you leave it.':'A app não bloqueia ao sair.'):v===0?(en?'Locks as soon as you leave the app.':'Bloqueia logo que saíres da app.'):(en?'Locks '+(v<60?v+' s':(v/60)+' min')+' after you leave the app.':'Bloqueia '+(v<60?v+' s':(v/60)+' min')+' depois de saíres da app.'));}
+let _avHiddenAt=0,_avBgT=0,_avExtUntil=0,_avFlushP=null;
+function avExtBusy(){return Date.now()<_avExtUntil;}
+function avMarkExternal(ms){_avExtUntil=Date.now()+(ms||10*60e3);}
+document.addEventListener('click',e=>{const t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file')avMarkExternal();},true);
+(function(){
+  try{if(navigator.share){const sh=navigator.share.bind(navigator);navigator.share=function(){avMarkExternal();return sh.apply(null,arguments);};}}catch(e){}
+  ['showOpenFilePicker','showSaveFilePicker'].forEach(k=>{try{if(window[k]){const f=window[k].bind(window);window[k]=function(){avMarkExternal();return f.apply(null,arguments);};}}catch(e){}});
+})();
+async function avBgLockNow(){
+  if(typeof masterKey==='undefined'||!masterKey||presentationMode)return;
+  try{if(_avFlushP)await Promise.race([_avFlushP,new Promise(r=>setTimeout(r,4000))]);}catch(e){}
+  try{if(hasUnsaved)await Promise.race([saveFile({auto:true}),new Promise(r=>setTimeout(r,4000))]);}catch(e){}   // grava primeiro…
+  try{avCardHideAll(true);}catch(e){}
+  if(masterKey)lockApp();                                                                                       // …bloqueia depois
+}
+document.addEventListener('visibilitychange',()=>{
+  const secs=avBgLockSecs();
+  if(document.hidden){
+    if(typeof masterKey==='undefined'||!masterKey||presentationMode||secs<0)return;
+    _avHiddenAt=Date.now();
+    _avFlushP=hasUnsaved?Promise.resolve().then(()=>saveFile({auto:true})).catch(()=>{}):null;   // grava já ao sair
+    clearTimeout(_avBgT);
+    if(avExtBusy())return;                                   // a escolher ficheiro / partilhar: não bloquear
+    if(secs===0){avBgLockNow();return;}
+    _avBgT=setTimeout(()=>{if(document.hidden&&!avExtBusy())avBgLockNow();},secs*1000);
+  }else{
+    clearTimeout(_avBgT);
+    const away=_avHiddenAt?Date.now()-_avHiddenAt:0;_avHiddenAt=0;
+    if(avExtBusy()){_avExtUntil=0;return;}
+    // o Android pode ter «congelado» a app: ao voltar confirma o tempo fora e bloqueia antes de mostrar o conteúdo
+    if(typeof masterKey!=='undefined'&&masterKey&&secs>=0&&away>=secs*1000)avBgLockNow();
+  }
+});
+
+/* ── botão «voltar» (Android/navegador): fecha o que está aberto em vez de sair da app ── */
+let _avBackAt=0,_avTabBack=false;const _avTabStack=[];
+function avAppOpen(){const a=document.getElementById('app');return typeof masterKey!=='undefined'&&!!masterKey&&!!a&&a.classList.contains('visible');}
+function avGuard(){try{if(!history.state||!history.state.av)history.pushState({av:1},'');}catch(e){}}
+function avTopOverlay(){
+  const ovs=[...document.querySelectorAll('.modal-overlay.open,[id$="-overlay"].open')].filter(o=>getComputedStyle(o).display!=='none');
+  if(!ovs.length)return null;
+  return ovs.map((o,i)=>({o,i,z:parseInt(getComputedStyle(o).zIndex,10)||0})).sort((a,b)=>b.z-a.z||b.i-a.i)[0].o;
+}
+function avCloseOverlay(o){
+  const b=[...o.querySelectorAll('button,[onclick]')].find(x=>/close|fechar|cancel/i.test((x.getAttribute('onclick')||'')+' '+(x.className||'')+' '+(x.getAttribute('aria-label')||'')));
+  if(b){b.click();if(!o.classList.contains('open'))return;}
+  o.classList.remove('open');
+}
+function avBackHandle(){
+  const q=s=>document.querySelector(s);
+  const auth=q('#av-auth.open');if(auth){const x=auth.querySelector('.av-auth-x');if(x)x.click();else auth.classList.remove('open');return true;}
+  if(typeof AVT!=='undefined'&&AVT.on){avTourEnd();return true;}
+  if(q('#av-scan')){avScanClose();return true;}
+  if(q('#av-add-pop.open')){avAddClose();return true;}
+  if(q('#tb-more-menu.open')){tbCloseMore();return true;}
+  const ov=avTopOverlay();if(ov){avCloseOverlay(ov);return true;}
+  const ap=q('#aurora-panel.open');if(ap&&!ap.classList.contains('min')){aurClose(true);return true;}
+  if(q('.topbar.m-search')){tbToggleSearch();return true;}
+  const si=document.getElementById('search-input');if(si&&si.value){closeGlobalSearch();return true;}
+  if(typeof AV_CC!=='undefined'&&AV_CC.open){avCardHideAll();return true;}
+  if(_avTabStack.length){const t=_avTabStack.pop();_avTabBack=true;try{switchTab(t);}finally{_avTabBack=false;}return true;}
+  if(avCurTab!=='dashboard'){_avTabBack=true;try{switchTab('dashboard');}finally{_avTabBack=false;}return true;}
+  return false;
+}
+window.addEventListener('popstate',()=>{
+  if(!avAppOpen())return;                                  // bloqueada: o «voltar» comporta-se normalmente
+  if(avBackHandle()){avGuard();return;}
+  if(Date.now()-_avBackAt<2200){_avBackAt=0;try{history.back();}catch(e){}return;}   // 2.º toque no Dashboard → sair
+  _avBackAt=Date.now();toast(avEn()?'Press back again to exit':'Toca outra vez em «voltar» para sair');avGuard();
+});
+(function(){
+  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const prev=typeof avCurTab!=='undefined'?avCurTab:null;const r=st.apply(this,arguments);
+    if(!_avTabBack&&prev&&prev!==t){_avTabStack.push(prev);if(_avTabStack.length>20)_avTabStack.shift();}return r;};}
+  if(typeof doUnlock==='function'){const du=doUnlock;doUnlock=function(){const r=du.apply(this,arguments);_avTabStack.length=0;setTimeout(avGuard,300);return r;};}
+  if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){_avTabStack.length=0;return la.apply(this,arguments);};}
 })();
 
 </script>
