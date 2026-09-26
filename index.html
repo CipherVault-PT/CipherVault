@@ -1863,6 +1863,55 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
 .av-nudge-x{flex-shrink:0;background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:4px 6px}
 @media(max-width:768px){#av-nudge{bottom:calc(env(safe-area-inset-bottom,0px) + 92px);flex-wrap:wrap;width:calc(100vw - 24px)}.av-nudge-tx{flex:1 1 70%}}
 .av-cal-exp{margin-left:auto;padding:7px 12px;border-radius:10px;border:1px solid rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.1);color:var(--accent);font:600 12px system-ui;cursor:pointer;white-space:nowrap}
+
+/* ══ v9.82 — cartões estilo Revolut: frente segura, confirmação, rotação 3D, verso com os dados ══ */
+.av-cc{display:flex;flex-direction:column;gap:10px}
+.av-cc-scene{perspective:1200px}
+.av-cc-card{position:relative;width:100%;aspect-ratio:1.586/1;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,.7,.2,1)}
+.av-cc.flipped .av-cc-card{transform:rotateY(180deg)}
+.av-cc-face{position:absolute;inset:0;border-radius:18px;padding:18px 20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;color:#fff;box-shadow:0 22px 44px -20px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.15)}
+.av-cc-face:before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.35) 100%);pointer-events:none}
+.av-cc-face:after{content:'';position:absolute;inset:0;background:radial-gradient(80% 60% at 88% 0%,rgba(120,255,210,.16),transparent 60%),radial-gradient(60% 50% at 0% 100%,rgba(190,120,255,.14),transparent 60%);pointer-events:none}
+.av-cc-face>*{position:relative;z-index:1}
+.av-cc-back{transform:rotateY(180deg);display:flex;flex-direction:column;justify-content:space-between}
+.av-cc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.av-cc-bank{font:600 1rem system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av-cc-badge{font:600 .52rem 'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.16);white-space:nowrap}
+.av-cc-chip{position:absolute!important;left:20px;top:34%;width:44px;height:33px;border-radius:7px;background:linear-gradient(135deg,#ecd589,#b98f2d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22)}
+.av-cc-nfc{position:absolute!important;left:74px;top:36%;opacity:.85}
+.av-cc-num{position:absolute!important;left:20px;bottom:25%;font:500 1.02rem 'JetBrains Mono',monospace;letter-spacing:2px;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.av-cc-holder{position:absolute!important;left:20px;bottom:9%;font:500 .66rem 'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;opacity:.9;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av-cc-net{position:absolute!important;right:20px;bottom:8%;font:800 italic 1.35rem system-ui,-apple-system,sans-serif;letter-spacing:.5px;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+.av-cc-net.mc{font-style:normal;font-weight:700;font-size:.85rem;display:flex;align-items:center;gap:0}
+.av-cc-net.mc i{display:inline-block;width:26px;height:26px;border-radius:50%;background:#eb001b}.av-cc-net.mc i+i{background:#f79e1b;margin-left:-10px;mix-blend-mode:screen}
+.av-cc-stripe{position:absolute!important;left:0;right:0;top:0;height:5px;background:rgba(0,0,0,.28)}
+.av-cc-back small{display:block;font:500 .5rem 'JetBrains Mono',monospace;letter-spacing:1.8px;text-transform:uppercase;opacity:.7;margin-bottom:3px}
+.av-cc-big{font:600 1.05rem 'JetBrains Mono',monospace;letter-spacing:1.4px;word-break:break-all}
+.av-cc-mid{font:600 .95rem 'JetBrains Mono',monospace}
+.av-cc-row{display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+.av-cc-row>div{min-width:0}
+.av-cc-cp{flex-shrink:0;width:32px;height:32px;border-radius:9px;border:none;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.av-cc-cp:hover{background:rgba(255,255,255,.26)}
+.av-cc-pin{cursor:pointer;border-bottom:1px dashed rgba(255,255,255,.4)}
+.av-cc-reveal{align-self:center;display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:24px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font:600 .78rem system-ui,-apple-system,sans-serif;cursor:pointer;transition:border-color .15s,background .15s}
+.av-cc-reveal:hover{border-color:rgba(var(--accent-rgb),.6);background:rgba(var(--accent-rgb),.08)}
+.av-cc-reveal svg{color:var(--accent)}
+.av-cc-timer{text-align:center;font-size:.64rem;color:var(--text-muted);min-height:1.1em;margin-top:-4px}
+@media(prefers-reduced-motion:reduce){.av-cc-card{transition:none}}
+/* confirmação de identidade */
+#av-auth{position:fixed;inset:0;z-index:420;display:none;align-items:center;justify-content:center;background:rgba(3,6,12,.62)}
+#av-auth.open{display:flex}
+.av-auth-box{width:min(380px,calc(100vw - 24px));background:#0d1320;border:1px solid rgba(190,220,255,.14);border-radius:22px;padding:22px 22px 20px;text-align:center;color:var(--text);box-shadow:0 30px 70px -20px #000;position:relative;animation:tbPop .2s ease}
+@media(max-width:768px){#av-auth{align-items:flex-end}.av-auth-box{width:100%;border-radius:24px 24px 0 0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 26px)}}
+.av-auth-x{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer}
+.av-auth-fp{width:78px;height:78px;border-radius:50%;margin:4px auto 12px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(var(--accent-rgb),.75);box-shadow:0 0 26px -4px rgba(var(--accent-rgb),.7);color:var(--accent);background:none;cursor:pointer}
+.av-auth-box h4{font:600 1rem system-ui,-apple-system,sans-serif;margin-bottom:4px}
+.av-auth-box p{font-size:.75rem;color:var(--text-muted);margin-bottom:14px}
+.av-auth-in{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font:600 1rem 'JetBrains Mono',monospace;letter-spacing:4px;text-align:center}
+.av-auth-go{width:100%;margin-top:10px;padding:11px;border-radius:12px;border:none;background:linear-gradient(180deg,rgba(var(--accent-rgb),.95),rgba(var(--accent-rgb),.65));color:#1b1407;font:600 .82rem system-ui;cursor:pointer}
+.av-auth-err{min-height:1.2em;margin-top:8px;font-size:.72rem;color:#ff8a8a}
+.av-auth-alt{display:flex;justify-content:center;gap:16px;margin-top:10px;flex-wrap:wrap}
+.av-auth-alt button{background:none;border:none;color:var(--accent);font-size:.74rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -2208,7 +2257,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.81</span>
+      <span>Aurora Vault © 2026 · v9.82</span>
     </div>
   </div>
 </div>
@@ -2619,7 +2668,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.81</span>
+      <span>Aurora Vault © 2026 · v9.82</span>
     </div>
   </div>
   </div>
@@ -3684,6 +3733,13 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
       </div>
     </div>
     <div class="form-group">
+      <label id="card-cvv-lbl">CVV <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">(opcional · encriptado)</span></label>
+      <div class="lock-input-wrap">
+        <input type="password" id="card-cvv" placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="off" style="letter-spacing:6px">
+        <button class="toggle-pw" onclick="toggleField('card-cvv')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+    </div>
+    <div class="form-group">
       <label id="card-pin-lbl">PIN <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">(encriptado)</span></label>
       <div class="lock-input-wrap">
         <input type="password" id="card-pin" placeholder="••••" maxlength="8" style="letter-spacing:6px">
@@ -3728,7 +3784,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     }
   }catch(e){}
 })();
-const APP_VERSION='9.81';
+const APP_VERSION='9.82';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7558,10 +7614,11 @@ function openCardModal(id=null){
     document.getElementById('card-expiry').value=c.expiry||'';
     document.getElementById('card-type').value=c.type||'debito';
     document.getElementById('card-pin').value=c.pin||'';
+    {const cv=document.getElementById('card-cvv');if(cv)cv.value=c.cvv||'';}
     document.getElementById('card-notes').value=c.notes||'';
     selectedCardColor=c.color||'#1a237e';
   }else{
-    ['card-bank','card-holder','card-number','card-expiry','card-pin','card-notes'].forEach(i=>document.getElementById(i).value='');
+    ['card-bank','card-holder','card-number','card-expiry','card-pin','card-cvv','card-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
     document.getElementById('card-type').value='debito';
   }
   document.querySelectorAll('.card-color-swatch').forEach(s=>{s.classList.toggle('active',s.dataset.color===selectedCardColor);});
@@ -7592,6 +7649,7 @@ function saveCard(){
     expiry:document.getElementById('card-expiry').value.trim(),
     type:document.getElementById('card-type').value,
     pin:document.getElementById('card-pin').value,
+    cvv:(document.getElementById('card-cvv')||{}).value||'',
     notes:document.getElementById('card-notes').value.trim(),
     color:selectedCardColor,createdAt:Date.now(),
   };
@@ -15050,6 +15108,122 @@ function avCleanupSave(){
     if(/\b(envia|enviar|exporta|exportar|mete|meter|poe|por|junta|juntar|adiciona|adicionar)\b.*\b(renovacoes|datas|validades|lembretes|avisos)\b.*\bcalendario\b|\b(export|send|add)\b.*\b(renewals|dates|reminders)\b.*\bcalendar\b/.test(n)){setL();aurSay(aurL('📲 A preparar as datas para o teu calendário…','📲 Preparing the dates for your calendar…'));avExportICS();return true;}
     return ah.call(this,avApplyAliases(raw));
   };
+})();
+
+
+/* ══ v9.82 — CARTÕES ESTILO REVOLUT ══
+   Na frente só os últimos 4 dígitos. Os dados (número, validade, CVV, PIN) só entram na página depois de confirmares
+   a identidade (impressão digital / PIN / palavra-passe mestra — a mesma verificação do ecrã de entrada) e saem outra vez ao esconder. */
+const AV_CC={open:null,timer:0,left:0,authAt:0};
+const AV_EYE='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const AV_EYE_OFF='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+const AV_COPY='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+function avCardNet(num){const d=String(num||'').replace(/\D/g,'');if(/^4/.test(d))return 'visa';if(/^(5[1-5]|2(2[2-9]|[3-6]\d|7[01]|720))/.test(d))return 'mc';if(/^3[47]/.test(d))return 'amex';if(/^(6011|65|64[4-9])/.test(d))return 'discover';return '';}
+function avCardNetHTML(num,small){const n=avCardNet(num);const st=small?' style="position:static;font-size:1rem"':'';
+  if(n==='visa')return '<span class="av-cc-net"'+st+'>VISA</span>';if(n==='mc')return '<span class="av-cc-net mc"'+st+'><i></i><i></i></span>';if(n==='amex')return '<span class="av-cc-net"'+st+'>AMEX</span>';if(n==='discover')return '<span class="av-cc-net"'+st+'>DISCOVER</span>';return '';}
+function avCardGroup(num){const d=String(num||'').replace(/\D/g,'');if(!d)return '—';if(avCardNet(d)==='amex')return [d.slice(0,4),d.slice(4,10),d.slice(10)].filter(Boolean).join(' ');return d.replace(/(.{4})/g,'$1 ').trim();}
+renderBankCards=function(){
+  const grid=document.getElementById('cards-grid-area');if(!grid)return;
+  avCardHideAll(true);
+  const en=avEn(),activeCards=bankCards.filter(cd=>!cd.archived);
+  if(!activeCards.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><p>'+t('cardEmpty')+'</p></div>';try{avEnhanceEmpty();}catch(e){}return;}
+  const TL=t('cardTypeLabels')||{};
+  const btn=(fn,svg,lbl,cls)=>'<button class="card-btn'+(cls?' '+cls:'')+'" onclick="'+fn+'">'+svg+' '+lbl+'</button>';
+  grid.innerHTML=activeCards.map(card=>{
+    const d=String(card.number||'').replace(/\D/g,''),last4=d.slice(-4)||'••••',col=card.color||'#1a3a6b';
+    return '<div class="bank-card-wrap av-cc" id="cc-'+card.id+'">'
+     +'<div class="av-cc-scene" onclick="avCardSceneTap(\''+card.id+'\')"><div class="av-cc-card">'
+     +'<div class="av-cc-face av-cc-front" style="background:linear-gradient(135deg,'+col+','+col+'cc)">'
+     +'<div class="av-cc-top"><span class="av-cc-bank">'+esc(card.bank||'')+'</span>'+(card.type&&TL[card.type]?'<span class="av-cc-badge">'+esc(TL[card.type])+'</span>':'')+'</div>'
+     +'<div class="av-cc-chip"></div><svg class="av-cc-nfc" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7M12 6a8.5 8.5 0 0 1 0 12M15.5 3.5a12 12 0 0 1 0 17"/></svg>'
+     +'<div class="av-cc-num">•••• •••• •••• '+esc(last4)+'</div><div class="av-cc-holder">'+esc(card.holder||'')+'</div>'+avCardNetHTML(d)
+     +'</div><div class="av-cc-face av-cc-back" id="cc-back-'+card.id+'" style="background:linear-gradient(135deg,'+col+','+col+'cc)"></div>'
+     +'</div></div>'
+     +'<button class="av-cc-reveal" id="cc-btn-'+card.id+'" onclick="avCardReveal(\''+card.id+'\')">'+AV_EYE+'<span>'+(en?'Show details':'Mostrar dados')+'</span></button>'
+     +'<div class="av-cc-timer" id="cc-timer-'+card.id+'"></div>'
+     +'<div class="bank-card-actions">'
+     +btn("openCardModal('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',en?'Edit':'Editar')
+     +btn("archiveCard('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg>',en?'Archive':'Arquivar')
+     +btn("deleteCard('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',en?'Delete':'Apagar','danger')
+     +'</div>'+(card.notes?'<div style="font-size:.62rem;color:var(--text-muted);padding:4px 2px;line-height:1.5">'+esc(card.notes)+'</div>':'')+'</div>';
+  }).join('');
+};
+function avCardBackHTML(c){
+  const en=avEn(),d=String(c.number||'').replace(/\D/g,'');
+  return '<div class="av-cc-stripe"></div>'
+   +'<div class="av-cc-top"><span class="av-cc-bank">'+esc(c.bank||'')+'</span>'+avCardNetHTML(d,true)+'</div>'
+   +'<div class="av-cc-row"><div><small>'+(en?'Card number':'Número do cartão')+'</small><div class="av-cc-big">'+esc(avCardGroup(d))+'</div></div>'+(d?'<button class="av-cc-cp" title="'+(en?'Copy number':'Copiar número')+'" onclick="event.stopPropagation();avCardCopy(\''+c.id+'\',\'number\')">'+AV_COPY+'</button>':'')+'</div>'
+   +'<div class="av-cc-row"><div><small>'+(en?'Expiry':'Validade')+'</small><div class="av-cc-mid">'+esc(c.expiry||'—')+'</div></div>'
+   +'<div><small>CVV</small><div class="av-cc-mid">'+esc(c.cvv||'—')+'</div></div>'
+   +(c.pin?'<div><small>PIN</small><div class="av-cc-mid av-cc-pin" onclick="event.stopPropagation();avCardPin(this,\''+c.id+'\')">••••</div></div>':'')
+   +'<div style="flex:1;text-align:right"><small>'+(en?'Holder':'Titular')+'</small><div class="av-cc-mid" style="font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.holder||'—')+'</div></div>'
+   +(c.cvv?'<button class="av-cc-cp" title="'+(en?'Copy CVV':'Copiar CVV')+'" onclick="event.stopPropagation();avCardCopy(\''+c.id+'\',\'cvv\')">'+AV_COPY+'</button>':'')+'</div>';
+}
+function avCardPin(el,id){const c=bankCards.find(x=>x.id===id);if(!c||AV_CC.open!==id)return;el.textContent=el.textContent==='••••'?c.pin:'••••';}
+function avCardCopy(id,f){const c=bankCards.find(x=>x.id===id);if(!c||AV_CC.open!==id)return;const v=f==='number'?String(c.number||'').replace(/\D/g,''):String(c[f]||'');if(v)copyText(v,f==='number'?(avEn()?'Card number copied':'Número do cartão copiado'):(avEn()?'CVV copied':'CVV copiado'));}
+function avCardSceneTap(id){if(AV_CC.open===id)avCardHide(id);}
+async function avCardReveal(id){
+  if(AV_CC.open===id){avCardHide(id);return;}
+  const c=bankCards.find(x=>x.id===id);if(!c)return;
+  const ok=await avAuth(avEn()?'To show the card details':'Para mostrar os dados do cartão');if(!ok)return;
+  avCardHideAll(true);
+  const wrap=document.getElementById('cc-'+id),back=document.getElementById('cc-back-'+id);if(!wrap||!back)return;
+  back.innerHTML=avCardBackHTML(c);wrap.classList.add('flipped');AV_CC.open=id;
+  const b=document.getElementById('cc-btn-'+id);if(b)b.innerHTML=AV_EYE_OFF+'<span>'+(avEn()?'Hide details':'Esconder dados')+'</span>';
+  AV_CC.left=30;avCardTick();clearInterval(AV_CC.timer);AV_CC.timer=setInterval(avCardTick,1000);
+}
+function avCardTick(){const id=AV_CC.open;if(!id){clearInterval(AV_CC.timer);return;}const el=document.getElementById('cc-timer-'+id);
+  if(AV_CC.left<=0){avCardHide(id);return;}if(el)el.textContent=(avEn()?'Hides automatically in ':'Esconde-se sozinho em ')+AV_CC.left+' s';AV_CC.left--;}
+function avCardHide(id,instant){
+  const wrap=document.getElementById('cc-'+id);if(wrap)wrap.classList.remove('flipped');
+  if(AV_CC.open===id){AV_CC.open=null;clearInterval(AV_CC.timer);}
+  const t=document.getElementById('cc-timer-'+id);if(t)t.textContent='';
+  const b=document.getElementById('cc-btn-'+id);if(b)b.innerHTML=AV_EYE+'<span>'+(avEn()?'Show details':'Mostrar dados')+'</span>';
+  const clear=()=>{const bk=document.getElementById('cc-back-'+id);if(bk&&AV_CC.open!==id)bk.innerHTML='';};
+  if(instant)clear();else setTimeout(clear,850);
+}
+function avCardHideAll(instant){if(AV_CC.open)avCardHide(AV_CC.open,instant);}
+/* confirmação de identidade (mesma verificação do ecrã de entrada) */
+function avAuth(sub){
+  if(Date.now()-AV_CC.authAt<60000)return Promise.resolve(true);
+  return new Promise(async resolve=>{
+    const en=avEn();let hasPin=false,hasBio=false;
+    try{hasPin=!!(await getPinRec());}catch(e){}try{hasBio=!!(await idbGet('qu_bio'));}catch(e){}
+    let ov=document.getElementById('av-auth');if(!ov){ov=document.createElement('div');ov.id='av-auth';document.body.appendChild(ov);}
+    let done=false;const finish=ok=>{if(done)return;done=true;ov.classList.remove('open');ov.innerHTML='';if(ok)AV_CC.authAt=Date.now();resolve(ok);};
+    const same=pw=>!masterPwRaw||pw===masterPwRaw;
+    const FP='<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 11c0 3.5-1 6.5-3 9M8.5 7.5A5 5 0 0 1 17 11c0 2-.3 4-1 6M5.5 9.5A8 8 0 0 1 12 4a8 8 0 0 1 8 8c0 1.5-.2 3-.5 4.3M12 15c-.3 2-1 4-2 5.5M15 13.5c0 2.5-.5 5-1.5 7"/></svg>';
+    const show=mode=>{
+      const alt=[];if(mode!=='bio'&&hasBio)alt.push(['bio',en?'Use fingerprint':'Usar impressão digital']);if(mode!=='pin'&&hasPin)alt.push(['pin',en?'Use PIN':'Usar PIN']);if(mode!=='master')alt.push(['master',en?'Use master password':'Usar palavra-passe mestra']);
+      let body='';
+      if(mode==='bio')body='<button class="av-auth-fp" id="av-auth-fp" aria-label="'+(en?'Use fingerprint':'Usar impressão digital')+'">'+FP+'</button><h4>'+(en?'Confirm it’s you':'Confirma que és tu')+'</h4><p>'+esc(sub)+'</p>';
+      else body='<h4 style="margin-top:6px">'+(en?'Confirm it’s you':'Confirma que és tu')+'</h4><p>'+esc(sub)+'</p><input class="av-auth-in" id="av-auth-in" '+(mode==='pin'?'type="password" inputmode="numeric" autocomplete="off" placeholder="PIN"':'type="password" autocomplete="current-password" placeholder="'+(en?'Master password':'Palavra-passe mestra')+'" style="letter-spacing:1px;font-weight:500"')+'><button class="av-auth-go" id="av-auth-go">'+(en?'Confirm':'Confirmar')+'</button>';
+      ov.innerHTML='<div class="av-auth-box" role="dialog" aria-modal="true"><button class="av-auth-x" aria-label="'+(en?'Cancel':'Cancelar')+'">✕</button>'+body+'<div class="av-auth-err" id="av-auth-err"></div><div class="av-auth-alt">'+alt.map(a=>'<button data-m="'+a[0]+'">'+a[1]+'</button>').join('')+'</div></div>';
+      ov.classList.add('open');
+      ov.querySelector('.av-auth-x').onclick=()=>finish(false);
+      ov.onclick=e=>{if(e.target===ov)finish(false);};
+      ov.querySelectorAll('.av-auth-alt button').forEach(b=>b.onclick=()=>show(b.dataset.m));
+      const err=m=>{const e=document.getElementById('av-auth-err');if(e)e.textContent=m;};
+      if(mode==='bio'){const go=async()=>{err('');const r=await tryBio();if(r&&r.pw&&same(r.pw))finish(true);else if(r&&r.gone){hasBio=false;show(hasPin?'pin':'master');}else if(r&&r.err==='cancelled')err(en?'Cancelled — tap the fingerprint to try again.':'Cancelado — toca na impressão digital para tentar outra vez.');else err(en?'Couldn’t confirm — try again or use another method.':'Não foi possível confirmar — tenta outra vez ou usa outro método.');};
+        document.getElementById('av-auth-fp').onclick=go;go();}
+      else{const inp=document.getElementById('av-auth-in'),gob=document.getElementById('av-auth-go');setTimeout(()=>inp.focus(),60);
+        const go=async()=>{const v=inp.value;if(!v)return;gob.disabled=true;err('');
+          if(mode==='pin'){const r=await tryPin(v);gob.disabled=false;
+            if(r&&r.pw&&same(r.pw))return finish(true);
+            if(r&&r.blocked){hasPin=false;err(en?'PIN blocked after too many tries — use the master password.':'PIN bloqueado por tentativas a mais — usa a palavra-passe mestra.');setTimeout(()=>show('master'),1400);return;}
+            if(r&&r.gone){hasPin=false;show('master');return;}
+            inp.value='';err((en?'Wrong PIN':'PIN errado')+(r&&r.left!=null?(en?' — '+r.left+' tries left':' — faltam '+r.left+' tentativas'):''));}
+          else{gob.disabled=false;if(masterPwRaw&&v===masterPwRaw)return finish(true);inp.value='';err(en?'Wrong password':'Palavra-passe errada');}};
+        gob.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go();if(e.key==='Escape')finish(false);};}
+    };
+    show(hasBio?'bio':(hasPin?'pin':'master'));
+  });
+}
+(function(){
+  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(){avCardHideAll(true);return st.apply(this,arguments);};}
+  if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){avCardHideAll(true);AV_CC.authAt=0;return la.apply(this,arguments);};}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){avCardHideAll(true);AV_CC.authAt=0;}});
+  if(typeof openCardModal==='function'){const oc=openCardModal;openCardModal=function(){const r=oc.apply(this,arguments);try{const l=document.getElementById('card-cvv-lbl');if(l)l.innerHTML='CVV <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">'+(avEn()?'(optional · encrypted)':'(opcional · encriptado)')+'</span>';}catch(e){}return r;};}
 })();
 
 </script>
