@@ -1912,6 +1912,25 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
 .av-auth-err{min-height:1.2em;margin-top:8px;font-size:.72rem;color:#ff8a8a}
 .av-auth-alt{display:flex;justify-content:center;gap:16px;margin-top:10px;flex-wrap:wrap}
 .av-auth-alt button{background:none;border:none;color:var(--accent);font-size:.74rem;cursor:pointer}
+
+/* ══ v9.84 — ⚙ mostrar/esconder abas · transições ao deslizar ══ */
+.av-hid{display:none!important}
+.av-tabs-gear{padding-left:12px!important;padding-right:12px!important;opacity:.75}
+.av-tabs-gear:hover,.av-tabs-gear.on{opacity:1;color:var(--accent)!important}
+@media(max-width:768px){.av-tabs-gear{position:sticky;right:0;z-index:3;opacity:1;background:var(--bg)!important;box-shadow:-22px 0 16px -4px var(--bg),20px 0 0 4px var(--bg);padding-left:14px!important;margin-left:auto}}
+.av-tr{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;cursor:pointer;user-select:none}
+.av-tr:hover{background:rgba(255,255,255,.04)}
+.av-tr.off .av-tr-t{opacity:.62}
+.av-tr .ic{font-size:1.05rem;width:24px;text-align:center}
+.av-tr-t{flex:1;min-width:0}.av-tr-t b{display:block;font-size:.84rem;font-weight:600}.av-tr-t i{display:block;font-style:normal;font-size:.68rem;color:var(--text-muted);margin-top:1px}
+.av-sw{width:40px;height:23px;border-radius:12px;position:relative;flex-shrink:0;background:rgba(255,255,255,.14);transition:background .2s}
+.av-sw:after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:left .2s}
+.av-sw.on{background:rgba(var(--accent-rgb),.92)}.av-sw.on:after{left:20px}
+.av-sw.lock{opacity:.45}
+.av-tp-note{margin:8px 6px 4px;padding:10px 12px;border-radius:11px;border:1px dashed rgba(106,140,255,.4);background:rgba(106,140,255,.07);font-size:.72rem;line-height:1.5;color:var(--text-muted)}
+.av-tp-note b{color:var(--text)}
+body.av-sw-done [id^="tab-"].active{animation:none!important}
+.av-sw-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:61;box-shadow:0 0 0 3px rgba(60,224,160,.75),0 0 16px 5px rgba(106,140,255,.55),inset 0 0 14px 4px rgba(208,92,255,.45);opacity:0}
 </style>
 </head>
 <body>
@@ -2257,7 +2276,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.83</span>
+      <span>Aurora Vault © 2026 · v9.84</span>
     </div>
   </div>
 </div>
@@ -2313,6 +2332,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <button class="tab-btn" id="grp-btn-docs" onclick="switchGroup('docs')">📁 <span id="grp-docs-txt">Documentos</span></button>
     <button class="tab-btn" id="grp-btn-bens" onclick="switchGroup('bens')">🏠 <span id="grp-bens-txt">Bens</span></button>
     <button class="tab-btn" id="grp-btn-archive" onclick="switchGroup('archive')">📦 <span id="grp-archive-txt">Arquivo</span></button>
+    <button class="tab-btn av-tabs-gear" id="grp-gear" onclick="avTabsPanel(event)" title="Mostrar / esconder abas" aria-label="Mostrar / esconder abas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <div id="tabs-wifi"></div>
     <div class="tab-indicator" id="tab-indicator"></div>
   </div>
@@ -2668,7 +2688,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.83</span>
+      <span>Aurora Vault © 2026 · v9.84</span>
     </div>
   </div>
   </div>
@@ -2878,6 +2898,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     <!-- TEMAS PREDEFINIDOS -->
     <div class="settings-section">
       <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
+      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" onclick="avSetSwStyle('parallax')">Parallax</button><button id="s-sw-stack" onclick="avSetSwStyle('stack')">Cartões em pilha</button><button id="s-sw-reveal" onclick="avSetSwStyle('reveal')">Revelação Aurora</button><button id="s-sw-fade" onclick="avSetSwStyle('fade')">Deslize suave</button></div></div>
       <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" onclick="avSetThemeAuto(true)">Ligado</button><button id="s-auto-off" onclick="avSetThemeAuto(false)">Desligado</button></div></div>
       <div class="theme-grid" id="theme-grid"></div>
     </div>
@@ -3790,7 +3811,7 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
     }
   }catch(e){}
 })();
-const APP_VERSION='9.83';
+const APP_VERSION='9.84';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -14166,8 +14187,8 @@ function avAddMenu(e){
     p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';p.setAttribute('role','menu');p.onclick=ev=>ev.stopPropagation();document.body.appendChild(p);}
   const en=avEn(),full=avMode()==='full';
   p.innerHTML='<div class="av-grab"></div><h4>'+(en?'What do you want to store?':'O que queres guardar?')+'</h4><div class="av-list">'
-   +AV_ADD.map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" onclick="avAddType(\''+t.k+'\')"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
-   +((full||AV_ADD_MORE.some(t=>t.simple))?'<h4>'+(en?'More':'Mais')+'</h4><div class="av-more">'+AV_ADD_MORE.filter(t=>full||t.simple).map(t=>'<button onclick="avAddType(\''+t.k+'\')">'+t.ic+' '+avT(t.t)+'</button>').join('')+'</div>':'')
+   +AV_ADD.filter(t=>!avTabHidden(t.tab)).map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" onclick="avAddType(\''+t.k+'\')"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
+   +((full||AV_ADD_MORE.some(t=>t.simple))?'<h4>'+(en?'More':'Mais')+'</h4><div class="av-more">'+AV_ADD_MORE.filter(t=>(full||t.simple)&&!avTabHidden(t.tab)).map(t=>'<button onclick="avAddType(\''+t.k+'\')">'+t.ic+' '+avT(t.t)+'</button>').join('')+'</div>':'')
    +'<button class="av-aur" onclick="avAddClose();if(typeof auroraOpen===\'function\')auroraOpen()">✨ '+(en?'Or tell Aurora: <b>"add Netflix"</b>':'Ou escreve à Aurora: <b>"adiciona a Netflix"</b>')+'</button>';
   if(avIsDesk()){
     p.classList.remove('sheet');d.classList.remove('open');
@@ -14242,6 +14263,9 @@ function avRenderSettings(){
   s('s-nudge-lbl',en?'Aurora suggestions':'Sugestões da Aurora');s('s-nudge-desc',en?'Small tips after you save (e.g. store the 2FA code, read an expiry date from a photo).':'Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).');
   s('s-nudge-on',en?'On':'Ligadas');s('s-nudge-off',en?'Off':'Desligadas');
   {const a=document.getElementById('s-nudge-on'),b=document.getElementById('s-nudge-off');if(a)a.classList.toggle('on',avNudgesOn());if(b)b.classList.toggle('on',!avNudgesOn());}
+  s('s-sw-lbl',en?'Tab transitions':'Transições entre abas');s('s-sw-desc',en?'When you swipe sideways, on the phone.':'Ao deslizar o dedo para o lado, no telemóvel.');
+  s('s-sw-parallax','Parallax');s('s-sw-stack',en?'Stacked cards':'Cartões em pilha');s('s-sw-reveal',en?'Aurora reveal':'Revelação Aurora');s('s-sw-fade',en?'Soft slide':'Deslize suave');
+  ['parallax','stack','reveal','fade'].forEach(k=>{const b=document.getElementById('s-sw-'+k);if(b)b.classList.toggle('on',avSwStyle()===k);});
   s('s-auto-lbl',en?'Automatic theme':'Tema automático');s('s-auto-desc',en?'Follows your phone or computer light/dark mode: your dark theme at night, your light theme by day.':'Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.');
   s('s-auto-on',en?'On':'Ligado');s('s-auto-off',en?'Off':'Desligado');
   {const a=document.getElementById('s-auto-on'),b=document.getElementById('s-auto-off');if(a)a.classList.toggle('on',avThemeAuto());if(b)b.classList.toggle('on',!avThemeAuto());}
@@ -15287,6 +15311,7 @@ function avCloseOverlay(o){
 }
 function avBackHandle(){
   const q=s=>document.querySelector(s);
+  if(q('#av-tabs-pop.open')){avTabsClose();return true;}
   const auth=q('#av-auth.open');if(auth){const x=auth.querySelector('.av-auth-x');if(x)x.click();else auth.classList.remove('open');return true;}
   if(typeof AVT!=='undefined'&&AVT.on){avTourEnd();return true;}
   if(q('#av-scan')){avScanClose();return true;}
@@ -15313,6 +15338,130 @@ window.addEventListener('popstate',()=>{
   if(typeof doUnlock==='function'){const du=doUnlock;doUnlock=function(){const r=du.apply(this,arguments);_avTabStack.length=0;setTimeout(avGuard,300);return r;};}
   if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){_avTabStack.length=0;return la.apply(this,arguments);};}
 })();
+
+
+/* ══ v9.84 — ⚙ MOSTRAR / ESCONDER ABAS (esconder ≠ apagar · a Aurora vê tudo) ══ */
+const AV_GROUPS=[['dashboard','📊',['Dashboard','Dashboard'],['sempre visível','always visible']],['cofre','🔐',['Cofre','Vault'],['passwords e 2FA','passwords and 2FA']],['cards','💳',['Cartões','Cards'],['bancários e de loja','bank and store']],['docs','📁',['Documentos','Documents'],['documentos, notas, info','documents, notes, info']],['bens','🏠',['Bens','Assets'],['garantias, veículos, datas','warranties, vehicles, dates']],['archive','📦',['Arquivo','Archive'],['arquivo e reciclagem','archive and trash']]];
+function avHiddenTabs(){try{const a=JSON.parse(localStorage.getItem('av_hidden_tabs')||'[]');return Array.isArray(a)?a.filter(g=>g!=='dashboard'&&TAB_GROUPS[g]):[];}catch(e){return [];}}
+function avHideLock(){try{return localStorage.getItem('av_hide_lock')!=='0';}catch(e){return true;}}
+function avTabHidden(tab){if(!tab)return false;try{return avHiddenTabs().includes(groupOfTab(tab));}catch(e){return false;}}
+function avApplyHidden(){
+  const hid=avHiddenTabs();
+  Object.keys(TAB_GROUPS).forEach(g=>{const b=document.getElementById('grp-btn-'+g);if(b)b.classList.toggle('av-hid',hid.includes(g));});
+  try{if(hid.includes(currentGroup)&&typeof masterKey!=='undefined'&&masterKey)switchGroup('dashboard');}catch(e){}
+}
+function avTabsClose(){const p=document.getElementById('av-tabs-pop'),d=document.getElementById('av-tabs-dim');if(p)p.classList.remove('open');if(d)d.classList.remove('open');const g=document.getElementById('grp-gear');if(g)g.classList.remove('on');}
+function avTabsPanel(e){
+  if(e)e.stopPropagation();
+  let p=document.getElementById('av-tabs-pop'),d=document.getElementById('av-tabs-dim');
+  if(p&&p.classList.contains('open')){avTabsClose();return;}
+  if(!p){d=document.createElement('div');d.id='av-tabs-dim';d.className='av-dim';d.onclick=avTabsClose;document.body.appendChild(d);
+    p=document.createElement('div');p.id='av-tabs-pop';p.className='av-pop';p.onclick=ev=>ev.stopPropagation();document.body.appendChild(p);}
+  avTabsRender();
+  if(avIsDesk()){p.classList.remove('sheet');d.classList.remove('open');const g=document.getElementById('grp-gear').getBoundingClientRect();
+    p.style.top=Math.round(g.bottom+8)+'px';p.style.left=Math.max(10,Math.min(innerWidth-390,Math.round(g.left-160)))+'px';p.style.right='auto';p.style.bottom='auto';}
+  else{p.classList.add('sheet');p.style.top='auto';p.style.left='0';p.style.right='0';d.classList.add('open');}
+  p.classList.add('open');document.getElementById('grp-gear').classList.add('on');
+}
+function avTabsRender(){
+  const p=document.getElementById('av-tabs-pop');if(!p)return;const en=avEn(),hid=avHiddenTabs(),simple=avMode()==='simple';
+  p.innerHTML='<div class="av-grab"></div><h4>'+(en?'Visible tabs':'Abas visíveis')+'</h4>'
+   +AV_GROUPS.map(([g,ic,n,sub])=>{const dash=g==='dashboard',byMode=simple&&(g==='bens'||g==='archive'),on=dash||!hid.includes(g);
+     const s=dash?avT(sub):(byMode?(en?'hidden by Simple mode':'escondida pelo Modo Simples'):(on?avT(sub):(en?'hidden — nothing was deleted':'escondida — nada foi apagado')));
+     return '<div class="av-tr'+(on?'':' off')+'" '+(dash?'':'onclick="avTabToggle(\''+g+'\')"')+' role="switch" aria-checked="'+on+'"><span class="ic">'+ic+'</span><span class="av-tr-t"><b>'+avT(n)+'</b><i>'+s+'</i></span><span class="av-sw'+(on?' on':'')+(dash?' lock':'')+'"></span></div>';}).join('')
+   +'<div class="av-tr" onclick="avHideLockToggle()" style="border-top:1px solid var(--border);margin-top:4px"><span class="ic">🔒</span><span class="av-tr-t"><b>'+(en?'Ask for fingerprint / PIN':'Pedir impressão digital / PIN')+'</b><i>'+(en?'to show a hidden tab again':'para voltar a mostrar uma aba escondida')+'</i></span><span class="av-sw'+(avHideLock()?' on':'')+'"></span></div>'
+   +'<div class="av-tp-note">✨ '+(en?'<b>Aurora</b> still sees everything, even in hidden tabs.':'A <b>Aurora</b> continua a ver tudo, mesmo nas abas escondidas.')+'</div>';
+}
+async function avTabToggle(g){
+  if(g==='dashboard')return;const hid=avHiddenTabs(),isHid=hid.includes(g),en=avEn();
+  if(isHid&&avHideLock()){const ok=await avAuth(en?'To show a hidden tab':'Para voltar a mostrar uma aba escondida');if(!ok)return;}
+  const nx=isHid?hid.filter(x=>x!==g):hid.concat([g]);
+  try{localStorage.setItem('av_hidden_tabs',JSON.stringify(nx));}catch(e){}
+  avApplyHidden();avTabsRender();try{avAddLabel();}catch(e){}
+  const nm=avT((AV_GROUPS.find(x=>x[0]===g)||[])[2]);
+  toast(isHid?(en?'«'+nm+'» is visible again.':'«'+nm+'» voltou a aparecer.'):(en?'«'+nm+'» hidden — nothing was deleted.':'«'+nm+'» escondida — nada foi apagado.'));
+}
+async function avHideLockToggle(){const on=avHideLock(),en=avEn();
+  if(on){const ok=await avAuth(en?'To turn off this protection':'Para desligar esta proteção');if(!ok)return;}
+  try{localStorage.setItem('av_hide_lock',on?'0':'1');}catch(e){}avTabsRender();}
+document.addEventListener('click',e=>{const p=document.getElementById('av-tabs-pop');if(p&&p.classList.contains('open')&&!p.contains(e.target)&&!(e.target.closest&&e.target.closest('#grp-gear')))avTabsClose();});
+(function(){
+  if(typeof renderTabNav==='function'){const rt=renderTabNav;renderTabNav=function(){const r=rt.apply(this,arguments);try{const hid=avHiddenTabs();Object.keys(TAB_GROUPS).forEach(g=>{const b=document.getElementById('grp-btn-'+g);if(b)b.classList.toggle('av-hid',hid.includes(g));});}catch(e){}return r;};}
+  if(typeof setLang==='function'){const sl=setLang;setLang=function(){const r=sl.apply(this,arguments);try{const g=document.getElementById('grp-gear');if(g){const l=avEn()?'Show / hide tabs':'Mostrar / esconder abas';g.title=l;g.setAttribute('aria-label',l);}avTabsRender();}catch(e){}return r;};}
+  setTimeout(avApplyHidden,0);
+})();
+
+/* ══ v9.84 — DESLIZAR ENTRE ABAS (telemóvel): Parallax · Cartões em pilha · Revelação Aurora · Deslize suave ══ */
+function avSwStyle(){try{const v=localStorage.getItem('av_swipe_style');return ['parallax','stack','reveal','fade'].includes(v)?v:'stack';}catch(e){return 'stack';}}
+function avSetSwStyle(v){try{localStorage.setItem('av_swipe_style',v);}catch(e){}avRenderSettings();}
+const AV_SW={cand:false,on:false,lock:null,sx:0,sy:0,t0:0,dir:0,p:0,out:null,inn:null,tg:null,fx:0,fy:0,top:0,reduce:false,anim:0};
+const AV_SW_PROPS=['position','left','right','top','bottom','zIndex','overflow','background','animation','willChange','transform','filter','opacity','borderRadius','boxShadow','clipPath','transformOrigin','transition'];
+function avSwGroups(){return Object.keys(TAB_GROUPS).filter(g=>{const b=document.getElementById('grp-btn-'+g);return b&&getComputedStyle(b).display!=='none';});}
+function avSwBlocked(t){
+  if(!avAppOpen()||presentationMode||avIsDesk())return true;
+  if(document.querySelector('.modal-overlay.open,[id$="-overlay"].open,#av-add-pop.open,#av-tabs-pop.open,#av-auth.open,#tb-more-menu.open,#avt-root,#av-scan'))return true;
+  const ap=document.getElementById('aurora-panel');if(ap&&ap.classList.contains('open')&&!ap.classList.contains('min'))return true;
+  for(let el=t;el&&el!==document.body;el=el.parentElement){
+    // campos de texto e barras deslizantes: o arrasto horizontal tem outro significado (mover o cursor, mudar o valor)
+    if(el.tagName==='TEXTAREA'||el.isContentEditable)return true;
+    if(el.tagName==='INPUT'&&!/^(checkbox|radio|button|submit|reset|color|file)$/i.test(el.type||''))return true;
+    if(el.classList&&(el.classList.contains('tabs')||el.classList.contains('topbar')||el.id==='subtabs'))return true;
+    const cs=getComputedStyle(el);if((cs.overflowX==='auto'||cs.overflowX==='scroll')&&el.scrollWidth>el.clientWidth+4)return true;
+  }
+  return false;
+}
+function avSwTopY(){const tb=document.getElementById('grp-btn-dashboard').parentElement,sb=document.getElementById('subtabs');let y=tb.getBoundingClientRect().bottom;if(sb&&getComputedStyle(sb).display!=='none')y=Math.max(y,sb.getBoundingClientRect().bottom);return Math.max(0,Math.round(y));}
+function avSwStart(dir){
+  const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;if(i<0||j<0||j>=gs.length)return false;
+  const tg=gs[j],leaf=lastLeafOf[tg]||TAB_GROUPS[tg][0];
+  const out=document.getElementById('tab-'+avCurTab),inn=document.getElementById('tab-'+leaf);if(!out||!inn||out===inn)return false;
+  try{if(leaf==='trash')renderTrash();if(leaf==='totp')renderTotp();if(leaf==='info')renderInfo();if(leaf==='store')renderStoreCards();if(['warranty','license','vehicle','dates'].includes(leaf))renderAssets(leaf);}catch(e){}
+  Object.assign(AV_SW,{on:true,dir,tg,out,inn,top:avSwTopY(),reduce:!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)});
+  if(AV_SW.reduce)return true;
+  inn.classList.add('active');
+  Object.assign(inn.style,{position:'fixed',left:'0',right:'0',top:AV_SW.top+'px',bottom:'0',zIndex:'60',overflow:'hidden',background:'var(--bg)',animation:'none',willChange:'transform,opacity,clip-path'});
+  const r=out.getBoundingClientRect();out.style.animation='none';out.style.willChange='transform,filter,opacity';out.style.transformOrigin='50% '+Math.round(innerHeight/2-r.top)+'px';
+  if(avSwStyle()==='reveal'){let ring=document.getElementById('av-sw-ring');if(!ring){ring=document.createElement('div');ring.id='av-sw-ring';ring.className='av-sw-ring';document.body.appendChild(ring);}}
+  return true;
+}
+function avSwRender(){
+  if(AV_SW.reduce)return;const {out,inn,dir}=AV_SW,P=AV_SW.p,st=avSwStyle(),s=dir,edge=P>0&&P<1;
+  AV_SW_PROPS.slice(8).forEach(k=>{if(k!=='transformOrigin'){out.style[k]='';}});['transform','filter','opacity','borderRadius','boxShadow','clipPath'].forEach(k=>inn.style[k]='');
+  if(st==='parallax'){out.style.transform='translateX('+(-s*30*P)+'%)';out.style.filter='brightness('+(1-0.45*P)+')';inn.style.transform='translateX('+(s*100*(1-P))+'%)';inn.style.boxShadow=edge?(s>0?'-18px':'18px')+' 0 30px -8px rgba(0,0,0,.7)':'';}
+  else if(st==='stack'){out.style.transform='translateX('+(-s*6*P)+'%) scale('+(1-0.1*P)+')';out.style.filter='brightness('+(1-0.5*P)+')';
+    const r=out.getBoundingClientRect(),it=Math.max(0,AV_SW.top-r.top),ib=Math.max(0,r.bottom-innerHeight);out.style.clipPath='inset('+it+'px 0 '+ib+'px 0 round '+Math.round(26*P)+'px)';
+    inn.style.transform='translateX('+(s*100*(1-P))+'%)';inn.style.borderRadius=Math.round(22*(1-P))+'px';inn.style.boxShadow=edge?(s>0?'-20px':'20px')+' 0 34px -8px rgba(0,0,0,.8)':'';}
+  else if(st==='reveal'){out.style.transform='scale('+(1-0.05*P)+')';out.style.filter='brightness('+(1-0.35*P)+')';
+    const w=innerWidth,hh=innerHeight-AV_SW.top,cx=AV_SW.fx,cy=AV_SW.fy-AV_SW.top,R=Math.hypot(Math.max(cx,w-cx),Math.max(cy,hh-cy))*1.02*P;
+    inn.style.clipPath='circle('+R+'px at '+cx+'px '+cy+'px)';const ring=document.getElementById('av-sw-ring');
+    if(ring){ring.style.opacity=edge&&P<0.985?Math.min(1,P*4)*(1-Math.max(0,(P-0.8)/0.2)):0;ring.style.width=ring.style.height=(2*R)+'px';ring.style.left=(AV_SW.fx-R)+'px';ring.style.top=(AV_SW.fy-R)+'px';}}
+  else{out.style.opacity=String(1-P);out.style.transform='translateX('+(-s*46*P)+'px)';inn.style.opacity=String(P);inn.style.transform='translateX('+(s*46*(1-P))+'px)';}
+}
+function avSwCleanup(){const {out,inn}=AV_SW;[out,inn].forEach(el=>{if(el)AV_SW_PROPS.forEach(k=>el.style[k]='');});if(inn&&inn!==out)inn.classList.remove('active');const ring=document.getElementById('av-sw-ring');if(ring)ring.style.opacity=0;}
+function avSwEnd(done){
+  const tg=AV_SW.tg;avSwCleanup();AV_SW.on=false;
+  if(done&&tg){document.body.classList.add('av-sw-done');try{window.scrollTo(0,0);}catch(e){}switchGroup(tg);setTimeout(()=>document.body.classList.remove('av-sw-done'),450);}
+}
+function avSwAnimate(to){
+  cancelAnimationFrame(AV_SW.anim);if(AV_SW.reduce){avSwEnd(to===1);return;}
+  const from=AV_SW.p,t0=performance.now(),dur=Math.max(150,380*Math.abs(to-from));
+  const step=t=>{let k=Math.min(1,(t-t0)/dur);k=1-Math.pow(1-k,3);AV_SW.p=from+(to-from)*k;avSwRender();if(k<1)AV_SW.anim=requestAnimationFrame(step);else avSwEnd(to===1);};
+  AV_SW.anim=requestAnimationFrame(step);
+}
+document.addEventListener('touchstart',e=>{if(AV_SW.on||e.touches.length!==1)return;const t=e.touches[0];AV_SW.cand=!avSwBlocked(e.target);AV_SW.lock=null;AV_SW.sx=t.clientX;AV_SW.sy=t.clientY;AV_SW.t0=performance.now();AV_SW.fx=t.clientX;AV_SW.fy=t.clientY;},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!AV_SW.cand)return;const t=e.touches[0],dx=t.clientX-AV_SW.sx,dy=t.clientY-AV_SW.sy;
+  if(AV_SW.lock===null){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;AV_SW.lock=Math.abs(dx)>Math.abs(dy)*1.3;if(!AV_SW.lock){AV_SW.cand=false;return;}}
+  if(!AV_SW.on){if(!avSwStart(dx<0?1:-1)){AV_SW.cand=false;return;}}
+  if(e.cancelable)e.preventDefault();
+  AV_SW.p=Math.min(1,Math.max(0,(AV_SW.dir>0?-dx:dx)/innerWidth));AV_SW.fx=t.clientX;AV_SW.fy=t.clientY;avSwRender();
+},{passive:false});
+document.addEventListener('touchend',()=>{
+  if(!AV_SW.cand){return;}AV_SW.cand=false;if(!AV_SW.on)return;
+  const dt=performance.now()-AV_SW.t0,v=AV_SW.p*innerWidth/Math.max(1,dt);
+  avSwAnimate(AV_SW.p>0.3||(v>0.55&&AV_SW.p>0.08)?1:0);
+},{passive:true});
+document.addEventListener('touchcancel',()=>{if(AV_SW.on)avSwAnimate(0);AV_SW.cand=false;},{passive:true});
 
 </script>
 </body>
