@@ -1989,6 +1989,9 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
 @keyframes avVtTapOut{to{opacity:0;transform:translateX(calc(var(--avd) * -28px))}}
 @keyframes avVtTapIn{from{opacity:0;transform:translateX(calc(var(--avd) * 28px))}}
 #s-sw-rm{display:none;margin-top:6px;font-size:.66rem;line-height:1.5;color:#ffcf7a}
+
+/* v9.93 — com o dedo a controlar, a animação acompanha-o de forma linear (o suavizar é feito ao largar) */
+html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*),html.av-vt-scrub::view-transition-group(*){animation-timing-function:linear!important}
 </style>
 </head>
 <body>
@@ -2334,7 +2337,7 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.92</span>
+      <span>Aurora Vault © 2026 · v9.93</span>
     </div>
   </div>
 </div>
@@ -2746,7 +2749,7 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.92</span>
+      <span>Aurora Vault © 2026 · v9.93</span>
     </div>
   </div>
   </div>
@@ -3869,7 +3872,7 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
     }
   }catch(e){}
 })();
-const APP_VERSION='9.92';
+const APP_VERSION='9.93';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -15392,7 +15395,9 @@ function avBackHandle(){
   return false;
 }
 window.addEventListener('popstate',()=>{
-  if(!avAppOpen())return;                                  // bloqueada: o «voltar» comporta-se normalmente
+  if(!avAppOpen())return;
+  /* um «voltar» gerado pelo próprio deslize (o browser/Android toma o deslize para a direita como «voltar») não conta */
+  if((typeof AV_S!=='undefined'&&AV_S.on)||(typeof AV_G!=='undefined'&&(AV_G.busy||Date.now()-(AV_G.lastSwipe||0)<600))){avGuard();return;}                                  // bloqueada: o «voltar» comporta-se normalmente
   if(avBackHandle()){avGuard();return;}
   if(Date.now()-_avBackAt<2200){_avBackAt=0;try{history.back();}catch(e){}return;}   // 2.º toque no Dashboard → sair
   _avBackAt=Date.now();toast(avEn()?'Press back again to exit':'Toca outra vez em «voltar» para sair');avGuard();
@@ -15596,10 +15601,11 @@ function avVTRun(run,dir,kind,fx,fy){
   root.classList.remove('av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');root.classList.add('av-vt','av-vt-'+st);
   let ring=null;
   const vt=document.startViewTransition(()=>{run();
+    try{window.__aurFabRaw&&window.__aurFabRaw();}catch(e){}
     {const nt=document.getElementById('tab-'+avCurTab);if(nt)nt.style.animation='none';}  /* sem animação de entrada nesta troca — limpa-se sozinha na troca seguinte */
     if(st==='reveal'){const R=parseFloat(root.style.getPropertyValue('--avr'))||600;ring=document.createElement('div');ring.className='av-vt-ring';Object.assign(ring.style,{left:(fx-R)+'px',top:(fy-R)+'px',width:(2*R)+'px',height:(2*R)+'px'});document.body.appendChild(ring);}});
   AV_G.vt=vt;
-  const done=()=>{if(ring)ring.remove();if(AV_G.tok!==tok)return;root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');AV_G.busy=false;AV_G.vt=null;AV_G.lock=null;avBgHold(false);};
+  const done=()=>{if(ring)ring.remove();if(AV_G.tok!==tok)return;root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');AV_G.busy=false;AV_G.vt=null;AV_G.lock=null;avBgHold(false);try{aurFab();}catch(e){}};
   vt.finished.then(done,done);
 }
 function avGestGo(dir){
@@ -15615,21 +15621,78 @@ document.addEventListener('click',e=>{
   else{const leaf=b.id.slice(8);if(leaf===avCurTab||!TAB_GROUPS[currentGroup])return;const lv=TAB_GROUPS[currentGroup];dir=lv.indexOf(leaf)>lv.indexOf(avCurTab)?1:-1;run=()=>switchTab(leaf);}
   e.preventDefault();e.stopImmediatePropagation();avVTRun(run,dir,'tap');
 },true);
+/* ── v9.93: O DEDO CONTROLA A TRANSIÇÃO — a aba nova entra/revela-se ao ritmo do dedo (fotografias exatas: nada estica nem pisca);
+      ao largar completa-se ou volta atrás. Na Revelação Aurora o círculo nasce onde tocaste. ── */
+const AV_S={on:false,vt:null,anims:null,ring:null,p:0,want:null,intent:null,from:null,sy:0,tg:null,dir:0,tok:0,tw:0};
+const AV_SCR_W=0.85;   // fração da largura do ecrã que corresponde à transição completa
+function avScrubSet(p){AV_S.p=Math.max(0,Math.min(1,p));if(!AV_S.anims)return;
+  AV_S.anims.forEach(a=>{try{const tm=a.effect.getTiming();a.currentTime=(tm.delay||0)+AV_S.p*(tm.duration||0);}catch(e){}});}
+function avScrubStart(dir){
+  const tg=avGestTarget(dir);if(!tg||!avVTok())return false;
+  const st=avSwStyle(),root=document.documentElement,fx=AV_G.sx,fy=AV_G.sy;
+  const tok=++AV_S.tok;Object.assign(AV_S,{on:true,vt:null,anims:null,ring:null,p:0,want:null,intent:null,from:{g:currentGroup,t:avCurTab},sy:window.scrollY||0,tg,dir});
+  AV_G.busy=true;avBgHold(true);
+  root.style.setProperty('--avd',String(dir));root.style.setProperty('--avx',Math.round(fx)+'px');root.style.setProperty('--avy',Math.round(fy)+'px');
+  root.style.setProperty('--avr',Math.ceil(Math.hypot(Math.max(fx,innerWidth-fx),Math.max(fy,innerHeight-fy))*1.05)+'px');
+  root.classList.remove('av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');root.classList.add('av-vt','av-vt-'+st,'av-vt-scrub');
+  const vt=document.startViewTransition(()=>{
+    switchGroup(tg);const nt=document.getElementById('tab-'+avCurTab);if(nt)nt.style.animation='none';try{window.scrollTo(0,0);}catch(e){}
+    try{window.__aurFabRaw&&window.__aurFabRaw();}catch(e){}
+    if(st==='reveal'){const R=parseFloat(root.style.getPropertyValue('--avr'))||600;const ring=document.createElement('div');ring.className='av-vt-ring';Object.assign(ring.style,{left:(fx-R)+'px',top:(fy-R)+'px',width:(2*R)+'px',height:(2*R)+'px'});document.body.appendChild(ring);AV_S.ring=ring;}});
+  AV_S.vt=vt;
+  vt.ready.then(()=>{if(AV_S.tok!==tok)return;
+    AV_S.anims=document.getAnimations().filter(a=>a.effect&&/::view-transition/.test(a.effect.pseudoElement||''));
+    AV_S.anims.forEach(a=>a.pause());avScrubSet(AV_S.p);if(AV_S.want!==null)avScrubRelease(AV_S.want);}).catch(()=>{});
+  const done=()=>{if(AV_S.ring&&AV_S.tok===tok){AV_S.ring.remove();AV_S.ring=null;}if(AV_S.tok!==tok)return;
+    root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap','av-vt-scrub');
+    AV_S.on=false;AV_S.vt=null;AV_S.anims=null;AV_G.busy=false;AV_G.lock=null;avBgHold(false);try{aurFab();}catch(e){}};
+  vt.finished.then(done,done);
+  return true;
+}
+function avScrubRelease(commit){
+  if(!AV_S.on)return;AV_S.intent=commit;
+  if(!AV_S.anims){AV_S.want=commit;return;}          // ainda a preparar as fotografias: decide assim que estiverem prontas
+  AV_S.want=null;cancelAnimationFrame(AV_S.tw);
+  const from=AV_S.p,to=commit?1:0,t0=performance.now(),dur=Math.max(110,300*Math.abs(to-from)),tok=AV_S.tok;
+  const step=t=>{if(AV_S.tok!==tok)return;let k=Math.min(1,(t-t0)/dur);k=1-Math.pow(1-k,3);avScrubSet(from+(to-from)*k);if(k<1)AV_S.tw=requestAnimationFrame(step);else avScrubFinish(commit);};
+  AV_S.tw=requestAnimationFrame(step);
+}
+function avScrubFinish(commit){
+  if(!AV_S.on||!AV_S.vt)return;cancelAnimationFrame(AV_S.tw);
+  if(!commit){  // voltar atrás: repõe a aba, o scroll e o histórico do «voltar» no mesmo instante em que a transição acaba (sem piscar)
+    const f=AV_S.from,ind=document.getElementById('tab-indicator');if(ind)ind.style.transition='none';
+    try{switchTab(f.t);}catch(e){}
+    const ot=document.getElementById('tab-'+avCurTab);if(ot)ot.style.animation='none';
+    try{window.scrollTo(0,AV_S.sy);}catch(e){}
+    try{_avTabStack.pop();_avTabStack.pop();}catch(e){}
+    if(ind)requestAnimationFrame(()=>requestAnimationFrame(()=>{ind.style.transition='';}));
+  }
+  try{AV_S.vt.skipTransition();}catch(e){}
+}
 document.addEventListener('touchstart',e=>{if(e.touches.length!==1||avSwStyle()==='off'){AV_G.cand=false;return;}
-  if(AV_G.busy&&AV_G.vt){try{AV_G.vt.skipTransition();}catch(err){}AV_G.busy=false;}const t=e.touches[0];AV_G.cand=!avSwBlocked(e.target);AV_G.lock=null;AV_G.sx=t.clientX;AV_G.sy=t.clientY;AV_G.t0=performance.now();AV_G.dx=0;AV_G.fx=t.clientX;AV_G.fy=t.clientY;},{passive:true});
+  if(AV_S.on){const c=AV_S.intent!=null?AV_S.intent:AV_S.p>=0.5;avScrubSet(c?1:0);avScrubFinish(c);}      // gesto novo a meio: termina o anterior já
+  else if(AV_G.busy&&AV_G.vt){try{AV_G.vt.skipTransition();}catch(err){}AV_G.busy=false;}
+  const t=e.touches[0];AV_G.cand=!avSwBlocked(e.target);AV_G.lock=null;AV_G.mode=null;AV_G.sx=t.clientX;AV_G.sy=t.clientY;AV_G.t0=performance.now();AV_G.dx=0;AV_G.p=0;AV_G.fx=t.clientX;AV_G.fy=t.clientY;
+},{passive:true});
 document.addEventListener('touchmove',e=>{
   if(!AV_G.cand)return;const t=e.touches[0],dx=t.clientX-AV_G.sx,dy=t.clientY-AV_G.sy;
   if(AV_G.lock===null){if(Math.abs(dx)<16&&Math.abs(dy)<16)return;AV_G.lock=Math.abs(dx)>Math.abs(dy)*2;if(!AV_G.lock){AV_G.cand=false;return;}
-    avBgHold(true);AV_G.el=document.getElementById('tab-'+avCurTab);const sbx=document.getElementById('subtabs');AV_G.els=[AV_G.el,sbx&&getComputedStyle(sbx).display!=='none'?sbx:null].filter(Boolean);AV_G.els.forEach(x=>x.style.willChange='transform');}
-  AV_G.dx=dx;AV_G.fx=t.clientX;AV_G.fy=t.clientY;if(!AV_G.raf)AV_G.raf=requestAnimationFrame(avGestPeek);
+    const dir=dx<0?1:-1;
+    if(avScrubStart(dir)){AV_G.mode='scrub';AV_G.dir=dir;}
+    else{AV_G.mode='peek';avBgHold(true);AV_G.el=document.getElementById('tab-'+avCurTab);const sbx=document.getElementById('subtabs');AV_G.els=[AV_G.el,sbx&&getComputedStyle(sbx).display!=='none'?sbx:null].filter(Boolean);AV_G.els.forEach(x=>x.style.willChange='transform');}
+  }
+  AV_G.dx=dx;AV_G.fx=t.clientX;AV_G.fy=t.clientY;
+  if(AV_G.mode==='scrub'){AV_G.p=Math.max(0,Math.min(1,(AV_G.dir>0?-dx:dx)/(innerWidth*AV_SCR_W)));if(!AV_G.raf)AV_G.raf=requestAnimationFrame(()=>{AV_G.raf=0;if(AV_S.on&&AV_S.intent==null)avScrubSet(AV_G.p);});}
+  else if(!AV_G.raf)AV_G.raf=requestAnimationFrame(avGestPeek);
 },{passive:true});
 document.addEventListener('touchend',()=>{
-  if(!AV_G.cand)return;AV_G.cand=false;if(!AV_G.lock){return;}
-  cancelAnimationFrame(AV_G.raf);AV_G.raf=0;
-  const w=innerWidth,dx=AV_G.dx,dt=performance.now()-AV_G.t0,v=Math.abs(dx)/Math.max(1,dt),p=Math.abs(dx)/w;
-  if(p>0.3||(v>0.6&&p>0.12))avGestGo(dx<0?1:-1);else avGestReset(true);
+  if(!AV_G.cand)return;AV_G.cand=false;if(!AV_G.lock)return;
+  AV_G.lastSwipe=Date.now();cancelAnimationFrame(AV_G.raf);AV_G.raf=0;
+  const w=innerWidth,dx=AV_G.dx,dt=performance.now()-AV_G.t0,v=Math.abs(dx)/Math.max(1,dt);
+  if(AV_G.mode==='scrub'){const ps=(AV_G.dir>0?-dx:dx)/w;avScrubSet(Math.max(0,Math.min(1,ps/AV_SCR_W)));avScrubRelease(ps>0.3||(v>0.6&&ps>0.12));}
+  else{const p=Math.abs(dx)/w;if(p>0.3||(v>0.6&&p>0.12))avGestGo(dx<0?1:-1);else avGestReset(true);}
 },{passive:true});
-document.addEventListener('touchcancel',()=>{if(AV_G.cand){AV_G.cand=false;avGestReset(true);}},{passive:true});
+document.addEventListener('touchcancel',()=>{if(!AV_G.cand)return;AV_G.cand=false;if(AV_G.mode==='scrub')avScrubRelease(false);else avGestReset(true);},{passive:true});
 
 
 /* ══ v9.85 — ENVIOS PARA O DRIVE EM FILA (um de cada vez) · SEMPRE A VERSÃO MAIS RECENTE ══
@@ -15714,6 +15777,12 @@ function avUpdAfter(){  // depois de recarregar: confirma se a versão nova cheg
   if(typeof doUnlock==='function'){const du=doUnlock;doUnlock=function(){_avUserMode=null;return du.apply(this,arguments);};}
   if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){_avUserMode=null;return la.apply(this,arguments);};}
 })();
+
+
+/* ══ v9.93 — durante uma transição, os elementos que ficam parados (botões flutuantes) não mudam de visibilidade:
+   o browser cancelava a transição se um deles desaparecesse a meio (ex.: botão da Aurora ao chegar ao Dashboard) ══ */
+(function(){if(typeof aurFab!=='function')return;const raw=aurFab;window.__aurFabRaw=function(){return raw.apply(this,arguments);};
+  aurFab=function(){if(document.documentElement.classList.contains('av-vt'))return;return raw.apply(this,arguments);};})();
 
 </script>
 </body>
