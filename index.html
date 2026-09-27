@@ -1992,6 +1992,21 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
 
 /* v9.93 — com o dedo a controlar, a animação acompanha-o de forma linear (o suavizar é feito ao largar) */
 html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*),html.av-vt-scrub::view-transition-group(*){animation-timing-function:linear!important}
+
+/* v9.94 — ligar a Google Drive num toque · guia para credencial própria */
+.dq-box{border:1px solid rgba(var(--accent-rgb),.45);background:rgba(var(--accent-rgb),.07);border-radius:14px;padding:14px 14px 12px;margin:4px 0 14px}
+.dq-box b.t{display:block;font:600 .82rem system-ui,-apple-system,sans-serif;color:var(--text);margin-bottom:6px}
+.dq-box p{font-size:.7rem;line-height:1.55;color:var(--text-muted);margin:0 0 12px}.dq-box p b{color:var(--text)}
+.dq-go{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(180deg,rgba(var(--accent-rgb),.95),rgba(var(--accent-rgb),.65));color:#1b1407;font:700 .82rem system-ui,-apple-system,sans-serif;letter-spacing:.5px;cursor:pointer}
+.dq-hint{font-size:.64rem;color:var(--text-muted);margin-top:8px;line-height:1.5}
+.dq-guide{margin:0 0 14px;border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.dq-guide summary{cursor:pointer;font:600 .74rem system-ui,-apple-system,sans-serif;color:var(--text-muted)}
+.dq-guide ol{margin:10px 0 8px 18px;padding:0;font-size:.68rem;line-height:1.6;color:var(--text-muted)}.dq-guide ol b{color:var(--text)}
+.dq-guide code{color:var(--accent);word-break:break-all}
+.dq-open{width:100%;padding:11px;border-radius:11px;border:1px solid rgba(var(--accent-rgb),.6);background:none;color:var(--accent);font:600 .76rem system-ui,-apple-system,sans-serif;cursor:pointer}
+.dq-ok,.dq-warn{font-size:.66rem;line-height:1.5;margin:0 0 12px;padding:8px 10px;border-radius:10px}
+.dq-ok{color:#8fe3b5;background:rgba(60,200,120,.08);border:1px solid rgba(60,200,120,.25)}
+.dq-warn{color:#ffcf7a;background:rgba(255,190,80,.08);border:1px solid rgba(255,190,80,.3)}
 </style>
 </head>
 <body>
@@ -2337,7 +2352,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.93</span>
+      <span>Aurora Vault © 2026 · v9.94</span>
     </div>
   </div>
 </div>
@@ -2749,7 +2764,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.93</span>
+      <span>Aurora Vault © 2026 · v9.94</span>
     </div>
   </div>
   </div>
@@ -3049,6 +3064,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
       <div class="settings-title" id="s-drive-title">☁️ Sincronizar com a Google Drive</div>
       <div id="s-drive-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Mantém o mesmo cofre no computador e no telemóvel. O que vai para a Drive é o ficheiro já encriptado — a Google nunca vê o conteúdo. Sem rede, a app usa a cópia guardada por dentro e envia as alterações quando voltares a ter ligação.</div>
       <div class="form-group">
+        <div id="drive-quick"></div>
         <label id="s-drive-cid-lbl">Credencial da Google (Client ID)</label>
         <input type="text" id="drive-cid" placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com" style="font-size:.66rem">
       </div>
@@ -3872,7 +3888,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
     }
   }catch(e){}
 })();
-const APP_VERSION='9.93';
+const APP_VERSION='9.94';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -15783,6 +15799,45 @@ function avUpdAfter(){  // depois de recarregar: confirma se a versão nova cheg
    o browser cancelava a transição se um deles desaparecesse a meio (ex.: botão da Aurora ao chegar ao Dashboard) ══ */
 (function(){if(typeof aurFab!=='function')return;const raw=aurFab;window.__aurFabRaw=function(){return raw.apply(this,arguments);};
   aurFab=function(){if(document.documentElement.classList.contains('av-vt'))return;return raw.apply(this,arguments);};})();
+
+
+/* ══ v9.94 — LIGAR A GOOGLE DRIVE NUM TOQUE (credencial do Aurora Vault) · GUIA PARA CREDENCIAL PRÓPRIA ══
+   A credencial (Client ID) não é secreta: identifica a app junto da Google. Cada pessoa entra com a SUA conta e o cofre
+   (encriptado) vai para a SUA Drive; o acesso é só ao ficheiro que a app cria (drive.file). Só funciona neste endereço. */
+const AV_BUILTIN_CID='303044981135-58639c5nk2rrpv1njjoq4o5ht4vojde4.apps.googleusercontent.com';
+const AV_BUILTIN_ORIGIN='https://ciphervault-pt.github.io';
+function avBuiltinOk(){return location.origin===AV_BUILTIN_ORIGIN;}
+function avDriveQuickRender(){
+  const box=document.getElementById('drive-quick');if(!box)return;
+  const en=avEn(),cid=(dCfg('cid')||'').trim(),fid=dCfg('fid'),official=avBuiltinOk(),tail=s=>'…'+s.replace('.apps.googleusercontent.com','').slice(-6);
+  let o='';
+  if(official&&!fid&&(!cid||cid===AV_BUILTIN_CID)){
+    o+='<div class="dq-box"><b class="t">'+(en?'No Google Drive copy yet':'Ainda sem cópia na Google Drive')+'</b>'
+      +'<p>'+(en?'One tap: sign in with <b>your</b> Google account and the vault (already encrypted) gets a copy in <b>your</b> Drive. Nobody else can access it.':'Um toque: entras com a <b>tua</b> conta Google e o cofre (já encriptado) passa a ter cópia na <b>tua</b> Drive. Mais ninguém lhe tem acesso.')+'</p>'
+      +'<button class="dq-go" id="dq-go" onclick="avDriveQuick()">☁️ '+(en?'Connect my Google Drive':'Ligar a minha Google Drive')+'</button>'
+      +'<div class="dq-hint">'+(en?'Already have this vault in Drive on another device? Use «Use an existing Drive file» below instead.':'Já tens este cofre na Drive noutro dispositivo? Usa antes «Usar um ficheiro já existente na Drive», mais abaixo.')+'</div></div>';
+  }
+  if(official&&cid){
+    if(cid===AV_BUILTIN_CID)o+='<div class="dq-ok">✓ '+(en?'Your credential matches the one the app offers to new users on this address.':'A tua credencial é a mesma que a app oferece a quem liga a Drive neste endereço.')+'</div>';
+    else o+='<div class="dq-warn">⚠ '+(en?'The credential the app offers to new users (ends in '+tail(AV_BUILTIN_CID)+') differs from yours (ends in '+tail(cid)+'). If yours is the right one, send it to Claude as text.':'A credencial que a app oferece a quem liga a Drive pela primeira vez (termina em '+tail(AV_BUILTIN_CID)+') é diferente da tua (termina em '+tail(cid)+'). Se a tua é a correta, envia-a ao Claude em texto.')+'</div>';
+  }
+  const org=esc(location.origin);
+  o+='<details class="dq-guide"'+(official?'':' open')+'><summary>'+(en?'Use my own credential (advanced)':'Usar uma credencial própria (avançado)')+'</summary><ol>'
+    +(en?'<li>Create a project in Google Cloud and enable the <b>Google Drive API</b>.</li><li>In <b>OAuth consent screen</b>: type External, fill in the name and email, then <b>Publish app</b> (otherwise access expires every 7 days).</li><li>In <b>Credentials → Create credentials → OAuth client ID</b>: type <b>Web application</b>.</li><li>Under <b>Authorized JavaScript origins</b>, add: <code>'+org+'</code></li><li>Copy the <b>Client ID</b>, paste it in the field below → Save credential.</li>'
+        :'<li>Cria um projeto na Google Cloud e ativa a <b>Google Drive API</b>.</li><li>Em <b>Ecrã de consentimento OAuth</b>: tipo Externo, preenche o nome e o email, e depois <b>Publicar app</b> (senão o acesso expira de 7 em 7 dias).</li><li>Em <b>Credenciais → Criar credenciais → ID de cliente OAuth</b>: tipo <b>Aplicação Web</b>.</li><li>Em <b>Origens JavaScript autorizadas</b>, junta: <code>'+org+'</code></li><li>Copia o <b>ID de cliente</b> e cola-o no campo abaixo → Guardar credencial.</li>')
+    +'</ol><button class="dq-open" onclick="avDriveConsole()">'+(en?'Open Google Cloud Console ↗':'Abrir a Google Cloud Console ↗')+'</button></details>';
+  box.innerHTML=o;
+  const st=document.getElementById('drive-state');
+  if(st&&!cid&&official)st.textContent=en?'Not configured — tap «Connect my Google Drive».':'Por configurar — toca em «Ligar a minha Google Drive».';
+}
+async function avDriveQuick(){
+  const inp=document.getElementById('drive-cid');if(inp)inp.value=AV_BUILTIN_CID;
+  saveDriveCid();                 // o mesmo que colar a credencial e carregar em «Guardar credencial»…
+  await driveFirstUpload();       // …e depois em «Enviar o cofre atual para o Drive» (pede confirmação e trata do envio)
+  try{renderDriveSettings();}catch(e){}
+}
+function avDriveConsole(){window.open('https://console.cloud.google.com/apis/credentials','_blank','noopener');}
+(function(){if(typeof renderDriveSettings!=='function')return;const r=renderDriveSettings;renderDriveSettings=function(){const x=r.apply(this,arguments);try{avDriveQuickRender();}catch(e){}return x;};})();
 
 </script>
 </body>
