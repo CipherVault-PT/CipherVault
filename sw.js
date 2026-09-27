@@ -6,20 +6,24 @@
    logo da memória. Mudar a versão no index.html é o que obriga a descarregar os ficheiros novos.
    Imagens do fundo: ficam guardadas à primeira vez e servem-se da memória (para mudar uma imagem, muda-se o nome da cache IMG).
    Partilhas («Partilhar → Aurora Vault») ficam guardadas só até a app as importar para o cofre (depois são apagadas).
+   Bibliotecas e fontes (vendor/): a versão está no nome da pasta, por isso servem-se sempre da memória.
+   Não há pedidos a servidores de terceiros: tudo vem deste site.
    Os dados do cofre nunca passam por aqui — só a própria app, as imagens do fundo e as fontes. */
-const C='av-app-v2',FONTS='av-fonts-v1',IMG='av-img-v1',LIB='av-lib-v1',SHARE='av-share';
+const C='av-app-v2',IMG='av-img-v1',LIB='av-vendor-v1',SHARE='av-share';
 const CORE=['./','./index.html','./styles.css','./app.js','./vendor/jsqr.js'];
 const IMGS=['./img/aurora-l.webp','./img/aurora-p.webp'];
+const FONTS=['playfair-display-latin-400','playfair-display-latin-700','jetbrains-mono-latin-300','jetbrains-mono-latin-400','jetbrains-mono-latin-500'].map(f=>'./vendor/fonts/'+f+'-normal.woff2');
 self.addEventListener('install',e=>{
   e.waitUntil(Promise.all([
     caches.open(C).then(c=>c.addAll(CORE)),
-    caches.open(IMG).then(c=>c.addAll(IMGS)).catch(()=>{})
+    caches.open(IMG).then(c=>c.addAll(IMGS)).catch(()=>{}),
+    caches.open(LIB).then(c=>c.addAll(FONTS)).catch(()=>{})
   ]));
   self.skipWaiting();
 });
 self.addEventListener('activate',e=>{
   e.waitUntil(Promise.all([
-    caches.keys().then(ks=>Promise.all(ks.filter(k=>![C,FONTS,IMG,LIB,SHARE].includes(k)).map(k=>caches.delete(k)))),
+    caches.keys().then(ks=>Promise.all(ks.filter(k=>![C,IMG,LIB,SHARE].includes(k)).map(k=>caches.delete(k)))),
     self.clients.claim()
   ]));
 });
@@ -55,6 +59,12 @@ self.addEventListener('fetch',e=>{
         if(res&&res.ok)c.put(r,res.clone()).catch(()=>{});return res;}))));
       return;
     }
+    // Bibliotecas (OCR, PDF) e fontes: memória primeiro — a pasta muda de nome quando muda a versão
+    if(u.pathname.includes('/vendor/')&&!u.searchParams.has('v')){
+      e.respondWith(caches.open(LIB).then(c=>c.match(r).then(m=>m||fetch(r).then(res=>{
+        if(res&&res.ok)c.put(r,res.clone()).catch(()=>{});return res;}))));
+      return;
+    }
     if(r.mode==='navigate'){
       const net=fetch(r.url,{cache:'no-cache',credentials:'same-origin'}).then(res=>{
         if(res&&res.ok){const cp=res.clone();caches.open(C).then(c=>c.put('./index.html',cp)).catch(()=>{});}
@@ -78,15 +88,5 @@ self.addEventListener('fetch',e=>{
     }).catch(()=>caches.match(r,{ignoreSearch:true})));
     return;
   }
-  // leitor de OCR (descarregado 1× e guardado para funcionar offline)
-  if(u.hostname==='cdn.jsdelivr.net'||u.hostname==='tessdata.projectnaptha.com'){
-    e.respondWith(caches.open(LIB).then(c=>c.match(r).then(m=>m||fetch(r).then(res=>{if(res&&(res.ok||res.type==='opaque'))c.put(r,res.clone()).catch(()=>{});return res;}))));
-    return;
-  }
-  if(u.hostname==='fonts.googleapis.com'||u.hostname==='fonts.gstatic.com'){
-    e.respondWith(caches.open(FONTS).then(c=>c.match(r).then(m=>{
-      const net=fetch(r).then(res=>{if(res&&(res.ok||res.type==='opaque'))c.put(r,res.clone()).catch(()=>{});return res;}).catch(()=>m);
-      return m||net;
-    })));
-  }
+  // Pedidos a outros sites (Google Drive, verificação de fugas): passam direto, nunca ficam guardados
 });
