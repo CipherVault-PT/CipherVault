@@ -2,7 +2,7 @@
    Faz a app abrir mesmo sem internet.
    Com rede: pergunta sempre ao servidor se há versão nova do index.html (sem esperar pela cache de 10 min do GitHub) e guarda-a.
    Sem rede, ou rede tão lenta que demora mais de 4 s: abre a cópia guardada neste dispositivo.
-   styles.css / app.js vão com a versão no endereço (?v=…): cada versão é descarregada uma vez e depois servida
+   styles.css, app.js e js/*.js vão com a versão no endereço (?v=…): cada versão é descarregada uma vez e depois servida
    logo da memória. Mudar a versão no index.html é o que obriga a descarregar os ficheiros novos.
    Imagens do fundo: ficam guardadas à primeira vez e servem-se da memória (para mudar uma imagem, muda-se o nome da cache IMG).
    Partilhas («Partilhar → Aurora Vault») ficam guardadas só até a app as importar para o cofre (depois são apagadas).
@@ -18,7 +18,7 @@ async function precacheCore(){
   const res=await fetch('./index.html',{cache:'no-cache'});
   if(!res.ok)throw new Error('index');
   const html=await res.clone().text();
-  const refs=[...new Set([...html.matchAll(/(?:href|src)="((?:styles\.css|app\.js)\?v=[\d.]+)"/g)].map(m=>'./'+m[1]))];
+  const refs=[...new Set([...html.matchAll(/(?:href|src)="([\w/.-]+\.(?:css|js)\?v=[\d.]+)"/g)].map(m=>'./'+m[1]))];
   await c.put('./index.html',res.clone());await c.put('./',res);
   await c.addAll([...refs,'./vendor/jsqr.js?v=1.4.0']);
   for(const u of refs)await keepLatest(c,new URL(u,self.registration.scope).href);
