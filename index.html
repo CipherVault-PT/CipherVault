@@ -1942,7 +1942,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
 /* ══ v9.89 — fluidez no telemóvel · sem piscar · rodapé no fundo · sem zoom · transições por View Transitions ══ */
 html{touch-action:pan-x pan-y}
 /* abas: entrada curta e leve (sem desfoque nem deslocação — parecia «recarregar») */
-@keyframes tabFadeIn{from{opacity:.001}to{opacity:1}}
+@keyframes tabFadeIn{from{opacity:.55}to{opacity:1}}
 #tab-dashboard.active,#tab-vault.active,#tab-notes.active,#tab-cards.active,#tab-archive.active,#tab-docs.active,#tab-totp.active,#tab-trash.active{animation-duration:.16s!important;animation-timing-function:ease-out!important}
 /* cartões, pastas e documentos: sem animação de entrada a cada troca de aba (era o «piscar») */
 .entry-card,.doc-card,.folder-card,.totp-card,.trash-card,.dcard,.av-cc,.bank-card-wrap,.store-card{animation:none!important}
@@ -1984,11 +1984,10 @@ html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
 @media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 
 /* v9.90 — toques nas abas também animados (deslize curto na direção certa); sem o desvanecer da aba por cima */
-html.av-vt-tap::view-transition-old(root){animation:avVtTapOut .22s cubic-bezier(.4,0,.2,1) both}
-html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(.2,.7,.2,1) both}
+html.av-vt-tap::view-transition-old(root){animation:avVtTapOut .22s cubic-bezier(.3,.6,.3,1) both}
+html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(.3,.6,.3,1) both}
 @keyframes avVtTapOut{to{opacity:0;transform:translateX(calc(var(--avd) * -28px))}}
 @keyframes avVtTapIn{from{opacity:0;transform:translateX(calc(var(--avd) * 28px))}}
-html.av-vt [id^="tab-"].active{animation:none!important}
 #s-sw-rm{display:none;margin-top:6px;font-size:.66rem;line-height:1.5;color:#ffcf7a}
 </style>
 </head>
@@ -2335,7 +2334,7 @@ html.av-vt [id^="tab-"].active{animation:none!important}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.90</span>
+      <span>Aurora Vault © 2026 · v9.91</span>
     </div>
   </div>
 </div>
@@ -2747,7 +2746,7 @@ html.av-vt [id^="tab-"].active{animation:none!important}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.90</span>
+      <span>Aurora Vault © 2026 · v9.91</span>
     </div>
   </div>
   </div>
@@ -3870,7 +3869,7 @@ html.av-vt [id^="tab-"].active{animation:none!important}
     }
   }catch(e){}
 })();
-const APP_VERSION='9.90';
+const APP_VERSION='9.91';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -15591,6 +15590,7 @@ function avVTRun(run,dir,kind,fx,fy){
   root.classList.remove('av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');root.classList.add('av-vt','av-vt-'+st);
   let ring=null;
   const vt=document.startViewTransition(()=>{run();
+    {const nt=document.getElementById('tab-'+avCurTab);if(nt)nt.style.animation='none';}  /* sem animação de entrada nesta troca — limpa-se sozinha na troca seguinte */
     if(st==='reveal'){const R=parseFloat(root.style.getPropertyValue('--avr'))||600;ring=document.createElement('div');ring.className='av-vt-ring';Object.assign(ring.style,{left:(fx-R)+'px',top:(fy-R)+'px',width:(2*R)+'px',height:(2*R)+'px'});document.body.appendChild(ring);}});
   AV_G.vt=vt;
   const done=()=>{if(ring)ring.remove();if(AV_G.tok!==tok)return;root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');AV_G.busy=false;AV_G.vt=null;};
