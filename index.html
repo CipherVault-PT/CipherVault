@@ -15,9 +15,9 @@
 <link rel="manifest" id="pwa-manifest">
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/playfair-display-latin-400-normal.woff2" crossorigin>
-<meta name="app-version" content="10.1">
-<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.1' -->
-<link rel="stylesheet" href="styles.css?v=10.1">
+<meta name="app-version" content="10.2">
+<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.2' -->
+<link rel="stylesheet" href="styles.css?v=10.2">
 <!-- A foto nítida do fundo só é pedida depois da app (aparece primeiro a versão desfocada): assim a app fica pronta mais cedo -->
 </head>
 <body>
@@ -68,9 +68,9 @@
 </div>
 
 <!-- READ MODE MODAL -->
-<div id="read-modal" onclick="if(event.target===this)closeReadMode()">
+<div id="read-modal" data-act="closeReadMode" data-self>
   <div class="read-card" style="position:relative">
-    <button class="read-close" onclick="closeReadMode()">✕</button>
+    <button class="read-close" data-act="closeReadMode">✕</button>
     <div id="read-content"></div>
     <div class="read-actions" id="read-actions"></div>
   </div>
@@ -210,7 +210,7 @@
           <div style="font-size:.68rem;color:var(--text-muted)" id="l-file-hint">Clica para selecionar o ficheiro .vault</div>
           <div style="font-size:.58rem;color:var(--text-muted);margin-top:4px" id="l-file-hint2">ou arrasta para aqui</div>
         </div>
-        <input type="file" id="file-input" accept=".vault,.cofre" style="display:none" data-change="onFileSelected">
+        <input type="file" id="file-input" accept=".vault,.cofre" style="display:none" data-change="onFileSelected" data-ev>
         <button class="btn btn-ghost" data-act="backToInitial" style="width:100%;margin-top:10px;font-size:.6rem" id="l-back-btn">← Voltar</button>
       </div>
       <!-- Passo 2: Inserir password -->
@@ -363,7 +363,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.1</span>
+      <span>Aurora Vault © 2026 · v10.2</span>
     </div>
   </div>
 </div>
@@ -372,40 +372,40 @@
 <div id="app">
   <div id="presentation-banner">
     <div class="presentation-badge">🎭 <span id="pres-label">MODO DE APRESENTAÇÃO — dados fictícios</span></div>
-    <button class="btn btn-ghost" onclick="exitPresentationMode()" id="pres-exit-btn" style="font-size:.65rem;padding:6px 14px">✕ Sair</button>
+    <button class="btn btn-ghost" id="pres-exit-btn" style="font-size:.65rem;padding:6px 14px" data-act="exitPresentationMode">✕ Sair</button>
   </div>
 
   <div class="topbar">
     <div class="topbar-logo">⬡ AURORA VAULT</div>
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="search-input" placeholder="Pesquisar em tudo..." oninput="onSearchInput()" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Escape'){closeGlobalSearch();this.blur();}" style="width:100%">
-      <button id="search-clear" onclick="closeGlobalSearch()" title="Limpar" style="display:none">✕</button>
+      <input type="text" id="search-input" placeholder="Pesquisar em tudo..." autocomplete="off" spellcheck="false" style="width:100%" data-input="onSearchInput" data-esc="closeGlobalSearch">
+      <button id="search-clear" title="Limpar" style="display:none" data-act="closeGlobalSearch">✕</button>
     </div>
     <div class="topbar-actions">
-      <button class="tb-m-only" id="tb-search-btn" onclick="tbToggleSearch()" title="Pesquisar" aria-label="Pesquisar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4.2-4.2"/></svg></button>
-      <button class="btn-save-file" onclick="saveFile()">
+      <button class="tb-m-only" id="tb-search-btn" title="Pesquisar" aria-label="Pesquisar" data-act="tbToggleSearch"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4.2-4.2"/></svg></button>
+      <button class="btn-save-file" data-act="saveFile">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         <span id="tb-save-txt">Guardar ficheiro</span><span class="tb-mini" id="tbm-save">Guardar</span>
       </button>
-      <button onclick="togglePrivacy()" id="privacy-btn" title="Modo de privacidade"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg><span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span><span class="tb-mini" id="tbm-priv">Privado</span></button>
-      <button onclick="openCalendar()" id="cal-topbar-btn" title="Calendário"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tb-label" id="tb-cal-txt">Calendário</span><span class="tb-mini" id="tbm-cal">Calendário</span></button>
-      <button onclick="openSettings()" title="Definições"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="tb-label" id="tb-settings-txt">Definições</span><span class="tb-mini" id="tbm-set">Ajustes</span></button>
-      <button onclick="driveSyncNow()" id="drive-sync-btn" title="Sincronizar agora" style="display:none"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span class="tb-label" id="tb-sync-txt">Sincronizar</span><span class="tb-mini" id="tbm-sync">Sinc.</span></button>
+      <button id="privacy-btn" title="Modo de privacidade" data-act="togglePrivacy"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg><span class="tb-label" id="tb-privacy-txt">Modo de privacidade</span><span class="tb-mini" id="tbm-priv">Privado</span></button>
+      <button id="cal-topbar-btn" title="Calendário" data-act="openCalendar"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tb-label" id="tb-cal-txt">Calendário</span><span class="tb-mini" id="tbm-cal">Calendário</span></button>
+      <button title="Definições" data-act="openSettings"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="tb-label" id="tb-settings-txt">Definições</span><span class="tb-mini" id="tbm-set">Ajustes</span></button>
+      <button id="drive-sync-btn" title="Sincronizar agora" style="display:none" data-act="driveSyncNow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span class="tb-label" id="tb-sync-txt">Sincronizar</span><span class="tb-mini" id="tbm-sync">Sinc.</span></button>
       <span class="autolock-badge" id="autolock-badge" style="display:none"></span>
-      <span class="autolock-badge" id="drive-chip" style="display:none;cursor:pointer" onclick="openSettings()"></span>
-      <button class="tb-saved" id="tb-save-state" onclick="avSaveClick()" title="Guardado"><i class="tb-saved-dot"></i><span id="tb-saved-txt">Guardado</span></button>
-      <div class="tb-add" id="tb-add"><button class="tb-add-main" id="tb-add-main" onclick="avAddMain(event)"><span class="tb-add-plus">＋</span><span id="tb-add-txt">Adicionar</span></button><button class="tb-add-chev" id="tb-add-chev" onclick="avAddMenu(event)" aria-label="Escolher o que adicionar" title="Escolher o que adicionar">▾</button></div>
-      <button onclick="lockApp()" class="tb-lock-btn">
+      <span class="autolock-badge" id="drive-chip" style="display:none;cursor:pointer" data-act="openSettings"></span>
+      <button class="tb-saved" id="tb-save-state" title="Guardado" data-act="avSaveClick"><i class="tb-saved-dot"></i><span id="tb-saved-txt">Guardado</span></button>
+      <div class="tb-add" id="tb-add"><button class="tb-add-main" id="tb-add-main" data-act="avAddMain" data-ev><span class="tb-add-plus">＋</span><span id="tb-add-txt">Adicionar</span></button><button class="tb-add-chev" id="tb-add-chev" aria-label="Escolher o que adicionar" title="Escolher o que adicionar" data-act="avAddMenu" data-ev>▾</button></div>
+      <button class="tb-lock-btn" data-act="lockApp">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span id="tb-lock-txt">Bloquear</span><span class="tb-mini" id="tbm-lock">Bloquear</span>
       </button>
       <div class="lang-switcher">
-        <button class="lang-btn active" id="lang-pt" onclick="setLang('pt')">PT</button>
-        <button class="lang-btn" id="lang-en" onclick="setLang('en')">ENG</button>
+        <button class="lang-btn active" id="lang-pt" data-act="setLang" data-arg="pt">PT</button>
+        <button class="lang-btn" id="lang-en" data-act="setLang" data-arg="en">ENG</button>
       </div>
-      <button class="tb-m-only" id="tb-more-btn" onclick="tbToggleMore(event)" title="Mais opções" aria-label="Mais opções" aria-expanded="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></button>
-      <div class="tb-more-menu" id="tb-more-menu" role="menu" onclick="event.stopPropagation()"></div>
+      <button class="tb-m-only" id="tb-more-btn" title="Mais opções" aria-label="Mais opções" aria-expanded="false" data-act="tbToggleMore" data-ev><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></button>
+      <div class="tb-more-menu" id="tb-more-menu" role="menu"></div>
     </div>
   </div>
 
@@ -413,30 +413,30 @@
   <div id="global-search-results" style="display:none;padding:20px 24px;overflow-y:auto;flex:1"></div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="grp-btn-dashboard" onclick="switchGroup('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" id="grp-btn-cofre" onclick="switchGroup('cofre')">🔐 <span id="grp-cofre-txt">Cofre</span></button>
-    <button class="tab-btn" id="grp-btn-cards" onclick="switchGroup('cards')">💳 <span id="grp-cards-txt">Cartões</span></button>
-    <button class="tab-btn" id="grp-btn-docs" onclick="switchGroup('docs')">📁 <span id="grp-docs-txt">Documentos</span></button>
-    <button class="tab-btn" id="grp-btn-bens" onclick="switchGroup('bens')">🏠 <span id="grp-bens-txt">Bens</span></button>
-    <button class="tab-btn" id="grp-btn-archive" onclick="switchGroup('archive')">📦 <span id="grp-archive-txt">Arquivo</span></button>
-    <button class="tab-btn av-tabs-gear" id="grp-gear" onclick="avTabsPanel(event)" title="Mostrar / esconder abas" aria-label="Mostrar / esconder abas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button class="tab-btn active" id="grp-btn-dashboard" data-act="switchGroup" data-arg="dashboard">📊 Dashboard</button>
+    <button class="tab-btn" id="grp-btn-cofre" data-act="switchGroup" data-arg="cofre">🔐 <span id="grp-cofre-txt">Cofre</span></button>
+    <button class="tab-btn" id="grp-btn-cards" data-act="switchGroup" data-arg="cards">💳 <span id="grp-cards-txt">Cartões</span></button>
+    <button class="tab-btn" id="grp-btn-docs" data-act="switchGroup" data-arg="docs">📁 <span id="grp-docs-txt">Documentos</span></button>
+    <button class="tab-btn" id="grp-btn-bens" data-act="switchGroup" data-arg="bens">🏠 <span id="grp-bens-txt">Bens</span></button>
+    <button class="tab-btn" id="grp-btn-archive" data-act="switchGroup" data-arg="archive">📦 <span id="grp-archive-txt">Arquivo</span></button>
+    <button class="tab-btn av-tabs-gear" id="grp-gear" title="Mostrar / esconder abas" aria-label="Mostrar / esconder abas" data-act="avTabsPanel" data-ev><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <div id="tabs-wifi"></div>
     <div class="tab-indicator" id="tab-indicator"></div>
   </div>
   <div class="subtabs" id="subtabs" style="display:none">
-    <button class="subtab-btn" id="tab-btn-vault" onclick="switchTab('vault')">🔐 <span id="tab-vault-txt">Cofre</span></button>
-    <button class="subtab-btn" id="tab-btn-totp" onclick="switchTab('totp')">🔢 <span id="tab-totp-txt">2FA</span></button>
-    <button class="subtab-btn" id="tab-btn-cards" onclick="switchTab('cards')">💳 <span id="tab-cards-txt">Bancários</span></button>
-    <button class="subtab-btn" id="tab-btn-store" onclick="switchTab('store')">🎟️ <span id="tab-store-txt">Cartões Loja</span></button>
-    <button class="subtab-btn" id="tab-btn-docs" onclick="switchTab('docs')">📁 <span id="tab-docs-txt">Documentos</span></button>
-    <button class="subtab-btn" id="tab-btn-notes" onclick="switchTab('notes')">📝 <span id="tab-notes-txt">Notas</span></button>
-    <button class="subtab-btn" id="tab-btn-info" onclick="switchTab('info')">🆔 <span id="tab-info-txt">Info</span></button>
-    <button class="subtab-btn" id="tab-btn-warranty" onclick="switchTab('warranty')">🧾 <span id="tab-warranty-txt">Garantias</span></button>
-    <button class="subtab-btn" id="tab-btn-license" onclick="switchTab('license')">🔑 <span id="tab-license-txt">Licenças</span></button>
-    <button class="subtab-btn" id="tab-btn-vehicle" onclick="switchTab('vehicle')">🚗 <span id="tab-vehicle-txt">Veículos</span></button>
-    <button class="subtab-btn" id="tab-btn-dates" onclick="switchTab('dates')">🎂 <span id="tab-dates-txt">Datas</span></button>
-    <button class="subtab-btn" id="tab-btn-archive" onclick="switchTab('archive')">📦 <span id="tab-archive-txt">Arquivo</span></button>
-    <button class="subtab-btn" id="tab-btn-trash" onclick="switchTab('trash')">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
+    <button class="subtab-btn" id="tab-btn-vault" data-act="switchTab" data-arg="vault">🔐 <span id="tab-vault-txt">Cofre</span></button>
+    <button class="subtab-btn" id="tab-btn-totp" data-act="switchTab" data-arg="totp">🔢 <span id="tab-totp-txt">2FA</span></button>
+    <button class="subtab-btn" id="tab-btn-cards" data-act="switchTab" data-arg="cards">💳 <span id="tab-cards-txt">Bancários</span></button>
+    <button class="subtab-btn" id="tab-btn-store" data-act="switchTab" data-arg="store">🎟️ <span id="tab-store-txt">Cartões Loja</span></button>
+    <button class="subtab-btn" id="tab-btn-docs" data-act="switchTab" data-arg="docs">📁 <span id="tab-docs-txt">Documentos</span></button>
+    <button class="subtab-btn" id="tab-btn-notes" data-act="switchTab" data-arg="notes">📝 <span id="tab-notes-txt">Notas</span></button>
+    <button class="subtab-btn" id="tab-btn-info" data-act="switchTab" data-arg="info">🆔 <span id="tab-info-txt">Info</span></button>
+    <button class="subtab-btn" id="tab-btn-warranty" data-act="switchTab" data-arg="warranty">🧾 <span id="tab-warranty-txt">Garantias</span></button>
+    <button class="subtab-btn" id="tab-btn-license" data-act="switchTab" data-arg="license">🔑 <span id="tab-license-txt">Licenças</span></button>
+    <button class="subtab-btn" id="tab-btn-vehicle" data-act="switchTab" data-arg="vehicle">🚗 <span id="tab-vehicle-txt">Veículos</span></button>
+    <button class="subtab-btn" id="tab-btn-dates" data-act="switchTab" data-arg="dates">🎂 <span id="tab-dates-txt">Datas</span></button>
+    <button class="subtab-btn" id="tab-btn-archive" data-act="switchTab" data-arg="archive">📦 <span id="tab-archive-txt">Arquivo</span></button>
+    <button class="subtab-btn" id="tab-btn-trash" data-act="switchTab" data-arg="trash">🗑️ <span id="tab-trash-txt">Reciclagem</span></button>
   </div>
 
   <!-- DASHBOARD -->
@@ -460,7 +460,7 @@
       <!-- CARTÕES EXPANSÍVEIS -->
       <div class="dash-cards" style="margin-top:24px">
         <div class="dcard" id="dcard-alerts">
-          <button class="dcard-head" onclick="toggleDashCard('alerts')">
+          <button class="dcard-head" data-act="toggleDashCard" data-arg="alerts">
             <span class="dcard-head-left"><span class="dcard-icon">🔔</span><span class="dcard-title" id="dcard-alerts-title">Alertas & Relatório</span></span>
             <span class="dcard-head-right"><span class="dcard-badge" id="alerts-badge"></span><span class="dcard-chevron">▾</span></span>
           </button>
@@ -468,18 +468,18 @@
         </div>
 
         <div class="dcard" id="dcard-report">
-          <button class="dcard-head" onclick="toggleDashCard('report')">
+          <button class="dcard-head" data-act="toggleDashCard" data-arg="report">
             <span class="dcard-head-left"><span class="dcard-icon">📈</span><span class="dcard-title" id="dcard-report-title">Relatório do Mês</span></span>
             <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
           </button>
           <div class="dcard-body" id="dcard-report-body">
             <div id="dash-report"></div>
-            <button class="cal-open-btn" onclick="openCalendar()">📅 <span id="cal-open-txt">Ver calendário de renovações</span></button>
+            <button class="cal-open-btn" data-act="openCalendar">📅 <span id="cal-open-txt">Ver calendário de renovações</span></button>
           </div>
         </div>
 
         <div class="dcard" id="dcard-favs" style="display:none">
-          <button class="dcard-head" onclick="toggleDashCard('favs')">
+          <button class="dcard-head" data-act="toggleDashCard" data-arg="favs">
             <span class="dcard-head-left"><span class="dcard-icon">⭐</span><span class="dcard-title" id="dcard-favs-title">Favoritos</span></span>
             <span class="dcard-head-right"><span class="dcard-badge" id="favs-badge"></span><span class="dcard-chevron">▾</span></span>
           </button>
@@ -487,7 +487,7 @@
         </div>
 
         <div class="dcard" id="dcard-cats">
-          <button class="dcard-head" onclick="toggleDashCard('cats')">
+          <button class="dcard-head" data-act="toggleDashCard" data-arg="cats">
             <span class="dcard-head-left"><span class="dcard-icon">📊</span><span class="dcard-title" id="dcard-cats-title">Entradas por categoria</span></span>
             <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
           </button>
@@ -495,7 +495,7 @@
         </div>
 
         <div class="dcard" id="dcard-oldest">
-          <button class="dcard-head" onclick="toggleDashCard('oldest')">
+          <button class="dcard-head" data-act="toggleDashCard" data-arg="oldest">
             <span class="dcard-head-left"><span class="dcard-icon">⏳</span><span class="dcard-title" id="dcard-oldest-title">Passwords mais antigas</span></span>
             <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
           </button>
@@ -503,7 +503,7 @@
         </div>
 
         <div class="dcard" id="dcard-activity">
-          <button class="dcard-head" onclick="toggleDashCard('activity')">
+          <button class="dcard-head" data-act="toggleDashCard" data-arg="activity">
             <span class="dcard-head-left"><span class="dcard-icon">📋</span><span class="dcard-title" id="dcard-activity-title">Atividade recente</span></span>
             <span class="dcard-head-right"><span class="dcard-chevron">▾</span></span>
           </button>
@@ -558,19 +558,19 @@
       <div class="notes-list">
         <div class="notes-list-header">
           <span id="notes-title">Notas</span>
-          <button onclick="newNote()" title="Nova nota">＋</button>
+          <button title="Nova nota" data-act="newNote">＋</button>
         </div>
         <div id="notes-list-items"></div>
       </div>
       <div class="notes-editor" id="notes-editor-area">
         <div class="notes-empty" id="notes-empty"><span id="notes-empty-txt">Seleciona ou cria uma nota</span></div>
         <input type="text" class="note-title-input" id="ne-title" placeholder="Título..." style="display:none">
-        <textarea class="note-body-input" id="ne-body" placeholder="Escreve aqui..." style="display:none" oninput="updateNoteCharCount()"></textarea>
+        <textarea class="note-body-input" id="ne-body" placeholder="Escreve aqui..." style="display:none" data-input="updateNoteCharCount"></textarea>
         <div class="note-char-count" id="note-char-count" style="display:none"></div>
         <div class="note-actions" id="ne-actions" style="display:none">
-          <button class="btn btn-gold" onclick="saveNote()" id="ne-save-btn" style="flex:1">Guardar nota</button>
-          <button class="btn btn-ghost" onclick="archiveCurrentNote()" id="ne-archive-btn">📦 Arquivar</button>
-          <button class="btn btn-ghost" onclick="deleteCurrentNote()" id="ne-del-btn">Apagar nota</button>
+          <button class="btn btn-gold" id="ne-save-btn" style="flex:1" data-act="saveNote">Guardar nota</button>
+          <button class="btn btn-ghost" id="ne-archive-btn" data-act="archiveCurrentNote">📦 Arquivar</button>
+          <button class="btn btn-ghost" id="ne-del-btn" data-act="deleteCurrentNote">Apagar nota</button>
         </div>
       </div>
     </div>
@@ -581,7 +581,7 @@
     <div class="content-header">
       <div class="content-title" id="info-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Informação Pessoal</div>
       <div class="header-controls">
-        <button class="btn btn-gold" onclick="addPerson()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
+        <button class="btn btn-gold" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0" data-act="addPerson">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="info-add-txt">Nova pessoa</span>
         </button>
@@ -596,7 +596,7 @@
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header" style="margin-bottom:4px">
         <div class="content-title" id="cards-title">Cartões Bancários</div>
-        <button class="topbar-actions" onclick="openCardModal()" style="font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;">＋ <span id="cards-add-txt">Adicionar cartão</span></button>
+        <button class="topbar-actions" style="font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;" data-act="openCardModal">＋ <span id="cards-add-txt">Adicionar cartão</span></button>
       </div>
       <div id="cards-grid-area" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px"></div>
     </div>
@@ -607,7 +607,7 @@
     <div class="content-header">
       <div class="content-title" id="store-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Cartões de Loja</div>
       <div class="header-controls">
-        <button class="btn btn-gold" onclick="openStoreModal()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
+        <button class="btn btn-gold" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0" data-act="openStoreModal">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="store-tab-add-txt">Adicionar cartão</span>
         </button>
@@ -635,9 +635,9 @@
       <div class="content-header">
         <div class="content-title" id="docs-title">Documentos</div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-        <button onclick="openFolderModal()" id="docs-newfolder-btn" style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s" onmouseenter="this.style.borderColor='var(--accent-dim)'" onmouseleave="this.style.borderColor='var(--border)'">📁+ <span id="docs-newfolder-txt">Nova pasta</span></button>
-        <select class="sort-select" id="doc-sort" onchange="setDocSort(this.value)"></select>
-        <button onclick="openDocModal()" style="font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn">
+        <button id="docs-newfolder-btn" style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s" data-act="openFolderModal" data-hoverline>📁+ <span id="docs-newfolder-txt">Nova pasta</span></button>
+        <select class="sort-select" id="doc-sort" data-change="setDocSort" data-value></select>
+        <button style="font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn" data-act="openDocModal">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="docs-add-txt">Adicionar documento</span>
         </button>
@@ -648,11 +648,11 @@
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="docs-filter-row"></div>
       <!-- VALIDITY QUICK FILTER -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="docs-validity-row">
-        <button class="doc-filter-btn active" id="vf-all" onclick="setDocValidityFilter('all')">📋 <span id="vf-all-txt">Todos</span></button>
-        <button class="doc-filter-btn" id="vf-expiring" onclick="setDocValidityFilter('expiring')">⚠️ <span id="vf-expiring-txt">A expirar</span></button>
-        <button class="doc-filter-btn" id="vf-expired" onclick="setDocValidityFilter('expired')">🔴 <span id="vf-expired-txt">Expirados</span></button>
-        <button class="doc-filter-btn" id="vf-ok" onclick="setDocValidityFilter('ok')">✅ <span id="vf-ok-txt">Válidos</span></button>
-        <button class="doc-filter-btn" id="vf-noexpiry" onclick="setDocValidityFilter('noexpiry')">📎 <span id="vf-noexpiry-txt">Sem validade</span></button>
+        <button class="doc-filter-btn active" id="vf-all" data-act="setDocValidityFilter" data-arg="all">📋 <span id="vf-all-txt">Todos</span></button>
+        <button class="doc-filter-btn" id="vf-expiring" data-act="setDocValidityFilter" data-arg="expiring">⚠️ <span id="vf-expiring-txt">A expirar</span></button>
+        <button class="doc-filter-btn" id="vf-expired" data-act="setDocValidityFilter" data-arg="expired">🔴 <span id="vf-expired-txt">Expirados</span></button>
+        <button class="doc-filter-btn" id="vf-ok" data-act="setDocValidityFilter" data-arg="ok">✅ <span id="vf-ok-txt">Válidos</span></button>
+        <button class="doc-filter-btn" id="vf-noexpiry" data-act="setDocValidityFilter" data-arg="noexpiry">📎 <span id="vf-noexpiry-txt">Sem validade</span></button>
       </div>
       <!-- DOCS GRID -->
       <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px"></div>
@@ -664,9 +664,9 @@
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header">
         <div class="content-title" id="totp-title">Autenticador 2FA</div>
-        <button class="btn btn-gold" onclick="openTotpModal()" id="totp-add-btn" style="flex:0 0 auto;padding:8px 16px;font-size:.6rem;white-space:nowrap">+ Adicionar 2FA</button>
-        <button class="btn btn-ghost" onclick="open2faManager()" id="totp-shield-btn" style="flex:0 0 auto;padding:8px 14px;font-size:.6rem;white-space:nowrap">🛡️ <span id="totp-shield-txt">Proteção</span></button>
-        <button class="btn btn-ghost" id="totp-ga-btn" onclick="avGaOpen()">📲 <span id="totp-ga-txt">Importar do Google</span></button>
+        <button class="btn btn-gold" id="totp-add-btn" style="flex:0 0 auto;padding:8px 16px;font-size:.6rem;white-space:nowrap" data-act="openTotpModal">+ Adicionar 2FA</button>
+        <button class="btn btn-ghost" id="totp-shield-btn" style="flex:0 0 auto;padding:8px 14px;font-size:.6rem;white-space:nowrap" data-act="open2faManager">🛡️ <span id="totp-shield-txt">Proteção</span></button>
+        <button class="btn btn-ghost" id="totp-ga-btn" data-act="avGaOpen">📲 <span id="totp-ga-txt">Importar do Google</span></button>
       </div>
       <div id="totp-info" style="font-size:.72rem;color:var(--text-muted);margin-top:6px"></div>
       <div id="totp-locked" style="display:none">
@@ -674,15 +674,15 @@
           <div style="font-size:2.6rem;line-height:1">🔒</div>
           <div class="t2-lock-title" id="t2-lock-title">Cofre 2FA protegido</div>
           <div class="t2-lock-sub" id="t2-lock-sub">Os teus códigos estão encriptados com uma chave separada da chave mestra.</div>
-          <button class="btn btn-gold" id="t2-bio-btn" onclick="do2faBioUnlock()" style="display:none;width:100%;max-width:300px;padding:14px;margin-top:18px">👆 <span id="t2-bio-txt">Abrir com biometria</span></button>
+          <button class="btn btn-gold" id="t2-bio-btn" style="display:none;width:100%;max-width:300px;padding:14px;margin-top:18px" data-act="do2faBioUnlock">👆 <span id="t2-bio-txt">Abrir com biometria</span></button>
           <div id="t2-pin-wrap" style="display:none;margin-top:16px;width:100%;max-width:240px">
-            <input type="password" id="t2-pin-input" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off" oninput="on2faPinInput()"
-              style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:16px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none">
+            <input type="password" id="t2-pin-input" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off"
+              style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:16px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none" data-input="on2faPinInput">
           </div>
           <div id="t2-rec-wrap" style="display:none;margin-top:16px;width:100%;max-width:360px">
-            <input type="text" id="t2-rec-input" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" oninput="on2faRecInput()" onkeydown="if(event.key==='Enter')do2faRecoveryUnlock()"
-              style="width:100%;text-align:center;font-size:.95rem;letter-spacing:2px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none;text-transform:uppercase">
-            <button class="btn btn-gold" onclick="do2faRecoveryUnlock()" id="t2-rec-btn" style="width:100%;margin-top:10px;padding:12px">Abrir cofre 2FA</button>
+            <input type="text" id="t2-rec-input" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false"
+              style="width:100%;text-align:center;font-size:.95rem;letter-spacing:2px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none;text-transform:uppercase" data-input="on2faRecInput" data-enter="do2faRecoveryUnlock">
+            <button class="btn btn-gold" id="t2-rec-btn" style="width:100%;margin-top:10px;padding:12px" data-act="do2faRecoveryUnlock">Abrir cofre 2FA</button>
           </div>
           <div id="t2-err" style="font-size:.7rem;color:var(--red);min-height:18px;margin-top:10px;text-align:center"></div>
           <div id="t2-links" style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
@@ -693,7 +693,7 @@
           <div style="font-size:2.4rem;line-height:1">🛡️</div>
           <div class="t2-lock-title" id="t2-setup-title">Protege o teu cofre 2FA</div>
           <div class="t2-lock-sub" id="t2-setup-sub">Fecha este separador com um PIN próprio e uma chave que a palavra-passe mestra não abre.</div>
-          <button class="btn btn-gold" onclick="open2faSetup()" id="t2-setup-btn" style="max-width:300px;width:100%;padding:14px;margin-top:18px">Ativar proteção</button>
+          <button class="btn btn-gold" id="t2-setup-btn" style="max-width:300px;width:100%;padding:14px;margin-top:18px" data-act="open2faSetup">Ativar proteção</button>
         </div>
       </div>
       <div id="totp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:14px"></div>
@@ -705,7 +705,7 @@
     <div class="content-header">
       <div class="content-title" id="warranty-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🧾 Garantias</div>
       <div class="header-controls">
-        <button class="btn btn-gold" onclick="openAssetModal('warranty')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+        <button class="btn btn-gold" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px" data-act="openAssetModal" data-arg="warranty">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="warranty-add-txt">Adicionar garantia</span>
         </button>
@@ -719,7 +719,7 @@
     <div class="content-header">
       <div class="content-title" id="license-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🔑 Licenças de Software</div>
       <div class="header-controls">
-        <button class="btn btn-gold" onclick="openAssetModal('license')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+        <button class="btn btn-gold" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px" data-act="openAssetModal" data-arg="license">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="license-add-txt">Adicionar licença</span>
         </button>
@@ -733,7 +733,7 @@
     <div class="content-header">
       <div class="content-title" id="vehicle-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🚗 Veículos</div>
       <div class="header-controls">
-        <button class="btn btn-gold" onclick="openAssetModal('vehicle')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+        <button class="btn btn-gold" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px" data-act="openAssetModal" data-arg="vehicle">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="vehicle-add-txt">Adicionar veículo</span>
         </button>
@@ -747,7 +747,7 @@
     <div class="content-header">
       <div class="content-title" id="dates-tab-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">🎂 Datas Importantes</div>
       <div class="header-controls">
-        <button class="btn btn-gold" onclick="openAssetModal('dates')" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px">
+        <button class="btn btn-gold" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px" data-act="openAssetModal" data-arg="dates">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="dates-add-txt">Adicionar data</span>
         </button>
@@ -761,7 +761,7 @@
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header">
         <div class="content-title" id="trash-title">Reciclagem</div>
-        <button class="btn btn-ghost" onclick="emptyTrash()" id="trash-empty-btn" style="flex:0 0 auto;padding:8px 16px;font-size:.62rem;white-space:nowrap;display:none">🗑️ Esvaziar tudo</button>
+        <button class="btn btn-ghost" id="trash-empty-btn" style="flex:0 0 auto;padding:8px 16px;font-size:.62rem;white-space:nowrap;display:none" data-act="emptyTrash">🗑️ Esvaziar tudo</button>
       </div>
       <div id="trash-info" style="font-size:.72rem;color:var(--text-muted);margin-top:6px"></div>
       <div id="trash-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:14px"></div>
@@ -776,14 +776,14 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent-ink)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.1</span>
+      <span>Aurora Vault © 2026 · v10.2</span>
     </div>
   </div>
   </div>
 </div>
 
 <!-- ENTRY MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+<div class="modal-overlay" id="modal-overlay" data-act="closeModal" data-self>
   <div class="modal">
     <div class="modal-title" id="modal-title">Nova Entrada</div>
     <div class="form-row">
@@ -794,8 +794,8 @@
       <div class="form-group">
         <label id="f-icon-lbl">Ícone</label>
         <div style="display:flex;gap:6px;align-items:center">
-          <div id="f-icon-preview" style="font-size:1.6rem;cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:2px;min-width:44px;text-align:center" onclick="toggleEmojiPicker()" title="Escolher ícone">⭐</div>
-          <button type="button" class="pw-gen-btn" onclick="toggleEmojiPicker()" id="f-icon-btn">Escolher</button>
+          <div id="f-icon-preview" style="font-size:1.6rem;cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:2px;min-width:44px;text-align:center" title="Escolher ícone" data-act="toggleEmojiPicker">⭐</div>
+          <button type="button" class="pw-gen-btn" id="f-icon-btn" data-act="toggleEmojiPicker">Escolher</button>
         </div>
         <div id="emoji-picker-wrap" style="display:none;margin-top:6px">
           <div class="emoji-picker" id="emoji-picker"></div>
@@ -827,15 +827,15 @@
       <label id="f-user-lbl">Utilizador / Email</label>
       <div style="display:flex;gap:7px">
         <input type="text" id="f-user" placeholder="utilizador@exemplo.com" style="flex:1">
-        <button class="pw-gen-btn" id="f-user-gen" onclick="generateUsername()" title="Gerar username">👤</button>
+        <button class="pw-gen-btn" id="f-user-gen" title="Gerar username" data-act="generateUsername">👤</button>
       </div>
     </div>
     <div class="form-group">
       <label id="f-pw-lbl">Palavra-passe</label>
       <div class="pw-gen-row">
-        <input type="text" id="f-pw" placeholder="palavra-passe" oninput="checkPwStrength();checkDuplicate()">
-        <button class="pw-gen-btn" onclick="generatePw()">⟳ <span id="f-pw-gen-txt">Gerar</span></button>
-        <button class="pw-gen-btn" onclick="openPwGen()" title="Gerador avançado">⚙️</button>
+        <input type="text" id="f-pw" placeholder="palavra-passe" data-input="onEntryPwInput">
+        <button class="pw-gen-btn" data-act="generatePw">⟳ <span id="f-pw-gen-txt">Gerar</span></button>
+        <button class="pw-gen-btn" title="Gerador avançado" data-act="openPwGen">⚙️</button>
       </div>
       <div class="pw-strength-wrap">
         <div class="pw-strength-bar-bg"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
@@ -847,24 +847,24 @@
       <label id="f-url-lbl">URL</label>
       <div style="display:flex;gap:7px">
         <input type="text" id="f-url" placeholder="https://exemplo.com" style="flex:1">
-        <button class="pw-gen-btn" id="f-url-go" onclick="goToSite()" title="Abrir site">🌐</button>
+        <button class="pw-gen-btn" id="f-url-go" title="Abrir site" data-act="goToSite">🌐</button>
       </div>
     </div>
     <div class="form-group">
       <label id="f-tags-lbl">Tags <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">(Enter ou vírgula para adicionar)</span></label>
-      <div class="tags-wrap" onclick="document.getElementById('tag-input').focus()">
+      <div class="tags-wrap" data-focus="tag-input">
         <div id="tag-pills" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
-        <input type="text" id="tag-input" class="tags-input" placeholder="+ tag" onkeydown="handleTagKey(event)">
+        <input type="text" id="tag-input" class="tags-input" placeholder="+ tag" data-keydown="handleTagKey">
       </div>
       <div class="form-group" style="margin-top:12px">
         <label id="f-fields-lbl">Campos extra <span style="font-size:.5rem;color:var(--text-muted)">(opcional)</span></label>
         <div id="field-rows"></div>
-        <button type="button" class="btn btn-ghost" onclick="addFieldRow()" id="f-fields-add" style="width:100%;margin-top:6px;font-size:.58rem;padding:8px">＋ Adicionar campo</button>
+        <button type="button" class="btn btn-ghost" id="f-fields-add" style="width:100%;margin-top:6px;font-size:.58rem;padding:8px" data-act="addFieldRow">＋ Adicionar campo</button>
       </div>
     </div>
     <div class="form-group">
       <label id="f-attach-lbl">Anexos (imagens ou PDF)</label>
-      <input type="file" id="f-attach" accept="image/*,application/pdf" multiple onchange="handleAttachment(event,'entry')" style="font-size:.7rem">
+      <input type="file" id="f-attach" accept="image/*,application/pdf" multiple style="font-size:.7rem" data-change="handleAttachment" data-arg="entry" data-ev>
       <div id="attach-list" class="att-list"></div>
     </div>
     <div class="form-group">
@@ -876,47 +876,47 @@
       <div class="flag-picker" id="f-flag-picker"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" id="modal-save-btn" onclick="saveEntry()">Guardar</button>
-      <button class="btn btn-ghost" id="modal-cancel-btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-gold" id="modal-save-btn" data-act="saveEntry">Guardar</button>
+      <button class="btn btn-ghost" id="modal-cancel-btn" data-act="closeModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- CHANGE PW MODAL -->
-<div class="modal-overlay" id="changepw-overlay" onclick="if(event.target===this)closeChangePwModal()">
+<div class="modal-overlay" id="changepw-overlay" data-act="closeChangePwModal" data-self>
   <div class="modal" style="max-width:420px">
     <div class="modal-title" id="cp-title">🔑 Alterar Palavra-passe Mestra</div>
     <div id="cp-info" style="font-size:.6rem;color:var(--text-muted);margin-bottom:16px;line-height:1.7">Será gerado um novo <strong style="color:var(--accent-ink)">ciphervault.vault</strong>. Substitui o antigo na pen!</div>
-    <div class="form-group"><label id="cp-cur-lbl">Palavra-passe atual</label><div class="lock-input-wrap"><input type="password" id="cp-current" autocomplete="off"><button class="toggle-pw" onclick="toggleField('cp-current')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-    <div class="form-group"><label id="cp-new-lbl">Nova palavra-passe</label><div class="lock-input-wrap"><input type="password" id="cp-new" autocomplete="off" oninput="renderPwStrength('cp-new','cp-new-strength')"><button class="toggle-pw" onclick="toggleField('cp-new')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div id="cp-new-strength" style="display:none"></div></div>
-    <div class="form-group"><label id="cp-conf-lbl">Confirmar nova</label><div class="lock-input-wrap"><input type="password" id="cp-confirm" autocomplete="off"><button class="toggle-pw" onclick="toggleField('cp-confirm')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+    <div class="form-group"><label id="cp-cur-lbl">Palavra-passe atual</label><div class="lock-input-wrap"><input type="password" id="cp-current" autocomplete="off"><button class="toggle-pw" data-act="toggleField" data-arg="cp-current"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+    <div class="form-group"><label id="cp-new-lbl">Nova palavra-passe</label><div class="lock-input-wrap"><input type="password" id="cp-new" autocomplete="off" data-input="renderPwStrength" data-args='["cp-new", "cp-new-strength"]'><button class="toggle-pw" data-act="toggleField" data-arg="cp-new"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div id="cp-new-strength" style="display:none"></div></div>
+    <div class="form-group"><label id="cp-conf-lbl">Confirmar nova</label><div class="lock-input-wrap"><input type="password" id="cp-confirm" autocomplete="off"><button class="toggle-pw" data-act="toggleField" data-arg="cp-confirm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
     <div class="lock-error" id="cp-error"></div>
     <div class="modal-actions" style="margin-top:12px">
-      <button class="btn btn-gold" id="cp-save-btn" onclick="changeMasterPw()">Alterar e Guardar</button>
-      <button class="btn btn-ghost" onclick="closeChangePwModal()" id="cp-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="cp-save-btn" data-act="changeMasterPw">Alterar e Guardar</button>
+      <button class="btn btn-ghost" id="cp-cancel-btn" data-act="closeChangePwModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- PWGEN MODAL -->
-<div class="modal-overlay" id="pwgen-overlay" onclick="if(event.target===this)closePwGen()">
+<div class="modal-overlay" id="pwgen-overlay" data-act="closePwGen" data-self>
   <div class="modal" style="max-width:400px">
     <div class="modal-title" id="pwgen-title">⚙️ Gerador Avançado</div>
     <div class="pwgen-mode-tabs">
-      <button class="pwgen-mode-tab active" id="pgm-random" onclick="setPwGenMode('random')">🎲 <span id="pgm-random-lbl">Aleatória</span></button>
-      <button class="pwgen-mode-tab" id="pgm-memorable" onclick="setPwGenMode('memorable')">🧠 <span id="pgm-memorable-lbl">Memorável</span></button>
+      <button class="pwgen-mode-tab active" id="pgm-random" data-act="setPwGenMode" data-arg="random">🎲 <span id="pgm-random-lbl">Aleatória</span></button>
+      <button class="pwgen-mode-tab" id="pgm-memorable" data-act="setPwGenMode" data-arg="memorable">🧠 <span id="pgm-memorable-lbl">Memorável</span></button>
     </div>
     <!-- MODO ALEATÓRIO -->
     <div id="pgmode-random">
     <div class="form-group">
       <label><span id="pwgen-len-lbl">Comprimento:</span> <span id="pwgen-len-val">20</span></label>
-      <input type="range" id="pwgen-len" min="8" max="64" value="20" oninput="updatePwGen()" style="width:100%;accent-color:var(--accent);margin-top:8px">
+      <input type="range" id="pwgen-len" min="8" max="64" value="20" style="width:100%;accent-color:var(--accent);margin-top:8px" data-input="updatePwGen">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-      <label class="toggle-row"><input type="checkbox" id="pg-upper" checked onchange="updatePwGen()"><span id="pg-upper-lbl">A-Z</span></label>
-      <label class="toggle-row"><input type="checkbox" id="pg-lower" checked onchange="updatePwGen()"><span id="pg-lower-lbl">a-z</span></label>
-      <label class="toggle-row"><input type="checkbox" id="pg-numbers" checked onchange="updatePwGen()"><span id="pg-numbers-lbl">0-9</span></label>
-      <label class="toggle-row"><input type="checkbox" id="pg-symbols" checked onchange="updatePwGen()"><span id="pg-symbols-lbl">!@#$</span></label>
+      <label class="toggle-row"><input type="checkbox" id="pg-upper" checked data-change="updatePwGen"><span id="pg-upper-lbl">A-Z</span></label>
+      <label class="toggle-row"><input type="checkbox" id="pg-lower" checked data-change="updatePwGen"><span id="pg-lower-lbl">a-z</span></label>
+      <label class="toggle-row"><input type="checkbox" id="pg-numbers" checked data-change="updatePwGen"><span id="pg-numbers-lbl">0-9</span></label>
+      <label class="toggle-row"><input type="checkbox" id="pg-symbols" checked data-change="updatePwGen"><span id="pg-symbols-lbl">!@#$</span></label>
     </div>
     </div>
     <!-- MODO MEMORÁVEL -->
@@ -924,18 +924,18 @@
       <div style="font-size:.68rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px" id="pgm-desc">Palavras fáceis de decorar, separadas e com número. Fortes e memoráveis.</div>
       <div class="form-group">
         <label><span id="pgm-words-lbl">Número de palavras:</span> <span id="pgm-words-val">4</span></label>
-        <input type="range" id="pgm-words" min="3" max="6" value="4" oninput="updatePwGen()" style="width:100%;accent-color:var(--accent);margin-top:8px">
+        <input type="range" id="pgm-words" min="3" max="6" value="4" style="width:100%;accent-color:var(--accent);margin-top:8px" data-input="updatePwGen">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <label class="toggle-row"><input type="checkbox" id="pgm-cap" checked onchange="updatePwGen()"><span id="pgm-cap-lbl">Maiúsculas</span></label>
-        <label class="toggle-row"><input type="checkbox" id="pgm-num" checked onchange="updatePwGen()"><span id="pgm-num-lbl">Número</span></label>
+        <label class="toggle-row"><input type="checkbox" id="pgm-cap" checked data-change="updatePwGen"><span id="pgm-cap-lbl">Maiúsculas</span></label>
+        <label class="toggle-row"><input type="checkbox" id="pgm-num" checked data-change="updatePwGen"><span id="pgm-num-lbl">Número</span></label>
       </div>
     </div>
     <div class="form-group">
       <label id="pwgen-result-lbl">Password Gerada</label>
       <div style="display:flex;gap:7px">
         <input type="text" id="pwgen-result" readonly style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--accent-ink);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:9px 12px;border-radius:2px;outline:none;letter-spacing:1px">
-        <button class="pw-gen-btn" onclick="updatePwGen()" style="padding:0 12px">⟳</button>
+        <button class="pw-gen-btn" style="padding:0 12px" data-act="updatePwGen">⟳</button>
       </div>
       <div class="pw-strength-wrap" style="margin-top:6px">
         <div class="pw-strength-bar-bg"><div class="pw-strength-bar" id="pwgen-bar"></div></div>
@@ -943,24 +943,24 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" id="pwgen-use-btn" onclick="usePwGen()">Usar esta password</button>
-      <button class="btn btn-ghost" onclick="closePwGen()" id="pwgen-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="pwgen-use-btn" data-act="usePwGen">Usar esta password</button>
+      <button class="btn btn-ghost" id="pwgen-cancel-btn" data-act="closePwGen">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+<div class="modal-overlay" id="settings-overlay" data-act="closeSettings" data-self>
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-title" id="settings-title">⚙️ Definições</div>
 
     <!-- NAV DAS ABAS -->
     <div class="settings-nav" id="settings-nav">
-      <button class="settings-nav-btn active" data-stab="aspeto" onclick="switchSettingsTab('aspeto')">🎨 <span id="snav-aspeto">Aspeto</span></button>
-      <button class="settings-nav-btn" data-stab="seguranca" onclick="switchSettingsTab('seguranca')">🔒 <span id="snav-seguranca">Segurança</span></button>
-      <button class="settings-nav-btn" data-stab="dados" onclick="switchSettingsTab('dados')">📄 <span id="snav-dados">Dados</span></button>
-      <button class="settings-nav-btn" data-stab="heranca" onclick="switchSettingsTab('heranca')">📜 <span id="snav-heranca">Herança</span></button>
-      <button class="settings-nav-btn" data-stab="sobre" onclick="switchSettingsTab('sobre')">ℹ️ <span id="snav-sobre">Sobre</span></button>
+      <button class="settings-nav-btn active" data-stab="aspeto" data-act="switchSettingsTab" data-arg="aspeto">🎨 <span id="snav-aspeto">Aspeto</span></button>
+      <button class="settings-nav-btn" data-stab="seguranca" data-act="switchSettingsTab" data-arg="seguranca">🔒 <span id="snav-seguranca">Segurança</span></button>
+      <button class="settings-nav-btn" data-stab="dados" data-act="switchSettingsTab" data-arg="dados">📄 <span id="snav-dados">Dados</span></button>
+      <button class="settings-nav-btn" data-stab="heranca" data-act="switchSettingsTab" data-arg="heranca">📜 <span id="snav-heranca">Herança</span></button>
+      <button class="settings-nav-btn" data-stab="sobre" data-act="switchSettingsTab" data-arg="sobre">ℹ️ <span id="snav-sobre">Sobre</span></button>
     </div>
 
     <!-- ═══ ABA ASPETO ═══ -->
@@ -979,7 +979,7 @@
       <div id="s-name-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Usado para te saudar no ecrã inicial. Guardado só no teu cofre.</div>
       <div style="display:flex;gap:8px">
         <input type="text" id="s-name-input" maxlength="30" placeholder="O teu nome" style="flex:1;font-family:inherit;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:.85rem;padding:11px 13px;border-radius:2px;outline:none">
-        <button class="btn btn-gold" onclick="saveVaultName()" id="s-name-save" style="flex:0 0 auto;padding:11px 18px">✓</button>
+        <button class="btn btn-gold" id="s-name-save" style="flex:0 0 auto;padding:11px 18px" data-act="saveVaultName">✓</button>
       </div>
     </div>
 
@@ -987,8 +987,8 @@
     <div class="settings-section">
       <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
       <div class="theme-grid" id="theme-grid" style="margin-bottom:14px"></div>
-      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small><small id="s-sw-rm"></small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" onclick="avSetSwStyle('parallax')">Parallax</button><button id="s-sw-stack" onclick="avSetSwStyle('stack')">Cartões em pilha</button><button id="s-sw-reveal" onclick="avSetSwStyle('reveal')">Revelação Aurora</button><button id="s-sw-fade" onclick="avSetSwStyle('fade')">Deslize suave</button><button id="s-sw-off" onclick="avSetSwStyle('off')">Desligado</button></div></div>
-      <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" onclick="avSetThemeAuto(true)">Ligado</button><button id="s-auto-off" onclick="avSetThemeAuto(false)">Desligado</button></div></div>
+      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small><small id="s-sw-rm"></small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" data-act="avSetSwStyle" data-arg="parallax">Parallax</button><button id="s-sw-stack" data-act="avSetSwStyle" data-arg="stack">Cartões em pilha</button><button id="s-sw-reveal" data-act="avSetSwStyle" data-arg="reveal">Revelação Aurora</button><button id="s-sw-fade" data-act="avSetSwStyle" data-arg="fade">Deslize suave</button><button id="s-sw-off" data-act="avSetSwStyle" data-arg="off">Desligado</button></div></div>
+      <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" data-act="avSetThemeAuto" data-args='[true]'>Ligado</button><button id="s-auto-off" data-act="avSetThemeAuto" data-args='[false]'>Desligado</button></div></div>
     </div>
 
     <!-- COLOR PICKERS -->
@@ -999,7 +999,7 @@
         <div class="color-row">
           <span class="color-row-label" id="s-bg-label">Cor de Fundo</span>
           <div class="color-input-group">
-            <input type="color" id="picker-bg" oninput="livePreviewColor('bg',this.value)" onchange="applyColor('bg',this.value)">
+            <input type="color" id="picker-bg" data-input="livePreviewColor" data-change="applyColor" data-arg="bg" data-value>
             <div class="color-presets" id="presets-bg"></div>
           </div>
         </div>
@@ -1007,7 +1007,7 @@
         <div class="color-row">
           <span class="color-row-label" id="s-accent-label">Cor de Destaque</span>
           <div class="color-input-group">
-            <input type="color" id="picker-accent" oninput="livePreviewColor('accent',this.value)" onchange="applyColor('accent',this.value)">
+            <input type="color" id="picker-accent" data-input="livePreviewColor" data-change="applyColor" data-arg="accent" data-value>
             <div class="color-presets" id="presets-accent"></div>
           </div>
         </div>
@@ -1015,7 +1015,7 @@
         <div class="color-row">
           <span class="color-row-label" id="s-text-label">Cor do Texto</span>
           <div class="color-input-group">
-            <input type="color" id="picker-text" oninput="livePreviewColor('text',this.value)" onchange="applyColor('text',this.value)">
+            <input type="color" id="picker-text" data-input="livePreviewColor" data-change="applyColor" data-arg="text" data-value>
             <div class="color-presets" id="presets-text"></div>
           </div>
         </div>
@@ -1025,7 +1025,7 @@
           <span style="color:var(--accent-ink);letter-spacing:3px;font-size:.7rem">PREVIEW — Aurora Vault</span>
         </div>
 
-        <button class="btn btn-ghost" onclick="resetColors()" id="s-reset-btn" style="margin-top:4px;font-size:.65rem">↺ Repor cores padrão</button>
+        <button class="btn btn-ghost" id="s-reset-btn" style="margin-top:4px;font-size:.65rem" data-act="resetColors">↺ Repor cores padrão</button>
       </div>
     </div>
 
@@ -1039,9 +1039,9 @@
       <div class="settings-title" id="s-csv-title">📄 Importar / Exportar</div>
       <div id="s-csv-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Importa ou exporta as tuas entradas em CSV, ou gera um PDF do cofre.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn btn-ghost" onclick="document.getElementById('csv-input-app').click()" style="padding:11px"><span id="s-csv-import-txt">⬆️ Importar CSV</span></button>
-        <button class="btn btn-ghost" onclick="exportCSV()" style="padding:11px"><span id="s-csv-export-txt">⬇️ Exportar CSV</span></button>
-        <button class="btn btn-ghost" onclick="exportPDF()" style="padding:11px;grid-column:1/-1"><span id="s-pdf-export-txt">📄 Exportar PDF</span></button>
+        <button class="btn btn-ghost" style="padding:11px" data-click="csv-input-app"><span id="s-csv-import-txt">⬆️ Importar CSV</span></button>
+        <button class="btn btn-ghost" style="padding:11px" data-act="exportCSV"><span id="s-csv-export-txt">⬇️ Exportar CSV</span></button>
+        <button class="btn btn-ghost" style="padding:11px;grid-column:1/-1" data-act="exportPDF"><span id="s-pdf-export-txt">📄 Exportar PDF</span></button>
       </div>
     </div>
 
@@ -1049,28 +1049,28 @@
     <div class="settings-section">
       <div class="settings-title" id="s-export-title">📤 Partilhar entradas selecionadas</div>
       <div id="export-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
-      <button class="btn btn-ghost" id="export-open-btn" onclick="openSelectiveExport()" style="width:100%;padding:11px">📤 <span id="export-open-txt">Escolher e exportar</span></button>
+      <button class="btn btn-ghost" id="export-open-btn" style="width:100%;padding:11px" data-act="openSelectiveExport">📤 <span id="export-open-txt">Escolher e exportar</span></button>
     </div>
 
     <!-- SNAPSHOTS -->
     <div class="settings-section">
       <div class="settings-title" id="s-snap-title">💾 Cópias de Segurança</div>
       <div id="snap-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
-      <button class="btn btn-ghost" id="snap-open-btn" onclick="openSnapshotModal()" style="width:100%;padding:11px">⏳ <span id="snap-open-txt">Ver e restaurar cópias</span></button>
+      <button class="btn btn-ghost" id="snap-open-btn" style="width:100%;padding:11px" data-act="openSnapshotModal">⏳ <span id="snap-open-txt">Ver e restaurar cópias</span></button>
     </div>
 
     <div class="settings-section">
       <div class="settings-title" id="s-notif-title">🔔 Avisos de validades</div>
       <div id="s-notif-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Recebe um aviso quando um documento, cartão ou subscrição está prestes a expirar ou renovar (30, 7 e 2 dias antes).</div>
-      <button class="btn btn-ghost" onclick="toggleNotifs()" style="width:100%;padding:11px">🔔 <span id="s-notif-btn-txt">Avisos</span>: <span id="notif-state">Desligadas</span></button>
+      <button class="btn btn-ghost" style="width:100%;padding:11px" data-act="toggleNotifs">🔔 <span id="s-notif-btn-txt">Avisos</span>: <span id="notif-state">Desligadas</span></button>
     </div>
 
     <div class="settings-section">
       <div class="settings-title" id="s-use-title">🧭 Utilização</div>
-      <div class="av-set-row"><div><b id="s-autosave-lbl">Gravação automática</b><small id="s-autosave-desc">Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.</small></div><button class="btn btn-ghost" id="s-autosave-btn" onclick="avToggleAutosave()">Ligada</button></div>
-      <div class="av-set-row" id="s-bk-row" style="display:none"><div><b id="s-bk-lbl">Cópia automática para as Transferências</b><small id="s-bk-desc">Este browser guarda o cofre na app. Por segurança, é feita uma cópia encriptada nas Transferências, só quando há alterações.</small></div><div class="av-seg"><button id="s-bk-weekly" onclick="avSetBkFreq('weekly')">Semanal</button><button id="s-bk-daily" onclick="avSetBkFreq('daily')">Diária</button><button id="s-bk-off" onclick="avSetBkFreq('off')">Desligada</button></div></div>
-      <div class="av-set-row"><div><b id="s-nudge-lbl">Sugestões da Aurora</b><small id="s-nudge-desc">Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).</small></div><div class="av-seg"><button id="s-nudge-on" onclick="avSetNudges(true)">Ligadas</button><button id="s-nudge-off" onclick="avSetNudges(false)">Desligadas</button></div></div>
-      <div class="av-set-row"><div><b id="s-mode-lbl">Modo da app</b><small id="s-mode-desc">Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).</small></div><div class="av-seg"><button id="s-mode-simple" onclick="avSetMode('simple')">Simples</button><button id="s-mode-full" onclick="avSetMode('full')">Completo</button></div></div>
+      <div class="av-set-row"><div><b id="s-autosave-lbl">Gravação automática</b><small id="s-autosave-desc">Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.</small></div><button class="btn btn-ghost" id="s-autosave-btn" data-act="avToggleAutosave">Ligada</button></div>
+      <div class="av-set-row" id="s-bk-row" style="display:none"><div><b id="s-bk-lbl">Cópia automática para as Transferências</b><small id="s-bk-desc">Este browser guarda o cofre na app. Por segurança, é feita uma cópia encriptada nas Transferências, só quando há alterações.</small></div><div class="av-seg"><button id="s-bk-weekly" data-act="avSetBkFreq" data-arg="weekly">Semanal</button><button id="s-bk-daily" data-act="avSetBkFreq" data-arg="daily">Diária</button><button id="s-bk-off" data-act="avSetBkFreq" data-arg="off">Desligada</button></div></div>
+      <div class="av-set-row"><div><b id="s-nudge-lbl">Sugestões da Aurora</b><small id="s-nudge-desc">Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).</small></div><div class="av-seg"><button id="s-nudge-on" data-act="avSetNudges" data-args='[true]'>Ligadas</button><button id="s-nudge-off" data-act="avSetNudges" data-args='[false]'>Desligadas</button></div></div>
+      <div class="av-set-row"><div><b id="s-mode-lbl">Modo da app</b><small id="s-mode-desc">Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).</small></div><div class="av-seg"><button id="s-mode-simple" data-act="avSetMode" data-arg="simple">Simples</button><button id="s-mode-full" data-act="avSetMode" data-arg="full">Completo</button></div></div>
     </div>
     <div class="settings-section">
       <div class="settings-title" id="s-drive-title">☁️ Sincronizar com a Google Drive</div>
@@ -1080,12 +1080,12 @@
         <label id="s-drive-cid-lbl">Credencial da Google (Client ID)</label>
         <input type="text" id="drive-cid" placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com" style="font-size:.66rem">
       </div>
-      <button class="btn btn-ghost" onclick="saveDriveCid()" id="drive-save-cid-btn" style="width:100%;padding:10px;margin-bottom:7px">Guardar credencial</button>
-      <button class="btn btn-gold" onclick="driveFirstUpload()" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px">☁️ Enviar o cofre atual para o Drive</button>
-      <button class="btn btn-ghost" onclick="driveOpenLinkPicker()" id="drive-link-btn" style="width:100%;padding:10px;margin-bottom:7px">🔗 Usar um ficheiro já existente na Drive</button>
-      <button class="btn btn-ghost" onclick="driveToggle()" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px">Ligar sincronização</button>
-      <button class="btn btn-ghost" onclick="openSyncHistory()" id="drive-hist-btn" style="width:100%;padding:10px;margin-bottom:7px">🕘 Histórico de versões no Drive</button>
-      <button class="btn btn-ghost" onclick="driveForget()" id="drive-forget-btn" style="width:100%;padding:10px">Desligar e esquecer</button>
+      <button class="btn btn-ghost" id="drive-save-cid-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="saveDriveCid">Guardar credencial</button>
+      <button class="btn btn-gold" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveFirstUpload">☁️ Enviar o cofre atual para o Drive</button>
+      <button class="btn btn-ghost" id="drive-link-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveOpenLinkPicker">🔗 Usar um ficheiro já existente na Drive</button>
+      <button class="btn btn-ghost" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveToggle">Ligar sincronização</button>
+      <button class="btn btn-ghost" id="drive-hist-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="openSyncHistory">🕘 Histórico de versões no Drive</button>
+      <button class="btn btn-ghost" id="drive-forget-btn" style="width:100%;padding:10px" data-act="driveForget">Desligar e esquecer</button>
       <div id="drive-state" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:11px"></div>
     </div>
 
@@ -1098,7 +1098,7 @@
     <div class="settings-section">
       <div class="settings-title" id="s-changepw-title">🔑 Palavra-passe mestra</div>
       <div id="s-changepw-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Muda a palavra-passe que protege todo o cofre.</div>
-      <button class="btn btn-ghost" onclick="openChangePwModal()" style="width:100%;padding:11px"><span id="s-changepw-btn-txt">🔑 Alterar palavra-passe</span></button>
+      <button class="btn btn-ghost" style="width:100%;padding:11px" data-act="openChangePwModal"><span id="s-changepw-btn-txt">🔑 Alterar palavra-passe</span></button>
     </div>
 
     <!-- QUICK UNLOCK -->
@@ -1106,12 +1106,12 @@
       <div class="settings-title" id="s-quick-title">🔓 Desbloqueio Rápido</div>
       <div id="quick-status" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-ghost" id="pin-cfg-btn" onclick="openPinSetup()" style="flex:1;min-width:150px;padding:11px">🔢 <span id="pin-cfg-txt">Configurar PIN</span></button>
-        <button class="btn btn-ghost" id="bio-cfg-btn" onclick="doBioSetup()" style="flex:1;min-width:150px;padding:11px">👆 <span id="bio-cfg-txt">Ativar biometria</span></button>
+        <button class="btn btn-ghost" id="pin-cfg-btn" style="flex:1;min-width:150px;padding:11px" data-act="openPinSetup">🔢 <span id="pin-cfg-txt">Configurar PIN</span></button>
+        <button class="btn btn-ghost" id="bio-cfg-btn" style="flex:1;min-width:150px;padding:11px" data-act="doBioSetup">👆 <span id="bio-cfg-txt">Ativar biometria</span></button>
       </div>
       <div id="pin-dur-row" style="display:flex;align-items:center;gap:10px;margin-top:12px">
         <span id="pin-dur-lbl" style="font-size:.7rem;color:var(--text);white-space:nowrap">Validade do PIN</span>
-        <select id="pin-dur" class="sort-select" onchange="setPinDuration(this.value)" style="flex:1;min-width:140px"></select>
+        <select id="pin-dur" class="sort-select" style="flex:1;min-width:140px" data-change="setPinDuration" data-value></select>
       </div>
       <div id="quick-note" style="font-size:.62rem;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
     </div>
@@ -1121,20 +1121,20 @@
       <div class="settings-title" id="s-timeout-title">⏱️ Auto-bloqueio</div>
       <div style="font-size:.72rem;color:var(--text);margin-bottom:8px"><span id="s-lockhide-lbl">Ao sair da app (segundo plano), bloquear:</span></div>
       <div class="timeout-btns" style="margin-bottom:6px">
-        <button class="timeout-btn" onclick="avSetBgLock(0)" id="bg-0">Logo</button>
-        <button class="timeout-btn" onclick="avSetBgLock(15)" id="bg-15">15 s</button>
-        <button class="timeout-btn" onclick="avSetBgLock(60)" id="bg-60">1 min</button>
-        <button class="timeout-btn" onclick="avSetBgLock(300)" id="bg-300">5 min</button>
-        <button class="timeout-btn" onclick="avSetBgLock(-1)" id="bg--1">∞ Nunca</button>
+        <button class="timeout-btn" id="bg-0" data-act="avSetBgLock" data-args='[0]'>Logo</button>
+        <button class="timeout-btn" id="bg-15" data-act="avSetBgLock" data-args='[15]'>15 s</button>
+        <button class="timeout-btn" id="bg-60" data-act="avSetBgLock" data-args='[60]'>1 min</button>
+        <button class="timeout-btn" id="bg-300" data-act="avSetBgLock" data-args='[300]'>5 min</button>
+        <button class="timeout-btn" id="bg--1" data-act="avSetBgLock" data-args='[-1]'>∞ Nunca</button>
       </div>
       <div id="s-bglock-hint" style="font-size:.62rem;color:var(--text-muted);line-height:1.6;margin-bottom:14px">Dá-te tempo para copiares uma password e colares noutra app. Depois disso, pede a impressão digital / PIN.</div>
       <div style="font-size:.72rem;color:var(--text);margin-bottom:8px"><span id="s-idlelock-lbl">Sem mexer na app, bloquear depois de:</span></div>
       <div class="timeout-btns">
-        <button class="timeout-btn" onclick="setTimeout2(1)" id="to-1">1 min</button>
-        <button class="timeout-btn active" onclick="setTimeout2(5)" id="to-5">5 min</button>
-        <button class="timeout-btn" onclick="setTimeout2(10)" id="to-10">10 min</button>
-        <button class="timeout-btn" onclick="setTimeout2(30)" id="to-30">30 min</button>
-        <button class="timeout-btn" onclick="setTimeout2(0)" id="to-0">∞ Nunca</button>
+        <button class="timeout-btn" id="to-1" data-act="setTimeout2" data-args='[1]'>1 min</button>
+        <button class="timeout-btn active" id="to-5" data-act="setTimeout2" data-args='[5]'>5 min</button>
+        <button class="timeout-btn" id="to-10" data-act="setTimeout2" data-args='[10]'>10 min</button>
+        <button class="timeout-btn" id="to-30" data-act="setTimeout2" data-args='[30]'>30 min</button>
+        <button class="timeout-btn" id="to-0" data-act="setTimeout2" data-args='[0]'>∞ Nunca</button>
       </div>
     </div>
     </div><!-- /pane seguranca -->
@@ -1150,7 +1150,7 @@
         <input id="catmgr-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:.95rem;padding:9px 4px;border-radius:2px;outline:none">
         <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
         <input type="color" id="catmgr-color" value="#4c8caf">
-        <button class="btn btn-gold" onclick="addCustomCat()" id="catmgr-add-btn" style="flex:0 0 auto;padding:10px 16px">＋</button>
+        <button class="btn btn-gold" id="catmgr-add-btn" style="flex:0 0 auto;padding:10px 16px" data-act="addCustomCat">＋</button>
       </div>
     </div>
 
@@ -1160,7 +1160,7 @@
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input id="pwa-emoji" maxlength="4" placeholder="🔒" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:9px 4px;border-radius:2px;outline:none">
         <input id="pwa-name" maxlength="24" placeholder="Aurora Vault" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
-        <button class="btn btn-gold" onclick="savePwaPrefs()" id="pwa-apply-btn" style="flex:0 0 auto;padding:10px 16px">✓</button>
+        <button class="btn btn-gold" id="pwa-apply-btn" style="flex:0 0 auto;padding:10px 16px" data-act="savePwaPrefs">✓</button>
       </div>
       <div id="pwa-note" style="font-size:.62rem;color:var(--text-muted);margin-top:8px;line-height:1.6">O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.</div>
     </div>
@@ -1171,7 +1171,7 @@
     <div class="settings-section">
       <div class="settings-title" id="s-heranca-title">📜 Herança Digital</div>
       <div id="s-heranca-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px">Um documento para a tua família aceder às tuas contas e ao que é importante, caso te aconteça alguma coisa. Preenche os dados e gera um PDF para guardar em segurança.</div>
-      <button class="btn btn-gold" onclick="openLegacyModal()" style="width:100%;padding:12px"><span id="s-heranca-btn-txt">📜 Abrir Herança Digital</span></button>
+      <button class="btn btn-gold" style="width:100%;padding:12px" data-act="openLegacyModal"><span id="s-heranca-btn-txt">📜 Abrir Herança Digital</span></button>
     </div>
     </div><!-- /pane heranca -->
 
@@ -1189,41 +1189,41 @@
     </div><!-- /pane sobre -->
 
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="closeSettings()" id="s-close-btn">Fechar</button>
+      <button class="btn btn-gold" id="s-close-btn" data-act="closeSettings">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- FOLDER MODAL -->
-<div class="modal-overlay" id="folder-overlay" onclick="if(event.target===this)closeFolderModal()">
+<div class="modal-overlay" id="folder-overlay" data-act="closeFolderModal" data-self>
   <div class="modal" style="max-width:400px">
     <div class="modal-title" id="folder-modal-title">📁 Nova Pasta</div>
     <div id="folder-parent-line" style="font-size:.66rem;color:var(--text-muted);margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
       <input id="folder-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:10px 4px;border-radius:2px;outline:none">
-      <input id="folder-name" placeholder="Nome da pasta" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:11px 12px;border-radius:2px;outline:none" onkeydown="if(event.key==='Enter')saveFolder()">
+      <input id="folder-name" placeholder="Nome da pasta" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:11px 12px;border-radius:2px;outline:none" data-enter="saveFolder">
     </div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-gold" onclick="saveFolder()" id="folder-save-btn">Criar</button>
-      <button class="btn btn-ghost" onclick="closeFolderModal()" id="folder-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="folder-save-btn" data-act="saveFolder">Criar</button>
+      <button class="btn btn-ghost" id="folder-cancel-btn" data-act="closeFolderModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- MOVE DOC MODAL -->
-<div class="modal-overlay" id="move-overlay" onclick="if(event.target===this)closeMoveModal()">
+<div class="modal-overlay" id="move-overlay" data-act="closeMoveModal" data-self>
   <div class="modal" style="max-width:420px">
     <div class="modal-title" id="move-modal-title">📂 Mover para...</div>
     <div id="move-doc-name" style="font-size:.72rem;color:var(--text-muted);margin-bottom:12px"></div>
     <div id="move-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-ghost" onclick="closeMoveModal()" id="move-cancel-btn" style="width:100%">Cancelar</button>
+      <button class="btn btn-ghost" id="move-cancel-btn" style="width:100%" data-act="closeMoveModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- SHARE QR MODAL -->
-<div class="modal-overlay" id="share-overlay" onclick="if(event.target===this)closeShareModal()">
+<div class="modal-overlay" id="share-overlay" data-act="closeShareModal" data-self>
   <div class="modal" style="max-width:420px;text-align:center">
     <div class="modal-title" id="share-title" style="justify-content:center">🔗 Partilhar por QR</div>
     <div id="share-step-pw">
@@ -1233,8 +1233,8 @@
         <input type="text" id="share-pw" placeholder="ex: banana42" autocomplete="off" spellcheck="false">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-gold" onclick="generateShareQR()" id="share-gen-btn">Gerar QR</button>
-        <button class="btn btn-ghost" onclick="closeShareModal()" id="share-cancel-btn">Cancelar</button>
+        <button class="btn btn-gold" id="share-gen-btn" data-act="generateShareQR">Gerar QR</button>
+        <button class="btn btn-ghost" id="share-cancel-btn" data-act="closeShareModal">Cancelar</button>
       </div>
     </div>
     <div id="share-step-qr" style="display:none">
@@ -1244,31 +1244,31 @@
       <div id="share-entry-name" style="font-size:.85rem;color:var(--text);margin-top:14px;font-weight:600"></div>
       <div id="share-hint" style="font-size:.68rem;color:var(--text-muted);margin-top:8px;line-height:1.7">No outro dispositivo: Cofre → 📥 QR → aponta a câmara → escreve a password temporária.</div>
       <div class="modal-actions" style="margin-top:16px">
-        <button class="btn btn-gold" onclick="closeShareModal()" id="share-done-btn">Concluído</button>
+        <button class="btn btn-gold" id="share-done-btn" data-act="closeShareModal">Concluído</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- SHARE IMPORT PASSWORD MODAL -->
-<div class="modal-overlay" id="shimport-overlay" onclick="if(event.target===this)closeShareImport()">
+<div class="modal-overlay" id="shimport-overlay" data-act="closeShareImport" data-self>
   <div class="modal" style="max-width:400px;text-align:center">
     <div class="modal-title" id="shimport-title" style="justify-content:center">📥 Importar entrada</div>
     <div style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px" id="shimport-explain">QR lido! Escreve a password temporária definida no outro dispositivo.</div>
     <div class="form-group" style="text-align:left">
       <label id="shimport-pw-lbl">Password temporária</label>
-      <input type="text" id="shimport-pw" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmShareImport()">
+      <input type="text" id="shimport-pw" autocomplete="off" spellcheck="false" data-enter="confirmShareImport">
     </div>
     <div id="shimport-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-top:4px"></div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="confirmShareImport()" id="shimport-ok-btn">Importar</button>
-      <button class="btn btn-ghost" onclick="closeShareImport()" id="shimport-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="shimport-ok-btn" data-act="confirmShareImport">Importar</button>
+      <button class="btn btn-ghost" id="shimport-cancel-btn" data-act="closeShareImport">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- QR SCANNER MODAL -->
-<div class="modal-overlay" id="qrscan-overlay" onclick="if(event.target===this)closeQrScanner()">
+<div class="modal-overlay" id="qrscan-overlay" data-act="closeQrScanner" data-self>
   <div class="modal" style="max-width:440px;text-align:center">
     <div class="modal-title" id="qrscan-title" style="justify-content:center">📷 Ler QR Code</div>
     <div style="position:relative;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:1;max-height:340px">
@@ -1277,18 +1277,18 @@
     </div>
     <div id="qrscan-status" style="font-size:.72rem;color:var(--text-muted);margin-top:12px;min-height:18px;line-height:1.6">A iniciar câmara...</div>
     <div class="modal-actions" style="margin-top:14px;flex-direction:column;gap:8px">
-      <button class="btn btn-ghost" onclick="document.getElementById('qrscan-file').click()" id="qrscan-file-btn" style="width:100%">🖼️ Ler de uma imagem</button>
-      <input type="file" id="qrscan-file" accept="image/*" style="display:none" onchange="scanQrFromFile(event)">
-      <button class="btn btn-gold" onclick="closeQrScanner()" id="qrscan-cancel-btn" style="width:100%">Cancelar</button>
+      <button class="btn btn-ghost" id="qrscan-file-btn" style="width:100%" data-click="qrscan-file">🖼️ Ler de uma imagem</button>
+      <input type="file" id="qrscan-file" accept="image/*" style="display:none" data-change="scanQrFromFile" data-ev>
+      <button class="btn btn-gold" id="qrscan-cancel-btn" style="width:100%" data-act="closeQrScanner">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- TOTP MODAL -->
-<div class="modal-overlay" id="totp-overlay" onclick="if(event.target===this)closeTotpModal()">
+<div class="modal-overlay" id="totp-overlay" data-act="closeTotpModal" data-self>
   <div class="modal" style="max-width:460px">
     <div class="modal-title" id="totp-modal-title">🔢 Novo Código 2FA</div>
-    <button type="button" class="av-ga-link" onclick="closeTotpModal();avGaOpen()">📲 <span id="tf-ga-txt">Importar tudo do Google Authenticator</span></button>
+    <button type="button" class="av-ga-link" data-act="totpOpenGaImport">📲 <span id="tf-ga-txt">Importar tudo do Google Authenticator</span></button>
     <div class="form-group">
       <label id="tf-name-lbl">Serviço</label>
       <input type="text" id="tf-name" placeholder="ex: Google, Discord, PayPal...">
@@ -1301,7 +1301,7 @@
       <label id="tf-secret-lbl">Segredo</label>
       <div style="display:flex;gap:8px">
         <input type="text" id="tf-secret" placeholder="Base32 (ex: JBSW Y3DP EHPK 3PXP) ou otpauth://..." autocomplete="off" spellcheck="false" style="flex:1">
-        <button type="button" class="pw-gen-btn" id="tf-scan-btn" onclick="openQrScanner()" style="display:none;white-space:nowrap">📷 <span id="tf-scan-txt">Ler QR</span></button>
+        <button type="button" class="pw-gen-btn" id="tf-scan-btn" style="display:none;white-space:nowrap" data-act="openQrScanner">📷 <span id="tf-scan-txt">Ler QR</span></button>
       </div>
       <div id="tf-secret-hint" style="font-size:.66rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Cola aqui a chave secreta que o site mostra ao ativar 2FA (por baixo do QR code), ou o link otpauth:// completo.</div>
     </div>
@@ -1311,18 +1311,18 @@
       <div id="tf-recovery-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Muitos serviços dão códigos de emergência para o caso de perderes o telemóvel. Guarda-os aqui, dentro do cofre 2FA protegido.</div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="saveTotp()" id="totp-save-btn">Guardar</button>
-      <button class="btn btn-ghost" onclick="closeTotpModal()" id="totp-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="totp-save-btn" data-act="saveTotp">Guardar</button>
+      <button class="btn btn-ghost" id="totp-cancel-btn" data-act="closeTotpModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- HEALTH CHECK MODAL -->
-<div class="modal-overlay" id="healthcheck-overlay" onclick="if(event.target===this)closeHealthCheck()">
+<div class="modal-overlay" id="healthcheck-overlay" data-act="closeHealthCheck" data-self>
   <div class="modal" style="max-width:520px;width:94vw">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px">
       <div class="modal-title" id="hc-title" style="margin:0">🩺 Auditoria de Segurança</div>
-      <button class="docview-close" onclick="closeHealthCheck()" title="Fechar">✕</button>
+      <button class="docview-close" title="Fechar" data-act="closeHealthCheck">✕</button>
     </div>
     <div class="hc-scorewrap">
       <div class="hc-score-ring" id="hc-score-ring"><div class="hc-score-inner"><span id="hc-score-num">0</span></div></div>
@@ -1336,16 +1336,16 @@
 </div>
 
 <!-- CARTÃO DE LOJA MODAL -->
-<div class="modal-overlay" id="drive-link-overlay" onclick="if(event.target===this)closeDriveLinkPicker()">
+<div class="modal-overlay" id="drive-link-overlay" data-act="closeDriveLinkPicker" data-self>
   <div class="modal" style="max-width:480px;max-height:80vh;overflow-y:auto">
     <div class="modal-title" id="drive-link-title">🔗 Ficheiros encontrados na Drive</div>
     <div id="drive-link-list"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeDriveLinkPicker()" id="drive-link-close-btn" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="drive-link-close-btn" style="width:100%" data-act="closeDriveLinkPicker">Fechar</button>
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="fuel-overlay" onclick="if(event.target===this)closeFuelModal()">
+<div class="modal-overlay" id="fuel-overlay" data-act="closeFuelModal" data-self>
   <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
     <div class="modal-title" id="fuel-modal-title">⛽ Abastecimentos</div>
     <div id="fuel-stats"></div>
@@ -1355,24 +1355,24 @@
       <div class="form-group"><label id="fuel-lbl-euros">Valor (€)</label><input type="number" step="any" id="fuel-euros" placeholder="72.50"></div>
       <div class="form-group"><label id="fuel-lbl-km">Quilómetros (conta-km)</label><input type="number" id="fuel-km" placeholder="145300"></div>
     </div>
-    <button class="btn btn-gold" onclick="addFuel()" id="fuel-add-btn" style="width:100%;margin-bottom:14px">Adicionar</button>
+    <button class="btn btn-gold" id="fuel-add-btn" style="width:100%;margin-bottom:14px" data-act="addFuel">Adicionar</button>
     <div id="fuel-list"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeFuelModal()" id="fuel-close-btn" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="fuel-close-btn" style="width:100%" data-act="closeFuelModal">Fechar</button>
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="asset-overlay" onclick="if(event.target===this)closeAssetModal()">
+<div class="modal-overlay" id="asset-overlay" data-act="closeAssetModal" data-self>
   <div class="modal" style="max-width:520px">
     <div class="modal-title" id="asset-modal-title">Novo</div>
     <div id="asset-fields"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeAssetModal()" id="asset-cancel-btn">Cancelar</button>
-      <button class="btn btn-gold" onclick="saveAsset()" id="asset-save-btn">Guardar</button>
+      <button class="btn btn-ghost" id="asset-cancel-btn" data-act="closeAssetModal">Cancelar</button>
+      <button class="btn btn-gold" id="asset-save-btn" data-act="saveAsset">Guardar</button>
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="store-overlay" onclick="if(event.target===this)closeStoreModal()">
+<div class="modal-overlay" id="store-overlay" data-act="closeStoreModal" data-self>
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="store-modal-title">Adicionar cartão</div>
     <div class="form-group">
@@ -1384,21 +1384,21 @@
       <label id="sc-number-lbl">Número do cartão</label>
       <input type="text" id="sc-number" placeholder="O número por baixo do código de barras" inputmode="numeric">
       <div id="sc-number-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Escreve os dígitos que aparecem no teu cartão (por baixo do código de barras).</div>
-      <button type="button" class="btn btn-ghost" id="sc-scan-btn" onclick="avScanStore()" style="display:none;width:100%;margin-top:8px;padding:9px">📷 Ler com a câmara</button>
+      <button type="button" class="btn btn-ghost" id="sc-scan-btn" style="display:none;width:100%;margin-top:8px;padding:9px" data-act="avScanStore">📷 Ler com a câmara</button>
     </div>
     <div class="form-group">
       <label id="sc-color-lbl">Cor</label>
       <div id="sc-colors" style="display:flex;gap:8px;flex-wrap:wrap"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="saveStoreCard()" id="sc-save">Guardar</button>
-      <button class="btn btn-ghost" onclick="closeStoreModal()" id="sc-cancel">Cancelar</button>
+      <button class="btn btn-gold" id="sc-save" data-act="saveStoreCard">Guardar</button>
+      <button class="btn btn-ghost" id="sc-cancel" data-act="closeStoreModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- MOSTRAR CÓDIGO DE BARRAS -->
-<div class="modal-overlay" id="barcode-overlay" onclick="if(event.target===this)closeBarcode()">
+<div class="modal-overlay" id="barcode-overlay" data-act="closeBarcode" data-self>
   <div class="modal" style="max-width:420px;text-align:center">
     <div class="modal-title" id="barcode-name" style="margin-bottom:6px"></div>
     <div id="barcode-hint" style="font-size:.68rem;color:var(--text-muted);margin-bottom:18px"></div>
@@ -1407,17 +1407,17 @@
       <div id="barcode-number" style="font-family:'JetBrains Mono',monospace;font-size:1rem;letter-spacing:3px;color:#000;margin-top:10px"></div>
     </div>
     <div class="modal-actions" style="margin-top:20px">
-      <button class="btn btn-ghost" onclick="closeBarcode()" id="barcode-close" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="barcode-close" style="width:100%" data-act="closeBarcode">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- ECRÃ SUBSCRIÇÕES -->
-<div class="modal-overlay" id="subsscreen-overlay" onclick="if(event.target===this)closeSubsScreen()">
+<div class="modal-overlay" id="subsscreen-overlay" data-act="closeSubsScreen" data-self>
   <div class="modal" style="max-width:560px;width:94vw">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
       <div class="modal-title" id="subsscreen-title" style="margin:0">💸 Subscrições</div>
-      <button class="docview-close" onclick="closeSubsScreen()" title="Fechar">✕</button>
+      <button class="docview-close" title="Fechar" data-act="closeSubsScreen">✕</button>
     </div>
     <div id="subs-content"></div>
   </div>
@@ -1425,17 +1425,17 @@
 
 <!-- SUBSCRIÇÃO MODAL -->
 <!-- ECRÃ CALENDÁRIO -->
-<div class="modal-overlay" id="calendar-overlay" onclick="if(event.target===this)closeCalendar()">
+<div class="modal-overlay" id="calendar-overlay" data-act="closeCalendar" data-self>
   <div class="modal" style="max-width:640px;width:95vw;max-height:90vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
       <div class="modal-title" id="calendar-title" style="margin:0">📅 Calendário</div>
-      <button class="docview-close" onclick="closeCalendar()" title="Fechar">✕</button>
+      <button class="docview-close" title="Fechar" data-act="closeCalendar">✕</button>
     </div>
     <div id="cal-sub" style="font-size:.72rem;color:var(--text-muted);margin-bottom:16px">Renovações e validades ao longo do mês.</div>
     <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="calShiftMonth(-1)">‹</button>
+      <button class="cal-nav-btn" data-act="calShiftMonth" data-args='[-1]'>‹</button>
       <span class="cal-month-label" id="cal-month-label"></span>
-      <button class="cal-nav-btn" onclick="calShiftMonth(1)">›</button>
+      <button class="cal-nav-btn" data-act="calShiftMonth" data-args='[1]'>›</button>
     </div>
     <div class="cal-weekdays" id="cal-weekdays"></div>
     <div class="cal-grid" id="cal-grid"></div>
@@ -1447,11 +1447,11 @@
     </div>
     <div id="cal-day-detail" class="cal-day-detail"></div>
     <div id="cal-upcoming" class="cal-upcoming"></div>
-    <button class="btn btn-ghost" onclick="exportCalendarIcs()" style="width:100%;margin-top:14px">📲 <span id="cal-ics-txt">Adicionar ao calendário do telemóvel</span></button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:14px" data-act="exportCalendarIcs">📲 <span id="cal-ics-txt">Adicionar ao calendário do telemóvel</span></button>
   </div>
 </div>
 
-<div class="modal-overlay" id="sub-overlay" onclick="if(event.target===this)closeSubModal()">
+<div class="modal-overlay" id="sub-overlay" data-act="closeSubModal" data-self>
   <div class="modal" style="max-width:460px">
     <div class="modal-title" id="sub-modal-title">Adicionar subscrição</div>
     <div class="form-group">
@@ -1466,7 +1466,7 @@
       </div>
       <div class="form-group" style="flex:1">
         <label id="sub-cycle-lbl">Periodicidade</label>
-        <select id="sub-cycle" class="sort-select" style="width:100%" onchange="updateSubCycleUI()">
+        <select id="sub-cycle" class="sort-select" style="width:100%" data-change="updateSubCycleUI">
           <option value="monthly">Mensal</option>
           <option value="yearly">Anual</option>
         </select>
@@ -1485,14 +1485,14 @@
       <div id="sub-colors" style="display:flex;gap:8px;flex-wrap:wrap"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="saveSub()" id="sub-save">Guardar</button>
-      <button class="btn btn-ghost" onclick="closeSubModal()" id="sub-cancel">Cancelar</button>
+      <button class="btn btn-gold" id="sub-save" data-act="saveSub">Guardar</button>
+      <button class="btn btn-ghost" id="sub-cancel" data-act="closeSubModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- INFO PESSOAL MODAL -->
-<div class="modal-overlay" id="info-overlay" onclick="if(event.target===this)closeInfoModal()">
+<div class="modal-overlay" id="info-overlay" data-act="closeInfoModal" data-self>
   <div class="modal" style="max-width:460px">
     <div class="modal-title" id="info-modal-title">Adicionar info</div>
     <div class="form-group">
@@ -1509,38 +1509,38 @@
       <span id="im-sensitive-lbl">Ocultar por omissão (mostrar só ao tocar)</span>
     </label>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="saveInfo()" id="im-save">Guardar</button>
-      <button class="btn btn-ghost" onclick="closeInfoModal()" id="im-cancel">Cancelar</button>
+      <button class="btn btn-gold" id="im-save" data-act="saveInfo">Guardar</button>
+      <button class="btn btn-ghost" id="im-cancel" data-act="closeInfoModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- PRÉ-VISUALIZAÇÃO DE DOCUMENTO -->
-<div class="modal-overlay" id="docview-overlay" onclick="if(event.target===this)closeDocPreview()">
+<div class="modal-overlay" id="docview-overlay" data-act="closeDocPreview" data-self>
   <div class="modal" style="max-width:820px;width:94vw;padding:0;overflow:hidden">
     <div class="docview-head">
       <div style="min-width:0;flex:1">
         <div id="docview-title" style="font-size:.82rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
         <div id="docview-sub" style="font-size:.62rem;color:var(--text-muted);margin-top:2px"></div>
       </div>
-      <button class="card-btn" onclick="downloadDocFromPreview()" id="docview-dl" style="flex-shrink:0">
+      <button class="card-btn" id="docview-dl" style="flex-shrink:0" data-act="downloadDocFromPreview">
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span id="docview-dl-txt">Transferir</span>
       </button>
-      <button class="docview-close" onclick="closeDocPreview()" title="Fechar">✕</button>
+      <button class="docview-close" title="Fechar" data-act="closeDocPreview">✕</button>
     </div>
     <div id="docview-body" class="docview-body"></div>
   </div>
 </div>
 
 <!-- EXPORTAÇÃO SELETIVA MODAL -->
-<div class="modal-overlay" id="export-overlay" onclick="if(event.target===this)closeSelectiveExport()">
+<div class="modal-overlay" id="export-overlay" data-act="closeSelectiveExport" data-self>
   <div class="modal" style="max-width:520px">
     <div class="modal-title" id="export-title">📤 Partilhar entradas selecionadas</div>
     <div id="export-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px"></div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="btn btn-ghost" onclick="exportSelectAll(true)" id="export-all-btn" style="flex:1;padding:9px;font-size:.6rem">Selecionar todas</button>
-      <button class="btn btn-ghost" onclick="exportSelectAll(false)" id="export-none-btn" style="flex:1;padding:9px;font-size:.6rem">Limpar</button>
+      <button class="btn btn-ghost" id="export-all-btn" style="flex:1;padding:9px;font-size:.6rem" data-act="exportSelectAll" data-args='[true]'>Selecionar todas</button>
+      <button class="btn btn-ghost" id="export-none-btn" style="flex:1;padding:9px;font-size:.6rem" data-act="exportSelectAll" data-args='[false]'>Limpar</button>
     </div>
     <div id="export-list" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto;margin-bottom:14px;padding-right:4px"></div>
     <div class="form-group">
@@ -1550,39 +1550,39 @@
     </div>
     <div id="export-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
     <div class="modal-actions" style="flex-direction:column;gap:8px">
-      <button class="btn btn-gold" onclick="doSelectiveExport()" id="export-do-btn" style="width:100%">📤 Exportar (<span id="export-count">0</span>)</button>
-      <button class="btn btn-ghost" onclick="closeSelectiveExport()" id="export-close-btn" style="width:100%">Fechar</button>
+      <button class="btn btn-gold" id="export-do-btn" style="width:100%" data-act="doSelectiveExport">📤 Exportar (<span id="export-count">0</span>)</button>
+      <button class="btn btn-ghost" id="export-close-btn" style="width:100%" data-act="closeSelectiveExport">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- DEDUPE MODAL -->
-<div class="modal-overlay" id="dedupe-overlay" onclick="if(event.target===this)closeDedupeModal()">
+<div class="modal-overlay" id="dedupe-overlay" data-act="closeDedupeModal" data-self>
   <div class="modal" style="max-width:520px">
     <div class="modal-title" id="dedupe-title">👥 Entradas duplicadas</div>
     <div id="dedupe-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
     <div id="dedupe-list" style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeDedupeModal()" id="dedupe-close" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="dedupe-close" style="width:100%" data-act="closeDedupeModal">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- SNAPSHOTS MODAL -->
-<div class="modal-overlay" id="snap-overlay" onclick="if(event.target===this)closeSnapshotModal()">
+<div class="modal-overlay" id="snap-overlay" data-act="closeSnapshotModal" data-self>
   <div class="modal" style="max-width:500px">
     <div class="modal-title" id="snap-title">💾 Cópias de Segurança</div>
     <div id="snap-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
     <div id="snap-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
     <div class="modal-actions" style="flex-direction:column;gap:8px">
-      <button class="btn btn-ghost" onclick="clearSnapshotsConfirm()" id="snap-clear-btn" style="width:100%;color:var(--red);border-color:var(--red)">🗑️ <span id="snap-clear-txt">Apagar todas as cópias</span></button>
-      <button class="btn btn-ghost" onclick="closeSnapshotModal()" id="snap-close-btn" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="snap-clear-btn" style="width:100%;color:var(--red);border-color:var(--red)" data-act="clearSnapshotsConfirm">🗑️ <span id="snap-clear-txt">Apagar todas as cópias</span></button>
+      <button class="btn btn-ghost" id="snap-close-btn" style="width:100%" data-act="closeSnapshotModal">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- 2FA SETUP MODAL -->
-<div class="modal-overlay" id="t2setup-overlay" onclick="if(event.target===this)close2faSetup()">
+<div class="modal-overlay" id="t2setup-overlay" data-act="close2faSetup" data-self>
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="t2setup-title">🛡️ Proteger o cofre 2FA</div>
     <div id="t2setup-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
@@ -1592,59 +1592,59 @@
     </div>
     <div class="form-group">
       <label id="t2s-pin2-lbl">Confirmar PIN</label>
-      <input type="password" id="t2s-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" onkeydown="if(event.key==='Enter')confirm2faSetup()">
+      <input type="password" id="t2s-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" data-enter="confirm2faSetup">
     </div>
     <div id="t2s-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="confirm2faSetup()" id="t2s-ok-btn">Ativar</button>
-      <button class="btn btn-ghost" onclick="close2faSetup()" id="t2s-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="t2s-ok-btn" data-act="confirm2faSetup">Ativar</button>
+      <button class="btn btn-ghost" id="t2s-cancel-btn" data-act="close2faSetup">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- 2FA RECOVERY CODE MODAL -->
-<div class="modal-overlay" id="t2rec-overlay" onclick="event.stopPropagation()">
+<div class="modal-overlay" id="t2rec-overlay">
   <div class="modal" style="max-width:460px">
     <div class="modal-title" id="t2rec-title">🔑 Código de recuperação</div>
     <div id="t2rec-intro" style="font-size:.74rem;color:var(--text);line-height:1.7"></div>
     <div class="rc-display" id="t2rec-code">----</div>
     <div id="t2rec-warn" style="font-size:.7rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="copyRecoveryCode()" id="t2rec-copy" style="flex:1;min-width:120px;padding:11px">📋 Copiar</button>
-      <button class="btn btn-ghost" onclick="printRecoveryCode()" id="t2rec-print" style="flex:1;min-width:120px;padding:11px">🖨️ Imprimir</button>
+      <button class="btn btn-ghost" id="t2rec-copy" style="flex:1;min-width:120px;padding:11px" data-act="copyRecoveryCode">📋 Copiar</button>
+      <button class="btn btn-ghost" id="t2rec-print" style="flex:1;min-width:120px;padding:11px" data-act="printRecoveryCode">🖨️ Imprimir</button>
     </div>
     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.72rem;color:var(--text);line-height:1.5;margin-top:16px">
-      <input type="checkbox" id="t2rec-ack" onchange="document.getElementById('t2rec-done').disabled=!this.checked" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;margin-top:2px">
+      <input type="checkbox" id="t2rec-ack" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;margin-top:2px" data-enables="t2rec-done">
       <span id="t2rec-ack-lbl">Guardei o código num sítio seguro</span>
     </label>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="closeRecoveryModal()" id="t2rec-done" disabled style="width:100%">Concluído</button>
+      <button class="btn btn-gold" id="t2rec-done" disabled style="width:100%" data-act="closeRecoveryModal">Concluído</button>
     </div>
   </div>
 </div>
 
 <!-- 2FA MANAGER MODAL -->
-<div class="modal-overlay" id="t2mgr-overlay" onclick="if(event.target===this)close2faManager()">
+<div class="modal-overlay" id="t2mgr-overlay" data-act="close2faManager" data-self>
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="t2mgr-title">🛡️ Proteção do cofre 2FA</div>
     <div id="t2mgr-status" style="font-size:.74rem;color:var(--text-muted);line-height:1.8;margin-bottom:16px"></div>
     <div id="t2mgr-actions" style="display:flex;flex-direction:column;gap:8px"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="close2faManager()" id="t2mgr-close" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="t2mgr-close" style="width:100%" data-act="close2faManager">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- LEGACY MODAL -->
-<div class="modal-overlay" id="legacy-overlay" onclick="if(event.target===this)closeLegacyModal()">
+<div class="modal-overlay" id="legacy-overlay" data-act="closeLegacyModal" data-self>
   <div class="modal" style="max-width:480px">
     <div class="modal-title" id="legacy-title">📜 Herança Digital</div>
     <div id="legacy-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
     <div class="form-group">
       <label id="legacy-lang-lbl">Idioma do documento</label>
       <div style="display:flex;gap:8px">
-        <button type="button" class="btn btn-ghost legacy-lang-btn" id="legacy-lang-pt" onclick="setLegacyLang('pt')" style="flex:1;padding:11px">🇵🇹 Português</button>
-        <button type="button" class="btn btn-ghost legacy-lang-btn" id="legacy-lang-en" onclick="setLegacyLang('en')" style="flex:1;padding:11px">🇬🇧 English</button>
+        <button type="button" class="btn btn-ghost legacy-lang-btn" id="legacy-lang-pt" style="flex:1;padding:11px" data-act="setLegacyLang" data-arg="pt">🇵🇹 Português</button>
+        <button type="button" class="btn btn-ghost legacy-lang-btn" id="legacy-lang-en" style="flex:1;padding:11px" data-act="setLegacyLang" data-arg="en">🇬🇧 English</button>
       </div>
     </div>
     <div class="form-group">
@@ -1661,14 +1661,14 @@
     </label>
     <div id="legacy-pwwarn" style="font-size:.64rem;color:var(--text-muted);line-height:1.6;margin-top:8px;padding-left:26px"></div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="generateLegacyDoc()" id="legacy-gen-btn">Gerar folha</button>
-      <button class="btn btn-ghost" onclick="closeLegacyModal()" id="legacy-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="legacy-gen-btn" data-act="generateLegacyDoc">Gerar folha</button>
+      <button class="btn btn-ghost" id="legacy-cancel-btn" data-act="closeLegacyModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- PIN SETUP MODAL -->
-<div class="modal-overlay" id="pinsetup-overlay" onclick="if(event.target===this)closePinSetup()">
+<div class="modal-overlay" id="pinsetup-overlay" data-act="closePinSetup" data-self>
   <div class="modal" style="max-width:380px;text-align:center">
     <div class="modal-title" id="pinsetup-title" style="justify-content:center">🔢 PIN Rápido</div>
     <div id="pinsetup-intro" style="font-size:.7rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
@@ -1678,18 +1678,18 @@
     </div>
     <div class="form-group" style="text-align:left">
       <label id="ps-pin2-lbl">Confirmar PIN</label>
-      <input type="password" id="ps-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" onkeydown="if(event.key==='Enter')confirmPinSetup()">
+      <input type="password" id="ps-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" data-enter="confirmPinSetup">
     </div>
     <div id="ps-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="confirmPinSetup()" id="ps-ok-btn">Ativar</button>
-      <button class="btn btn-ghost" onclick="closePinSetup()" id="ps-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="ps-ok-btn" data-act="confirmPinSetup">Ativar</button>
+      <button class="btn btn-ghost" id="ps-cancel-btn" data-act="closePinSetup">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- WIFI MANAGER MODAL -->
-<div class="modal-overlay" id="wifimgr-overlay" onclick="if(event.target===this)closeWifiManager()">
+<div class="modal-overlay" id="wifimgr-overlay" data-act="closeWifiManager" data-self>
   <div class="modal" style="max-width:460px">
     <div class="modal-title" id="wifimgr-title">📶 Redes WiFi</div>
     <div id="wifimgr-intro" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-bottom:14px">Guardadas à parte das tuas passwords. Clica numa rede para gerar o QR que as visitas leem com a câmara.</div>
@@ -1710,23 +1710,23 @@
       </div>
       <div class="form-group" style="margin-bottom:12px">
         <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.72rem;color:var(--text);text-transform:none;letter-spacing:0">
-          <input type="checkbox" id="wf-open" onchange="document.getElementById('wf-pw').disabled=this.checked" style="accent-color:var(--accent);width:16px;height:16px">
+          <input type="checkbox" id="wf-open" style="accent-color:var(--accent);width:16px;height:16px" data-disables="wf-pw">
           <span id="wf-open-lbl">Rede aberta (sem password)</span>
         </label>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-gold" onclick="saveWifiNet()" id="wf-save-btn" style="flex:1">Guardar rede</button>
-        <button class="btn btn-ghost" onclick="resetWifiForm()" id="wf-clear-btn" style="flex:0 0 auto;padding:11px 16px">✕</button>
+        <button class="btn btn-gold" id="wf-save-btn" style="flex:1" data-act="saveWifiNet">Guardar rede</button>
+        <button class="btn btn-ghost" id="wf-clear-btn" style="flex:0 0 auto;padding:11px 16px" data-act="resetWifiForm">✕</button>
       </div>
     </div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-ghost" onclick="closeWifiManager()" id="wifimgr-close-btn" style="width:100%">Fechar</button>
+      <button class="btn btn-ghost" id="wifimgr-close-btn" style="width:100%" data-act="closeWifiManager">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- WIFI QR MODAL -->
-<div class="modal-overlay" id="qr-overlay" onclick="if(event.target===this)closeQrModal()">
+<div class="modal-overlay" id="qr-overlay" data-act="closeQrModal" data-self>
   <div class="modal" style="max-width:380px;text-align:center">
     <div class="modal-title" id="qr-title" style="justify-content:center">📶 WiFi QR Code</div>
     <div style="background:#fff;padding:16px;border-radius:10px;display:inline-block;line-height:0;box-shadow:0 4px 20px rgba(0,0,0,.3)">
@@ -1735,13 +1735,13 @@
     <div id="qr-ssid" style="font-size:.85rem;color:var(--text);margin-top:16px;font-weight:600"></div>
     <div id="qr-hint" style="font-size:.7rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Aponta a câmara do telemóvel para ligar automaticamente</div>
     <div class="modal-actions" style="margin-top:18px">
-      <button class="btn btn-gold" onclick="closeQrModal()" id="qr-close-btn">Fechar</button>
+      <button class="btn btn-gold" id="qr-close-btn" data-act="closeQrModal">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- DOCUMENT MODAL -->
-<div class="modal-overlay" id="doc-overlay" onclick="if(event.target===this)closeDocModal()">
+<div class="modal-overlay" id="doc-overlay" data-act="closeDocModal" data-self>
   <div class="modal" style="max-width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-title" id="doc-modal-title">📁 Novo Documento</div>
     <div class="form-group">
@@ -1773,7 +1773,7 @@
     <div class="form-group">
       <label id="doc-expiry-lbl">Validade <span style="font-size:.56rem;color:var(--text-muted)">(opcional)</span></label>
       <input type="date" id="doc-expiry">
-      <button type="button" class="btn btn-ghost" id="doc-ocr-btn" onclick="avOcrDoc()" style="width:100%;margin-top:8px;padding:9px">🔍 Ler a validade da foto</button>
+      <button type="button" class="btn btn-ghost" id="doc-ocr-btn" style="width:100%;margin-top:8px;padding:9px" data-act="avOcrDoc">🔍 Ler a validade da foto</button>
       <div id="doc-ocr-status" style="display:none;font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6"></div>
     </div>
     <div class="form-group">
@@ -1782,12 +1782,12 @@
     </div>
     <div class="form-group">
       <label id="doc-file-lbl">Ficheiro</label>
-      <div id="doc-drop-zone" style="border:2px dashed var(--border);border-radius:4px;padding:24px;text-align:center;cursor:pointer;transition:all .2s" onclick="document.getElementById('doc-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleDocFileDrop(event)">
+      <div id="doc-drop-zone" style="border:2px dashed var(--border);border-radius:4px;padding:24px;text-align:center;cursor:pointer;transition:all .2s" data-click="doc-file-input" data-drop="handleDocFileDrop">
         <div id="doc-drop-icon" style="font-size:2rem;margin-bottom:8px">📎</div>
         <div id="doc-drop-text" style="font-size:.72rem;color:var(--text-muted)">Clica ou arrasta o ficheiro aqui</div>
         <div style="font-size:.62rem;color:var(--text-muted);margin-top:4px">PDF, imagem, Word, Excel...</div>
       </div>
-      <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.txt,.csv" onchange="handleDocFileSelect(event)">
+      <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.txt,.csv" data-change="handleDocFileSelect" data-ev>
       <div id="doc-file-preview" style="display:none;margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px">
         <div style="display:flex;align-items:center;gap:10px">
           <span id="doc-file-icon" style="font-size:1.6rem"></span>
@@ -1795,31 +1795,31 @@
             <div id="doc-file-name" style="font-size:.78rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
             <div id="doc-file-size" style="font-size:.64rem;color:var(--text-muted)"></div>
           </div>
-          <button onclick="clearDocFile()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:4px">✕</button>
+          <button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:4px" data-act="clearDocFile">✕</button>
         </div>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="saveDoc()" id="doc-save-btn">Guardar documento</button>
-      <button class="btn btn-ghost" onclick="closeDocModal()" id="doc-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="doc-save-btn" data-act="saveDoc">Guardar documento</button>
+      <button class="btn btn-ghost" id="doc-cancel-btn" data-act="closeDocModal">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- CSV IMPORT MODAL -->
-<div class="modal-overlay" id="import-overlay" onclick="if(event.target===this)closeImport()">
+<div class="modal-overlay" id="import-overlay" data-act="closeImport" data-self>
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="import-title">📥 Importar do Chrome</div>
     <div id="import-preview"></div>
     <div class="modal-actions" style="margin-top:18px">
-      <button class="btn btn-gold" id="import-confirm-btn" onclick="confirmImport()">Importar tudo</button>
-      <button class="btn btn-ghost" onclick="closeImport()" id="import-cancel-btn">Cancelar</button>
+      <button class="btn btn-gold" id="import-confirm-btn" data-act="confirmImport">Importar tudo</button>
+      <button class="btn btn-ghost" id="import-cancel-btn" data-act="closeImport">Cancelar</button>
     </div>
   </div>
 </div>
 
 <!-- CARD MODAL -->
-<div class="modal-overlay" id="card-overlay" onclick="if(event.target===this)closeCardModal()">
+<div class="modal-overlay" id="card-overlay" data-act="closeCardModal" data-self>
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="card-modal-title">💳 Novo Cartão</div>
     <div class="form-group">
@@ -1832,12 +1832,12 @@
     </div>
     <div class="form-group">
       <label id="card-number-lbl">Número do cartão</label>
-      <input type="text" id="card-number" placeholder="**** **** **** 1234" maxlength="19" oninput="formatCardNumber(this)">
+      <input type="text" id="card-number" placeholder="**** **** **** 1234" maxlength="19" data-input="formatCardNumber" data-this>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label id="card-expiry-lbl">Validade</label>
-        <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" oninput="formatExpiry(this)">
+        <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" data-input="formatExpiry" data-this>
       </div>
       <div class="form-group">
         <label id="card-type-lbl">Tipo</label>
@@ -1853,14 +1853,14 @@
       <label id="card-cvv-lbl">CVV <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">(opcional · encriptado)</span></label>
       <div class="lock-input-wrap">
         <input type="password" id="card-cvv" placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="off" style="letter-spacing:6px">
-        <button class="toggle-pw" onclick="toggleField('card-cvv')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="toggle-pw" data-act="toggleField" data-arg="card-cvv"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
     </div>
     <div class="form-group">
       <label id="card-pin-lbl">PIN <span style="font-size:.5rem;color:var(--text-muted);letter-spacing:1px">(encriptado)</span></label>
       <div class="lock-input-wrap">
         <input type="password" id="card-pin" placeholder="••••" maxlength="8" style="letter-spacing:6px">
-        <button class="toggle-pw" onclick="toggleField('card-pin')">
+        <button class="toggle-pw" data-act="toggleField" data-arg="card-pin">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
@@ -1872,28 +1872,28 @@
     <div class="form-group">
       <label id="card-color-lbl">Cor do cartão</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap" id="card-color-swatches">
-        <div class="card-color-swatch active" data-color="#1a237e" style="background:#1a237e" onclick="selectCardColor('#1a237e')"></div>
-        <div class="card-color-swatch" data-color="#1b5e20" style="background:#1b5e20" onclick="selectCardColor('#1b5e20')"></div>
-        <div class="card-color-swatch" data-color="#880e4f" style="background:#880e4f" onclick="selectCardColor('#880e4f')"></div>
-        <div class="card-color-swatch" data-color="#4a148c" style="background:#4a148c" onclick="selectCardColor('#4a148c')"></div>
-        <div class="card-color-swatch" data-color="#bf360c" style="background:#bf360c" onclick="selectCardColor('#bf360c')"></div>
-        <div class="card-color-swatch" data-color="#37474f" style="background:#37474f" onclick="selectCardColor('#37474f')"></div>
-        <div class="card-color-swatch" data-color="#4e342e" style="background:#4e342e" onclick="selectCardColor('#4e342e')"></div>
-        <div class="card-color-swatch" data-color="#0d1821" style="background:#0d1821" onclick="selectCardColor('#0d1821')"></div>
+        <div class="card-color-swatch active" data-color="#1a237e" style="background:#1a237e" data-act="selectCardColor" data-arg="#1a237e"></div>
+        <div class="card-color-swatch" data-color="#1b5e20" style="background:#1b5e20" data-act="selectCardColor" data-arg="#1b5e20"></div>
+        <div class="card-color-swatch" data-color="#880e4f" style="background:#880e4f" data-act="selectCardColor" data-arg="#880e4f"></div>
+        <div class="card-color-swatch" data-color="#4a148c" style="background:#4a148c" data-act="selectCardColor" data-arg="#4a148c"></div>
+        <div class="card-color-swatch" data-color="#bf360c" style="background:#bf360c" data-act="selectCardColor" data-arg="#bf360c"></div>
+        <div class="card-color-swatch" data-color="#37474f" style="background:#37474f" data-act="selectCardColor" data-arg="#37474f"></div>
+        <div class="card-color-swatch" data-color="#4e342e" style="background:#4e342e" data-act="selectCardColor" data-arg="#4e342e"></div>
+        <div class="card-color-swatch" data-color="#0d1821" style="background:#0d1821" data-act="selectCardColor" data-arg="#0d1821"></div>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" id="card-save-btn" onclick="saveCard()">Guardar</button>
-      <button class="btn btn-ghost" onclick="closeCardModal()">Cancelar</button>
+      <button class="btn btn-gold" id="card-save-btn" data-act="saveCard">Guardar</button>
+      <button class="btn btn-ghost" data-act="closeCardModal">Cancelar</button>
     </div>
   </div>
 </div>
 
-<input type="file" id="av-ga-file" accept="image/*" style="display:none" onchange="avGaFile(event)">
+<input type="file" id="av-ga-file" accept="image/*" style="display:none" data-change="avGaFile" data-ev>
 <input type="file" id="csv-input-app" accept=".csv" style="position:fixed;top:-999px;left:-999px;opacity:0;width:1px;height:1px">
 <div class="toast" id="toast"></div>
-<script src="js/actions.js?v=10.1"></script>
-<script src="js/crypto.js?v=10.1"></script>
-<script src="app.js?v=10.1"></script>
+<script src="js/actions.js?v=10.2"></script>
+<script src="js/crypto.js?v=10.2"></script>
+<script src="app.js?v=10.2"></script>
 </body>
 </html>
