@@ -2,7 +2,7 @@
 <html lang="pt" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Aurora Vault — Cofre Digital Pessoal</title>
 <meta name="theme-color" content="#0d0f14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1933,7 +1933,55 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
 .av-sw-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:61;box-shadow:0 0 0 3px rgba(60,224,160,.75),0 0 16px 5px rgba(106,140,255,.55),inset 0 0 14px 4px rgba(208,92,255,.45);opacity:0}
 
 /* v9.85 — deslizar sem bloquear o scroll: o browser trata do scroll vertical; o gesto horizontal é da app */
-@media(max-width:768px){#tab-dashboard,#tab-vault,#tab-notes,#tab-cards,#tab-store,#tab-info,#tab-archive,#tab-docs,#tab-totp,#tab-trash,#tab-warranty,#tab-license,#tab-vehicle,#tab-dates{touch-action:pan-y pinch-zoom}}
+@media(max-width:768px){#tab-dashboard,#tab-vault,#tab-notes,#tab-cards,#tab-store,#tab-info,#tab-archive,#tab-docs,#tab-totp,#tab-trash,#tab-warranty,#tab-license,#tab-vehicle,#tab-dates{touch-action:pan-y}}
+
+/* v9.88 — página que entra por gesto: já desenhada, sem animações de entrada */
+.av-sw-still,.av-sw-still *{animation:none!important}
+.av-sw-still .cards-grid>.entry-card:nth-child(-n+14),.av-sw-still #docs-grid>.doc-card:nth-child(-n+14){content-visibility:visible}
+
+/* ══ v9.89 — fluidez no telemóvel · sem piscar · rodapé no fundo · sem zoom · transições por View Transitions ══ */
+html{touch-action:pan-x pan-y}
+/* abas: entrada curta e leve (sem desfoque nem deslocação — parecia «recarregar») */
+@keyframes tabFadeIn{from{opacity:.001}to{opacity:1}}
+#tab-dashboard.active,#tab-vault.active,#tab-notes.active,#tab-cards.active,#tab-archive.active,#tab-docs.active,#tab-totp.active,#tab-trash.active{animation-duration:.16s!important;animation-timing-function:ease-out!important}
+/* cartões, pastas e documentos: sem animação de entrada a cada troca de aba (era o «piscar») */
+.entry-card,.doc-card,.folder-card,.totp-card,.trash-card,.dcard,.av-cc,.bank-card-wrap,.store-card{animation:none!important}
+/* rodapé sempre no fundo do ecrã em páginas curtas (deixa de «saltar» para o meio) */
+#app>.app-footer{margin-top:auto}
+@media(max-width:768px){
+  .topbar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(15,20,36,.96)!important}
+  /* definições: nada sai da largura do ecrã */
+  .av-set-row{flex-wrap:wrap}.av-set-row>div:first-child{flex:1 1 100%;min-width:0}
+  .av-seg{flex-wrap:wrap;max-width:100%}.av-seg button{flex:1 1 auto}
+  /* transições: o cabeçalho, as abas e os botões flutuantes ficam parados; só a página desliza */
+  .topbar{view-transition-name:av-top}
+  #app>.tabs{view-transition-name:av-tabs}
+  #av-fab-add{view-transition-name:av-fab}
+  #aurora-fab{view-transition-name:av-aur}
+}
+::view-transition-group(root){animation-duration:.3s}
+::view-transition-group(av-tabs),::view-transition-group(av-top),::view-transition-group(av-fab),::view-transition-group(av-aur){animation-duration:.22s}
+html.av-vt::view-transition-old(root),html.av-vt::view-transition-new(root){animation-duration:.3s;animation-timing-function:cubic-bezier(.2,.8,.2,1);animation-fill-mode:both}
+html.av-vt-parallax::view-transition-old(root){animation-name:avVtParOut}
+html.av-vt-parallax::view-transition-new(root){animation-name:avVtParIn}
+@keyframes avVtParOut{to{transform:translateX(calc(var(--avd) * -30%));filter:brightness(.55)}}
+@keyframes avVtParIn{from{transform:translateX(calc(var(--avd) * 100%));box-shadow:0 0 34px rgba(0,0,0,.6)}to{transform:none;box-shadow:0 0 34px rgba(0,0,0,0)}}
+html.av-vt-stack::view-transition-old(root){animation-name:avVtStackOut}
+html.av-vt-stack::view-transition-new(root){animation-name:avVtParIn}
+@keyframes avVtStackOut{to{transform:translateX(calc(var(--avd) * -6%)) scale(.9);filter:brightness(.5);clip-path:inset(0 round 18px)}}
+html.av-vt-reveal::view-transition-old(root){animation-name:avVtDim;animation-duration:.42s}
+html.av-vt-reveal::view-transition-new(root){animation-name:avVtReveal;animation-duration:.42s;animation-timing-function:cubic-bezier(.3,.7,.2,1)}
+@keyframes avVtDim{to{filter:brightness(.62)}}
+@keyframes avVtReveal{from{clip-path:circle(0 at var(--avx) var(--avy))}to{clip-path:circle(var(--avr) at var(--avx) var(--avy))}}
+html.av-vt-fade::view-transition-old(root){animation-name:avVtFadeOut}
+html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
+@keyframes avVtFadeOut{to{opacity:0;transform:translateX(calc(var(--avd) * -46px))}}
+@keyframes avVtFadeIn{from{opacity:0;transform:translateX(calc(var(--avd) * 46px))}}
+::view-transition-new(av-ring){animation:avVtRing .42s cubic-bezier(.3,.7,.2,1) both}
+::view-transition-old(av-ring){display:none}
+@keyframes avVtRing{from{transform:scale(0);opacity:1}75%{opacity:1}to{transform:scale(1);opacity:0}}
+.av-vt-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:1;view-transition-name:av-ring;box-shadow:0 0 0 3px rgba(60,224,160,.8),0 0 18px 6px rgba(106,140,255,.55),inset 0 0 16px 4px rgba(208,92,255,.45)}
+@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 </style>
 </head>
 <body>
@@ -2279,7 +2327,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.87</span>
+      <span>Aurora Vault © 2026 · v9.89</span>
     </div>
   </div>
 </div>
@@ -2691,7 +2739,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.87</span>
+      <span>Aurora Vault © 2026 · v9.89</span>
     </div>
   </div>
   </div>
@@ -2901,7 +2949,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     <!-- TEMAS PREDEFINIDOS -->
     <div class="settings-section">
       <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
-      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" onclick="avSetSwStyle('parallax')">Parallax</button><button id="s-sw-stack" onclick="avSetSwStyle('stack')">Cartões em pilha</button><button id="s-sw-reveal" onclick="avSetSwStyle('reveal')">Revelação Aurora</button><button id="s-sw-fade" onclick="avSetSwStyle('fade')">Deslize suave</button></div></div>
+      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" onclick="avSetSwStyle('parallax')">Parallax</button><button id="s-sw-stack" onclick="avSetSwStyle('stack')">Cartões em pilha</button><button id="s-sw-reveal" onclick="avSetSwStyle('reveal')">Revelação Aurora</button><button id="s-sw-fade" onclick="avSetSwStyle('fade')">Deslize suave</button><button id="s-sw-off" onclick="avSetSwStyle('off')">Desligado</button></div></div>
       <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" onclick="avSetThemeAuto(true)">Ligado</button><button id="s-auto-off" onclick="avSetThemeAuto(false)">Desligado</button></div></div>
       <div class="theme-grid" id="theme-grid"></div>
     </div>
@@ -3814,7 +3862,7 @@ body.av-sw-done [id^="tab-"].active{animation:none!important}
     }
   }catch(e){}
 })();
-const APP_VERSION='9.87';
+const APP_VERSION='9.89';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -5756,16 +5804,16 @@ function switchTab(tab){
   renderTabNav(tab);
   const active=document.getElementById('tab-'+tab);
   if(active)active.classList.add('active');
-  if(tab==='dashboard')renderDashboard();
-  if(tab==='archive')renderArchive();
-  if(tab==='notes')renderNotesList();
-  if(tab==='cards')renderBankCards();
-  if(tab==='docs')renderDocs();
-  if(tab==='trash')renderTrash();
+  if(tab==='dashboard')avOnce('dashboard',()=>renderDashboard());
+  if(tab==='archive')avOnce('archive',()=>renderArchive());
+  if(tab==='notes')avOnce('notes',()=>renderNotesList());
+  if(tab==='cards')avOnce('cards',()=>renderBankCards());
+  if(tab==='docs')avOnce('docs',()=>renderDocs());
+  if(tab==='trash')avOnce('trash',()=>renderTrash());
   if(tab==='totp')renderTotp();
-  if(tab==='info')renderInfo();
-  if(tab==='store')renderStoreCards();
-  if(['warranty','license','vehicle','dates'].includes(tab))renderAssets(tab);
+  if(tab==='info')avOnce('info',()=>renderInfo());
+  if(tab==='store')avOnce('store',()=>renderStoreCards());
+  if(['warranty','license','vehicle','dates'].includes(tab))avOnce(tab,renderAssets,tab);
   requestAnimationFrame(positionTabIndicator);
   requestAnimationFrame(applyStagger);
 }
@@ -10217,7 +10265,7 @@ const AuroraBG=(function(){
   const cv=document.getElementById('bg-net');
   if(!cv)return null;
   const ctx=cv.getContext('2d');
-  let W=0,H=0,raf=null,running=false,t=0,dpr=Math.min(window.devicePixelRatio||1,2);
+  let W=0,H=0,raf=null,running=false,t=0,dpr=(window.matchMedia&&matchMedia('(max-width:768px)').matches)?1:Math.min(window.devicePixelRatio||1,2);
   let mode='net',pts=[],stars=[],blobs=[],drops=[],bubbles=[];
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -10468,7 +10516,7 @@ const AuroraBG=(function(){
   document.addEventListener('visibilitychange',()=>{document.hidden?stop():start();});
   let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(resize,200);});
   resize();
-  return {setMode,resize,start,stop};
+  return {setMode,resize,start,stop,isRunning:()=>running};
 })();
 
 const BG_META={
@@ -14267,8 +14315,8 @@ function avRenderSettings(){
   s('s-nudge-on',en?'On':'Ligadas');s('s-nudge-off',en?'Off':'Desligadas');
   {const a=document.getElementById('s-nudge-on'),b=document.getElementById('s-nudge-off');if(a)a.classList.toggle('on',avNudgesOn());if(b)b.classList.toggle('on',!avNudgesOn());}
   s('s-sw-lbl',en?'Tab transitions':'Transições entre abas');s('s-sw-desc',en?'When you swipe sideways, on the phone.':'Ao deslizar o dedo para o lado, no telemóvel.');
-  s('s-sw-parallax','Parallax');s('s-sw-stack',en?'Stacked cards':'Cartões em pilha');s('s-sw-reveal',en?'Aurora reveal':'Revelação Aurora');s('s-sw-fade',en?'Soft slide':'Deslize suave');
-  ['parallax','stack','reveal','fade'].forEach(k=>{const b=document.getElementById('s-sw-'+k);if(b)b.classList.toggle('on',avSwStyle()===k);});
+  s('s-sw-parallax','Parallax');s('s-sw-stack',en?'Stacked cards':'Cartões em pilha');s('s-sw-reveal',en?'Aurora reveal':'Revelação Aurora');s('s-sw-fade',en?'Soft slide':'Deslize suave');s('s-sw-off',en?'Off':'Desligado');
+  ['parallax','stack','reveal','fade','off'].forEach(k=>{const b=document.getElementById('s-sw-'+k);if(b)b.classList.toggle('on',avSwStyle()===k);});
   s('s-auto-lbl',en?'Automatic theme':'Tema automático');s('s-auto-desc',en?'Follows your phone or computer light/dark mode: your dark theme at night, your light theme by day.':'Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.');
   s('s-auto-on',en?'On':'Ligado');s('s-auto-off',en?'Off':'Desligado');
   {const a=document.getElementById('s-auto-on'),b=document.getElementById('s-auto-off');if(a)a.classList.toggle('on',avThemeAuto());if(b)b.classList.toggle('on',!avThemeAuto());}
@@ -14493,13 +14541,14 @@ function avFlushChunks(){const c=_avChunk;if(c.grid&&c.arr&&c.i<c.arr.length){c.
 
 
 /* ── abas vazias: botão para começar (só aparece quando a aba não tem nada) ── */
-function avEnhanceEmpty(){
-  const k=AV_TAB_ADD[avCurTab],t=k&&avFind(k);
-  const tab=document.getElementById('tab-'+avCurTab);if(!tab)return;
+function avEnhanceEmpty(forTab){
+  const T=forTab||avCurTab;
+  const k=AV_TAB_ADD[T],t=k&&avFind(k);
+  const tab=document.getElementById('tab-'+T);if(!tab)return;
   tab.querySelectorAll('.av-empty-cta').forEach(b=>{const br=b.previousElementSibling;if(br&&br.tagName==='BR')br.remove();b.remove();});
   const en=avEn(),desk=avIsDesk();
   // Notas: a mensagem é o espaço «nenhuma nota aberta» — com notas, não precisa de dica nem de botão
-  if(avCurTab==='notes'){
+  if(T==='notes'){
     const txt=document.getElementById('notes-empty-txt'),has=typeof notes!=='undefined'&&notes.some(n=>!n.archived);
     if(txt)txt.textContent=has?(en?'Select a note':'Seleciona uma nota'):(en?'No notes yet':'Ainda não tens notas');
     const ne=document.getElementById('notes-empty');if(ne){let hint=ne.querySelector('.av-empty-hint');if(has){if(hint)hint.remove();}else{if(!hint){hint=document.createElement('div');hint.className='av-empty-hint';ne.appendChild(hint);}hint.textContent=avHintText(t,en,desk);}}
@@ -15395,7 +15444,7 @@ document.addEventListener('click',e=>{const p=document.getElementById('av-tabs-p
 })();
 
 /* ══ v9.84 — DESLIZAR ENTRE ABAS (telemóvel): Parallax · Cartões em pilha · Revelação Aurora · Deslize suave ══ */
-function avSwStyle(){try{const v=localStorage.getItem('av_swipe_style');return ['parallax','stack','reveal','fade'].includes(v)?v:'stack';}catch(e){return 'stack';}}
+function avSwStyle(){try{const v=localStorage.getItem('av_swipe_style');return ['parallax','stack','reveal','fade','off'].includes(v)?v:'stack';}catch(e){return 'stack';}}
 function avSetSwStyle(v){try{localStorage.setItem('av_swipe_style',v);}catch(e){}avRenderSettings();}
 const AV_SW={cand:false,on:false,lock:null,sx:0,sy:0,t0:0,dir:0,p:0,out:null,inn:null,tg:null,fx:0,fy:0,top:0,reduce:false,anim:0};
 const AV_SW_PROPS=['position','left','right','top','bottom','zIndex','overflow','background','animation','willChange','transform','filter','opacity','borderRadius','boxShadow','clipPath','transformOrigin','transition'];
@@ -15419,55 +15468,72 @@ function avSwStart(dir){
   const tg=gs[j],leaf=lastLeafOf[tg]||TAB_GROUPS[tg][0];
   const out=document.getElementById('tab-'+avCurTab),inn=document.getElementById('tab-'+leaf);if(!out||!inn||out===inn)return false;
   try{if(leaf==='trash')renderTrash();if(leaf==='totp')renderTotp();if(leaf==='info')renderInfo();if(leaf==='store')renderStoreCards();if(['warranty','license','vehicle','dates'].includes(leaf))renderAssets(leaf);}catch(e){}
-  const topMain=Math.max(0,Math.round(document.getElementById('grp-btn-dashboard').parentElement.getBoundingClientRect().bottom));
-  Object.assign(AV_SW,{on:true,dir,tg,leaf,out,inn,top:topMain,reduce:!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),outEls:[out],inEls:[inn],clone:null});
+  const sy=window.scrollY||0,tb=document.getElementById('grp-btn-dashboard').parentElement,tbR=tb.getBoundingClientRect(),tbTop0=tbR.top+sy,tbBot0=tbR.bottom+sy;
+  const tpB=Math.max(0,Math.round((document.querySelector('.topbar')||tb).getBoundingClientRect().bottom)),scrolled=sy>1;
+  const topMain=scrolled?tpB:Math.max(0,Math.round(tbR.bottom));
+  Object.assign(AV_SW,{on:true,dir,tg,leaf,out,inn,top:topMain,reduce:!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),outEls:[out],inEls:[inn],clones:[],raf:0});
   if(AV_SW.reduce)return true;
-  // a linha de sub-abas faz parte do «ecrã»: a atual sai com a aba que sai; a da aba nova entra com ela (nada salta no fim)
-  const sb=document.getElementById('subtabs');let subH=0;
-  if(sb){
-    if(getComputedStyle(sb).display!=='none')AV_SW.outEls.push(sb);
-    const leaves=TAB_GROUPS[tg];
-    if(leaves.length>1){
-      const cl=sb.cloneNode(true),ob=[...sb.querySelectorAll('.subtab-btn')],cb=[...cl.querySelectorAll('.subtab-btn')];
-      ob.forEach((b,k)=>{const id=(b.id||'').replace('tab-btn-','');if(cb[k]){cb[k].style.display=leaves.includes(id)?'':'none';cb[k].classList.toggle('active',id===leaf);}});
-      cl.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));cl.id='av-sw-subs';
-      Object.assign(cl.style,{display:'flex',position:'fixed',left:'0',right:'0',top:topMain+'px',zIndex:'61',margin:'0',willChange:'transform,opacity,clip-path'});
-      document.body.appendChild(cl);subH=Math.round(cl.getBoundingClientRect().height);AV_SW.clone=cl;AV_SW.inEls.push(cl);
-    }
+  // a aurora animada pausa durante o gesto (liberta o telemóvel para a animação)
+  try{AV_SW.bgRun=typeof AuroraBG!=='undefined'&&AuroraBG.isRunning&&AuroraBG.isRunning();if(AV_SW.bgRun)AuroraBG.stop();}catch(e){AV_SW.bgRun=false;}
+  const mk=(node,top,left,width,z)=>{const c=node.cloneNode?node:node;c.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));c.removeAttribute('id');
+    Object.assign(c.style,{position:'fixed',top:Math.round(top)+'px',left:Math.round(left)+'px',width:Math.round(width)+'px',margin:'0',zIndex:String(z),boxSizing:'border-box',pointerEvents:'none',willChange:'transform,opacity,clip-path'});
+    document.body.appendChild(c);AV_SW.clones.push(c);AV_SW.inEls.push(c);return c;};
+  // 1) MEDIR A PÁGINA NOVA NO SÍTIO VERDADEIRO — troca por instantes e repõe, tudo antes de o ecrã ser pintado (não se vê)
+  out.classList.add('av-sw-still');inn.classList.add('av-sw-still');
+  const curTab=avCurTab,sb=document.getElementById('subtabs'),ft=document.querySelector('.app-footer');
+  try{avEnhanceEmpty(leaf);}catch(e){}
+  out.classList.remove('active');inn.classList.add('active');try{renderTabNav(leaf);}catch(e){}
+  const sy2=window.scrollY||0,iR=inn.getBoundingClientRect(),fut={l:iR.left,t:iR.top+sy2,w:iR.width};
+  let sbF=null,sbNode=null;if(sb&&getComputedStyle(sb).display!=='none'){const r=sb.getBoundingClientRect();sbF={l:r.left,t:r.top+sy2,w:r.width};sbNode=sb.cloneNode(true);}
+  let ftF=null,ftNode=null;if(ft&&getComputedStyle(ft).display!=='none'){const r=ft.getBoundingClientRect();ftF={l:r.left,t:r.top+sy2,w:r.width};ftNode=ft.cloneNode(true);}
+  inn.classList.remove('active');out.classList.add('active');try{renderTabNav(curTab);}catch(e){}
+  if(Math.abs((window.scrollY||0)-sy)>0.5)window.scrollTo(0,sy);
+  // 2) o presente: o que sai
+  if(sb&&getComputedStyle(sb).display!=='none')AV_SW.outEls.push(sb);
+  if(ft&&getComputedStyle(ft).display!=='none')AV_SW.outEls.push(ft);
+  if(scrolled){  // a barra das abas saiu do ecrã com o scroll: a da página nova entra já no sítio, com o sublinhado na aba certa
+    AV_SW.outEls.push(tb);
+    const tc=mk(tb.cloneNode(true),tbTop0,tbR.left,tbR.width,61);
+    const tBtn=[...tb.querySelectorAll('.tab-btn')].findIndex(b=>b.id==='grp-btn-'+tg);
+    tc.querySelectorAll('.tab-btn').forEach((b,k)=>b.classList.toggle('active',k===tBtn));
+    const ind=tc.querySelector('.tab-indicator'),nb=tc.querySelectorAll('.tab-btn')[tBtn];
+    if(ind&&nb){ind.style.transition='none';ind.style.width=nb.offsetWidth+'px';ind.style.transform='translateX('+nb.offsetLeft+'px)';ind.style.left='0';}
   }
-  AV_SW.inTop=topMain+subH;
+  // 3) o que entra, exatamente onde vai ficar
+  if(sbNode)mk(sbNode,sbF.t,sbF.l,sbF.w,61);
+  AV_SW.inTop=fut.t;
   inn.classList.add('active');
-  Object.assign(inn.style,{position:'fixed',left:'0',right:'0',top:AV_SW.inTop+'px',bottom:'0',zIndex:'60',overflow:'hidden',animation:'none',willChange:'transform,opacity,clip-path'});
+  Object.assign(inn.style,{position:'fixed',left:Math.round(fut.l)+'px',width:Math.round(fut.w)+'px',top:Math.round(fut.t)+'px',bottom:'0',zIndex:'60',overflow:'hidden',animation:'none',boxSizing:'border-box',margin:'0',willChange:'transform,opacity,clip-path'});
+  if(ftNode&&ftF.t<innerHeight+40){const fc=mk(ftNode,ftF.t,ftF.l,ftF.w,60);fc.id='av-sw-foot';}
   AV_SW.geo=new Map();
-  AV_SW.outEls.forEach(el=>{const r=el.getBoundingClientRect();AV_SW.geo.set(el,{l:r.left,t:r.top,w:r.width,h:r.height,it:el===out?Math.max(0,topMain-r.top):0,ib:el===out?Math.max(0,r.bottom-innerHeight):0});el.style.animation='none';el.style.willChange='transform,opacity,clip-path';el.style.transformOrigin='50% '+Math.round(innerHeight/2-r.top)+'px';});
+  AV_SW.outEls.forEach(el=>{const r=el.getBoundingClientRect();AV_SW.geo.set(el,{l:r.left,t:r.top,w:r.width,h:r.height,it:el===out?Math.max(0,topMain-r.top):0,ib:el===out?Math.max(0,r.bottom-innerHeight):0});
+    el.style.animation='none';el.style.willChange='transform,opacity,clip-path';el.style.transformOrigin='50% '+Math.round(innerHeight/2-r.top)+'px';});
+  // sombra e cantos desenhados uma só vez (mexer-lhes a cada fotograma obrigava a redesenhar)
+  const st=avSwStyle();
+  if(st==='parallax'||st==='stack'){const sh=(dir>0?'-18px':'18px')+' 0 30px -8px rgba(0,0,0,.6)';AV_SW.inEls.forEach(el=>el.style.boxShadow=sh);if(st==='stack')inn.style.borderRadius='18px';}
   let dim=document.getElementById('av-sw-dim');if(!dim){dim=document.createElement('div');dim.id='av-sw-dim';document.body.appendChild(dim);}
   Object.assign(dim.style,{position:'fixed',left:'0',right:'0',top:topMain+'px',bottom:'0',background:'#000',opacity:'0',zIndex:'59',pointerEvents:'none',willChange:'opacity',display:'block'});
-  if(avSwStyle()==='reveal'){let ring=document.getElementById('av-sw-ring');if(!ring){ring=document.createElement('div');ring.id='av-sw-ring';ring.className='av-sw-ring';document.body.appendChild(ring);}}
+  if(st==='reveal'){let ring=document.getElementById('av-sw-ring');if(!ring){ring=document.createElement('div');ring.id='av-sw-ring';ring.className='av-sw-ring';document.body.appendChild(ring);}}
   return true;
 }
 function avSwRender(){
   if(AV_SW.reduce)return;const P=AV_SW.p,st=avSwStyle(),s=AV_SW.dir,edge=P>0&&P<1,W=innerWidth;
   const OUT=AV_SW.outEls,IN=AV_SW.inEls,set=(els,k,v)=>els.forEach(el=>el.style[k]=v);
-  set(OUT,'transform','');set(OUT,'opacity','');set(OUT,'clipPath','');set(IN,'transform','');set(IN,'opacity','');set(IN,'boxShadow','');set(IN,'clipPath','');AV_SW.inn.style.borderRadius='';
   const dim=document.getElementById('av-sw-dim');
-  if(dim){dim.style.opacity=st==='fade'?0:String((st==='stack'?0.5:st==='reveal'?0.35:0.45)*P);dim.style.clipPath='';}
-  const sh=edge?(s>0?'-18px':'18px')+' 0 30px -8px rgba(0,0,0,.6)':'';
+  if(dim){dim.style.opacity=st==='fade'?0:String((st==='stack'?0.5:st==='reveal'?0.35:0.45)*P);}
   if(st==='parallax'||st==='stack'){
-    const tf=st==='parallax'?{k:0.30,sc:1}:{k:0.06,sc:1-0.1*P};
-    set(OUT,'transform',st==='parallax'?'translateX('+(-s*30*P)+'%)':'translateX('+(-s*6*P)+'%) scale('+tf.sc+')');
-    set(IN,'transform','translateX('+(s*100*(1-P))+'%)');set(IN,'boxShadow',sh);
-    if(st==='stack')AV_SW.inn.style.borderRadius=Math.round(22*(1-P))+'px';
-    // a margem da aba que entra, no ecrã; a aba que sai só aparece do outro lado dessa margem (a aurora vê-se por baixo da nova)
+    const k=st==='parallax'?0.30:0.06,sc=st==='stack'?1-0.1*P:1;
+    set(OUT,'transform',st==='parallax'?'translateX('+(-s*30*P)+'%)':'translateX('+(-s*6*P)+'%) scale('+sc+')');
+    set(IN,'transform','translateX('+(s*100*(1-P))+'vw)');
     const X=s>0?W*(1-P):W*P;
-    OUT.forEach(el=>{const g=AV_SW.geo.get(el);if(!g)return;const tx=-s*tf.k*g.w*P,ox=g.l+g.w/2,xl=(X-ox-tx)/tf.sc+ox-g.l;
-      const r=st==='stack'&&el===AV_SW.out?' round 22px':'';
+    OUT.forEach(el=>{const g=AV_SW.geo.get(el);if(!g)return;const tx=-s*k*g.w*P,ox=g.l+g.w/2,xl=(X-ox-tx)/sc+ox-g.l;
+      const r=st==='stack'&&el===AV_SW.out?' round 18px':'';
       el.style.clipPath=s>0?'inset('+g.it+'px '+Math.max(0,g.w-xl)+'px '+g.ib+'px 0'+r+')':'inset('+g.it+'px 0 '+g.ib+'px '+Math.max(0,xl)+'px'+r+')';});
     if(dim)dim.style.clipPath=s>0?'inset(0 '+Math.max(0,W-X)+'px 0 0)':'inset(0 0 0 '+Math.max(0,X)+'px)';
   }
   else if(st==='reveal'){
     const top=AV_SW.top,hh=innerHeight-top,cx=AV_SW.fx,R=Math.hypot(Math.max(cx,W-cx),Math.max(AV_SW.fy-top,hh-(AV_SW.fy-top)))*1.02*P;
-    IN.forEach(el=>{const t0=parseFloat(el.style.top)||top;el.style.clipPath='circle('+R+'px at '+cx+'px '+(AV_SW.fy-t0)+'px)';});
-    // a aba que sai fica só FORA do círculo
+    IN.forEach(el=>{const r0=parseFloat(el.style.top)||top,l0=parseFloat(el.style.left)||0;el.style.clipPath='circle('+R+'px at '+(cx-l0)+'px '+(AV_SW.fy-r0)+'px)';});
     const hole=(w,hgt,x,y)=>"path(evenodd,'M0 0H"+Math.ceil(w)+"V"+Math.ceil(hgt)+"H0Z M"+(x-R)+" "+y+" a"+R+" "+R+" 0 1 0 "+(2*R)+" 0 a"+R+" "+R+" 0 1 0 "+(-2*R)+" 0Z')";
     if(R>0.5){OUT.forEach(el=>{const g=AV_SW.geo.get(el);if(g)el.style.clipPath=hole(g.w,g.h,cx-g.l,AV_SW.fy-g.t);});if(dim)dim.style.clipPath=hole(W,hh,cx,AV_SW.fy-top);}
     const ring=document.getElementById('av-sw-ring');if(ring){ring.style.opacity=edge&&P<0.985?Math.min(1,P*4)*(1-Math.max(0,(P-0.8)/0.2)):0;ring.style.width=ring.style.height=(2*R)+'px';ring.style.left=(AV_SW.fx-R)+'px';ring.style.top=(AV_SW.fy-R)+'px';}
@@ -15476,40 +15542,62 @@ function avSwRender(){
 }
 function avSwCleanup(done){
   const {out,inn}=AV_SW;
-  (AV_SW.outEls||[]).concat(AV_SW.inEls||[]).forEach(el=>{if(el)AV_SW_PROPS.forEach(k=>{if(k==='animation'&&(el===out||el===inn))return;el.style[k]='';});});
-  if(!done&&inn&&inn!==out)inn.classList.remove('active');
-  if(AV_SW.clone){AV_SW.clone.remove();AV_SW.clone=null;}
+  (AV_SW.outEls||[]).concat([inn]).forEach(el=>{if(el)AV_SW_PROPS.concat(['width','margin','boxSizing']).forEach(k=>{if(k==='animation'&&(el===out||el===inn))return;el.style[k]='';});});
+  if(inn&&!done){inn.classList.remove('av-sw-still');if(inn!==out)inn.classList.remove('active');}
+  (AV_SW.clones||[]).forEach(c=>c.remove());AV_SW.clones=[];
   const ring=document.getElementById('av-sw-ring');if(ring)ring.style.opacity=0;const dim=document.getElementById('av-sw-dim');if(dim)dim.style.display='none';
+  try{if(AV_SW.bgRun){AV_SW.bgRun=false;AuroraBG.start();}}catch(e){}
 }
 function avSwEnd(done){
-  const tg=AV_SW.tg,inn=AV_SW.inn;AV_SW.on=false;
+  const tg=AV_SW.tg,inn=AV_SW.inn;cancelAnimationFrame(AV_SW.raf);AV_SW.raf=0;AV_SW.on=false;
   if(done&&tg){
-    // troca a aba POR BAIXO da imagem que já está no ecrã; depois retira a sobreposição no mesmo fotograma
-    switchGroup(tg);
+    switchGroup(tg);                     // troca POR BAIXO da imagem que já está no ecrã…
     try{window.scrollTo(0,0);}catch(e){}
-    avSwCleanup(true);
-    if(inn){inn.classList.add('active');inn.style.animation='none';}   // sem animação de entrada atrasada (era o «piscar»)
+    avSwCleanup(true);                   // …e retira a sobreposição no mesmo fotograma
+    if(inn){inn.classList.add('active','av-sw-still');inn.style.animation='none';}
   }else avSwCleanup(false);
 }
 function avSwAnimate(to){
   cancelAnimationFrame(AV_SW.anim);if(AV_SW.reduce){avSwEnd(to===1);return;}
-  const from=AV_SW.p,t0=performance.now(),dur=Math.max(150,380*Math.abs(to-from));
+  const from=AV_SW.p,t0=performance.now(),dur=Math.max(120,300*Math.abs(to-from));
   const step=t=>{let k=Math.min(1,(t-t0)/dur);k=1-Math.pow(1-k,3);AV_SW.p=from+(to-from)*k;avSwRender();if(k<1)AV_SW.anim=requestAnimationFrame(step);else avSwEnd(to===1);};
   AV_SW.anim=requestAnimationFrame(step);
 }
-document.addEventListener('touchstart',e=>{if(AV_SW.on||e.touches.length!==1)return;const t=e.touches[0];AV_SW.cand=!avSwBlocked(e.target);AV_SW.lock=null;AV_SW.sx=t.clientX;AV_SW.sy=t.clientY;AV_SW.t0=performance.now();AV_SW.fx=t.clientX;AV_SW.fy=t.clientY;},{passive:true});
+/* ── deslizar (v9.89): a página acompanha um pouco o dedo; ao largar, o browser anima fotografias exatas das duas páginas ── */
+const AV_G={cand:false,lock:null,sx:0,sy:0,t0:0,dx:0,dir:0,el:null,raf:0,busy:false};
+function avGestTarget(dir){const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;return (i<0||j<0||j>=gs.length)?null:gs[j];}
+function avGestPeek(){AV_G.raf=0;if(!AV_G.el)return;const lim=64,d=AV_G.dx,has=!!avGestTarget(d<0?1:-1);const k=has?0.32:0.12;const x=Math.max(-lim,Math.min(lim,d*k));AV_G.el.style.transform='translateX('+x+'px)';}
+function avGestReset(anim){const el=AV_G.el;if(!el)return;if(anim){el.style.transition='transform .2s cubic-bezier(.2,.8,.2,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';},220);}else{el.style.transition='';el.style.transform='';}el.style.willChange='';AV_G.el=null;}
+function avGestGo(dir){
+  const tg=avGestTarget(dir);if(!tg){avGestReset(true);return;}
+  const st=avSwStyle(),root=document.documentElement,reduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const swap=()=>{avGestReset(false);switchGroup(tg);try{window.scrollTo(0,0);}catch(e){}};
+  if(!document.startViewTransition||reduce){swap();return;}
+  AV_G.busy=true;root.style.setProperty('--avd',String(dir));
+  const fx=AV_G.fx||innerWidth*(dir>0?0.8:0.2),fy=AV_G.fy||innerHeight*0.6;
+  root.style.setProperty('--avx',Math.round(fx)+'px');root.style.setProperty('--avy',Math.round(fy)+'px');
+  root.style.setProperty('--avr',Math.ceil(Math.hypot(Math.max(fx,innerWidth-fx),Math.max(fy,innerHeight-fy))*1.05)+'px');
+  root.classList.add('av-vt','av-vt-'+st);
+  let ring=null;
+  const vt=document.startViewTransition(()=>{swap();
+    if(st==='reveal'){const R=parseFloat(root.style.getPropertyValue('--avr'))||600;ring=document.createElement('div');ring.className='av-vt-ring';Object.assign(ring.style,{left:(fx-R)+'px',top:(fy-R)+'px',width:(2*R)+'px',height:(2*R)+'px'});document.body.appendChild(ring);}});
+  const done=()=>{root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade');if(ring)ring.remove();AV_G.busy=false;};
+  vt.finished.then(done,done);
+}
+document.addEventListener('touchstart',e=>{if(AV_G.busy||e.touches.length!==1||avSwStyle()==='off'){AV_G.cand=false;return;}const t=e.touches[0];AV_G.cand=!avSwBlocked(e.target);AV_G.lock=null;AV_G.sx=t.clientX;AV_G.sy=t.clientY;AV_G.t0=performance.now();AV_G.dx=0;AV_G.fx=t.clientX;AV_G.fy=t.clientY;},{passive:true});
 document.addEventListener('touchmove',e=>{
-  if(!AV_SW.cand)return;const t=e.touches[0],dx=t.clientX-AV_SW.sx,dy=t.clientY-AV_SW.sy;
-  if(AV_SW.lock===null){if(Math.abs(dx)<16&&Math.abs(dy)<16)return;AV_SW.lock=Math.abs(dx)>Math.abs(dy)*2;if(!AV_SW.lock){AV_SW.cand=false;return;}}
-  if(!AV_SW.on){if(!avSwStart(dx<0?1:-1)){AV_SW.cand=false;return;}}
-  AV_SW.p=Math.min(1,Math.max(0,(AV_SW.dir>0?-dx:dx)/innerWidth));AV_SW.fx=t.clientX;AV_SW.fy=t.clientY;avSwRender();
+  if(!AV_G.cand)return;const t=e.touches[0],dx=t.clientX-AV_G.sx,dy=t.clientY-AV_G.sy;
+  if(AV_G.lock===null){if(Math.abs(dx)<16&&Math.abs(dy)<16)return;AV_G.lock=Math.abs(dx)>Math.abs(dy)*2;if(!AV_G.lock){AV_G.cand=false;return;}
+    AV_G.el=document.getElementById('tab-'+avCurTab);if(AV_G.el)AV_G.el.style.willChange='transform';}
+  AV_G.dx=dx;AV_G.fx=t.clientX;AV_G.fy=t.clientY;if(!AV_G.raf)AV_G.raf=requestAnimationFrame(avGestPeek);
 },{passive:true});
 document.addEventListener('touchend',()=>{
-  if(!AV_SW.cand){return;}AV_SW.cand=false;if(!AV_SW.on)return;
-  const dt=performance.now()-AV_SW.t0,v=AV_SW.p*innerWidth/Math.max(1,dt);
-  avSwAnimate(AV_SW.p>0.35||(v>0.7&&AV_SW.p>0.15)?1:0);
+  if(!AV_G.cand)return;AV_G.cand=false;if(!AV_G.lock){avGestReset(false);return;}
+  cancelAnimationFrame(AV_G.raf);AV_G.raf=0;
+  const w=innerWidth,dx=AV_G.dx,dt=performance.now()-AV_G.t0,v=Math.abs(dx)/Math.max(1,dt),p=Math.abs(dx)/w;
+  if(p>0.3||(v>0.6&&p>0.12))avGestGo(dx<0?1:-1);else avGestReset(true);
 },{passive:true});
-document.addEventListener('touchcancel',()=>{if(AV_SW.on)avSwAnimate(0);AV_SW.cand=false;},{passive:true});
+document.addEventListener('touchcancel',()=>{if(AV_G.cand){AV_G.cand=false;avGestReset(true);}},{passive:true});
 
 
 /* ══ v9.85 — ENVIOS PARA O DRIVE EM FILA (um de cada vez) · SEMPRE A VERSÃO MAIS RECENTE ══
@@ -15526,7 +15614,16 @@ let _avDQ=Promise.resolve();
   };
 })();
 /* limpa o animation:none deixado por um gesto cancelado, para a animação de entrada normal das abas funcionar */
-(function(){if(typeof switchTab!=='function')return;const st=switchTab;switchTab=function(){try{document.querySelectorAll('[id^="tab-"]').forEach(el=>{if(el.style.animationName==='none'&&!(typeof AV_SW!=='undefined'&&AV_SW.on))el.style.animation='';});}catch(e){}return st.apply(this,arguments);};})();
+(function(){if(typeof switchTab!=='function')return;const st=switchTab;switchTab=function(){try{if(!(typeof AV_SW!=='undefined'&&AV_SW.on))document.querySelectorAll('.av-sw-still').forEach(el=>el.classList.remove('av-sw-still'));document.querySelectorAll('[id^="tab-"]').forEach(el=>{if(el.style.animationName==='none'&&!(typeof AV_SW!=='undefined'&&AV_SW.on))el.style.animation='';});}catch(e){}return st.apply(this,arguments);};})();
+
+
+/* ══ v9.89 — abas: só redesenhar se algo mudou (dados, idioma, pasta, filtros, modo privado) ══ */
+let avDataVer=0;const AV_ONCE={};
+function avTabKey(k){const el=document.getElementById('tab-'+k);let ui='';if(el)el.querySelectorAll('input,select').forEach(i=>{if(i.type!=='file'&&i.type!=='password')ui+=(i.id||i.name||'')+'='+(i.type==='checkbox'?i.checked:i.value)+';';});
+  return avDataVer+'|'+currentLang+'|'+(typeof currentFolderId!=='undefined'?currentFolderId:'')+'|'+(typeof currentVaultFolderId!=='undefined'?currentVaultFolderId:'')+'|'+(typeof privacyOn!=='undefined'?privacyOn:'')+'|'+avMode()+'|'+JSON.stringify(avHiddenTabs())+'|'+ui+'|'+(k==='dashboard'?new Date().toDateString()+' '+new Date().getHours():'');}
+function avOnce(k,fn,arg){const key=avTabKey(k);if(AV_ONCE[k]===key)return;AV_ONCE[k]=key;fn(arg);}
+(function(){if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){avDataVer++;return mu.apply(this,arguments);};}
+  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{['dashboard','archive','notes','cards','docs','trash'].forEach(t=>{AV_ONCE[t]=avTabKey(t);});}catch(e){}  /* só as que o renderAll desenha de facto */return r;};}})();
 
 </script>
 </body>
