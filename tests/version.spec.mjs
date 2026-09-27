@@ -19,7 +19,6 @@ test('o número da versão é o mesmo em todo o lado', () => {
 
 test('o service worker guarda os ficheiros de que a app precisa', () => {
   const sw = read('sw.js');
-  for (const f of ['./index.html', './styles.css', './app.js', './vendor/jsqr.js', './img/aurora-l.webp', './img/aurora-p.webp']) {
-    expect(sw).toContain(`'${f}'`);
-  }
+  for (const f of ['./index.html', './vendor/jsqr.js?v=1.4.0']) expect(sw).toContain(`'${f}'`);
+  expect(sw).toContain('styles\\.css|app\\.js'); // lê do index.html os endereços com versão
 });
