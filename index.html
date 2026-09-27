@@ -1959,9 +1959,9 @@ html{touch-action:pan-x pan-y}
   #av-fab-add{view-transition-name:av-fab}
   #aurora-fab{view-transition-name:av-aur}
 }
-::view-transition-group(root){animation-duration:.3s}
+::view-transition-group(root){animation-duration:.28s}
 ::view-transition-group(av-tabs),::view-transition-group(av-top),::view-transition-group(av-fab),::view-transition-group(av-aur){animation-duration:.22s}
-html.av-vt::view-transition-old(root),html.av-vt::view-transition-new(root){animation-duration:.3s;animation-timing-function:cubic-bezier(.2,.8,.2,1);animation-fill-mode:both}
+html.av-vt::view-transition-old(root),html.av-vt::view-transition-new(root){animation-duration:.28s;animation-timing-function:cubic-bezier(.33,.65,.25,1);animation-fill-mode:both}
 html.av-vt-parallax::view-transition-old(root){animation-name:avVtParOut}
 html.av-vt-parallax::view-transition-new(root){animation-name:avVtParIn}
 @keyframes avVtParOut{to{transform:translateX(calc(var(--avd) * -30%));filter:brightness(.55)}}
@@ -1969,19 +1969,27 @@ html.av-vt-parallax::view-transition-new(root){animation-name:avVtParIn}
 html.av-vt-stack::view-transition-old(root){animation-name:avVtStackOut}
 html.av-vt-stack::view-transition-new(root){animation-name:avVtParIn}
 @keyframes avVtStackOut{to{transform:translateX(calc(var(--avd) * -6%)) scale(.9);filter:brightness(.5);clip-path:inset(0 round 18px)}}
-html.av-vt-reveal::view-transition-old(root){animation-name:avVtDim;animation-duration:.42s}
-html.av-vt-reveal::view-transition-new(root){animation-name:avVtReveal;animation-duration:.42s;animation-timing-function:cubic-bezier(.3,.7,.2,1)}
+html.av-vt-reveal::view-transition-old(root){animation-name:avVtDim;animation-duration:.36s}
+html.av-vt-reveal::view-transition-new(root){animation-name:avVtReveal;animation-duration:.36s;animation-timing-function:cubic-bezier(.3,.7,.2,1)}
 @keyframes avVtDim{to{filter:brightness(.62)}}
 @keyframes avVtReveal{from{clip-path:circle(0 at var(--avx) var(--avy))}to{clip-path:circle(var(--avr) at var(--avx) var(--avy))}}
 html.av-vt-fade::view-transition-old(root){animation-name:avVtFadeOut}
 html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
 @keyframes avVtFadeOut{to{opacity:0;transform:translateX(calc(var(--avd) * -46px))}}
 @keyframes avVtFadeIn{from{opacity:0;transform:translateX(calc(var(--avd) * 46px))}}
-::view-transition-new(av-ring){animation:avVtRing .42s cubic-bezier(.3,.7,.2,1) both}
+::view-transition-new(av-ring){animation:avVtRing .36s cubic-bezier(.3,.7,.2,1) both}
 ::view-transition-old(av-ring){display:none}
 @keyframes avVtRing{from{transform:scale(0);opacity:1}75%{opacity:1}to{transform:scale(1);opacity:0}}
 .av-vt-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:1;view-transition-name:av-ring;box-shadow:0 0 0 3px rgba(60,224,160,.8),0 0 18px 6px rgba(106,140,255,.55),inset 0 0 16px 4px rgba(208,92,255,.45)}
 @media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
+
+/* v9.90 — toques nas abas também animados (deslize curto na direção certa); sem o desvanecer da aba por cima */
+html.av-vt-tap::view-transition-old(root){animation:avVtTapOut .22s cubic-bezier(.4,0,.2,1) both}
+html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(.2,.7,.2,1) both}
+@keyframes avVtTapOut{to{opacity:0;transform:translateX(calc(var(--avd) * -28px))}}
+@keyframes avVtTapIn{from{opacity:0;transform:translateX(calc(var(--avd) * 28px))}}
+html.av-vt [id^="tab-"].active{animation:none!important}
+#s-sw-rm{display:none;margin-top:6px;font-size:.66rem;line-height:1.5;color:#ffcf7a}
 </style>
 </head>
 <body>
@@ -2327,7 +2335,7 @@ html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.89</span>
+      <span>Aurora Vault © 2026 · v9.90</span>
     </div>
   </div>
 </div>
@@ -2739,7 +2747,7 @@ html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.89</span>
+      <span>Aurora Vault © 2026 · v9.90</span>
     </div>
   </div>
   </div>
@@ -2949,7 +2957,7 @@ html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
     <!-- TEMAS PREDEFINIDOS -->
     <div class="settings-section">
       <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
-      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" onclick="avSetSwStyle('parallax')">Parallax</button><button id="s-sw-stack" onclick="avSetSwStyle('stack')">Cartões em pilha</button><button id="s-sw-reveal" onclick="avSetSwStyle('reveal')">Revelação Aurora</button><button id="s-sw-fade" onclick="avSetSwStyle('fade')">Deslize suave</button><button id="s-sw-off" onclick="avSetSwStyle('off')">Desligado</button></div></div>
+      <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small><small id="s-sw-rm"></small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" onclick="avSetSwStyle('parallax')">Parallax</button><button id="s-sw-stack" onclick="avSetSwStyle('stack')">Cartões em pilha</button><button id="s-sw-reveal" onclick="avSetSwStyle('reveal')">Revelação Aurora</button><button id="s-sw-fade" onclick="avSetSwStyle('fade')">Deslize suave</button><button id="s-sw-off" onclick="avSetSwStyle('off')">Desligado</button></div></div>
       <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" onclick="avSetThemeAuto(true)">Ligado</button><button id="s-auto-off" onclick="avSetThemeAuto(false)">Desligado</button></div></div>
       <div class="theme-grid" id="theme-grid"></div>
     </div>
@@ -3862,7 +3870,7 @@ html.av-vt-fade::view-transition-new(root){animation-name:avVtFadeIn}
     }
   }catch(e){}
 })();
-const APP_VERSION='9.89';
+const APP_VERSION='9.90';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -14317,6 +14325,7 @@ function avRenderSettings(){
   s('s-sw-lbl',en?'Tab transitions':'Transições entre abas');s('s-sw-desc',en?'When you swipe sideways, on the phone.':'Ao deslizar o dedo para o lado, no telemóvel.');
   s('s-sw-parallax','Parallax');s('s-sw-stack',en?'Stacked cards':'Cartões em pilha');s('s-sw-reveal',en?'Aurora reveal':'Revelação Aurora');s('s-sw-fade',en?'Soft slide':'Deslize suave');s('s-sw-off',en?'Off':'Desligado');
   ['parallax','stack','reveal','fade','off'].forEach(k=>{const b=document.getElementById('s-sw-'+k);if(b)b.classList.toggle('on',avSwStyle()===k);});
+  {const rm=document.getElementById('s-sw-rm'),red=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);if(rm){rm.style.display=red?'block':'none';rm.textContent=en?'⚠ Your phone has «Remove animations» turned on — transitions stay off (Accessibility settings).':'⚠ O teu telemóvel tem «Remover animações» ligado — as transições ficam desligadas (Definições do telemóvel → Acessibilidade).';}}
   s('s-auto-lbl',en?'Automatic theme':'Tema automático');s('s-auto-desc',en?'Follows your phone or computer light/dark mode: your dark theme at night, your light theme by day.':'Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.');
   s('s-auto-on',en?'On':'Ligado');s('s-auto-off',en?'Off':'Desligado');
   {const a=document.getElementById('s-auto-on'),b=document.getElementById('s-auto-off');if(a)a.classList.toggle('on',avThemeAuto());if(b)b.classList.toggle('on',!avThemeAuto());}
@@ -15566,33 +15575,50 @@ function avSwAnimate(to){
 /* ── deslizar (v9.89): a página acompanha um pouco o dedo; ao largar, o browser anima fotografias exatas das duas páginas ── */
 const AV_G={cand:false,lock:null,sx:0,sy:0,t0:0,dx:0,dir:0,el:null,raf:0,busy:false};
 function avGestTarget(dir){const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;return (i<0||j<0||j>=gs.length)?null:gs[j];}
-function avGestPeek(){AV_G.raf=0;if(!AV_G.el)return;const lim=64,d=AV_G.dx,has=!!avGestTarget(d<0?1:-1);const k=has?0.32:0.12;const x=Math.max(-lim,Math.min(lim,d*k));AV_G.el.style.transform='translateX('+x+'px)';}
-function avGestReset(anim){const el=AV_G.el;if(!el)return;if(anim){el.style.transition='transform .2s cubic-bezier(.2,.8,.2,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';},220);}else{el.style.transition='';el.style.transform='';}el.style.willChange='';AV_G.el=null;}
-function avGestGo(dir){
-  const tg=avGestTarget(dir);if(!tg){avGestReset(true);return;}
-  const st=avSwStyle(),root=document.documentElement,reduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const swap=()=>{avGestReset(false);switchGroup(tg);try{window.scrollTo(0,0);}catch(e){}};
-  if(!document.startViewTransition||reduce){swap();return;}
-  AV_G.busy=true;root.style.setProperty('--avd',String(dir));
-  const fx=AV_G.fx||innerWidth*(dir>0?0.8:0.2),fy=AV_G.fy||innerHeight*0.6;
+function avGestPeek(){AV_G.raf=0;if(!AV_G.els||!AV_G.els.length)return;const W=innerWidth,d=AV_G.dx,has=!!avGestTarget(d<0?1:-1);let x;
+  if(has){const lim=W*0.42;x=d*0.6;if(Math.abs(x)>lim)x=Math.sign(x)*(lim+(Math.abs(x)-lim)*0.15);}else x=Math.sign(d)*Math.min(48,Math.abs(d)*0.12);
+  AV_G.els.forEach(el=>el.style.transform='translateX('+x.toFixed(1)+'px)');}
+function avGestReset(anim){const els=AV_G.els||[];els.forEach(el=>{if(anim){el.style.transition='transform .2s cubic-bezier(.2,.8,.2,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';el.style.willChange='';},220);}else{el.style.transition='';el.style.transform='';el.style.willChange='';}});AV_G.els=[];AV_G.el=null;}
+function avVTok(){return !!document.startViewTransition&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)&&avSwStyle()!=='off';}
+function avVTRun(run,dir,kind,fx,fy){
+  const root=document.documentElement,st=kind==='tap'?'tap':avSwStyle();
+  if(!avVTok()){run();return;}
+  const tok=(AV_G.tok=(AV_G.tok||0)+1);AV_G.busy=true;
+  root.style.setProperty('--avd',String(dir));
+  fx=fx||innerWidth*(dir>0?0.8:0.2);fy=fy||innerHeight*0.6;
   root.style.setProperty('--avx',Math.round(fx)+'px');root.style.setProperty('--avy',Math.round(fy)+'px');
   root.style.setProperty('--avr',Math.ceil(Math.hypot(Math.max(fx,innerWidth-fx),Math.max(fy,innerHeight-fy))*1.05)+'px');
-  root.classList.add('av-vt','av-vt-'+st);
+  root.classList.remove('av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');root.classList.add('av-vt','av-vt-'+st);
   let ring=null;
-  const vt=document.startViewTransition(()=>{swap();
+  const vt=document.startViewTransition(()=>{run();
     if(st==='reveal'){const R=parseFloat(root.style.getPropertyValue('--avr'))||600;ring=document.createElement('div');ring.className='av-vt-ring';Object.assign(ring.style,{left:(fx-R)+'px',top:(fy-R)+'px',width:(2*R)+'px',height:(2*R)+'px'});document.body.appendChild(ring);}});
-  const done=()=>{root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade');if(ring)ring.remove();AV_G.busy=false;};
+  AV_G.vt=vt;
+  const done=()=>{if(ring)ring.remove();if(AV_G.tok!==tok)return;root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');AV_G.busy=false;AV_G.vt=null;};
   vt.finished.then(done,done);
 }
-document.addEventListener('touchstart',e=>{if(AV_G.busy||e.touches.length!==1||avSwStyle()==='off'){AV_G.cand=false;return;}const t=e.touches[0];AV_G.cand=!avSwBlocked(e.target);AV_G.lock=null;AV_G.sx=t.clientX;AV_G.sy=t.clientY;AV_G.t0=performance.now();AV_G.dx=0;AV_G.fx=t.clientX;AV_G.fy=t.clientY;},{passive:true});
+function avGestGo(dir){
+  const tg=avGestTarget(dir);if(!tg){avGestReset(true);return;}
+  avVTRun(()=>{avGestReset(false);switchGroup(tg);try{window.scrollTo(0,0);}catch(e){}},dir,'swipe',AV_G.fx,AV_G.fy);
+}
+/* toques nas abas e sub-abas (telemóvel): o mesmo sem piscar, com um deslize curto na direção certa */
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('#app>.tabs .tab-btn[id^="grp-btn-"],#subtabs .subtab-btn');
+  if(!b||!avVTok()||!avAppOpen()||avIsDesk())return;
+  let run,dir;
+  if(b.id.indexOf('grp-btn-')===0){const g=b.id.slice(8);if(g===currentGroup)return;const gs=Object.keys(TAB_GROUPS);dir=gs.indexOf(g)>gs.indexOf(currentGroup)?1:-1;run=()=>switchGroup(g);}
+  else{const leaf=b.id.slice(8);if(leaf===avCurTab||!TAB_GROUPS[currentGroup])return;const lv=TAB_GROUPS[currentGroup];dir=lv.indexOf(leaf)>lv.indexOf(avCurTab)?1:-1;run=()=>switchTab(leaf);}
+  e.preventDefault();e.stopImmediatePropagation();avVTRun(run,dir,'tap');
+},true);
+document.addEventListener('touchstart',e=>{if(e.touches.length!==1||avSwStyle()==='off'){AV_G.cand=false;return;}
+  if(AV_G.busy&&AV_G.vt){try{AV_G.vt.skipTransition();}catch(err){}AV_G.busy=false;}const t=e.touches[0];AV_G.cand=!avSwBlocked(e.target);AV_G.lock=null;AV_G.sx=t.clientX;AV_G.sy=t.clientY;AV_G.t0=performance.now();AV_G.dx=0;AV_G.fx=t.clientX;AV_G.fy=t.clientY;},{passive:true});
 document.addEventListener('touchmove',e=>{
   if(!AV_G.cand)return;const t=e.touches[0],dx=t.clientX-AV_G.sx,dy=t.clientY-AV_G.sy;
   if(AV_G.lock===null){if(Math.abs(dx)<16&&Math.abs(dy)<16)return;AV_G.lock=Math.abs(dx)>Math.abs(dy)*2;if(!AV_G.lock){AV_G.cand=false;return;}
-    AV_G.el=document.getElementById('tab-'+avCurTab);if(AV_G.el)AV_G.el.style.willChange='transform';}
+    AV_G.el=document.getElementById('tab-'+avCurTab);const sbx=document.getElementById('subtabs');AV_G.els=[AV_G.el,sbx&&getComputedStyle(sbx).display!=='none'?sbx:null].filter(Boolean);AV_G.els.forEach(x=>x.style.willChange='transform');}
   AV_G.dx=dx;AV_G.fx=t.clientX;AV_G.fy=t.clientY;if(!AV_G.raf)AV_G.raf=requestAnimationFrame(avGestPeek);
 },{passive:true});
 document.addEventListener('touchend',()=>{
-  if(!AV_G.cand)return;AV_G.cand=false;if(!AV_G.lock){avGestReset(false);return;}
+  if(!AV_G.cand)return;AV_G.cand=false;if(!AV_G.lock){return;}
   cancelAnimationFrame(AV_G.raf);AV_G.raf=0;
   const w=innerWidth,dx=AV_G.dx,dt=performance.now()-AV_G.t0,v=Math.abs(dx)/Math.max(1,dt),p=Math.abs(dx)/w;
   if(p>0.3||(v>0.6&&p>0.12))avGestGo(dx<0?1:-1);else avGestReset(true);
