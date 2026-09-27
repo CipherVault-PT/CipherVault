@@ -1,13 +1,20 @@
 /* Aurora Vault — Service Worker
    Faz a app abrir mesmo sem internet.
-   Com rede: pergunta sempre ao servidor se há versão nova (sem esperar pela cache de 10 min do GitHub) e guarda-a.
+   Com rede: pergunta sempre ao servidor se há versão nova do index.html (sem esperar pela cache de 10 min do GitHub) e guarda-a.
    Sem rede, ou rede tão lenta que demora mais de 4 s: abre a cópia guardada neste dispositivo.
+   styles.css / app.js vão com a versão no endereço (?v=…): cada versão é descarregada uma vez e depois servida
+   logo da memória. Mudar a versão no index.html é o que obriga a descarregar os ficheiros novos.
    Imagens do fundo: ficam guardadas à primeira vez e servem-se da memória (para mudar uma imagem, muda-se o nome da cache IMG).
    Partilhas («Partilhar → Aurora Vault») ficam guardadas só até a app as importar para o cofre (depois são apagadas).
-   Os dados do cofre nunca passam por aqui — só a própria app (index.html), as imagens do fundo e as fontes. */
-const C='av-app-v1',FONTS='av-fonts-v1',IMG='av-img-v1',LIB='av-lib-v1',SHARE='av-share';
+   Os dados do cofre nunca passam por aqui — só a própria app, as imagens do fundo e as fontes. */
+const C='av-app-v2',FONTS='av-fonts-v1',IMG='av-img-v1',LIB='av-lib-v1',SHARE='av-share';
+const CORE=['./','./index.html','./styles.css','./app.js','./vendor/jsqr.js'];
+const IMGS=['./img/aurora-l.webp','./img/aurora-p.webp'];
 self.addEventListener('install',e=>{
-  e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html'])).catch(()=>{}));
+  e.waitUntil(Promise.all([
+    caches.open(C).then(c=>c.addAll(CORE)),
+    caches.open(IMG).then(c=>c.addAll(IMGS)).catch(()=>{})
+  ]));
   self.skipWaiting();
 });
 self.addEventListener('activate',e=>{
@@ -17,6 +24,12 @@ self.addEventListener('activate',e=>{
   ]));
 });
 const wait=ms=>new Promise((_,rej)=>setTimeout(()=>rej(new Error('lento')),ms));
+// Guarda as 2 versões mais recentes de cada ficheiro (a anterior serve de rede de segurança durante uma atualização)
+async function keepLatest(c,url){
+  const path=new URL(url).pathname;
+  const same=(await c.keys()).filter(k=>new URL(k.url).pathname===path);
+  for(const k of same.slice(0,Math.max(0,same.length-2)))await c.delete(k);
+}
 self.addEventListener('fetch',e=>{
   const r=e.request;
   // «Partilhar → Aurora Vault»: guarda o que foi partilhado e abre a app; só entra no cofre depois de desbloqueado
@@ -49,6 +62,14 @@ self.addEventListener('fetch',e=>{
       });
       e.respondWith(Promise.race([net,wait(4000)]).catch(()=>
         caches.match('./index.html').then(m=>m||caches.match('./')).then(m=>m||net)));
+      return;
+    }
+    // Ficheiros com versão no endereço: memória primeiro (não mudam enquanto a versão for a mesma)
+    if(u.searchParams.has('v')){
+      e.respondWith(caches.open(C).then(c=>c.match(r).then(m=>m||fetch(r).then(res=>{
+        if(res&&res.ok){c.put(r,res.clone()).then(()=>keepLatest(c,r.url)).catch(()=>{});}
+        return res;
+      }).catch(()=>c.match(r,{ignoreSearch:true})))));
       return;
     }
     e.respondWith(fetch(r).then(res=>{

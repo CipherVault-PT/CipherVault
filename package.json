@@ -1,0 +1,12 @@
+{
+  "name": "aurora-vault",
+  "private": true,
+  "description": "Aurora Vault — testes automáticos (a app em si não precisa de instalar nada)",
+  "scripts": {
+    "test": "playwright test",
+    "serve": "node tests/serve.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

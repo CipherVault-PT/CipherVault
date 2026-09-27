@@ -1,0 +1,41 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Verificar sintaxe
+        run: node --check app.js && node --check sw.js
+      - run: npm ci
+      - name: Instalar o Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Correr os testes
+        run: npx playwright test
+      - name: Guardar o relatório (se falhar)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
