@@ -15,9 +15,9 @@
 <link rel="manifest" id="pwa-manifest">
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/playfair-display-latin-400-normal.woff2" crossorigin>
-<meta name="app-version" content="10.0">
-<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.0' -->
-<link rel="stylesheet" href="styles.css?v=10.0">
+<meta name="app-version" content="10.1">
+<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.1' -->
+<link rel="stylesheet" href="styles.css?v=10.1">
 <!-- A foto nítida do fundo só é pedida depois da app (aparece primeiro a versão desfocada): assim a app fica pronta mais cedo -->
 </head>
 <body>
@@ -363,7 +363,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.0</span>
+      <span>Aurora Vault © 2026 · v10.1</span>
     </div>
   </div>
 </div>
@@ -528,21 +528,21 @@
         <div class="content-header">
           <div class="content-title" id="content-title" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1">Todas as Entradas</div>
           <div class="header-controls">
-            <button class="btn btn-gold" onclick="openModal()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
+            <button class="btn btn-gold" data-act="openModal" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.56rem;letter-spacing:2px;white-space:nowrap;flex-shrink:0">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span id="tb-new-txt">Nova entrada</span>
             </button>
-            <button class="btn btn-ghost" onclick="openFolderModal(null,'vault')" id="vault-newfolder-btn" title="Nova pasta" aria-label="Nova pasta" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📁+ <span id="vault-newfolder-txt">Nova pasta</span></button>
-            <button class="btn btn-ghost" onclick="openQrScanner('share')" id="tb-qrimport-btn" title="Importar entrada por QR" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📥 QR</button>
-            <select class="sort-select" id="sort-select" onchange="renderCards()">
+            <button class="btn btn-ghost" data-act="openFolderModal" data-arg2="vault" id="vault-newfolder-btn" title="Nova pasta" aria-label="Nova pasta" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📁+ <span id="vault-newfolder-txt">Nova pasta</span></button>
+            <button class="btn btn-ghost" data-act="openQrScanner" data-arg="share" id="tb-qrimport-btn" title="Importar entrada por QR" style="padding:8px 12px;font-size:.56rem;letter-spacing:1px;white-space:nowrap">📥 QR</button>
+            <select class="sort-select" id="sort-select" data-change="renderCards">
               <option value="fav">⭐ Favoritos</option>
               <option value="name">A→Z</option>
               <option value="date">📅 Recentes</option>
               <option value="cat">📁 Categoria</option>
             </select>
             <div class="view-toggle">
-              <button class="view-btn active" id="view-normal" onclick="setView('normal')" title="Normal">▦</button>
-              <button class="view-btn" id="view-compact" onclick="setView('compact')" title="Compacto">▤</button>
+              <button class="view-btn active" id="view-normal" data-act="setView" data-arg="normal" title="Normal">▦</button>
+              <button class="view-btn" id="view-compact" data-act="setView" data-arg="compact" title="Compacto">▤</button>
             </div>
           </div>
         </div>
@@ -776,7 +776,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent-ink)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.0</span>
+      <span>Aurora Vault © 2026 · v10.1</span>
     </div>
   </div>
   </div>
@@ -1892,8 +1892,8 @@
 <input type="file" id="av-ga-file" accept="image/*" style="display:none" onchange="avGaFile(event)">
 <input type="file" id="csv-input-app" accept=".csv" style="position:fixed;top:-999px;left:-999px;opacity:0;width:1px;height:1px">
 <div class="toast" id="toast"></div>
-<script src="js/actions.js?v=10.0"></script>
-<script src="js/crypto.js?v=10.0"></script>
-<script src="app.js?v=10.0"></script>
+<script src="js/actions.js?v=10.1"></script>
+<script src="js/crypto.js?v=10.1"></script>
+<script src="app.js?v=10.1"></script>
 </body>
 </html>

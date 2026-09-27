@@ -72,4 +72,5 @@ O objetivo é a política de segurança deixar de precisar de `'unsafe-inline'`.
 <input data-input="onPinInput" data-enter="lockEnter">     <!-- ao escrever / tecla Enter -->
 ```
 
-A função tem de estar na lista `AV_ACTS` em `js/actions.js`. O ecrã de entrada já está todo assim (há um teste que o garante).
+A função tem de estar na lista `AV_ACTS` em `js/actions.js`. Os valores vão sempre escapados com `esc()` nos atributos — nunca dentro de código.
+Já estão assim (com testes que o garantem): o **ecrã de entrada** e o **cofre de passwords**.

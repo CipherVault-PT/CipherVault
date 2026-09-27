@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.0';
+const APP_VERSION='10.1';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2479,9 +2479,9 @@ function renderVaultSecureBar(){
       <div class="vsb-stat"><span class="vsb-num" style="font-size:.9rem">🔒</span><span class="vsb-lbl">AES-256</span></div>
     </div>
     <div class="vsb-breach">
-      <button class="breach-cta" id="hc-btn" onclick="openHealthCheck()" style="padding:9px 14px;font-size:.58rem;background:transparent;color:var(--accent-ink);border:1px solid var(--accent-dim)">🩺 <span id="hc-btn-txt">${en?'Health check':'Auditoria'}</span></button>
-      <button class="breach-cta" id="breach-btn" onclick="checkBreaches()" style="padding:9px 14px;font-size:.58rem">🛡️ <span id="breach-btn-txt">${en?'Check leaks':'Verificar fugas'}</span></button>
-      <span class="breach-help" tabindex="0" onmouseenter="positionBreachTip(this)" onfocus="positionBreachTip(this)">?<span class="breach-tip" id="breach-tip"></span></span>
+      <button class="breach-cta" id="hc-btn" data-act="openHealthCheck" style="padding:9px 14px;font-size:.58rem;background:transparent;color:var(--accent-ink);border:1px solid var(--accent-dim)">🩺 <span id="hc-btn-txt">${en?'Health check':'Auditoria'}</span></button>
+      <button class="breach-cta" id="breach-btn" data-act="checkBreaches" style="padding:9px 14px;font-size:.58rem">🛡️ <span id="breach-btn-txt">${en?'Check leaks':'Verificar fugas'}</span></button>
+      <span class="breach-help" tabindex="0" data-hover="positionBreachTip">?<span class="breach-tip" id="breach-tip"></span></span>
     </div>
     <div id="breach-status" style="font-size:.66rem;color:var(--text-muted);width:100%;text-align:center;margin-top:4px"></div>
     <div id="breach-results" style="width:100%;margin-top:8px"></div>
@@ -2702,15 +2702,15 @@ function renderSidebar(){
   // Uma só escrita no DOM (o «innerHTML +=» dentro do ciclo voltava a analisar tudo a cada item)
   el.innerHTML=sideCats.map(({key,icon,label})=>{
     const count=key==='all'?active.length:(catCount[key]||0);
-    return `<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" onclick="selectCat(${jsq(key)})"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
+    return `<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" data-act="selectCat" data-arg="${esc(key)}"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
   }).join('');
   // Tags sidebar
   const tagsEl=document.getElementById('sidebar-tags');
   document.getElementById('sb-tags-title').textContent=t('sbTags');
   const allTags=[...new Set(active.flatMap(e=>e.tags||[]))];
   tagsEl.innerHTML=allTags.length
-    ?`<div class="cat-item" onclick="selectTag('')"><span>🏷️</span><span>${t('tagAll')}</span></div>`
-      +allTags.map(tag=>`<div class="cat-item ${currentTag===tag?'active':''}" onclick="selectTag(${jsq(tag)})"><span>🏷️</span><span>${esc(tag)}</span></div>`).join('')
+    ?`<div class="cat-item" data-act="selectTag" data-arg=""><span>🏷️</span><span>${t('tagAll')}</span></div>`
+      +allTags.map(tag=>`<div class="cat-item ${currentTag===tag?'active':''}" data-act="selectTag" data-arg="${esc(tag)}"><span>🏷️</span><span>${esc(tag)}</span></div>`).join('')
     :'';
 }
 function selectCat(cat){currentCat=cat;currentTag='';document.getElementById('content-title').textContent=cat==='all'?t('allEntries'):getCatLabel(cat);renderSidebar();renderCards();}
@@ -2758,12 +2758,12 @@ function renderCards(){
     const parts=[];
     if(cnt.folders)parts.push(`${cnt.folders} ${enV?(cnt.folders===1?'folder':'folders'):(cnt.folders===1?'pasta':'pastas')}`);
     parts.push(`${cnt.docs} ${enV?(cnt.docs===1?'entry':'entries'):(cnt.docs===1?'entrada':'entradas')}`);
-    return `<div class="folder-card" onclick="openVaultFolder('${f.id}')" title="${esc(f.name)}">
+    return `<div class="folder-card" data-act="openVaultFolder" data-arg="${esc(f.id)}" title="${esc(f.name)}">
       <div class="folder-icon">${f.icon||'📁'}</div>
       <div class="folder-info"><div class="folder-name">${esc(f.name)}</div><div class="folder-count">${parts.join(' · ')}</div></div>
       <div class="folder-menu">
-        <button class="card-btn" onclick="event.stopPropagation();openFolderModal('${f.id}','vault')" title="${enV?'Rename':'Renomear'}">✏️</button>
-        <button class="card-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}','vault')" title="${enV?'Delete':'Apagar'}">🗑️</button>
+        <button class="card-btn" data-act="openFolderModal" data-arg="${esc(f.id)}" data-arg2="vault" title="${enV?'Rename':'Renomear'}">✏️</button>
+        <button class="card-btn danger" data-act="deleteFolder" data-arg="${esc(f.id)}" data-arg2="vault" title="${enV?'Delete':'Apagar'}">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -2783,34 +2783,34 @@ function renderCards(){
     const brandSvg=userIcon?null:getBrandIcon(entry);
     const svcIcon=userIcon?userIcon:(brandSvg?`<span class="brand-logo">${brandSvg}</span>`:getServiceIcon(entry.name));
     const ci=vaultCatInfo(entry.cat);
-    return `<div class="entry-card cat-${entry.cat}${entry.fav?' is-fav':''}" id="card-${entry.id}"${ci.custom?` style="border-left:3px solid ${ci.color}"`:''} draggable="true" ondragstart="dragStart(event,'${entry.id}')" ondragover="dragOver(event,'${entry.id}')" ondrop="dragDrop('${entry.id}')" ondragend="dragEnd()">
+    return `<div class="entry-card cat-${esc(entry.cat)}${entry.fav?' is-fav':''}" id="card-${esc(entry.id)}"${ci.custom?` style="border-left:3px solid ${esc(ci.color)}"`:''} draggable="true" data-dnd="vault" data-arg="${esc(entry.id)}">
       <div class="card-top">
         <div class="card-badge-row">
           ${svcIcon?`<span class="service-icon">${svcIcon}</span>`:avMono(entry.name)}
           <span class="card-cat-badge" style="background:${ci.color}26;color:${ci.color}">${ci.icon} ${esc(ci.label)}</span>
           ${tagsHtml}
         </div>
-        <button class="fav-btn${entry.fav?' active':''}" onclick="event.stopPropagation();toggleFav('${entry.id}')" title="${entry.fav?t('favRemove'):t('favAdd')}">${entry.fav?'⭐':'☆'}</button>
+        <button class="fav-btn${entry.fav?' active':''}" data-act="toggleFav" data-arg="${esc(entry.id)}" title="${entry.fav?t('favRemove'):t('favAdd')}">${entry.fav?'⭐':'☆'}</button>
       </div>
       <div class="card-name">${entry.flag?`<span class="entry-flag-dot" style="background:${(ENTRY_FLAGS.find(f=>f.id===entry.flag)||{}).color||'transparent'}"></span>`:''}${esc(entry.name)}</div><div class="pw-badges">${weakBadge}${ageBadge}</div>
       ${vFilterActive&&entry.folderId?`<div class="doc-loc">📍 ${esc(scopePathLabel(entry.folderId,'vault'))}</div>`:''}
       ${(()=>{const ats=normalizeAttachments(entry);const im=ats.find(x=>(x.type||'').startsWith('image/'));return im?`<img class="card-attachment" src="${esc(im.data)}" alt="anexo">`:'';})()}
-      ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText(${jsq(entry.user)},${jsq(t('userCopied'))})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
-      ${entry.pw?`<div class="card-field"><span class="card-field-label">${t('cardPw')}</span><div class="card-field-inner"><span class="card-field-value masked" id="pw-${entry.id}">••••••••</span><button class="card-btn" onclick="togglePw('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="avCopyPw('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
+      ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" data-act="copyText" data-arg="${esc(entry.user)}" data-arg2="${esc(t('userCopied'))}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
+      ${entry.pw?`<div class="card-field"><span class="card-field-label">${t('cardPw')}</span><div class="card-field-inner"><span class="card-field-value masked" id="pw-${esc(entry.id)}">••••••••</span><button class="card-btn" data-act="togglePw" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" data-act="avCopyPw" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.url?`<div class="card-field"><span class="card-field-label">${t('cardUrl')}</span><div class="card-field-inner"><a${siteHref(entry.url)?` href="${esc(siteHref(entry.url))}"`:''} target="_blank" rel="noopener noreferrer" class="card-field-value" style="color:var(--accent-dim);text-decoration:none;font-size:.7rem">${esc(entry.url)}</a></div></div>`:''}
-      ${(entry.fields||[]).map(f=>`<div class="card-field"><span class="card-field-label">${esc(f.k)}</span><div class="card-field-inner"><span class="card-field-value">${esc(f.v)}</span><button class="card-btn" onclick="copyText(${jsq(f.v)},'✓')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`).join('')}
+      ${(entry.fields||[]).map(f=>`<div class="card-field"><span class="card-field-label">${esc(f.k)}</span><div class="card-field-inner"><span class="card-field-value">${esc(f.v)}</span><button class="card-btn" data-act="copyText" data-arg="${esc(f.v)}" data-arg2="✓"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`).join('')}
       ${entry.notes?`<div class="card-field"><span class="card-field-label">${t('cardNotes')}</span><div class="card-field-inner"><span class="card-field-value" style="white-space:normal;font-size:.65rem;color:var(--text-muted)">${esc(entry.notes)}</span></div></div>`:''}
-      ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="avCopyHistPw('${entry.id}',${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
+      ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" data-act="toggleHistory" data-arg="${esc(entry.id)}">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${esc(entry.id)}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${esc(entry.id)}-${i}">••••••••</span><button class="card-btn" data-act="toggleHistPw" data-arg="${esc(entry.id)}" data-arg2="${i}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" data-act="avCopyHistPw" data-arg="${esc(entry.id)}" data-arg2="${i}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
       ${attachChips(entry,'vault')}
       <div class="card-actions">
-        ${entry.url?`<button class="card-btn" onclick="event.stopPropagation();avGoSite('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${t('btnGoSite')}</button>`:''}
-        ${isWifiEntry(entry)?`<button class="card-btn" onclick="event.stopPropagation();openWifiQR('${entry.id}')">📶 QR</button>`:''}
-        <button class="card-btn" onclick="event.stopPropagation();openReadMode('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${t('btnRead')}</button>
-        <button class="card-btn" onclick="event.stopPropagation();editEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
-        <button class="card-btn${entry.reviewedAt?' reviewed':''}" onclick="event.stopPropagation();toggleReviewed('${entry.id}')" title="${entry.reviewedAt?reviewedLabel(entry.reviewedAt):(currentLang==='en'?'Mark as reviewed':'Marcar como revista')}">${entry.reviewedAt?'✅':'☑️'} ${entry.reviewedAt?(currentLang==='en'?'Reviewed':'Revista'):(currentLang==='en'?'Review':'Rever')}</button>
-        <button class="card-btn" onclick="event.stopPropagation();openMoveModal('${entry.id}','vault')">📂 ${currentLang==='en'?'Move':'Mover'}</button>
-        <button class="card-btn" onclick="event.stopPropagation();archiveEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> ${t('btnArchive')}</button>
-        <button class="card-btn danger" onclick="event.stopPropagation();deleteEntry('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
+        ${entry.url?`<button class="card-btn" data-act="avGoSite" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${t('btnGoSite')}</button>`:''}
+        ${isWifiEntry(entry)?`<button class="card-btn" data-act="openWifiQR" data-arg="${esc(entry.id)}">📶 QR</button>`:''}
+        <button class="card-btn" data-act="openReadMode" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${t('btnRead')}</button>
+        <button class="card-btn" data-act="editEntry" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
+        <button class="card-btn${entry.reviewedAt?' reviewed':''}" data-act="toggleReviewed" data-arg="${esc(entry.id)}" title="${entry.reviewedAt?reviewedLabel(entry.reviewedAt):(currentLang==='en'?'Mark as reviewed':'Marcar como revista')}">${entry.reviewedAt?'✅':'☑️'} ${entry.reviewedAt?(currentLang==='en'?'Reviewed':'Revista'):(currentLang==='en'?'Review':'Rever')}</button>
+        <button class="card-btn" data-act="openMoveModal" data-arg="${esc(entry.id)}" data-arg2="vault">📂 ${currentLang==='en'?'Move':'Mover'}</button>
+        <button class="card-btn" data-act="archiveEntry" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> ${t('btnArchive')}</button>
+        <button class="card-btn danger" data-act="deleteEntry" data-arg="${esc(entry.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
       </div>
     </div>`;
   });
@@ -3662,7 +3662,7 @@ function attachChips(o,kind){
   const list=normalizeAttachments(o);
   if(!list.length)return '';
   return '<div class="att-chips">'+list.map((a,i)=>
-    '<button class="att-chip" onclick="event.stopPropagation();openAttachmentBy(\''+kind+'\',\''+o.id+'\','+i+')" title="'+esc(a.name||'')+'">'+
+    '<button class="att-chip" data-act="openAttachmentBy" data-arg="'+esc(kind)+'" data-arg2="'+esc(o.id)+'" data-arg3="'+i+'" title="'+esc(a.name||'')+'">'+
     attachIcon(a.type)+' <span>'+esc(a.name||'')+'</span></button>').join('')+'</div>';
 }
 function removeAttachment(ctx,i){
@@ -8332,15 +8332,15 @@ function renderVaultBreadcrumb(filterActive){
     return;
   }
   const path=folderPath(currentVaultFolderId,vaultFolders);
-  let html=`<button class="crumb${currentVaultFolderId?'':' current'}" ${currentVaultFolderId?'onclick="goToVaultFolder(null)"':''}>🏠 ${en?'Vault':'Cofre'}</button>`;
+  let html=`<button class="crumb${currentVaultFolderId?'':' current'}" ${currentVaultFolderId?'data-act="goToVaultFolder" data-null':''}>🏠 ${en?'Vault':'Cofre'}</button>`;
   path.forEach((f,i)=>{
     const isLast=i===path.length-1;
-    html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`onclick="goToVaultFolder('${f.id}')"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
+    html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`data-act="goToVaultFolder" data-arg="${esc(f.id)}"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
   });
   if(currentVaultFolderId){
     html+=`<span style="margin-left:auto;display:flex;gap:5px">
-      <button class="card-btn" onclick="openFolderModal('${currentVaultFolderId}','vault')" title="${en?'Rename':'Renomear'}">✏️</button>
-      <button class="card-btn danger" onclick="deleteFolder('${currentVaultFolderId}','vault')" title="${en?'Delete folder':'Apagar pasta'}">🗑️</button>
+      <button class="card-btn" data-act="openFolderModal" data-arg="${esc(currentVaultFolderId)}" data-arg2="vault" title="${en?'Rename':'Renomear'}">✏️</button>
+      <button class="card-btn danger" data-act="deleteFolder" data-arg="${esc(currentVaultFolderId)}" data-arg2="vault" title="${en?'Delete folder':'Apagar pasta'}">🗑️</button>
     </span>`;
   }
   bc.innerHTML=html;
