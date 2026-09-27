@@ -2334,7 +2334,7 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.91</span>
+      <span>Aurora Vault © 2026 · v9.92</span>
     </div>
   </div>
 </div>
@@ -2746,7 +2746,7 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.91</span>
+      <span>Aurora Vault © 2026 · v9.92</span>
     </div>
   </div>
   </div>
@@ -3869,7 +3869,7 @@ html.av-vt-tap::view-transition-new(root){animation:avVtTapIn .22s cubic-bezier(
     }
   }catch(e){}
 })();
-const APP_VERSION='9.91';
+const APP_VERSION='9.92';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -4354,7 +4354,9 @@ async function refreshQuickUnlock(auto){
   try{bioRec=await idbGet('qu_bio');}catch(e){}
   quickAvail.bio=!!bioRec&&await bioSupported();
   quickAvail.pin=!!(await getPinRec());
-  unlockMode=quickAvail.bio?'bio':(quickAvail.pin?'pin':'master');
+  { /* respeita o modo que a pessoa escolheu neste ecrã de entrada (a preparação do ecrã corre várias vezes e apagava a escolha) */
+    const pf=(typeof _avUserMode!=='undefined')?_avUserMode:null;
+    unlockMode=(pf&&(pf==='master'||(pf==='pin'&&quickAvail.pin)||(pf==='bio'&&quickAvail.bio)))?pf:(quickAvail.bio?'bio':(quickAvail.pin?'pin':'master'));}
   applyUnlockMode(auto===true);
 }
 function applyUnlockMode(autoBio){
@@ -4390,8 +4392,9 @@ function applyUnlockMode(autoBio){
   if(unlockMode==='master')setTimeout(()=>{const mp=document.getElementById('master-pw');if(mp)mp.focus();},120);
   if(unlockMode==='bio'&&autoBio)setTimeout(()=>doBioUnlock(true),420);
 }
+let _avUserMode=null;
 function setUnlockMode(m){
-  unlockMode=m;
+  _avUserMode=m;unlockMode=m;
   applyUnlockMode(false);
   if(m==='bio')doBioUnlock(false);
 }
@@ -10492,8 +10495,10 @@ const AuroraBG=(function(){
     }
   }
 
+  let _last=0,_draws=0;
   function frame(){
     if(!running)return;
+    const _now=performance.now();if(_now-_last<15.5){raf=requestAnimationFrame(frame);return;}_last=_now;_draws++;
     t++;
     switch(mode){
       case 'aurora':drawAurora();break;
@@ -10523,7 +10528,7 @@ const AuroraBG=(function(){
   document.addEventListener('visibilitychange',()=>{document.hidden?stop():start();});
   let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(resize,200);});
   resize();
-  return {setMode,resize,start,stop,isRunning:()=>running};
+  return {setMode,resize,start,stop,isRunning:()=>running,draws:()=>_draws};
 })();
 
 const BG_META={
@@ -15063,7 +15068,7 @@ async function avExportICS(onlyLabel){
 /* ── sugestões discretas da Aurora (depois de gravar) ── */
 function avNudgesOn(){try{return localStorage.getItem('av_nudges')!=='0';}catch(e){return true;}}
 function avSetNudges(on){try{localStorage.setItem('av_nudges',on?'1':'0');}catch(e){}avRenderSettings();}
-function avNudgeClose(){const n=document.getElementById('av-nudge');if(n){n.classList.remove('show');clearTimeout(n._t);}}
+function avNudgeClose(){const _n=document.getElementById('av-nudge');if(_n)_n._closed=true;const n=document.getElementById('av-nudge');if(n){n.classList.remove('show');clearTimeout(n._t);}}
 function avNudge(html,actions,ms){
   if(typeof AVT!=='undefined'&&AVT.on)return;
   let n=document.getElementById('av-nudge');if(!n){n=document.createElement('div');n.id='av-nudge';n.setAttribute('role','status');document.body.appendChild(n);}
@@ -15071,7 +15076,7 @@ function avNudge(html,actions,ms){
   n.innerHTML='<span class="av-nudge-ic">✨</span><div class="av-nudge-tx">'+html+'</div>'+(actions||[]).map((a,i)=>'<button class="av-nudge-b'+(i===0?' go':'')+'" data-i="'+i+'">'+a.label+'</button>').join('')+'<button class="av-nudge-x" aria-label="'+(avEn()?'Close':'Fechar')+'">✕</button>';
   n.querySelectorAll('.av-nudge-b').forEach(b=>b.onclick=()=>{avNudgeClose();try{actions[+b.dataset.i].fn();}catch(e){}});
   n.querySelector('.av-nudge-x').onclick=avNudgeClose;
-  requestAnimationFrame(()=>n.classList.add('show'));n._t=setTimeout(avNudgeClose,ms||12000);
+  n._closed=false;requestAnimationFrame(()=>{if(!n._closed)n.classList.add('show');});n._t=setTimeout(avNudgeClose,ms||12000);
 }
 function avTotpHas(name){try{if(typeof aurTotpLocked==='function'&&aurTotpLocked())return true;const k=aurNorm(name||'');return (typeof totp!=='undefined'?totp:[]).some(t=>{const x=aurNorm(t.issuer||t.name||'');return x&&(x.includes(k)||k.includes(x));});}catch(e){return true;}}
 function avSuggestEntry(e){
@@ -15577,12 +15582,13 @@ function avGestTarget(dir){const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+
 function avGestPeek(){AV_G.raf=0;if(!AV_G.els||!AV_G.els.length)return;const W=innerWidth,d=AV_G.dx,has=!!avGestTarget(d<0?1:-1);let x;
   if(has){const lim=W*0.42;x=d*0.6;if(Math.abs(x)>lim)x=Math.sign(x)*(lim+(Math.abs(x)-lim)*0.15);}else x=Math.sign(d)*Math.min(48,Math.abs(d)*0.12);
   AV_G.els.forEach(el=>el.style.transform='translateX('+x.toFixed(1)+'px)');}
-function avGestReset(anim){const els=AV_G.els||[];els.forEach(el=>{if(anim){el.style.transition='transform .2s cubic-bezier(.2,.8,.2,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';el.style.willChange='';},220);}else{el.style.transition='';el.style.transform='';el.style.willChange='';}});AV_G.els=[];AV_G.el=null;}
+function avBgHold(on){try{if(typeof AuroraBG==='undefined')return;if(on){if(!AV_G.bgHeld&&AuroraBG.isRunning()){AuroraBG.stop();AV_G.bgHeld=true;}}else if(AV_G.bgHeld){AV_G.bgHeld=false;AuroraBG.start();}}catch(e){}}
+function avGestReset(anim){if(anim)setTimeout(()=>{if(!AV_G.busy)avBgHold(false);},230);const els=AV_G.els||[];els.forEach(el=>{if(anim){el.style.transition='transform .2s cubic-bezier(.2,.8,.2,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';el.style.willChange='';},220);}else{el.style.transition='';el.style.transform='';el.style.willChange='';}});AV_G.els=[];AV_G.el=null;}
 function avVTok(){return !!document.startViewTransition&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)&&avSwStyle()!=='off';}
 function avVTRun(run,dir,kind,fx,fy){
   const root=document.documentElement,st=kind==='tap'?'tap':avSwStyle();
-  if(!avVTok()){run();return;}
-  const tok=(AV_G.tok=(AV_G.tok||0)+1);AV_G.busy=true;
+  if(!avVTok()){run();avBgHold(false);return;}
+  const tok=(AV_G.tok=(AV_G.tok||0)+1);AV_G.busy=true;avBgHold(true);
   root.style.setProperty('--avd',String(dir));
   fx=fx||innerWidth*(dir>0?0.8:0.2);fy=fy||innerHeight*0.6;
   root.style.setProperty('--avx',Math.round(fx)+'px');root.style.setProperty('--avy',Math.round(fy)+'px');
@@ -15593,7 +15599,7 @@ function avVTRun(run,dir,kind,fx,fy){
     {const nt=document.getElementById('tab-'+avCurTab);if(nt)nt.style.animation='none';}  /* sem animação de entrada nesta troca — limpa-se sozinha na troca seguinte */
     if(st==='reveal'){const R=parseFloat(root.style.getPropertyValue('--avr'))||600;ring=document.createElement('div');ring.className='av-vt-ring';Object.assign(ring.style,{left:(fx-R)+'px',top:(fy-R)+'px',width:(2*R)+'px',height:(2*R)+'px'});document.body.appendChild(ring);}});
   AV_G.vt=vt;
-  const done=()=>{if(ring)ring.remove();if(AV_G.tok!==tok)return;root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');AV_G.busy=false;AV_G.vt=null;};
+  const done=()=>{if(ring)ring.remove();if(AV_G.tok!==tok)return;root.classList.remove('av-vt','av-vt-parallax','av-vt-stack','av-vt-reveal','av-vt-fade','av-vt-tap');AV_G.busy=false;AV_G.vt=null;AV_G.lock=null;avBgHold(false);};
   vt.finished.then(done,done);
 }
 function avGestGo(dir){
@@ -15614,7 +15620,7 @@ document.addEventListener('touchstart',e=>{if(e.touches.length!==1||avSwStyle()=
 document.addEventListener('touchmove',e=>{
   if(!AV_G.cand)return;const t=e.touches[0],dx=t.clientX-AV_G.sx,dy=t.clientY-AV_G.sy;
   if(AV_G.lock===null){if(Math.abs(dx)<16&&Math.abs(dy)<16)return;AV_G.lock=Math.abs(dx)>Math.abs(dy)*2;if(!AV_G.lock){AV_G.cand=false;return;}
-    AV_G.el=document.getElementById('tab-'+avCurTab);const sbx=document.getElementById('subtabs');AV_G.els=[AV_G.el,sbx&&getComputedStyle(sbx).display!=='none'?sbx:null].filter(Boolean);AV_G.els.forEach(x=>x.style.willChange='transform');}
+    avBgHold(true);AV_G.el=document.getElementById('tab-'+avCurTab);const sbx=document.getElementById('subtabs');AV_G.els=[AV_G.el,sbx&&getComputedStyle(sbx).display!=='none'?sbx:null].filter(Boolean);AV_G.els.forEach(x=>x.style.willChange='transform');}
   AV_G.dx=dx;AV_G.fx=t.clientX;AV_G.fy=t.clientY;if(!AV_G.raf)AV_G.raf=requestAnimationFrame(avGestPeek);
 },{passive:true});
 document.addEventListener('touchend',()=>{
@@ -15650,6 +15656,64 @@ function avTabKey(k){const el=document.getElementById('tab-'+k);let ui='';if(el)
 function avOnce(k,fn,arg){const key=avTabKey(k);if(AV_ONCE[k]===key)return;AV_ONCE[k]=key;fn(arg);}
 (function(){if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){avDataVer++;return mu.apply(this,arguments);};}
   if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{['dashboard','archive','notes','cards','docs','trash'].forEach(t=>{AV_ONCE[t]=avTabKey(t);});}catch(e){}  /* só as que o renderAll desenha de facto */return r;};}})();
+
+
+/* ══ v9.92 — AVISO DE NOVA VERSÃO ══
+   Pergunta ao servidor só se o ficheiro da app mudou (pedido HEAD, minúsculo — o sw.js deixa-o passar direto).
+   Só quando muda descarrega a página uma vez, para ler o número da versão. Compara com a versão que está a correr. */
+const AV_UPD={last:0,snooze:0,ver:null,busy:false};
+function avVerCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
+async function avUpdSig(){try{const r=await fetch('./index.html',{method:'HEAD',cache:'no-store'});if(!r.ok)return null;return (r.headers.get('ETag')||'')+'|'+(r.headers.get('Last-Modified')||'')+'|'+(r.headers.get('Content-Length')||'');}catch(e){return null;}}
+async function avUpdCheck(force){
+  if(AV_UPD.busy||!navigator.onLine||location.protocol==='file:')return;
+  if(!force&&Date.now()-AV_UPD.last<30*60e3)return;
+  AV_UPD.busy=true;AV_UPD.last=Date.now();
+  try{
+    const sig=await avUpdSig();if(!sig)return;
+    let st=null;try{st=JSON.parse(localStorage.getItem('av_upd')||'null');}catch(e){}
+    if(!st||st.sig!==sig){
+      const txt=await (await fetch('./index.html',{cache:'no-store'})).text();
+      const m=txt.match(/const APP_VERSION='([\d.]+)'/);st={sig,ver:m?m[1]:null};
+      try{localStorage.setItem('av_upd',JSON.stringify(st));}catch(e){}
+    }
+    AV_UPD.ver=(st.ver&&avVerCmp(st.ver,APP_VERSION)>0)?st.ver:null;
+    if(AV_UPD.ver&&Date.now()>AV_UPD.snooze&&typeof masterKey!=='undefined'&&masterKey)avUpdShowWhenFree(0);
+  }catch(e){}finally{AV_UPD.busy=false;}
+}
+function avUpdShow(){const en=avEn(),v=AV_UPD.ver;if(!v)return;
+  avNudge(en?'There’s a <b>new version</b> of the app: <b>v'+v+'</b> (you have v'+APP_VERSION+').':'Há uma <b>versão nova</b> da app: <b>v'+v+'</b> (tens a v'+APP_VERSION+').',
+    [{label:en?'Update':'Atualizar',fn:avUpdApply},{label:en?'Later':'Mais tarde',fn:()=>{AV_UPD.snooze=Date.now()+6*3600e3;}}],60000);
+  const n=document.getElementById('av-nudge');if(n)n.dataset.kind='upd';}
+function avUpdShowWhenFree(tries){  // não atropela outro aviso (ex.: resumo da semana): espera que feche
+  const n=document.getElementById('av-nudge');
+  if(n&&n.classList.contains('show')&&n.dataset.kind!=='upd'&&tries<30){setTimeout(()=>avUpdShowWhenFree(tries+1),2000);return;}
+  if(typeof AVT!=='undefined'&&AVT.on){setTimeout(()=>avUpdShowWhenFree(tries+1),4000);return;}
+  if(!(typeof masterKey!=='undefined'&&masterKey))return;avUpdShow();}
+async function avUpdApply(){
+  toast(avEn()?'Updating…':'A atualizar…');
+  try{if(hasUnsaved)await Promise.race([saveFile({auto:true}),new Promise(r=>setTimeout(r,4000))]);}catch(e){}   // grava primeiro
+  try{avFlushNow();}catch(e){}
+  try{sessionStorage.setItem('av_upd_to',AV_UPD.ver);}catch(e){}
+  setTimeout(()=>location.reload(),350);
+}
+function avUpdAfter(){  // depois de recarregar: confirma se a versão nova chegou mesmo
+  let to=null;try{to=sessionStorage.getItem('av_upd_to');sessionStorage.removeItem('av_upd_to');}catch(e){}
+  if(!to)return;const en=avEn();
+  if(avVerCmp(APP_VERSION,to)>=0)toast(en?'✓ Updated to v'+APP_VERSION:'✓ Atualizada para a v'+APP_VERSION);
+  else toast(en?'The new version hasn’t reached the server yet — try again in a few minutes.':'A versão nova ainda não chegou ao servidor — tenta daqui a uns minutos.');
+}
+(function(){
+  if(typeof doUnlock==='function'){const du=doUnlock;doUnlock=function(){const r=du.apply(this,arguments);AV_UPD.snooze=0;setTimeout(avUpdAfter,1200);setTimeout(()=>avUpdCheck(true),6000);return r;};}
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&typeof masterKey!=='undefined'&&masterKey)avUpdCheck(false);});
+  window.addEventListener('online',()=>{if(typeof masterKey!=='undefined'&&masterKey)avUpdCheck(false);});
+})();
+
+
+/* v9.92 — a escolha do modo de entrada vale só para este ecrã de entrada */
+(function(){
+  if(typeof doUnlock==='function'){const du=doUnlock;doUnlock=function(){_avUserMode=null;return du.apply(this,arguments);};}
+  if(typeof lockApp==='function'){const la=lockApp;lockApp=function(){_avUserMode=null;return la.apply(this,arguments);};}
+})();
 
 </script>
 </body>
