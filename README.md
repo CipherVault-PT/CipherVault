@@ -73,5 +73,5 @@ O objetivo é a política de segurança deixar de precisar de `'unsafe-inline'`.
 ```
 
 A função tem de estar na lista `AV_ACTS` em `js/actions.js`. Os valores vão sempre escapados com `esc()` nos atributos — nunca dentro de código.
-Já estão assim (com testes que o garantem): **todo o `index.html`**, o ecrã de entrada, o cofre de passwords, as janelas, as definições e os menus.
+Já está assim **a app inteira** (`index.html` e todo o HTML gerado pelo `app.js`), com testes que o garantem. Números vão em `data-args='[1]'` (o `data-arg` é sempre texto).
 Comandos com mais de uma instrução passam a ser uma função com nome (ex.: `readEdit(id)` em vez de `closeReadMode();editEntry(id)`).
