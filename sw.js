@@ -10,16 +10,32 @@
    Não há pedidos a servidores de terceiros: tudo vem deste site.
    Os dados do cofre nunca passam por aqui — só a própria app, as imagens do fundo e as fontes. */
 const C='av-app-v2',IMG='av-img-v1',LIB='av-vendor-v1',SHARE='av-share';
-const CORE=['./','./index.html','./styles.css','./app.js','./vendor/jsqr.js'];
-const IMGS=['./img/aurora-l.webp','./img/aurora-p.webp'];
-const FONTS=['playfair-display-latin-400','playfair-display-latin-700','jetbrains-mono-latin-300','jetbrains-mono-latin-400','jetbrains-mono-latin-500'].map(f=>'./vendor/fonts/'+f+'-normal.woff2');
+/* Guarda a página e os ficheiros exatamente com a versão que ela usa (styles.css?v=…, app.js?v=…): vêm da cache do
+   browser, que já os tem da visita em curso. Antes guardava-os sem versão — eram descarregados uma 2.ª vez e essa
+   cópia nunca era usada — e descarregava as duas fotos do fundo, quando cada ecrã só usa uma. */
+async function precacheCore(){
+  const c=await caches.open(C);
+  const res=await fetch('./index.html',{cache:'no-cache'});
+  if(!res.ok)throw new Error('index');
+  const html=await res.clone().text();
+  const refs=[...new Set([...html.matchAll(/(?:href|src)="((?:styles\.css|app\.js)\?v=[\d.]+)"/g)].map(m=>'./'+m[1]))];
+  await c.put('./index.html',res.clone());await c.put('./',res);
+  await c.addAll([...refs,'./vendor/jsqr.js?v=1.4.0']);
+  for(const u of refs)await keepLatest(c,new URL(u,self.registration.scope).href);
+}
 self.addEventListener('install',e=>{
-  e.waitUntil(Promise.all([
-    caches.open(C).then(c=>c.addAll(CORE)),
-    caches.open(IMG).then(c=>c.addAll(IMGS)).catch(()=>{}),
-    caches.open(LIB).then(c=>c.addAll(FONTS)).catch(()=>{})
-  ]));
+  e.waitUntil(precacheCore());
   self.skipWaiting();
+});
+// A página diz o que já carregou (foto do fundo, fontes) e guarda-se isso, a partir da cache do browser
+self.addEventListener('message',e=>{
+  const d=e.data;if(!d||d.type!=='av-precache'||!Array.isArray(d.urls))return;
+  e.waitUntil(Promise.all(d.urls.slice(0,40).map(async u=>{
+    const url=new URL(u,self.registration.scope);if(url.origin!==self.location.origin)return;
+    const name=/\.(webp|png|jpe?g)$/i.test(url.pathname)?IMG:url.pathname.includes('/vendor/')?LIB:null;if(!name)return;
+    const c=await caches.open(name);if(await c.match(url.href,{ignoreSearch:true}))return;
+    const r=await fetch(url.href);if(r.ok)await c.put(url.href,r);
+  })).catch(()=>{}));
 });
 self.addEventListener('activate',e=>{
   e.waitUntil(Promise.all([

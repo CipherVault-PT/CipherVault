@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='9.98';
+const APP_VERSION='9.99';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -9331,7 +9331,18 @@ function askyTex(k){
   let tw=Math.min(iw,need,ASKY.maxTex),th=Math.round(tw/B);
   if(th>ASKY.maxTex){th=ASKY.maxTex;tw=Math.round(th*B);}
   let src=hi.img;
-  if(tw<iw){const c=document.createElement('canvas');c.width=tw;c.height=th;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(hi.img,0,0,tw,th);src=c;}
+  if(tw<iw){
+    // Reduzir uma foto 4K bloqueava o ecrã dezenas de ms: createImageBitmap faz isso fora da thread principal
+    if(window.createImageBitmap&&!hi.bmpFail){
+      if(!(hi.bmp&&hi.bmpTw===tw)){
+        if(hi.bmpReq!==tw){hi.bmpReq=tw;createImageBitmap(hi.img,{resizeWidth:tw,resizeHeight:th,resizeQuality:'high'})
+          .then(b=>{if(hi.bmp&&hi.bmp.close)hi.bmp.close();hi.bmp=b;hi.bmpTw=tw;if(ASKY.gl&&!ASKY.run)askyDraw();})
+          .catch(()=>{hi.bmpFail=true;hi.bmpReq=0;});}
+        return o||null; // até estar pronta vê-se a fotografia normal (sem animação)
+      }
+      src=hi.bmp;
+    }else{const c=document.createElement('canvas');c.width=tw;c.height=th;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(hi.img,0,0,tw,th);src=c;}
+  }
   try{
     if(!o){o={t:gl.createTexture(),tw:0,th:0};ASKY.tex[k]=o;}
     gl.bindTexture(gl.TEXTURE_2D,o.t);
@@ -9401,7 +9412,15 @@ if('serviceWorker' in navigator){
       toast(currentLang==='en'?'✨ Update ready — lock (Ctrl+L) to apply':'✨ Atualização pronta — bloqueia (Ctrl+L) para aplicar');
     }
   });
-  navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+  // Só depois de a página carregar: na 1.ª visita, a instalação competia pela rede com a app e com a foto do fundo
+  const avSwPrecache=reg=>{try{
+    const urls=performance.getEntriesByType('resource').map(r=>r.name).filter(u=>u.startsWith(location.origin)&&/\.(webp|woff2)$/.test(new URL(u).pathname));
+    const w=reg.active||navigator.serviceWorker.controller;if(urls.length&&w)w.postMessage({type:'av-precache',urls});
+  }catch(e){}};
+  const avSwRegister=()=>navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'})
+    .then(()=>navigator.serviceWorker.ready).then(avSwPrecache).catch(()=>{});
+  if(document.readyState==='complete')setTimeout(avSwRegister,800);
+  else addEventListener('load',()=>setTimeout(avSwRegister,800),{once:true});
   const _origLockApp=lockApp;
   lockApp=function(){_origLockApp();if(window.__cvUpdateReady)setTimeout(()=>location.reload(),300);};
 }
