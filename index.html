@@ -2411,7 +2411,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.95</span>
+      <span>Aurora Vault © 2026 · v9.96</span>
     </div>
   </div>
 </div>
@@ -2824,7 +2824,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v9.95</span>
+      <span>Aurora Vault © 2026 · v9.96</span>
     </div>
   </div>
   </div>
@@ -3950,14 +3950,14 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
     }
   }catch(e){}
 })();
-const APP_VERSION='9.95';
+const APP_VERSION='9.96';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
 let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let legacyNote='';let legacyOwner='';
 let totpEnc=null,totpRecWrap=null,totpKey=null,totpUnlocked=false;
 const VAULT_FMT=2;
-const KNOWN_KEYS=['savedAt','fmt','vault','notes','bankCards','activityLog','documents','trash','totp','customCats','docFolders','vaultFolders','wifiNets','legacyNote','legacyOwner','totpEnc','totpRecWrap'];
+const KNOWN_KEYS=['savedAt','fmt','vault','notes','bankCards','activityLog','documents','trash','totp','customCats','docFolders','vaultFolders','wifiNets','legacyNote','legacyOwner','totpEnc','totpRecWrap','personalInfo','subscriptions','storeCards','assets','vaultName'];
 let payloadExtras={},vaultReadOnly=false;let currentDocSort='added';let lastSavedAt=null;let totpCounters={};
 let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
 let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
@@ -4050,6 +4050,7 @@ const T={
     cardExpired:'Cartão expirado!',cardExpiringSoon:'Cartão expira em breve',cardDaysLeft:'dias restantes',
     cardAdded:'Cartão adicionado!',cardUpdated:'Cartão atualizado!',cardDeleted:'Cartão apagado.',
     cardConfirmDelete:'Apagar este cartão?',cardEmpty:'Ainda não tens cartões.',
+    cardSave:'Guardar',cardRequired:'Indica o banco / emissor do cartão!',nameRequired:'O nome é obrigatório!',
     cardTypeLabels:{debito:'Débito',credito:'Crédito',prepago:'Pré-pago',outro:'Outro'},
   },
   en:{
@@ -4134,13 +4135,18 @@ const T={
     cardExpired:'Card expired!',cardExpiringSoon:'Card expiring soon',cardDaysLeft:'days left',
     cardAdded:'Card added!',cardUpdated:'Card updated!',cardDeleted:'Card deleted.',
     cardConfirmDelete:'Delete this card?',cardEmpty:'No cards yet.',
+    cardSave:'Save',cardRequired:'Enter the card bank / issuer!',nameRequired:'Name is required!',
     cardTypeLabels:{debito:'Debit',credito:'Credit',prepago:'Prepaid',outro:'Other'},
   }
 };
 function t(k){return(T[currentLang]||T.pt)[k]||k;}
 
 // ══ CRYPTO ══
-async function deriveKey(pw,salt){const enc=new TextEncoder();const km=await crypto.subtle.importKey('raw',enc.encode(pw),{name:'PBKDF2'},false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+function sameBytes(a,b){if(!a||!b||a.length!==b.length)return false;for(let i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true;}
+async function deriveKey(pw,salt){
+  // Mesma palavra-passe e mesmo salt do cofre aberto → a chave já existe (poupa ~200k iterações de PBKDF2)
+  if(masterKey&&pw===masterPwRaw&&sameBytes(salt,window._salt))return masterKey;
+  const enc=new TextEncoder();const km=await crypto.subtle.importKey('raw',enc.encode(pw),{name:'PBKDF2'},false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
 // ── Codecs assíncronos nativos (base64 fora da main thread) ──
 function u8ToB64(u8){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result.split(',')[1]);fr.onerror=rej;fr.readAsDataURL(new Blob([u8]));});}
 async function b64ToU8(s){const r=await fetch('data:application/octet-stream;base64,'+s);return new Uint8Array(await r.arrayBuffer());}
@@ -4195,10 +4201,29 @@ async function decrypt(key,payload){
 }
 
 // ══ INDEXEDDB KV (handles de ficheiros) ══
-function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open('ciphervault',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
-async function idbSet(k,v){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
-async function idbGet(k){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction('kv','readonly');const rq=tx.objectStore('kv').get(k);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});}
-async function idbDel(k){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').delete(k);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
+// Uma só ligação reutilizada (antes abria-se uma nova em cada leitura/escrita e nenhuma era fechada)
+let _idbP=null;
+function idbOpen(){
+  if(_idbP)return _idbP;
+  _idbP=new Promise((res,rej)=>{
+    const r=indexedDB.open('ciphervault',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+    r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>{db.close();_idbP=null;};db.onclose=()=>{_idbP=null;};res(db);};
+    r.onerror=()=>{_idbP=null;rej(r.error);};
+  });
+  return _idbP;
+}
+function idbTx(mode,run){
+  const attempt=retry=>idbOpen().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction('kv',mode);
+    tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('abort'));
+    run(tx.objectStore('kv'),tx,res,rej);
+  })).catch(e=>{if(retry&&e&&e.name==='InvalidStateError'){_idbP=null;return attempt(false);}throw e;});
+  return attempt(true);
+}
+async function idbSet(k,v){return idbTx('readwrite',(st,tx,res)=>{st.put(v,k);tx.oncomplete=()=>res();});}
+async function idbGet(k){return idbTx('readonly',(st,tx,res,rej)=>{const rq=st.get(k);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});}
+async function idbDel(k){return idbTx('readwrite',(st,tx,res)=>{st.delete(k);tx.oncomplete=()=>res();});}
 
 // ══ FILE SYSTEM ACCESS ══
 let vaultFileHandle=null;
@@ -4331,7 +4356,11 @@ async function getPinRec(){
     return rec;
   }catch(e){return null;}
 }
-async function tryPin(pin){
+// Tentativas de PIN uma de cada vez: em paralelo, todas liam o mesmo contador e o limite de tentativas era contornável
+let _pinQ=Promise.resolve();
+function pinSerial(fn){return function(...a){const p=_pinQ.then(()=>fn(...a));_pinQ=p.catch(()=>{});return p;};}
+const tryPin=pinSerial(tryPinRun);
+async function tryPinRun(pin){
   const rec=await getPinRec();
   if(!rec)return{gone:true};
   try{
@@ -4706,7 +4735,8 @@ async function set2faPin(pin,rawB64){
 }
 let session2faRaw=null;
 // ── Abrir ──
-async function open2faWithPin(pin){
+const open2faWithPin=pinSerial(open2faWithPinRun);
+async function open2faWithPinRun(pin){
   let rec;try{rec=await idbGet('t2_pin');}catch(e){rec=null;}
   if(!rec)return{gone:true};
   let rawB64=null;
@@ -5185,12 +5215,33 @@ async function submitOpenVault(pwArg){
   const quick=typeof pwArg==='string';
   const pw=quick?pwArg:document.getElementById('master-pw').value;
   if(!quick&&pw.length<4){setLockError(t('lockMinChars'));return;}
+  if(_openBusy)return;
+  _openBusy=true;
+  let text,salt,key,data;
   try{
-    const text=((quick||!pendingVaultFile)&&pendingVaultText)?pendingVaultText:await pendingVaultFile.text();
+    text=((quick||!pendingVaultFile)&&pendingVaultText)?pendingVaultText:await pendingVaultFile.text();
     const container=JSON.parse(text);
-    const salt=new Uint8Array(container.salt);window._salt=salt;
-    masterPwRaw=pw;masterKey=await deriveKey(pw,salt);
-    const data=await decrypt(masterKey,container.payload);
+    salt=new Uint8Array(container.salt);
+    key=await deriveKey(pw,salt);
+    data=await decrypt(key,container.payload);
+  }catch{
+    _openBusy=false;
+    if(quick){
+      await clearQuickUnlock();
+      await refreshQuickUnlock();
+      setLockError(currentLang==='en'
+        ?'Saved unlock no longer matches this vault — use the master password.'
+        :'O desbloqueio guardado já não corresponde a este cofre — usa a chave mestra.');
+      return;
+    }
+    handleFailedAttempt();
+    return;
+  }
+  _openBusy=false;
+  // Só depois de desencriptar com sucesso: com uma palavra-passe errada a chave ficava definida e um Ctrl+S
+  // no ecrã de entrada gravava um cofre vazio (com a chave errada) por cima do ficheiro verdadeiro.
+  window._salt=salt;masterPwRaw=pw;masterKey=key;
+  try{
     vault=data.vault||data||[];notes=data.notes||[];bankCards=data.bankCards||[];activityLog=data.activityLog||[];documents=data.documents||[];trash=data.trash||[];totp=data.totp||[];customCats=data.customCats||[];docFolders=data.docFolders||[];currentFolderId=null;vaultFolders=data.vaultFolders||[];currentVaultFolderId=null;wifiNets=data.wifiNets||[];legacyNote=data.legacyNote||'';legacyOwner=data.legacyOwner||'';personalInfo=data.personalInfo||[];subscriptions=data.subscriptions||[];storeCards=data.storeCards||[];assets=data.assets||[];vaultName=data.vaultName||'';
   totpRecWrap=data.totpRecWrap||null;totpEnc=data.totpEnc||null;totpKey=null;totpUnlocked=false;
   totp=totpRecWrap?[]:(data.totp||[]);cleanOldTrash();
@@ -5203,18 +5254,13 @@ async function submitOpenVault(pwArg){
     setTimeout(()=>{try{renderNotifBtn();checkNotifs();}catch(e){}},2500);
     applyPendingGo();
     setTimeout(()=>{try{driveCheckOnOpen();}catch(e){}},500);
-  }catch{
-    if(quick){
-      await clearQuickUnlock();
-      await refreshQuickUnlock();
-      setLockError(currentLang==='en'
-        ?'Saved unlock no longer matches this vault — use the master password.'
-        :'O desbloqueio guardado já não corresponde a este cofre — usa a chave mestra.');
-      return;
-    }
-    handleFailedAttempt();
+  }catch(e){
+    console.error('open vault:',e);
+    masterKey=null;masterPwRaw='';
+    setLockError(currentLang==='en'?'The vault could not be loaded.':'Não foi possível carregar o cofre.');
   }
 }
+let _openBusy=false;
 function checkNewPwMatch(){
   const p1=document.getElementById('new-pw1').value;
   const p2=document.getElementById('new-pw2').value;
@@ -5234,12 +5280,23 @@ async function submitNewVault(){
   const p2=document.getElementById('new-pw2').value;
   if(p1.length<4){setLockError(t('lockMinChars'));return;}
   if(p1!==p2){setLockError(currentLang==='en'?'Passwords do not match!':'As passwords não coincidem!');return;}
+  // O cofre novo não pode herdar o destino de gravação do anterior (ficheiro memorizado, cópia no dispositivo, Drive)
+  if(!FSA_OK||driveOn()){
+    const en=currentLang==='en',msgs=[];
+    let hasLocal=false;try{const l=await localVaultGet();hasLocal=!!(l&&l.json);}catch(e){}
+    if(!FSA_OK&&hasLocal)msgs.push(en?'This device already stores a vault — the new one will replace it here (export a copy of the old one first).':'Este dispositivo já guarda um cofre — o novo vai substituí-lo aqui (exporta antes uma cópia do antigo).');
+    if(driveOn())msgs.push(en?'Google Drive sync will be turned off on this device, so the vault on Drive is not replaced.':'A sincronização com o Google Drive fica desligada neste dispositivo, para o cofre que está no Drive não ser substituído.');
+    if(msgs.length&&!confirm(msgs.join('\n\n')+'\n\n'+(en?'Continue?':'Continuar?')))return;
+    if(driveOn())dCfg('on',null);
+  }
+  vaultFileHandle=null;pendingVaultFile=null;pendingVaultText=null;
+  resetVaultState();
   masterPwRaw=p1;
   const nm=document.getElementById('new-name');
   vaultName=nm?nm.value.trim():'';
   const salt=crypto.getRandomValues(new Uint8Array(16));
   masterKey=await deriveKey(p1,salt);
-  window._salt=salt;vault=[];notes=[];bankCards=[];
+  window._salt=salt;
   try{localStorage.setItem('av_mode','simple');localStorage.removeItem('av_onb_hide');}catch(e){}
   doUnlock();
 }
@@ -5289,10 +5346,19 @@ function doUnlock(){
     setTimeout(()=>checkFirstTime(),600);
   },unlockDelay);
 }
+// Apaga da memória TODOS os dados do cofre (antes ficavam para trás info pessoal, subscrições, cartões de loja,
+// bens e o nome — e um cofre novo criado a seguir herdava-os)
+function resetVaultState(){
+  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];legacyNote='';legacyOwner='';
+  personalInfo=[];subscriptions=[];storeCards=[];assets=[];vaultName='';
+  totpEnc=null;totpRecWrap=null;totpKey=null;totpUnlocked=false;session2faRaw=null;payloadExtras={};vaultReadOnly=false;
+  pendingImportData=[];pendingDocFile=null;entryAttachment=null;entryAttachments=[];assetAttachments=[];entryFields=[];
+}
 function lockApp(){
   if(presentationMode){exitPresentationMode();return;}
   try{closeGlobalSearch();}catch(e){}
-  vault=[];notes=[];bankCards=[];activityLog=[];documents=[];trash=[];totp=[];customCats=[];docFolders=[];currentFolderId=null;vaultFolders=[];currentVaultFolderId=null;wifiNets=[];legacyNote='';legacyOwner='';totpEnc=null;totpRecWrap=null;totpKey=null;totpUnlocked=false;session2faRaw=null;payloadExtras={};vaultReadOnly=false;masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
+  try{closeQrScanner();}catch(e){}
+  resetVaultState();masterKey=null;masterPwRaw='';currentCat='all';currentTag='';
   hasUnsaved=false;editingNoteId=null;editingId=null;
   stopAutoLock();
   const app=document.getElementById('app');
@@ -5625,9 +5691,7 @@ function exportCSV(){
     (e.notes||'').replace(/\n/g,' '),(e.tags||[]).join(';')
   ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
   const csv=[headers.join(','),...rows].join('\n');
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='ciphervault_export.csv';a.click();
+  downloadBlob(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),'ciphervault_export.csv');
   toast(currentLang==='en'?'CSV exported! ✓':'CSV exportado! ✓');
 }
 // ══ SETTINGS ══
@@ -6362,34 +6426,36 @@ function renderDashboard(){
   const alerts=[];
   if(total===0)alerts.push({type:'warn',icon:'💡',text:t('alertEmpty'),sub:t('alertEmptySub')});
   const common=active.filter(e=>isCommonPassword(e.pw));
-  if(weak>0){const names=active.filter(e=>getPwScore(e.pw)<2).map(e=>e.name).join(', ');alerts.push({type:'danger',icon:'⚠️',text:`${weak} ${t('alertWeak')}`,sub:names});}
-  if(common.length>0){const names=common.map(e=>e.name).join(', ');alerts.push({type:'danger',icon:'🚨',text:`${common.length} ${t('alertCommon')}`,sub:names});}
-  if(dups>0){const names=active.filter(e=>e.pw&&pwMap[e.pw]>1).map(e=>e.name).join(', ');alerts.push({type:'danger',icon:'🔁',text:`${dups} ${t('alertDups')}`,sub:names});}
-  if(old>0){const names=active.filter(e=>e.pwUpdated&&(now-e.pwUpdated)>180*86400000).map(e=>e.name).join(', ');alerts.push({type:'warn',icon:'⏰',text:`${old} ${t('alertOld')}`,sub:names});}
+  // Os nomes vêm do cofre (e de ficheiros/CSV importados): têm de ser escapados antes de irem para o innerHTML
+  const namesOf=list=>list.map(e=>esc(e.name)).join(', ');
+  if(weak>0){const names=namesOf(active.filter(e=>getPwScore(e.pw)<2));alerts.push({type:'danger',icon:'⚠️',text:`${weak} ${t('alertWeak')}`,sub:names});}
+  if(common.length>0){const names=namesOf(common);alerts.push({type:'danger',icon:'🚨',text:`${common.length} ${t('alertCommon')}`,sub:names});}
+  if(dups>0){const names=namesOf(active.filter(e=>e.pw&&pwMap[e.pw]>1));alerts.push({type:'danger',icon:'🔁',text:`${dups} ${t('alertDups')}`,sub:names});}
+  if(old>0){const names=namesOf(active.filter(e=>e.pwUpdated&&(now-e.pwUpdated)>180*86400000));alerts.push({type:'warn',icon:'⏰',text:`${old} ${t('alertOld')}`,sub:names});}
   // Entradas duplicadas (mesmo nome + utilizador) — típico de importações repetidas
   const dupEntries=findDuplicateEntries();
   if(dupEntries.length>0){
-    const names=dupEntries.map(g=>g.name).join(', ');
+    const names=namesOf(dupEntries);
     alerts.push({type:'warn',icon:'👥',text:`${dupEntries.length} ${t('alertDupEntries')}`,sub:names,action:'dedupe'});
   }
   if(weak===0&&common.length===0&&dups===0&&old===0&&dupEntries.length===0&&total>0)alerts.push({type:'good',icon:'✅',text:t('alertGood'),sub:t('alertGoodSub')});
   // Card expiry alerts
-  const now2=new Date();  bankCards.forEach(card=>{
-    if(!card.expiry||card.expiry.length<5)return;
-    const [mm,yy]=card.expiry.split('/');
-    if(!mm||!yy)return;
-    const exp=new Date(2000+parseInt(yy),parseInt(mm)-1,1);
-    const daysLeft=Math.floor((exp-now2)/(1000*60*60*24));
-    if(daysLeft<0)alerts.push({type:'danger',icon:'💳',text:`${esc(card.bank)}: ${t('cardExpired')}`,sub:card.expiry});
-    else if(daysLeft<=60)alerts.push({type:'warn',icon:'💳',text:`${esc(card.bank)}: ${t('cardExpiringSoon')}`,sub:`${card.expiry} — ${daysLeft} ${t('cardDaysLeft')}`});
+  bankCards.forEach(card=>{
+    if(card.archived)return;
+    // Um cartão «MM/AA» é válido até ao ÚLTIMO dia desse mês (antes contava-se a partir do dia 1)
+    const exp=cardExpiryToDate(card.expiry);
+    if(!exp)return;
+    const daysLeft=calDaysUntil(exp);
+    if(daysLeft<0)alerts.push({type:'danger',icon:'💳',text:`${esc(card.bank)}: ${t('cardExpired')}`,sub:esc(card.expiry)});
+    else if(daysLeft<=60)alerts.push({type:'warn',icon:'💳',text:`${esc(card.bank)}: ${t('cardExpiringSoon')}`,sub:`${esc(card.expiry)} — ${daysLeft} ${t('cardDaysLeft')}`});
   });
   // Document expiry alerts
   documents.forEach(doc=>{
     if(!doc.expiry)return;
     const status=getExpiryStatus(doc.expiry);
     if(!status)return;
-    if(status.cls==='expired')alerts.push({type:'danger',icon:'📁',text:`${esc(doc.title)}: ${currentLang==='en'?'Document expired!':'Documento expirado!'}`,sub:doc.expiry});
-    else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:doc.expiry});
+    if(status.cls==='expired')alerts.push({type:'danger',icon:'📁',text:`${esc(doc.title)}: ${currentLang==='en'?'Document expired!':'Documento expirado!'}`,sub:esc(doc.expiry)});
+    else if(status.cls==='soon')alerts.push({type:'warn',icon:'📁',text:`${esc(doc.title)}: ${status.label}`,sub:esc(doc.expiry)});
   });
   // Renovações de subscrições
   (subscriptions||[]).forEach(s=>{
@@ -6553,22 +6619,24 @@ function vaultCatInfo(key){
 }
 function allEntryCats(){return Object.keys(CATS).filter(k=>k!=='all').map(k=>vaultCatInfo(k)).concat(customCats.map(cu=>vaultCatInfo(cu.key)));}
 function renderSidebar(){
-  const el=document.getElementById('sidebar-cats');el.innerHTML='';
+  const el=document.getElementById('sidebar-cats');
   const active=vault.filter(e=>!e.archived);
   document.getElementById('sb-cats-title').textContent=t('sbCats');
+  const catCount={};active.forEach(e=>{catCount[e.cat]=(catCount[e.cat]||0)+1;});
   const sideCats=[{key:'all',icon:CATS.all.icon,label:getCatLabel('all')}].concat(allEntryCats());
-  sideCats.forEach(({key,icon,label})=>{
-    const count=key==='all'?active.length:active.filter(e=>e.cat===key).length;
-    el.innerHTML+=`<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" onclick="selectCat('${key}')"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
-  });
+  // Uma só escrita no DOM (o «innerHTML +=» dentro do ciclo voltava a analisar tudo a cada item)
+  el.innerHTML=sideCats.map(({key,icon,label})=>{
+    const count=key==='all'?active.length:(catCount[key]||0);
+    return `<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" onclick="selectCat(${jsq(key)})"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
+  }).join('');
   // Tags sidebar
-  const tagsEl=document.getElementById('sidebar-tags');tagsEl.innerHTML='';
+  const tagsEl=document.getElementById('sidebar-tags');
   document.getElementById('sb-tags-title').textContent=t('sbTags');
   const allTags=[...new Set(active.flatMap(e=>e.tags||[]))];
-  if(allTags.length){
-    tagsEl.innerHTML=`<div class="cat-item ${currentTag===''&&false?'active':''}" onclick="selectTag('')"><span>🏷️</span><span>${t('tagAll')}</span></div>`;
-    allTags.forEach(tag=>{tagsEl.innerHTML+=`<div class="cat-item ${currentTag===tag?'active':''}" onclick="selectTag('${esc(tag)}')"><span>🏷️</span><span>${esc(tag)}</span></div>`;});
-  }
+  tagsEl.innerHTML=allTags.length
+    ?`<div class="cat-item" onclick="selectTag('')"><span>🏷️</span><span>${t('tagAll')}</span></div>`
+      +allTags.map(tag=>`<div class="cat-item ${currentTag===tag?'active':''}" onclick="selectTag(${jsq(tag)})"><span>🏷️</span><span>${esc(tag)}</span></div>`).join('')
+    :'';
 }
 function selectCat(cat){currentCat=cat;currentTag='';document.getElementById('content-title').textContent=cat==='all'?t('allEntries'):getCatLabel(cat);renderSidebar();renderCards();}
 function selectTag(tag){currentTag=tag;currentCat='all';document.getElementById('content-title').textContent=tag||t('allEntries');renderSidebar();renderCards();}
@@ -6651,13 +6719,13 @@ function renderCards(){
       </div>
       <div class="card-name">${entry.flag?`<span class="entry-flag-dot" style="background:${(ENTRY_FLAGS.find(f=>f.id===entry.flag)||{}).color||'transparent'}"></span>`:''}${esc(entry.name)}</div><div class="pw-badges">${weakBadge}${ageBadge}</div>
       ${vFilterActive&&entry.folderId?`<div class="doc-loc">📍 ${esc(scopePathLabel(entry.folderId,'vault'))}</div>`:''}
-      ${(()=>{const ats=normalizeAttachments(entry);const im=ats.find(x=>(x.type||'').startsWith('image/'));return im?`<img class="card-attachment" src="${im.data}" alt="anexo">`:'';})()}
-      ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText('${esc(entry.user)}','${t('userCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
+      ${(()=>{const ats=normalizeAttachments(entry);const im=ats.find(x=>(x.type||'').startsWith('image/'));return im?`<img class="card-attachment" src="${esc(im.data)}" alt="anexo">`:'';})()}
+      ${entry.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(entry.user)}</span><button class="card-btn" onclick="copyText(${jsq(entry.user)},${jsq(t('userCopied'))})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
       ${entry.pw?`<div class="card-field"><span class="card-field-label">${t('cardPw')}</span><div class="card-field-inner"><span class="card-field-value masked" id="pw-${entry.id}">••••••••</span><button class="card-btn" onclick="togglePw('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="avCopyPw('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`:''}
-      ${entry.url?`<div class="card-field"><span class="card-field-label">${t('cardUrl')}</span><div class="card-field-inner"><a href="${esc(entry.url)}" target="_blank" class="card-field-value" style="color:var(--accent-dim);text-decoration:none;font-size:.7rem">${esc(entry.url)}</a></div></div>`:''}
-      ${(entry.fields||[]).map(f=>`<div class="card-field"><span class="card-field-label">${esc(f.k)}</span><div class="card-field-inner"><span class="card-field-value">${esc(f.v)}</span><button class="card-btn" onclick="copyText('${esc(f.v)}','✓')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`).join('')}
+      ${entry.url?`<div class="card-field"><span class="card-field-label">${t('cardUrl')}</span><div class="card-field-inner"><a${siteHref(entry.url)?` href="${esc(siteHref(entry.url))}"`:''} target="_blank" rel="noopener noreferrer" class="card-field-value" style="color:var(--accent-dim);text-decoration:none;font-size:.7rem">${esc(entry.url)}</a></div></div>`:''}
+      ${(entry.fields||[]).map(f=>`<div class="card-field"><span class="card-field-label">${esc(f.k)}</span><div class="card-field-inner"><span class="card-field-value">${esc(f.v)}</span><button class="card-btn" onclick="copyText(${jsq(f.v)},'✓')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>`).join('')}
       ${entry.notes?`<div class="card-field"><span class="card-field-label">${t('cardNotes')}</span><div class="card-field-inner"><span class="card-field-value" style="white-space:normal;font-size:.65rem;color:var(--text-muted)">${esc(entry.notes)}</span></div></div>`:''}
-      ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i},'${esc(p)}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="copyText('${esc(p)}','${t('pwCopied')}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
+      ${entry.pwHistory&&entry.pwHistory.length?`<div class="card-field"><span class="card-field-label" style="cursor:pointer" onclick="toggleHistory('${entry.id}')">🕒 ${t('pwHistory')} (${entry.pwHistory.length})</span><div id="hist-${entry.id}" style="display:none;margin-top:4px;display:flex;flex-direction:column;gap:3px;display:none">${entry.pwHistory.map((p,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--text-muted)"><span style="width:14px;opacity:.5">${i+1}.</span><span class="card-field-value masked" id="hist-pw-${entry.id}-${i}">••••••••</span><button class="card-btn" onclick="toggleHistPw('${entry.id}',${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="card-btn" onclick="avCopyHistPw('${entry.id}',${i})"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>`).join('')}</div></div>`:''}
       ${attachChips(entry,'vault')}
       <div class="card-actions">
         ${entry.url?`<button class="card-btn" onclick="event.stopPropagation();avGoSite('${entry.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${t('btnGoSite')}</button>`:''}
@@ -6680,7 +6748,15 @@ function dragStart(e,id){
   dragSrcId=id;
   setTimeout(()=>{const el=document.getElementById('card-'+id);if(el)el.classList.add('dragging');},0);
 }
-function dragOver(e,id){e.preventDefault();document.querySelectorAll('.entry-card').forEach(c=>c.classList.remove('drag-over'));const el=document.getElementById('card-'+id);if(el&&id!==dragSrcId)el.classList.add('drag-over');}
+// O «dragover» dispara dezenas de vezes por segundo: só mexe no cartão que muda (antes percorria todos)
+let _dragOverEl=null;
+function dragOver(e,id){
+  e.preventDefault();
+  const el=document.getElementById('card-'+id),tgt=el&&id!==dragSrcId?el:null;
+  if(tgt===_dragOverEl)return;
+  if(_dragOverEl)_dragOverEl.classList.remove('drag-over');
+  _dragOverEl=tgt;if(tgt)tgt.classList.add('drag-over');
+}
 function dragDrop(targetId){
   if(!dragSrcId||dragSrcId===targetId)return;
   const srcIdx=vault.findIndex(v=>v.id===dragSrcId);
@@ -6688,12 +6764,15 @@ function dragDrop(targetId){
   if(srcIdx<0||tgtIdx<0)return;
   const [removed]=vault.splice(srcIdx,1);vault.splice(tgtIdx,0,removed);
   vault.forEach((e,i)=>e.order=i);
-  renderCards();renderSidebar();
+  renderCards();renderSidebar();markUnsaved();
 }
-function dragEnd(){dragSrcId=null;document.querySelectorAll('.entry-card').forEach(c=>{c.classList.remove('dragging');c.classList.remove('drag-over');});}
+function dragEnd(){dragSrcId=null;_dragOverEl=null;document.querySelectorAll('.entry-card.dragging,.entry-card.drag-over').forEach(c=>{c.classList.remove('dragging');c.classList.remove('drag-over');});}
 
 function toggleHistory(id){const el=document.getElementById('hist-'+id);if(el)el.style.display=el.style.display==='none'?'flex':'none';}
-function toggleHistPw(entryId,idx,pw){const el=document.getElementById(`hist-pw-${entryId}-${idx}`);if(!el)return;if(el.classList.contains('masked')){el.textContent=pw;el.classList.remove('masked');}else{el.textContent='••••••••';el.classList.add('masked');}}
+// As passwords antigas já não vão escritas no HTML dos botões: são lidas do cofre quando precisas
+function histPwOf(entryId,idx){const e=vault.find(x=>x.id===entryId);return e&&e.pwHistory?e.pwHistory[idx]||'':'';}
+function toggleHistPw(entryId,idx){const el=document.getElementById(`hist-pw-${entryId}-${idx}`);if(!el)return;if(el.classList.contains('masked')){el.textContent=histPwOf(entryId,idx);el.classList.remove('masked');}else{el.textContent='••••••••';el.classList.add('masked');}}
+function avCopyHistPw(entryId,idx){const pw=histPwOf(entryId,idx);if(pw)copyText(pw,t('pwCopied'));}
 
 function togglePw(id,pw){if(pw===undefined){const e=vault.find(x=>x.id===id);pw=e?e.pw:'';}const el=document.getElementById('pw-'+id);if(el.classList.contains('masked')){el.textContent=pw;el.classList.remove('masked');}else{el.textContent='••••••••';el.classList.add('masked');}}
 
@@ -6709,14 +6788,16 @@ const SERVICE_ICONS={
   novobanco:'🏦',bpi:'🏦',bcp:'🏦',montepio:'🏦',
   outlook:'📧',hotmail:'📧',yahoo:'📧',icloud:'☁️',
 };
+// Chaves curtas (x, cgd, bpi, bcp) só contam como palavra inteira — «Xpto» não é o X/Twitter.
+// As expressões são compiladas uma vez (antes, a cada entrada de cada render).
+function wordKeyMatcher(key){return key.length<=3?new RegExp('(^|[^a-z0-9])'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)','i'):key;}
+function keyMatches(m,hay){return typeof m==='string'?hay.includes(m):m.test(hay);}
+let _svcMatchers=null;
 function getServiceIcon(name){
   if(!name)return null;
-  const lower=name.toLowerCase();
-  for(const[key,icon] of Object.entries(SERVICE_ICONS)){
-    // chaves curtas (x, cgd, bpi, bcp) só contam como palavra inteira — «Xpto» não é o X/Twitter
-    if(key.length<=3){if(new RegExp('(^|[^a-z0-9])'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)').test(lower))return icon;}
-    else if(lower.includes(key))return icon;
-  }
+  const lower=String(name).toLowerCase();
+  if(!_svcMatchers)_svcMatchers=Object.entries(SERVICE_ICONS).map(([key,icon])=>({m:wordKeyMatcher(key),icon}));
+  for(const s of _svcMatchers)if(keyMatches(s.m,lower))return s.icon;
   return null;
 }
 
@@ -6989,15 +7070,16 @@ function exportCalendarIcs(){
   toast(en?`${all.length} events exported.`:`${all.length} eventos exportados.`);
 }
 // ══ NOTIFICAÇÕES DE VALIDADES/RENOVAÇÕES ══
-let notifsOn=localStorage.getItem('av_notifs')==='1';
+let notifsOn=false;try{notifsOn=localStorage.getItem('av_notifs')==='1';}catch(e){}   // sem try, armazenamento bloqueado parava o script todo
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 async function toggleNotifs(){
   const en=currentLang==='en';
-  if(notifsOn){notifsOn=false;localStorage.setItem('av_notifs','0');renderNotifBtn();toast(en?'Notifications off.':'Notificações desligadas.');return;}
+  if(notifsOn){notifsOn=false;lsSet('av_notifs','0');renderNotifBtn();toast(en?'Notifications off.':'Notificações desligadas.');return;}
   if(!('Notification' in window)){toast(en?'Not supported on this device.':'Não suportado neste dispositivo.');return;}
   let p=Notification.permission;
   if(p!=='granted')p=await Notification.requestPermission();
   if(p!=='granted'){toast(en?'Permission denied.':'Permissão negada.');return;}
-  notifsOn=true;localStorage.setItem('av_notifs','1');renderNotifBtn();
+  notifsOn=true;lsSet('av_notifs','1');renderNotifBtn();
   toast(en?'Notifications on.':'Notificações ligadas.');
   checkNotifs();
 }
@@ -7015,8 +7097,11 @@ function checkNotifs(){
   const y=today.getFullYear();
   let all=[];
   try{all=calAllEvents(y).concat(calAllEvents(y+1));}catch(e){return;}
-  const seen=JSON.parse(localStorage.getItem('av_notif_seen')||'{}');
+  let seen={};try{seen=JSON.parse(localStorage.getItem('av_notif_seen')||'{}')||{};}catch(e){}
   const todayKey=today.toISOString().slice(0,10);
+  // esquece avisos com mais de 60 dias (antes o registo crescia para sempre)
+  const oldest=new Date(today.getTime()-60*86400000).toISOString().slice(0,10);
+  Object.keys(seen).forEach(k=>{if(!(seen[k]>=oldest))delete seen[k];});
   let sent=0;
   all.forEach(e=>{
     if(e.type==='holiday')return;
@@ -7029,13 +7114,16 @@ function checkNotifs(){
     if(seen[key]===todayKey)return;
     if(sent>=3)return;
     const when=days===0?(en?'today':'hoje'):days===1?(en?'tomorrow':'amanhã'):(en?`in ${days} days`:`em ${days} dias`);
-    const typeTxt=e.type==='renew'?(en?'Renewal':'Renovação'):e.type==='doc'?(en?'Document expiry':'Validade de documento'):(en?'Card expiry':'Validade de cartão');
-    try{
-      new Notification('Aurora Vault — '+typeTxt,{body:e.label+' · '+when,icon:'icon-192.png',tag:key});
-      seen[key]=todayKey;sent++;
-    }catch(err){}
+    const typeTxt=calTypeLabel(e.type);   // antes, garantias/licenças/veículos/datas apareciam como «Validade de cartão»
+    const title='Aurora Vault — '+typeTxt,opts={body:e.label+' · '+when,icon:'icon-192.png',tag:key};
+    try{new Notification(title,opts);}
+    catch(err){   // Android: o construtor não existe, só via service worker
+      if(!(navigator.serviceWorker&&navigator.serviceWorker.controller))return;
+      navigator.serviceWorker.ready.then(r=>r.showNotification(title,opts)).catch(()=>{});
+    }
+    seen[key]=todayKey;sent++;
   });
-  localStorage.setItem('av_notif_seen',JSON.stringify(seen));
+  lsSet('av_notif_seen',JSON.stringify(seen));
 }
 function renderUpcoming(){
   const box=document.getElementById('cal-upcoming');if(!box)return;
@@ -7134,16 +7222,24 @@ function generateUsername(){
 }
 
 // ══ GO TO SITE ══
+// Endereço seguro para abrir: sem esquema → https://; bloqueia javascript:, data:, etc.
+function siteHref(u){
+  u=String(u||'').trim();if(!u)return '';
+  const m=u.match(/^([a-z][a-z0-9+.-]*):(\/\/)?/i);
+  const isScheme=m&&(m[2]||/^(mailto|tel|sms|javascript|data|vbscript|blob|file|about)$/i.test(m[1]));
+  if(!isScheme)return 'https://'+u.replace(/^\/+/,'');
+  return /^(javascript|data|vbscript|blob|file|about)$/i.test(m[1])?'':u;
+}
+// «noopener»: o site aberto deixa de poder redirecionar este separador (reverse tabnabbing).
+// A password copiada passa a ser apagada da área de transferência ao fim de 30 s, como nos outros botões.
 function goToSite(){
   const url=document.getElementById('f-url').value.trim();
   if(!url){toast(currentLang==='en'?'Enter a URL first!':'Insere um URL primeiro!');return;}
-  const pw=document.getElementById('f-pw').value;
-  if(pw)navigator.clipboard.writeText(pw).then(()=>toast(t('pwCopied')));
-  window.open(url.startsWith('http')?url:'https://'+url,'_blank');
+  goToSiteEntry(url,document.getElementById('f-pw').value);
 }
 function goToSiteEntry(url,pw){
-  if(pw)navigator.clipboard.writeText(pw).then(()=>toast(t('pwCopied')));
-  window.open(url.startsWith('http')?url:'https://'+url,'_blank');
+  if(pw)copyText(pw,t('pwCopied'));
+  const h=siteHref(url);if(h)window.open(h,'_blank','noopener');
 }
 function toggleFav(id){const e=vault.find(v=>v.id===id);if(e){e.fav=!e.fav;renderCards();renderSidebar();renderDashboard();markUnsaved();}}
 function toggleReviewed(id){
@@ -7175,7 +7271,7 @@ function copyText(text,msg){
     if(msg===t('pwCopied')||msg==='Password copiada!'||msg==='Password copied!'){
       startClipboardTimer();
     }
-  });
+  }).catch(()=>toast(currentLang==='en'?'Could not copy — try again.':'Não foi possível copiar — tenta outra vez.'));
 }
 function startClipboardTimer(){
   if(clipboardTimerInterval)clearInterval(clipboardTimerInterval);
@@ -7196,6 +7292,9 @@ function startClipboardTimer(){
   },1000);
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+// Texto como argumento de um onclick="…": literal JS válido, escapado para o atributo.
+// ('${esc(x)}' não chega: o browser converte &#39; de volta em ' antes de correr o código → «O'Brien» partia o botão)
+function jsq(s){return esc(JSON.stringify(String(s??'')));}
 
 // ══ ARCHIVE ══
 function renderArchive(){
@@ -7322,11 +7421,13 @@ function editEntry(id){openModal(id);}
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;entryTags=[];entryAttachments=[];entryAttachment=null;entryFields=[];}
 function saveEntry(){
   const name=document.getElementById('f-name').value.trim();
-  if(!name){alert(t('confirmDelete').replace('?','')||'Nome obrigatório!');return;}
+  if(!name){alert(t('nameRequired'));return;}
   const pw=document.getElementById('f-pw').value;
   const existing=editingId?vault.find(v=>v.id===editingId):null;
+  const wasEditing=!!existing;
   const pwChanged=!existing||existing.pw!==pw;
   const entry={
+    ...(existing||{}),attachment:undefined,
     id:editingId||Date.now().toString(36),name,cat:document.getElementById('f-cat').value,
     user:document.getElementById('f-user').value.trim(),pw,url:document.getElementById('f-url').value.trim(),
     notes:document.getElementById('f-notes').value.trim(),tags:[...entryTags],flag:selectedFlag||'',
@@ -7336,12 +7437,13 @@ function saveEntry(){
     attachments:entryAttachments,fav:existing?existing.fav:false,archived:false,icon:entryEmoji,
     createdAt:existing?existing.createdAt:Date.now(),order:existing?existing.order:vault.length,
     pwUpdated:pwChanged?Date.now():(existing?existing.pwUpdated:Date.now()),
-    pwHistory:pwChanged&&existing?([(existing.pw),...(existing.pwHistory||[])].slice(0,3)):(existing?existing.pwHistory||[]:null),
+    pwHistory:pwChanged&&existing?([existing.pw,...(existing.pwHistory||[])].filter(Boolean).slice(0,3)):(existing?existing.pwHistory||[]:null),
     reviewedAt:existing?existing.reviewedAt||null:null,
   };
-  if(editingId){const idx=vault.findIndex(v=>v.id===editingId);vault[idx]=entry;}else vault.push(entry);
-  logActivity(editingId?'edit':'add', name, entryEmoji||'📝');
-  closeModal();renderAll();toast(editingId?t('toastUpdated'):t('toastAdded'));markUnsaved();
+  const idx=wasEditing?vault.indexOf(existing):-1;
+  if(idx>=0)vault[idx]=entry;else vault.push(entry);
+  logActivity(wasEditing?'edit':'add', name, entryEmoji||'📝');
+  closeModal();renderAll();toast(wasEditing?t('toastUpdated'):t('toastAdded'));markUnsaved();
 }
 function deleteEntry(id){
   if(!confirm(currentLang==='en'?'Move this entry to the recycle bin?':'Mover esta entrada para a reciclagem?'))return;
@@ -7356,7 +7458,7 @@ function renderTagPills(){
   const pillsEl=document.getElementById('tag-pills');
   if(!pillsEl)return;
   pillsEl.innerHTML=entryTags.map(tag=>
-    `<span class="tag-pill">${esc(tag)}<button type="button" onclick="removeTag('${esc(tag)}')">✕</button></span>`
+    `<span class="tag-pill">${esc(tag)}<button type="button" onclick="removeTag(${jsq(tag)})">✕</button></span>`
   ).join('');
 }
 function handleTagKey(e){
@@ -7425,7 +7527,7 @@ function handleAttachment(ev,ctx){
       if(--pend===0)renderAttachList(ctx);
     };
     if(file.type&&file.type.startsWith('image/'))compressImage(file,done);
-    else{const rd=new FileReader();rd.onload=e=>done(e.target.result);rd.onerror=()=>{pend--;};rd.readAsDataURL(file);}
+    else{const rd=new FileReader();rd.onload=e=>done(e.target.result);rd.onerror=()=>{if(--pend===0)renderAttachList(ctx);};rd.readAsDataURL(file);}
   });
   ev.target.value='';
 }
@@ -7454,19 +7556,25 @@ function renderAttachList(ctx){
     '<div class="att-total">'+list.length+' '+(en?'file(s)':'ficheiro(s)')+' · '+fmtSize(total)+
     (total>3*1024*1024?' <span style="color:var(--accent)">'+(en?'— heavy, the vault file grows':'— pesado, o ficheiro do cofre cresce')+'</span>':'')+'</div>';
 }
+// Só tipos inofensivos abrem no browser; o resto (HTML, SVG…) é descarregado. Um blob abre com a origem da app:
+// um anexo HTML/SVG (ex.: vindo de um ficheiro partilhado) corria código com acesso ao cofre aberto.
+const ATT_VIEW_OK=/^(image\/(png|jpe?g|gif|webp|bmp|avif)|application\/pdf|text\/plain)$/i;
 function openAttachData(a){
-  if(!a)return;
+  if(!a||typeof a.data!=='string')return;
   try{
     const parts=a.data.split(',');
     const bin=atob(parts[1]);
     const arr=new Uint8Array(bin.length);
     for(let k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);
-    const blob=new Blob([arr],{type:a.type||'application/octet-stream'});
+    const viewable=ATT_VIEW_OK.test(a.type||'');
+    const blob=new Blob([arr],{type:viewable?a.type:'application/octet-stream'});
+    if(!viewable){downloadBlob(blob,a.name||'anexo');return;}
     const url=URL.createObjectURL(blob);
-    window.open(url,'_blank');
+    const w=window.open(url,'_blank');if(w)try{w.opener=null;}catch(e){}
     setTimeout(()=>URL.revokeObjectURL(url),30000);
   }catch(e){
-    const w=window.open();if(w)w.document.write('<img src="'+a.data+'" style="max-width:100%">');
+    if(!/^data:image\//i.test(a.data))return;
+    const w=window.open();if(w){try{w.opener=null;}catch(_){}w.document.write('<img src="'+esc(a.data)+'" style="max-width:100%">');}
   }
 }
 function openAttachment(ctx,i){openAttachData(attachListOf(ctx)[i]);}
@@ -7649,9 +7757,11 @@ function checkDuplicate(){
   if(!pw){warn.classList.remove('show');return;}
   warn.classList.toggle('show',vault.filter(e=>!e.archived).some(e=>e.pw===pw&&e.id!==editingId));
 }
+// Índice aleatório uniforme em [0,n): rejeita os valores que dariam viés («byte % 70» favorecia os 46 primeiros caracteres)
+function randIndex(n){const lim=Math.floor(0x100000000/n)*n,b=new Uint32Array(1);do{crypto.getRandomValues(b);}while(b[0]>=lim);return b[0]%n;}
+function randomString(chars,len){let s='';for(let i=0;i<len;i++)s+=chars[randIndex(chars.length)];return s;}
 function generatePw(){
-  const chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-  let pw='';const arr=new Uint8Array(20);crypto.getRandomValues(arr);arr.forEach(b=>pw+=chars[b%chars.length]);
+  const pw=randomString('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*',20);
   document.getElementById('f-pw').value=pw;checkPwStrength();checkDuplicate();
 }
 
@@ -7675,15 +7785,14 @@ function updatePwGen(){
     {const e=document.getElementById('pgm-words-val');if(e)e.textContent=nWords;}
     const cap=document.getElementById('pgm-cap').checked;
     const num=document.getElementById('pgm-num').checked;
-    const idx=new Uint32Array(nWords);crypto.getRandomValues(idx);
     const words=[];
     for(let i=0;i<nWords;i++){
-      let w=PASSPHRASE_WORDS[idx[i]%PASSPHRASE_WORDS.length];
+      let w=PASSPHRASE_WORDS[randIndex(PASSPHRASE_WORDS.length)];
       if(cap)w=w.charAt(0).toUpperCase()+w.slice(1);
       words.push(w);
     }
     pw=words.join('-');
-    if(num){const n=new Uint8Array(1);crypto.getRandomValues(n);pw+='-'+(n[0]%90+10);}
+    if(num)pw+='-'+(randIndex(90)+10);
   }else{
     const len=parseInt(document.getElementById('pwgen-len').value);
     {const e=document.getElementById('pwgen-len-val');if(e)e.textContent=len;}
@@ -7693,7 +7802,7 @@ function updatePwGen(){
     if(document.getElementById('pg-numbers').checked)chars+='0123456789';
     if(document.getElementById('pg-symbols').checked)chars+='!@#$%^&*()_+-=[]{}|;:,.<>?';
     if(!chars)chars='abcdefghijklmnopqrstuvwxyz';
-    const arr=new Uint8Array(len);crypto.getRandomValues(arr);arr.forEach(b=>pw+=chars[b%chars.length]);
+    pw=randomString(chars,len);
   }
   document.getElementById('pwgen-result').value=pw;
   // Força: para frases longas, o comprimento garante força
@@ -7811,7 +7920,9 @@ function formatExpiry(el){
 function saveCard(){
   const bank=document.getElementById('card-bank').value.trim();
   if(!bank){alert(t('cardRequired'));return;}
+  const existing=editingCardId?bankCards.find(c=>c.id===editingCardId):null;
   const card={
+    ...(existing||{}),
     id:editingCardId||Date.now().toString(36),
     bank,holder:document.getElementById('card-holder').value.trim(),
     number:document.getElementById('card-number').value.trim(),
@@ -7820,12 +7931,12 @@ function saveCard(){
     pin:document.getElementById('card-pin').value,
     cvv:(document.getElementById('card-cvv')||{}).value||'',
     notes:document.getElementById('card-notes').value.trim(),
-    color:selectedCardColor,createdAt:Date.now(),
+    color:selectedCardColor,createdAt:existing&&existing.createdAt||Date.now(),
   };
-  if(editingCardId){const idx=bankCards.findIndex(c=>c.id===editingCardId);bankCards[idx]=card;}
-  else bankCards.push(card);
+  const idx=existing?bankCards.indexOf(existing):-1;
+  if(idx>=0)bankCards[idx]=card;else bankCards.push(card);
   closeCardModal();renderBankCards();
-  toast(editingCardId?t('cardUpdated'):t('cardAdded'));markUnsaved();
+  toast(existing?t('cardUpdated'):t('cardAdded'));markUnsaved();
 }
 function deleteCard(id){
   if(!confirm(currentLang==='en'?'Move this card to the recycle bin?':'Mover este cartão para a reciclagem?'))return;
@@ -7895,6 +8006,10 @@ async function changeMasterPw(){
   if(totpUnlocked)totpEnc=await encryptTotpArray();
   const payload=await encrypt(key,vaultPayload());downloadVault({salt:Array.from(salt),payload});
   masterKey=key;masterPwRaw=np;window._salt=salt;clearQuickUnlock();closeChangePwModal();toast(t('toastPwChanged'));
+  // O ficheiro do cofre, a cópia interna e o Drive ainda estão com a palavra-passe antiga: regravar já com a nova
+  // (antes ficavam assim até à próxima alteração — e ao reabrir, a palavra-passe nova «não funcionava»)
+  markUnsaved();
+  try{await saveFile({auto:true});}catch(e){}
 }
 
 // ══ SAVE FILE ══
@@ -8062,7 +8177,9 @@ function closeAssetModal(){document.getElementById('asset-overlay').classList.re
 function saveAsset(){
   const en=currentLang==='en';
   const kind=currentAssetKind,sch=ASSET_SCHEMA[kind];
-  const obj={id:editingAssetId||Date.now().toString(36),kind};
+  // Ao editar, parte do bem existente: antes os campos fora do formulário (ex.: abastecimentos do veículo) perdiam-se
+  const prev=editingAssetId?assets.find(x=>x.id===editingAssetId):null;
+  const obj={...(prev||{}),id:editingAssetId||Date.now().toString(36),kind};
   for(const f of sch.fields){
     const el=document.getElementById('as-'+f.k);if(!el)continue;
     const val=f.t==='check'?el.checked:el.value.trim();
@@ -8857,7 +8974,16 @@ async function downloadBackupNow(){
     toast(en?'Could not create the backup.':'Não foi possível criar a cópia.');
   }
 }
-async function saveFile(opts){
+// Uma gravação de cada vez: uma automática e uma manual em paralelo podiam acabar por escrever a versão
+// mais antiga por último no ficheiro.
+let _saveQ=Promise.resolve();
+function saveFile(opts){const run=_saveQ.then(()=>saveFileRun(opts));_saveQ=run.catch(()=>{});return run;}
+// Só dá o cofre como gravado se nada mudou entretanto (antes, o que se alterava durante a gravação ficava por gravar sem aviso)
+function markSavedAt(seq){
+  markSaved();
+  if(avSeq!==seq){hasUnsaved=true;const b=document.querySelector('.btn-save-file');if(b)b.classList.add('has-changes');try{avRenderSaveState();avScheduleAutoSave();}catch(e){}}
+}
+async function saveFileRun(opts){
   const auto=!!(opts&&opts.auto);
   if(presentationMode){if(auto)return;toast(currentLang==='en'?'Demo mode — nothing is saved.':'Modo demonstração — nada é guardado.');return;}
   if(!masterKey)return;
@@ -8869,12 +8995,14 @@ async function saveFile(opts){
     return;
   }
   if(totpUnlocked&&(!totpEnc||syncStable(totp)!==totpSig))totpEnc=await encryptTotpArray();
+  const seq=avSeq;
   const p=await encrypt(masterKey,vaultPayload());
   const container={salt:Array.from(window._salt),payload:p};
   const json=JSON.stringify(container);pendingVaultText=json;
   const dateStr=new Date().toISOString().slice(0,10);
   lastSavedAt=Date.now();
-  if(!auto||Date.now()-(+localStorage.getItem('av_snap_at')||0)>10*60e3){pushSnapshot(container);try{localStorage.setItem('av_snap_at',String(Date.now()));}catch(e){}}
+  let snapAt=0;try{snapAt=+localStorage.getItem('av_snap_at')||0;}catch(e){}
+  if(!auto||Date.now()-snapAt>10*60e3){pushSnapshot(container);try{localStorage.setItem('av_snap_at',String(Date.now()));}catch(e){}}
   try{await localVaultSave(json,!driveOn());}catch(e){}
   if(!auto){try{driveAfterSave(json);}catch(e){}avLastDriveUp=Date.now();}
   if(auto){ // gravação automática: nunca abre janelas nem descarrega ficheiros
@@ -8886,7 +9014,7 @@ async function saveFile(opts){
       if(wrote&&since<30000){try{await localVaultSave(json,true);}catch(e){}avDriveFlushLater(30000-since);}
       else{try{await driveAfterSave(json);}catch(e){}try{const loc=await localVaultGet();synced=!(loc&&loc.pending);}catch(e){}avLastDriveUp=Date.now();}
     }
-    if(wrote||synced)markSaved();
+    if(wrote||synced)markSavedAt(seq);
     return {wrote,synced};
   }
   // Sem handle mas com API: escolher onde guardar (uma vez)
@@ -8912,17 +9040,17 @@ async function saveFile(opts){
           }
         }catch(e){}
         toast(`💾 ${currentLang==='en'?'Saved to':'Guardado em'} ${vaultFileHandle.name}${bk} ✓`);
-        markSaved();return;
+        markSavedAt(seq);return;
       }
     }catch(e){/* falhou escrita direta → fallback download */}
   }
   if(!FSA_OK){ // browser sem acesso direto a ficheiros → o cofre vive (encriptado) no armazenamento da app neste dispositivo
     let ok=false;try{const l=await localVaultGet();ok=!!l&&l.json===json;}catch(e){}
-    if(ok){avDevPersist();avMarkChange();markSaved();toast(currentLang==='en'?'💾 Saved on this device ✓':'💾 Guardado neste dispositivo ✓');setTimeout(()=>{try{avAutoBackupMaybe();}catch(e){}},600);return;}
+    if(ok){avDevPersist();avMarkChange();markSavedAt(seq);toast(currentLang==='en'?'💾 Saved on this device ✓':'💾 Guardado neste dispositivo ✓');setTimeout(()=>{try{avAutoBackupMaybe();}catch(e){}},600);return;}
   }
   downloadVault(container,'ciphervault.vault');
   setTimeout(()=>downloadVault(container,`ciphervault_backup_${dateStr}.vault`),400);
-  markSaved();
+  markSavedAt(seq);
   if(FSA_OK&&vaultFileHandle){
     alert(currentLang==='en'
       ?'⚠️ Could not write to your .vault file directly (permission denied or file moved).\n\nA copy was downloaded to your Downloads folder instead. Your original file was NOT updated — replace it with the downloaded copy, or use "Open Vault" to pick it again.'
@@ -8930,28 +9058,66 @@ async function saveFile(opts){
   }else toast(t('toastSaved'));
 }
 window.addEventListener('beforeunload',e=>{if(hasUnsaved&&masterKey&&!presentationMode){e.preventDefault();e.returnValue=currentLang==='en'?'You have unsaved changes. Are you sure you want to leave?':'Tens alterações não guardadas. Tens a certeza que queres sair?';return e.returnValue;}});
-function downloadVault(c,filename='ciphervault.vault'){
-  const b=new Blob([JSON.stringify(c)],{type:'application/octet-stream'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;
+// Descarrega e liberta o URL (antes nunca era revogado: cada gravação/exportação deixava uma cópia do ficheiro presa em memória)
+function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
   a.style.display='none';document.body.appendChild(a);a.click();
-  setTimeout(()=>{try{document.body.removeChild(a);}catch(e){}},300);
+  setTimeout(()=>{try{document.body.removeChild(a);}catch(e){}URL.revokeObjectURL(url);},10000);
+}
+function downloadVault(c,filename='ciphervault.vault'){
+  downloadBlob(new Blob([JSON.stringify(c)],{type:'application/octet-stream'}),filename);
 }
 
 // ══ CSV IMPORT ══
 let pendingImportData=[];
-function parseCSVLine(line){const result=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){result.push(cur.trim());cur='';}else{cur+=c;}}result.push(cur.trim());return result;}
+// CSV (RFC 4180): aspas escapadas ("") e campos com vírgulas ou quebras de linha.
+// O parser antigo partia por linhas e trocava o estado a cada aspa: «pa""ss» ficava «pass» (password corrompida).
+function parseCSV(text){
+  const rows=[];let row=[],cur='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){if(text[i+1]==='"'){cur+='"';i++;}else inQ=false;}
+      else cur+=c;
+    }else if(c==='"')inQ=true;
+    else if(c===','){row.push(cur);cur='';}
+    else if(c==='\n'||c==='\r'){
+      if(c==='\r'&&text[i+1]==='\n')i++;
+      row.push(cur);cur='';
+      if(row.some(v=>v.trim()))rows.push(row);
+      row=[];
+    }else cur+=c;
+  }
+  row.push(cur);if(row.some(v=>v.trim()))rows.push(row);
+  return rows;
+}
+// Colunas pelo nome do cabeçalho (Chrome, Edge, Firefox, Bitwarden, 1Password…); sem cabeçalho: ordem do Chrome
+function csvColumns(first){
+  const H=first.map(h=>h.trim().toLowerCase().replace(/^\uFEFF/,''));
+  const find=(...ks)=>H.findIndex(h=>ks.includes(h));
+  const c={name:find('name','title','nome','account'),url:find('url','login_uri','website','web site','uri','origin'),
+    user:find('username','login_username','user','user name','email','login','utilizador'),
+    pw:find('password','login_password','pass','palavra-passe'),note:find('note','notes','extra','comments','nota','notas')};
+  if(c.pw>=0&&(c.user>=0||c.url>=0||c.name>=0))return{c,header:true};
+  return{c:{name:0,url:1,user:2,pw:3,note:4},header:false};
+}
+function avUid(){const b=crypto.getRandomValues(new Uint8Array(6));return Date.now().toString(36)+'_'+Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');}
 document.addEventListener('DOMContentLoaded',()=>{document.getElementById('csv-input-app').addEventListener('change',importCSV);});
 function importCSV(e){
   const file=(e.target||document.getElementById('csv-input-app')).files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    const lines=ev.target.result.split('\n').map(l=>l.trim()).filter(l=>l);
-    if(!lines.length){toast('CSV vazio!');return;}
+    const rows=parseCSV(String(ev.target.result||''));
+    if(!rows.length){toast(currentLang==='en'?'Empty CSV!':'CSV vazio!');return;}
     pendingImportData=[];
-    const header=lines[0].toLowerCase();const isChrome=header.includes('url')&&(header.includes('username')||header.includes('password'));
-    lines.slice(isChrome?1:0).forEach(line=>{
-      const cols=parseCSVLine(line);
-      if(cols.length>=4&&cols[3])pendingImportData.push({name:cols[0]||cols[1]||'Importado',url:cols[1]||'',user:cols[2]||'',pw:cols[3]||''});
+    const {c,header}=csvColumns(rows[0]);
+    const cell=(r,i)=>i>=0&&i<r.length?r[i]:'';
+    rows.slice(header?1:0).forEach(r=>{
+      const pw=cell(r,c.pw);   // a password não é aparada: espaços podem fazer parte dela
+      if(!pw)return;
+      const url=cell(r,c.url).trim(),user=cell(r,c.user).trim();
+      pendingImportData.push({name:cell(r,c.name).trim()||url||'Importado',url,user,pw,notes:cell(r,c.note).trim()});
     });
     document.getElementById('csv-input-app').value='';
     if(!pendingImportData.length){toast(currentLang==='en'?'No valid entries found!':'Nenhuma entrada válida!');return;}
@@ -8969,8 +9135,14 @@ function importCSV(e){
   reader.readAsText(file);
 }
 function confirmImport(){
-  pendingImportData.forEach(e=>{vault.push({id:Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5),name:e.name,cat:'outro',user:e.user,pw:e.pw,url:e.url,notes:'',tags:[],attachment:null,fav:false,archived:false,createdAt:Date.now(),order:vault.length,pwUpdated:Date.now()});});
-  const count=pendingImportData.length;pendingImportData=[];closeImport();renderAll();
+  // ids com parte aleatória a sério: no mesmo milissegundo, 3 caracteres aleatórios repetiam-se em importações grandes
+  // (ids iguais → apagar/editar uma entrada afetava a outra e a sincronização descartava uma delas)
+  const now=Date.now();
+  pendingImportData.forEach(e=>{vault.push({id:avUid(),name:e.name,cat:'outro',user:e.user,pw:e.pw,url:e.url,notes:e.notes||'',tags:[],fav:false,archived:false,createdAt:now,order:vault.length,pwUpdated:now});});
+  const count=pendingImportData.length;pendingImportData=[];closeImport();
+  if(count)logActivity('add',(currentLang==='en'?`CSV import (${count})`:`Importação CSV (${count})`),'📥');
+  renderAll();
+  if(count)markUnsaved();   // antes não marcava: a importação podia perder-se ao fechar a app (sem aviso nem gravação automática)
   toast(currentLang==='en'?`${count} entries imported! ✓`:`${count} entradas importadas! ✓`);
 }
 function closeImport(){document.getElementById('import-overlay').classList.remove('open');pendingImportData=[];}
@@ -9075,11 +9247,7 @@ function exportPDF(){
 </div>
 </body></html>`;
 
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`ciphervault_${userName.replace(/\s+/g,'_')}_${now.toISOString().slice(0,10)}.html`;
-  a.click();
+  downloadBlob(new Blob([html],{type:'text/html;charset=utf-8'}),`ciphervault_${userName.replace(/[\s\\/:*?"<>|]+/g,'_')}_${now.toISOString().slice(0,10)}.html`);
   toast(currentLang==='en'?'PDF ready! Open in browser → Print → Save as PDF':'PDF pronto! Abre no browser → Imprimir → Guardar como PDF');
 }
 
@@ -9193,7 +9361,9 @@ function clearDocFile(){
 function saveDoc(){
   const title=document.getElementById('doc-title-input').value.trim();
   if(!title){toast(currentLang==='en'?'Title is required!':'Título obrigatório!');return;}
+  const prev=editingDocId?documents.find(d=>d.id===editingDocId):null;
   const doc={
+    ...(prev||{}),
     id:editingDocId||Date.now().toString(36),
     title,cat:document.getElementById('doc-cat').value,
     date:document.getElementById('doc-date').value,
@@ -9201,11 +9371,11 @@ function saveDoc(){
     desc:document.getElementById('doc-desc').value.trim(),
     folderId:(document.getElementById('doc-folder')?.value||'')||null,
     file:pendingDocFile?{...pendingDocFile}:null,
-    createdAt:editingDocId?(documents.find(d=>d.id===editingDocId)?.createdAt||Date.now()):Date.now(),
+    createdAt:prev&&prev.createdAt||Date.now(),
   };
-  const wasEditing=editingDocId;
-  if(editingDocId){const idx=documents.findIndex(d=>d.id===editingDocId);documents[idx]=doc;}
-  else documents.push(doc);
+  const wasEditing=!!prev;
+  const idx=prev?documents.indexOf(prev):-1;
+  if(idx>=0)documents[idx]=doc;else documents.push(doc);
   logActivity(wasEditing?'edit':'add',title,'📁');
   closeDocModal();
   setTimeout(()=>{
@@ -9238,9 +9408,9 @@ function previewDoc(id){
   const isPdf=type==='application/pdf'||ext==='pdf';
   const isText=type.startsWith('text/')||['txt','csv','md','json','log'].includes(ext);
   if(isImg){
-    body.innerHTML=`<img src="${d.file.data}" alt="${esc(name)}">`;
+    body.innerHTML=`<img src="${esc(d.file.data)}" alt="${esc(name)}">`;
   }else if(isPdf){
-    body.innerHTML=`<iframe src="${d.file.data}" title="${esc(name)}"></iframe>`;
+    body.innerHTML=`<iframe src="${esc(d.file.data)}" title="${esc(name)}"></iframe>`;
   }else if(isText){
     try{
       const b64=d.file.data.split(',')[1]||'';
@@ -9394,9 +9564,10 @@ function renderDocs(){
   // Filter buttons
   const filterRow=document.getElementById('docs-filter-row');
   const allCats=['all',...Object.keys(DOC_CATS)];
+  const scope=documents.filter(d=>!d.archived&&(d.folderId||null)===(currentFolderId||null));
+  const catCount={};scope.forEach(d=>{catCount[d.cat]=(catCount[d.cat]||0)+1;});
   filterRow.innerHTML=allCats.map(cat=>{
-    const scope=documents.filter(d=>!d.archived&&(d.folderId||null)===(currentFolderId||null));
-    const count=cat==='all'?scope.length:scope.filter(d=>d.cat===cat).length;
+    const count=cat==='all'?scope.length:(catCount[cat]||0);
     if(cat!=='all'&&count===0)return '';
     const label=cat==='all'?(currentLang==='en'?'All':'Todas'):getDocCatLabel(cat);
     return `<button class="doc-filter-btn${currentDocFilter===cat?' active':''}" onclick="setDocFilter('${cat}')">${cat==='all'?'📁 ':''}${label} (${count})</button>`;
@@ -9504,7 +9675,7 @@ function renderDocs(){
         </div>
       </div>
       <div class="doc-card-meta">
-        ${doc.date?`<span>📅 ${doc.date}</span>`:''}
+        ${doc.date?`<span>📅 ${esc(doc.date)}</span>`:''}
         ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:'<span style="color:var(--text-muted);font-style:italic">${currentLang==="en"?"No file":"Sem ficheiro"}</span>'}
         ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
       </div>
@@ -10194,7 +10365,11 @@ function saveTotp(){
   let account=document.getElementById('tf-account').value.trim();
   let secret=document.getElementById('tf-secret').value.trim();
   const parsed=parseOtpauth(secret);
+  const prev=editingTotpId?totp.find(x=>x.id===editingTotpId):null;
   let type='totp',algorithm='SHA1',digits=6,period=30,counter=null;
+  // A editar sem colar um link otpauth novo: mantém os parâmetros do código (antes voltavam a 6 dígitos/SHA-1/30 s
+  // e um código de 8 dígitos, SHA-256 ou HOTP passava a gerar números errados)
+  if(!parsed&&prev){type=prev.type||'totp';algorithm=prev.algorithm||'SHA1';digits=prev.digits||6;period=prev.period||30;counter=prev.counter??null;}
   if(parsed){
     secret=parsed.secret;
     if(!name)name=parsed.name;
@@ -10210,17 +10385,18 @@ function saveTotp(){
   if(!name){toast(currentLang==='en'?'Service name is required!':'Nome do serviço obrigatório!');return;}
   if(!secret||!b32decode(secret)){toast(currentLang==='en'?'Invalid secret! Must be Base32.':'Segredo inválido! Tem de ser Base32.');return;}
   const entry={
+    ...(prev||{}),
     id:editingTotpId||Date.now().toString(36),
     name,account,secret:secret.toUpperCase().replace(/[\s\-]/g,''),
     type,algorithm,digits,period,counter,
     recovery:(document.getElementById('tf-recovery')?.value||'').trim(),
-    createdAt:editingTotpId?(totp.find(x=>x.id===editingTotpId)?.createdAt||Date.now()):Date.now(),
+    createdAt:prev&&prev.createdAt||Date.now(),
   };
-  if(editingTotpId){const idx=totp.findIndex(x=>x.id===editingTotpId);totp[idx]=entry;}
-  else totp.push(entry);
-  logActivity(editingTotpId?'edit':'add',name,'🔢');
+  const idx=prev?totp.indexOf(prev):-1;
+  if(idx>=0)totp[idx]=entry;else totp.push(entry);
+  logActivity(prev?'edit':'add',name,'🔢');
   closeTotpModal();renderTotp();
-  toast(editingTotpId?(currentLang==='en'?'2FA updated!':'2FA atualizado!'):(currentLang==='en'?'2FA added!':'2FA adicionado!'));
+  toast(prev?(currentLang==='en'?'2FA updated!':'2FA atualizado!'):(currentLang==='en'?'2FA added!':'2FA adicionado!'));
   markUnsaved();
 }
 function deleteTotp(id){
@@ -10277,7 +10453,7 @@ function renderTotp(){
     <div class="totp-card">
       <div class="totp-name">${esc(t2.name)}</div>
       ${t2.account?`<div class="totp-account">${esc(t2.account)}</div>`:''}
-      ${t2.recovery?`<div class="totp-recovery"><span class="totp-recovery-toggle" onclick="toggleTotpRecovery('${t2.id}')">🔑 ${currentLang==='en'?'Recovery codes':'Códigos de recuperação'} ▾</span><div class="totp-recovery-body" id="totp-rec-${t2.id}" style="display:none"><pre class="totp-recovery-pre">${esc(t2.recovery)}</pre><button class="card-btn" onclick="copyText(${JSON.stringify(t2.recovery)}.replace(/\\n/g,String.fromCharCode(10)),'${currentLang==='en'?'Copied':'Copiado'}')">📋 ${currentLang==='en'?'Copy all':'Copiar tudo'}</button></div></div>`:''}
+      ${t2.recovery?`<div class="totp-recovery"><span class="totp-recovery-toggle" onclick="toggleTotpRecovery('${t2.id}')">🔑 ${currentLang==='en'?'Recovery codes':'Códigos de recuperação'} ▾</span><div class="totp-recovery-body" id="totp-rec-${t2.id}" style="display:none"><pre class="totp-recovery-pre">${esc(t2.recovery)}</pre><button class="card-btn" onclick="copyText(${jsq(t2.recovery)},'${currentLang==='en'?'Copied':'Copiado'}')">📋 ${currentLang==='en'?'Copy all':'Copiar tudo'}</button></div></div>`:''}
       <div class="totp-code-row">
         <div class="totp-code" id="totp-code-${t2.id}" data-code="" onclick="copyTotpCode('${t2.id}')" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">${fmtTotpCode(null,t2.digits)}</div>
         <svg class="totp-ring" width="30" height="30" viewBox="0 0 30 30">
@@ -10360,7 +10536,9 @@ const AuroraBG=(function(){
   let mode='net',pts=[],stars=[],blobs=[],drops=[],bubbles=[];
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-  function accent(){const v=getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();return v||'201,168,76';}
+  // getComputedStyle a cada frame obrigava a recalcular estilos 60×/s: lê a cor no máximo 1×/s
+  let _acc='',_accT=0;
+  function accent(){const n=performance.now();if(!_acc||n-_accT>1000){_acc=getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim()||'201,168,76';_accT=n;}return _acc;}
   function isLight(){return document.documentElement.getAttribute('data-theme')==='light';}
 
   function resize(){
@@ -10724,22 +10902,13 @@ const BRAND_ICONS=[
   {k:['via verde','viaverde'],c:'#009B3A',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#009B3A"/><text x="12" y="16" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">VV</text></svg>'},
   {k:['ctt'],c:'#DA020E',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#DA020E"/><text x="12" y="16" font-size="7" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">CTT</text></svg>'}
 ];
+let _brandMatchers=null;
 function getBrandIcon(entry){
   if(!entry)return null;
   const hay=((entry.name||'')+' '+(entry.url||'')).toLowerCase();
-  for(const b of BRAND_ICONS){
-    for(const key of b.k){
-      const k=key.trim();
-      if(!k)continue;
-      // Keys curtas (<=3): exigir limite de palavra para evitar falsos positivos
-      if(k.length<=3){
-        const re=new RegExp('(^|[^a-z0-9])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)','i');
-        if(re.test(hay))return b.svg;
-      }else{
-        if(hay.includes(k))return b.svg;
-      }
-    }
-  }
+  // Keys curtas (<=3): exigir limite de palavra para evitar falsos positivos
+  if(!_brandMatchers)_brandMatchers=BRAND_ICONS.map(b=>({svg:b.svg,ms:b.k.map(k=>k.trim()).filter(Boolean).map(wordKeyMatcher)}));
+  for(const b of _brandMatchers)for(const m of b.ms)if(keyMatches(m,hay))return b.svg;
   return null;
 }
 
@@ -10869,16 +11038,15 @@ function applyDashCardStates(){
 const SNAP_KEEP=5;
 async function pushSnapshot(container){
   try{
+    const meta={entries:vault.filter(e=>!e.archived).length,docs:documents.length,cards:bankCards.length,notes:notes.filter(n=>!n.archived).length,protected2fa:!!totpRecWrap};
     let list=await idbGet('cv_snapshots');
     if(!Array.isArray(list))list=[];
-    const active=vault.filter(e=>!e.archived).length;
-    list.unshift({
-      at:Date.now(),
-      container,
-      meta:{entries:active,docs:documents.length,cards:bankCards.length,notes:notes.filter(n=>!n.archived).length,protected2fa:!!totpRecWrap}
-    });
-    // Não guardar duplicados exatos seguidos (mesma gravação repetida)
-    if(list.length>1&&JSON.stringify(list[0].container)===JSON.stringify(list[1].container))list.shift();
+    list.unshift({at:Date.now(),container,meta});
+    // Não guardar duplicados exatos seguidos (mesma gravação repetida). Cada gravação tem IV novo, por isso basta
+    // comparar IV + dados — o JSON.stringify de dois cofres inteiros (vários MB com documentos) corria em cada gravação.
+    const same=(x,y)=>x===y||(Array.isArray(x)&&Array.isArray(y)&&x.length===y.length&&x.every((v,i)=>v===y[i]));
+    const p0=list[0].container&&list[0].container.payload,p1=list[1]&&list[1].container&&list[1].container.payload;
+    if(p0&&p1&&same(p0.iv,p1.iv)&&same(p0.data,p1.data))list.shift();
     if(list.length>SNAP_KEEP)list=list.slice(0,SNAP_KEEP);
     await idbSet('cv_snapshots',list);
   }catch(e){/* best-effort: nunca bloqueia a gravação */}
@@ -11291,7 +11459,12 @@ function buildManifest(){
   ];
   mf.share_target={action:base+'share-target',method:'POST',enctype:'multipart/form-data',params:{title:'title',text:'text',url:'url',files:[{name:'files',accept:['image/*','application/pdf','.pdf']}]}};
   const link=document.getElementById('pwa-manifest');
-  if(link)link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
+  if(link){
+    // Liberta o manifesto anterior (era criado um blob novo a cada mudança de cor, sem nunca libertar os antigos)
+    const old=link.getAttribute('href');
+    link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
+    if(old&&old.startsWith('blob:'))setTimeout(()=>URL.revokeObjectURL(old),5000);
+  }
 }
 function savePwaPrefs(){
   const name=(document.getElementById('pwa-name').value.trim()||'Aurora Vault').slice(0,24);
@@ -11658,6 +11831,7 @@ function saveFolder(){
   const icon=(document.getElementById('folder-icon').value||'').trim()||'📁';
   if(!name){toast(en?'Folder name is required!':'Nome da pasta obrigatório!');return;}
   const arr=scopeFolderArr();
+  const renaming=!!editingFolderId;
   if(editingFolderId){
     const f=folderById(editingFolderId,arr);
     if(f){f.name=name;f.icon=icon;logActivity('edit',name,'📁');}
@@ -11667,7 +11841,7 @@ function saveFolder(){
   }
   const sc=folderScope;
   closeFolderModal();rerenderScope(sc);
-  toast(editingFolderId?(en?'Folder renamed ✓':'Pasta renomeada ✓'):(en?'Folder created ✓':'Pasta criada ✓'));
+  toast(renaming?(en?'Folder renamed ✓':'Pasta renomeada ✓'):(en?'Folder created ✓':'Pasta criada ✓'));
   markUnsaved();
 }
 function deleteFolder(id,scope='doc'){
@@ -11721,7 +11895,7 @@ function openMoveModal(id,kind='doc'){
   const list=[{id:null,label:rootLbl,depth:0}];
   const walk=(parentId,depth)=>{
     arr.filter(f=>(f.parentId||null)===parentId).forEach(f=>{
-      list.push({id:f.id,label:`${f.icon||'📁'} ${f.name}`,depth});
+      list.push({id:f.id,label:`${esc(f.icon||'📁')} ${esc(f.name)}`,depth});
       walk(f.id,depth+1);
     });
   };
@@ -12498,7 +12672,8 @@ function exitPresentationMode(){
   renderAll();switchTab('dashboard');
   toast(currentLang==='en'?'Back to your real data ✓':'De volta aos teus dados reais ✓');
 }
-function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg;t2.classList.add('show');setTimeout(()=>t2.classList.remove('show'),2500);}
+let _toastT=0;
+function toast(msg){const t2=document.getElementById('toast');t2.textContent=msg;t2.classList.add('show');clearTimeout(_toastT);_toastT=setTimeout(()=>t2.classList.remove('show'),2500);}
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{
@@ -12513,7 +12688,6 @@ document.addEventListener('keydown',e=>{
     if(e.key==='l'){e.preventDefault();lockApp();}
   }
 });
-document.addEventListener('DOMContentLoaded',()=>{document.getElementById('master-pw').addEventListener('keydown',e=>{if(e.key==='Enter')newVault();});});
 
 // ══ PARTICLES ══
 function launchParticles(){
@@ -12653,7 +12827,7 @@ function openReadMode(id){
   if(entry.pw)actHtml+=`<button class="btn btn-gold" onclick="avReadTogglePw('${entry.id}')">${currentLang==='en'?'Show/Hide Password':'Mostrar/Esconder Password'}</button>`;
   if(entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="avCopyPw('${entry.id}')">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
   if(isWifiEntry(entry))actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
-  if(entry.url)actHtml+=`<button class="btn btn-ghost" onclick="goToSiteEntry('${esc(entry.url)}','${esc(entry.pw||'')}')">${t('btnGoSite')}</button>`;
+  if(entry.url)actHtml+=`<button class="btn btn-ghost" onclick="avGoSite('${entry.id}')">${t('btnGoSite')}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();openShareModal('${entry.id}')">🔗 ${currentLang==='en'?'Share QR':'Partilhar QR'}</button>`;
   actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();editEntry('${entry.id}')">${t('btnEdit')}</button>`;
   actions.innerHTML=actHtml;
@@ -12708,14 +12882,21 @@ document.addEventListener('drop',e=>{
   document.getElementById('drag-overlay').classList.remove('show');
   const file=e.dataTransfer?.files[0];
   if(!file)return;
-  if(file.name.endsWith('.vault')||file.name.endsWith('.cofre')){
-    pendingVaultFile=file;
+  const ls=document.getElementById('lock-screen');
+  if(!ls||ls.style.display==='none'||lockedOut)return;   // com o cofre aberto, isto não é para aqui
+  if(/\.(vault|cofre)$/i.test(file.name)){
+    // Antes: backToInitial()/startOpenVault() apagavam o ficheiro largado e abriam o seletor — e a palavra-passe
+    // acabava por ser tentada noutro ficheiro (o memorizado). Um ficheiro largado não tem «handle»: gravar pede o destino.
     backToInitial();
-    startOpenVault();
+    pendingVaultFile=file;vaultFileHandle=null;
+    document.getElementById('login-state-initial').style.display='none';
+    document.getElementById('login-state-new').style.display='none';
+    document.getElementById('login-state-open').style.display='block';
     document.getElementById('open-step-file').style.display='none';
     document.getElementById('open-step-pw').style.display='block';
     document.getElementById('l-file-name').textContent='📁 '+file.name;
-    showFileMeta(file);
+    document.getElementById('master-pw').value='';
+    showFileMeta(file);lockSubText();
     refreshQuickUnlock(true);
   }
 });
