@@ -9,9 +9,9 @@
      data-drop="nome"         largar ficheiros → nome(evento) (realça o contorno enquanto se arrasta)
      data-dnd="vault"         arrastar e largar para reordenar (com data-arg = id)
    Argumentos (os mesmos para qualquer um dos acima):
-     data-arg / data-arg2 / data-arg3   texto (arg2/arg3: números passam a número)     data-null → 1.º argumento null
+     data-arg / data-arg2 / data-arg3   texto (sempre texto: um id «123» continua a ser texto)     data-null → 1.º argumento null
      data-args='["a",1,true]'           lista em JSON (para números, true/false, null)
-     data-value → junta o valor do campo     data-this → junta o próprio elemento     data-ev → o evento vai à frente
+     data-value → junta o valor do campo     data-this → junta o próprio elemento     data-ev → o evento vai à frente (data-ev-last → no fim)
    Outros:
      data-self       só conta o clique no próprio elemento (fundo escuro de uma janela)
      data-stop       o clique não chega a mais ninguém (como o antigo event.stopPropagation())
@@ -53,10 +53,11 @@ totpOpenGaImport updateNoteCharCount updatePwGen updateSubCycleUI usePwGen
 `.trim().split(/\s+/));
 AV_ACTS.add('tbMenuRun');['avAddMenu','togglePrivacy','saveFile','avExportVault','switchGroup','auroraOpen','driveSyncNow','openCalendar','openSettings','setLang'].forEach(n=>AV_ACTS.add(n));
 ['applyThemePreset','pickPresetColor','hcGoEntry','toggleExportEntry','handleAttachment','fillField','pickStoreColor','pickSubColor','openSubModal','editSub','deleteSub','pickFlag','setBackground','openWifiNetQR','editWifiNet','deleteWifiNet','avReadTogglePw','readShare','readEdit','avAddType','avAddAurora','avDriveConsole','avCopyPw','avGoSite'].forEach(n=>AV_ACTS.add(n));
+['_renewalGo','archiveCard','archiveDoc','auroraOpen','avAlGo','avCardCopy','avCardReveal','avCardSceneTap','avDriveQuick','avGaClose','avGaImport','avHideLockToggle','avOnbHide','avScanClose','avTabToggle','avTourEnd','avTourStart','avWalClose','avWalOpen','avtNext','avtShowMe','calShowDay','confirmMoveDoc','copyAssetKey','copyInfoField','copyTotpCode','deleteAsset','deleteCard','deleteCustomCat','deleteDoc','deleteEntry','deleteFolder','deleteFuel','deleteInfoField','deleteNoteById','deletePerson','deleteStoreCard','deleteTotp','deleteTrashForever','downloadDoc','downloadDocFromPreview','driveLinkExisting','driveLinkKeepLocal','editInfoField','editStoreCard','goToEntry','goToFolder','nextWelcome','openAssetModal','openAttachment','openCardModal','openDedupeModal','openDocModal','openDocPreview','openFolder','openFolderModal','openFuelModal','openInfoModal','openMoveModal','openReadMode','openSubsScreen','openTotpModal','openWifiManager','openWifiQR','prevWelcome','previewDoc','removeAttachment','removeDuplicate','removeFieldRow','renamePerson','restoreCard','restoreDoc','restoreEntry','restoreNote','restoreSnapshot','restoreTrashItem','selectEntryEmoji','selectProfileEmoji','set2faMode','setDocFilter','setRenewalWindow','showBarcode','skipWelcome','syncRestoreFrom','toggleAssetKey','toggleInfoMask','togglePin','toggleSubsSection','toggleTotpRecovery'].forEach(n=>AV_ACTS.add(n));
+['t2mgrSetup','change2faPin','disable2faProtection','regen2faRecovery','toggle2faBio','openSettingsTab','avOnbBackup','auroraOpenSafe','gsOpenEntry','gsOpenNote','gsOpenCards','removeTag','closeSyncModal','setEntryField','readOpenDoc','readGoFolder','aurAct','auroraHeadTap','auroraReset','auroraToggleMin','auroraClose','auroraSend','aurAlertGo','aurAlertDismiss','aurLaunchKey','avGaScan','avGaCount','avWalEdit','avWalDelete','avAlGo','avAlX','avAlToggleAll','avCardPinTap','avAddType','archiveCard','deleteCard','openCardModal'].forEach(n=>AV_ACTS.add(n));
 /* Mais funções são acrescentadas por quem as usa (ver avAllow), para esta lista não ter de saber tudo. */
 function avAllow(...names){names.flat().forEach(n=>AV_ACTS.add(n));}
 const AV_DND={vault:{start:'dragStart',over:'dragOver',drop:'dragDrop',end:'dragEnd'}};
-const avNum=v=>/^-?\d+$/.test(v)?Number(v):v;
 function avFn(name){return name&&AV_ACTS.has(name)&&typeof window[name]==='function'?window[name]:null;}
 function avArgs(el,ev){
   let args;
@@ -66,12 +67,13 @@ function avArgs(el,ev){
     const a=el.getAttribute('data-arg'),a2=el.getAttribute('data-arg2'),a3=el.getAttribute('data-arg3');
     args=[];
     if(el.hasAttribute('data-null'))args.push(null);else if(a!==null)args.push(a);
-    if(a2!==null){if(!args.length)args.push(null);args.push(avNum(a2));}
-    if(a3!==null)args.push(avNum(a3));
+    if(a2!==null){if(!args.length)args.push(null);args.push(a2);}
+    if(a3!==null)args.push(a3);
   }
   if(el.hasAttribute('data-value'))args.push(el.value);
   if(el.hasAttribute('data-this'))args.push(el);
   if(el.hasAttribute('data-ev'))args.unshift(ev);
+  if(el.hasAttribute('data-ev-last'))args.push(ev);
   return args;
 }
 function avCall(name,el,ev){

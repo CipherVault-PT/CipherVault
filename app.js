@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.2';
+const APP_VERSION='10.3';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -943,9 +943,9 @@ async function render2faUnlockPanel(reset){
   document.getElementById('t2-rec-wrap').style.display=t2Mode==='rec'?'block':'none';
   if(reset)t2Err('');
   const parts=[];
-  if(t2Mode!=='bio'&&hasBio)parts.push(`<button class="unlock-link" onclick="set2faMode('bio')">👆 ${en?'Use biometrics':'Usar biometria'}</button>`);
-  if(t2Mode!=='pin'&&hasPin)parts.push(`<button class="unlock-link" onclick="set2faMode('pin')">🔢 ${en?'Enter PIN':'Introduzir PIN'}</button>`);
-  if(t2Mode!=='rec')parts.push(`<button class="unlock-link" onclick="set2faMode('rec')">🔑 ${en?'Recovery code':'Código de recuperação'}</button>`);
+  if(t2Mode!=='bio'&&hasBio)parts.push(`<button class="unlock-link" data-act="set2faMode" data-arg="bio">👆 ${en?'Use biometrics':'Usar biometria'}</button>`);
+  if(t2Mode!=='pin'&&hasPin)parts.push(`<button class="unlock-link" data-act="set2faMode" data-arg="pin">🔢 ${en?'Enter PIN':'Introduzir PIN'}</button>`);
+  if(t2Mode!=='rec')parts.push(`<button class="unlock-link" data-act="set2faMode" data-arg="rec">🔑 ${en?'Recovery code':'Código de recuperação'}</button>`);
   document.getElementById('t2-links').innerHTML=parts.join('<span class="link-sep">·</span>');
   if(t2Mode==='pin'){const i=document.getElementById('t2-pin-input');if(i){i.value='';i.maxLength=t2PinLen;i.placeholder='•'.repeat(t2PinLen);setTimeout(()=>i.focus(),120);}}
   if(t2Mode==='rec'){const i=document.getElementById('t2-rec-input');if(i&&reset)i.value='';}
@@ -1115,7 +1115,7 @@ h1{font-size:19pt;border-bottom:2px solid #111;padding-bottom:8px}
 .w{background:#fff4f4;border:2px solid #c00;padding:11px 14px;color:#900;font-weight:bold;font-size:11pt}
 .pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
 @media print{.pbtn{display:none}body{padding:0}}</style></head><body>
-<button class="pbtn" onclick="window.print()">🖨️ ${en?'Print':'Imprimir'}</button>
+<button class="pbtn">🖨️ ${en?'Print':'Imprimir'}</button>
 <h1>${en?'2FA recovery code — Aurora Vault':'Código de recuperação 2FA — Aurora Vault'}</h1>
 <p>${en?'This code opens the 2FA vault (verification codes) on any device. It is independent from the master password.':'Este código abre o cofre 2FA (códigos de verificação) em qualquer dispositivo. É independente da palavra-passe mestra.'}</p>
 <div class="code">${esc(t2PendingCode)}</div>
@@ -1124,7 +1124,7 @@ h1{font-size:19pt;border-bottom:2px solid #111;padding-bottom:8px}
 </body></html>`;
   const w=window.open('','_blank');
   if(!w){toast(en?'Allow pop-ups to print.':'Permite pop-ups para imprimir.');return;}
-  w.document.write(html);w.document.close();
+  w.document.write(html);w.document.close();{const pb=w.document.querySelector('.pbtn');if(pb)pb.addEventListener('click',()=>w.print());}
 }
 
 // ══ COFRE 2FA — GESTOR ══
@@ -1137,10 +1137,10 @@ async function render2faManager(){
   document.getElementById('t2mgr-close').textContent=en?'Close':'Fechar';
   const isProt=!!totpRecWrap, hasPin=await has2faPin(), hasBio=await has2faBio(), bioOk=await bioSupported();
   const S=[],A=[];
-  const btn=(fn,label,danger)=>`<button class="btn ${danger?'btn-ghost':'btn-ghost'}" onclick="${fn}" style="width:100%;padding:12px;text-align:left;justify-content:flex-start${danger?';color:var(--red);border-color:var(--red)':''}">${label}</button>`;
+  const btn=(fn,label,danger)=>`<button class="btn ${danger?'btn-ghost':'btn-ghost'}" ${avActAttrs(fn)} style="width:100%;padding:12px;text-align:left;justify-content:flex-start${danger?';color:var(--red);border-color:var(--red)':''}">${label}</button>`;
   if(!isProt){
     S.push(en?'The 2FA vault is <b>not protected</b> — codes are encrypted with the master password only.':'O cofre 2FA <b>não está protegido</b> — os códigos estão encriptados apenas com a chave mestra.');
-    A.push(btn('close2faManager();open2faSetup()','🛡️ '+(en?'Enable protection':'Ativar proteção')));
+    A.push(btn('t2mgrSetup()','🛡️ '+(en?'Enable protection':'Ativar proteção')));
   }else if(!totpUnlocked){
     S.push(en?'🛡️ <b style="color:var(--accent-ink)">Protected</b> and closed.':'🛡️ <b style="color:var(--accent-ink)">Protegido</b> e fechado.');
     S.push('🔢 '+(hasPin?(en?'PIN saved on this device':'PIN guardado neste dispositivo'):(en?'<b style="color:var(--red)">No PIN on this device</b>':'<b style="color:var(--red)">Sem PIN neste dispositivo</b>')));
@@ -1330,6 +1330,29 @@ function hcGoEntry(id){closeHealthCheck();goToEntry(id);}
 function readShare(id){closeReadMode();openShareModal(id);}
 function readEdit(id){closeReadMode();editEntry(id);}
 function avAddAurora(){avAddClose();if(typeof auroraOpen==='function')auroraOpen();}
+// Chamada escrita como texto («fn('x')») → atributos data-act/data-args (para geradores que recebem a ação em texto)
+function avActAttrs(call){
+  const m=/^(\w+)\((.*)\)$/.exec(String(call).trim());if(!m){console.warn('avActAttrs:',call);return '';}
+  const args=m[2].trim()?m[2].split(',').map(a=>{a=a.trim();return /^'.*'$/.test(a)?a.slice(1,-1):a==='null'?null:a==='true'?true:a==='false'?false:Number(a);}):[];
+  return 'data-act="'+m[1]+'"'+(args.length?' data-args="'+esc(JSON.stringify(args))+'"':'');
+}
+function t2mgrSetup(){close2faManager();open2faSetup();}
+function openSettingsTab(t){openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab(t);}
+function auroraOpenSafe(){if(typeof auroraOpen==='function')auroraOpen();}
+function gsOpenEntry(id){closeGlobalSearch();editEntry(id);}
+function gsOpenNote(id){closeGlobalSearch();switchTab('notes');setTimeout(()=>selectNote(id),150);}
+function gsOpenCards(){closeGlobalSearch();switchTab('cards');}
+function closeSyncModal(){const m=document.getElementById('sync-modal');if(m)m.classList.remove('open');}
+function setEntryField(i,key,v){if(entryFields[i])entryFields[i][key]=v;}
+function readOpenDoc(id){closeReadMode();switchTab('docs');setTimeout(()=>openDocModal(id),150);}
+function readGoFolder(id){closeReadMode();switchTab('docs');goToFolder(id||null);}
+function auroraHeadTap(){if(window.matchMedia('(max-width:760px)').matches)auroraToggleMin();}
+function aurLaunchKey(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();auroraOpen();}}
+function avGaScan(){avGaClose();openQrScanner('gauth');}
+function avWalEdit(id){avWalClose(true);editStoreCard(id);}
+function avWalDelete(id){avWalClose(true);deleteStoreCard(id);}
+function avAlToggleAll(){AV_AL_ALL=!AV_AL_ALL;aurAlertsRender();}
+function avCardPinTap(id,el){avCardPin(el,id);}
 function onEntryPwInput(){checkPwStrength();checkDuplicate();}
 function totpOpenGaImport(){closeTotpModal();avGaOpen();}
 function onNewPw1Input(){checkNewPwMatch();renderPwStrength('new-pw1','new-pw-strength');}
@@ -1730,7 +1753,7 @@ let profileEmoji='😊';
 const PROFILE_EMOJIS=['😊','😎','🤠','🧙','🦊','🐺','🦁','🐯','🦅','🐉','👾','🤖','👨‍💻','👩‍💻','🧑‍🚀','🥷','🦸','🧛','🎭','🔐','⚡','🌟','💎','🔥','🌊','🍀','🎯','🚀','🏆','💫'];
 function openProfilePicker(){
   const grid=document.getElementById('profile-emoji-grid');
-  grid.innerHTML=PROFILE_EMOJIS.map(e=>`<div class="emoji-opt${e===profileEmoji?' selected':''}" onclick="selectProfileEmoji('${e}')">${e}</div>`).join('');
+  grid.innerHTML=PROFILE_EMOJIS.map(e=>`<div class="emoji-opt${e===profileEmoji?' selected':''}" data-act="selectProfileEmoji" data-arg="${esc(e)}">${e}</div>`).join('');
   document.getElementById('profile-overlay').classList.add('open');
 }
 function selectProfileEmoji(e){
@@ -1748,7 +1771,7 @@ function toggleEmojiPicker(){
   const isOpen=wrap.style.display!=='none';
   if(!isOpen){
     const picker=document.getElementById('emoji-picker');
-    picker.innerHTML=ENTRY_EMOJIS.map(e=>`<div class="emoji-opt${e===entryEmoji?' selected':''}" onclick="selectEntryEmoji('${e}')">${e}</div>`).join('');
+    picker.innerHTML=ENTRY_EMOJIS.map(e=>`<div class="emoji-opt${e===entryEmoji?' selected':''}" data-act="selectEntryEmoji" data-arg="${esc(e)}">${e}</div>`).join('');
   }
   wrap.style.display=isOpen?'none':'block';
 }
@@ -2569,7 +2592,7 @@ function renderDashboard(){
       });
     }catch(e){}
   });
-  document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}${a.action?' clickable':''}"${a.action==='dedupe'?' onclick="openDedupeModal()"':''}><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div>${a.action==='dedupe'?`<span class="dash-alert-cta">${currentLang==='en'?'Fix →':'Resolver →'}</span>`:''}</div>`).join('');
+  document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="dash-alert ${a.type}${a.action?' clickable':''}"${a.action==='dedupe'?' data-act="openDedupeModal"':''}><span class="dash-alert-icon">${a.icon}</span><div class="dash-alert-text">${a.text}${a.sub?`<small>${a.sub}</small>`:''}</div>${a.action==='dedupe'?`<span class="dash-alert-cta">${currentLang==='en'?'Fix →':'Resolver →'}</span>`:''}</div>`).join('');
   // Badge do cartão de alertas: nº de problemas (ou ✓ se tudo bem)
   const problems=alerts.filter(a=>a.type==='danger'||a.type==='warn').length;
   const aBadge=document.getElementById('alerts-badge');
@@ -2612,7 +2635,7 @@ function renderDashboard(){
     const favsEl=document.getElementById('dash-favs');
     if(favsEl)favsEl.innerHTML=favList.map(e=>{
       const ic=e.icon&&e.icon!=='⭐'?e.icon:(getServiceIcon(e.name)||'🔐');
-      return `<div class="fav-quick" onclick="openReadMode('${e.id}')">
+      return `<div class="fav-quick" data-act="openReadMode" data-arg="${esc(e.id)}">
         <span class="fav-quick-icon">${ic}</span>
         <div class="fav-quick-name">${esc(e.name)}</div>
         <span class="fav-quick-arrow">→</span>
@@ -2660,7 +2683,7 @@ function renderDashboard(){
         const days=Math.floor((Date.now()-e.pwUpdated)/86400000);
         const dc=days>180?'color:var(--red)':days>90?'color:var(--accent-ink)':'color:var(--green)';
         const nudge=days>180?`<span class="oldest-nudge">${enO?'consider changing':'considera trocar'}</span>`:'';
-        return `<div class="oldest-item clickable" onclick="goToEntry('${e.id}')" title="${enO?'Open entry':'Abrir entrada'}">
+        return `<div class="oldest-item clickable" data-act="goToEntry" data-arg="${esc(e.id)}" title="${enO?'Open entry':'Abrir entrada'}">
           <div class="oldest-days" style="${dc}">${days}</div>
           <div style="flex:1;min-width:0"><div class="oldest-name">${esc(e.name)}</div><div class="oldest-label">${enO?'days without update':'dias sem atualizar'}${nudge}</div></div>
           <span class="oldest-arrow">→</span>
@@ -2924,19 +2947,19 @@ function onSearchInput(){
   let html=`<div style="font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">${t('globalSearchResults')}: <strong style="color:var(--accent-ink)">${total}</strong></div>`;
   if(vaultMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">🔐 ${t('tabVault')} (${vaultMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${vaultMatches.map(e=>`<div class="entry-card" onclick="closeGlobalSearch();editEntry('${e.id}')" style="cursor:pointer"><div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(e.cat).color}26;color:${vaultCatInfo(e.cat).color}">${vaultCatInfo(e.cat).icon} ${esc(vaultCatInfo(e.cat).label)}</span>${e.fav?'⭐':''}</div><div class="card-name">${esc(e.name)}</div>${e.user?`<div style="font-size:.75rem;color:var(--text-muted)">${esc(e.user)}</div>`:''}</div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${vaultMatches.map(e=>`<div class="entry-card" data-act="gsOpenEntry" data-arg="${esc(e.id)}" style="cursor:pointer"><div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(e.cat).color}26;color:${vaultCatInfo(e.cat).color}">${vaultCatInfo(e.cat).icon} ${esc(vaultCatInfo(e.cat).label)}</span>${e.fav?'⭐':''}</div><div class="card-name">${esc(e.name)}</div>${e.user?`<div style="font-size:.75rem;color:var(--text-muted)">${esc(e.user)}</div>`:''}</div>`).join('')}</div>`;
   }
   if(noteMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">📝 ${t('tabNotes')} (${noteMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${noteMatches.map(n=>`<div class="entry-card" onclick="closeGlobalSearch();switchTab('notes');setTimeout(()=>selectNote('${n.id}'),150)" style="cursor:pointer"><div class="card-name">${esc(n.title||'...')}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc((n.body||'').slice(0,60))}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${noteMatches.map(n=>`<div class="entry-card" data-act="gsOpenNote" data-arg="${esc(n.id)}" style="cursor:pointer"><div class="card-name">${esc(n.title||'...')}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc((n.body||'').slice(0,60))}</div></div>`).join('')}</div>`;
   }
   if(cardMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">💳 ${t('tabCards')} (${cardMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${cardMatches.map(c=>`<div class="entry-card" onclick="closeGlobalSearch();switchTab('cards')" style="cursor:pointer"><div class="card-name">${esc(c.bank)}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc(c.holder||'')} ${c.expiry?'· '+esc(c.expiry):''}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${cardMatches.map(c=>`<div class="entry-card" data-act="gsOpenCards" style="cursor:pointer"><div class="card-name">${esc(c.bank)}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc(c.holder||'')} ${c.expiry?'· '+esc(c.expiry):''}</div></div>`).join('')}</div>`;
   }
   if(docMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">📁 ${currentLang==='en'?'Documents':'Documentos'} (${docMatches.length})</div>`;
-    html+=`<div class="cards-grid">${docMatches.map(d=>`<div class="entry-card" onclick="openDocPreview('${d.id}')" style="cursor:pointer"><div class="card-name">${esc(d.title)}</div><div style="font-size:.75rem;color:var(--text-muted)">${getDocCatLabel(d.cat)} ${d.expiry?'· '+esc(d.expiry):''}</div><div class="doc-loc">📍 ${esc(folderPathLabel(d.folderId||null))}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid">${docMatches.map(d=>`<div class="entry-card" data-act="openDocPreview" data-arg="${esc(d.id)}" style="cursor:pointer"><div class="card-name">${esc(d.title)}</div><div style="font-size:.75rem;color:var(--text-muted)">${getDocCatLabel(d.cat)} ${d.expiry?'· '+esc(d.expiry):''}</div><div class="doc-loc">📍 ${esc(folderPathLabel(d.folderId||null))}</div></div>`).join('')}</div>`;
   }
   resultsEl.innerHTML=html;
 }
@@ -3093,7 +3116,7 @@ function renderCalendar(){
     const isToday=new Date(calYear,calMonth,day).getTime()===today.getTime();
     const isHoliday=dayEvents.some(e=>e.type==='holiday');
     const dots=dayEvents.slice(0,4).map(e=>'<span class="cal-dot" style="background:'+e.color+'"></span>').join('');
-    html+='<button class="cal-day'+(isToday?' today':'')+(isHoliday?' holiday':'')+(dayEvents.length?' has-events':'')+'" '+(dayEvents.length?'onclick="calShowDay('+day+')"':'')+'>'+
+    html+='<button class="cal-day'+(isToday?' today':'')+(isHoliday?' holiday':'')+(dayEvents.length?' has-events':'')+'" '+(dayEvents.length?'data-act="calShowDay" data-args="['+(day)+']"':'')+'>'+
       '<span class="cal-day-num">'+day+'</span>'+
       (dots?'<span class="cal-dots">'+dots+'</span>':'')+
     '</button>';
@@ -3378,9 +3401,6 @@ function startClipboardTimer(){
   },1000);
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-// Texto como argumento de um onclick="…": literal JS válido, escapado para o atributo.
-// ('${esc(x)}' não chega: o browser converte &#39; de volta em ' antes de correr o código → «O'Brien» partia o botão)
-function jsq(s){return esc(JSON.stringify(String(s??'')));}
 
 // ══ ARCHIVE ══
 function renderArchive(){
@@ -3408,8 +3428,8 @@ function renderArchive(){
         <div class="card-name">${esc(e.name)}</div>
         ${e.user?`<div class="card-field"><span class="card-field-label">${t('cardUser')}</span><div class="card-field-inner"><span class="card-field-value">${esc(e.user)}</span></div></div>`:''}
         <div class="card-actions">
-          <button class="card-btn" onclick="restoreEntry('${e.id}')">${restoreSvg} ${t('btnRestore')}</button>
-          <button class="card-btn danger" onclick="deleteEntry('${e.id}')">${delSvg} ${t('btnDel')}</button>
+          <button class="card-btn" data-act="restoreEntry" data-arg="${esc(e.id)}">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" data-act="deleteEntry" data-arg="${esc(e.id)}">${delSvg} ${t('btnDel')}</button>
         </div>
       </div>`).join('');
     html+=section('🔐',en?'Accounts / passwords':'Contas / palavras-passe',aVault.length,cards);
@@ -3421,8 +3441,8 @@ function renderArchive(){
         <div class="card-name">${d.icon||'📄'} ${esc(d.title||'')}</div>
         ${d.expiry?`<div class="card-field"><span class="card-field-label">${en?'Expiry':'Validade'}</span><div class="card-field-inner"><span class="card-field-value">${esc(d.expiry)}</span></div></div>`:''}
         <div class="card-actions">
-          <button class="card-btn" onclick="restoreDoc('${d.id}')">${restoreSvg} ${t('btnRestore')}</button>
-          <button class="card-btn danger" onclick="deleteDoc('${d.id}')">${delSvg} ${t('btnDel')}</button>
+          <button class="card-btn" data-act="restoreDoc" data-arg="${esc(d.id)}">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" data-act="deleteDoc" data-arg="${esc(d.id)}">${delSvg} ${t('btnDel')}</button>
         </div>
       </div>`).join('');
     html+=section('📁',en?'Documents':'Documentos',aDocs.length,cards);
@@ -3434,8 +3454,8 @@ function renderArchive(){
         <div class="card-name">💳 ${esc(cd.name||cd.bank||'')}</div>
         ${cd.expiry?`<div class="card-field"><span class="card-field-label">${en?'Valid thru':'Validade'}</span><div class="card-field-inner"><span class="card-field-value">${esc(cd.expiry)}</span></div></div>`:''}
         <div class="card-actions">
-          <button class="card-btn" onclick="restoreCard('${cd.id}')">${restoreSvg} ${t('btnRestore')}</button>
-          <button class="card-btn danger" onclick="deleteCard('${cd.id}')">${delSvg} ${t('btnDel')}</button>
+          <button class="card-btn" data-act="restoreCard" data-arg="${esc(cd.id)}">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" data-act="deleteCard" data-arg="${esc(cd.id)}">${delSvg} ${t('btnDel')}</button>
         </div>
       </div>`).join('');
     html+=section('💳',en?'Bank cards':'Cartões bancários',aCards.length,cards);
@@ -3447,8 +3467,8 @@ function renderArchive(){
         <div class="card-name">📝 ${esc(n.title||(en?'Untitled note':'Nota sem título'))}</div>
         ${n.body?`<div style="font-size:.62rem;color:var(--text-muted);padding:6px 2px;line-height:1.5">${esc(n.body.slice(0,60))}${n.body.length>60?'…':''}</div>`:''}
         <div class="card-actions">
-          <button class="card-btn" onclick="restoreNote('${n.id}')">${restoreSvg} ${t('btnRestore')}</button>
-          <button class="card-btn danger" onclick="deleteNoteById('${n.id}')">${delSvg} ${t('btnDel')}</button>
+          <button class="card-btn" data-act="restoreNote" data-arg="${esc(n.id)}">${restoreSvg} ${t('btnRestore')}</button>
+          <button class="card-btn danger" data-act="deleteNoteById" data-arg="${esc(n.id)}">${delSvg} ${t('btnDel')}</button>
         </div>
       </div>`).join('');
     html+=section('📝',en?'Notes':'Notas',aNotes.length,cards);
@@ -3544,7 +3564,7 @@ function renderTagPills(){
   const pillsEl=document.getElementById('tag-pills');
   if(!pillsEl)return;
   pillsEl.innerHTML=entryTags.map(tag=>
-    `<span class="tag-pill">${esc(tag)}<button type="button" onclick="removeTag(${jsq(tag)})">✕</button></span>`
+    `<span class="tag-pill">${esc(tag)}<button type="button" data-act="removeTag" data-arg="${esc(tag)}">✕</button></span>`
   ).join('');
 }
 function handleTagKey(e){
@@ -3636,8 +3656,8 @@ function renderAttachList(ctx){
       '<span class="att-ic">'+attachIcon(a.type)+'</span>'+
       '<span class="att-name" title="'+esc(a.name)+'">'+esc(a.name)+'</span>'+
       '<span class="att-size">'+fmtSize(a.size)+'</span>'+
-      '<button type="button" class="att-btn" onclick="openAttachment(\''+ctx+'\','+i+')">'+(en?'Open':'Abrir')+'</button>'+
-      '<button type="button" class="att-btn danger" onclick="removeAttachment(\''+ctx+'\','+i+')">✕</button>'+
+      '<button type="button" class="att-btn" data-act="openAttachment" data-args="['+esc(JSON.stringify(ctx))+','+(i)+']">'+(en?'Open':'Abrir')+'</button>'+
+      '<button type="button" class="att-btn danger" data-act="removeAttachment" data-args="['+esc(JSON.stringify(ctx))+','+(i)+']">✕</button>'+
     '</div>').join('')+
     '<div class="att-total">'+list.length+' '+(en?'file(s)':'ficheiro(s)')+' · '+fmtSize(total)+
     (total>3*1024*1024?' <span style="color:var(--accent-ink)">'+(en?'— heavy, the vault file grows':'— pesado, o ficheiro do cofre cresce')+'</span>':'')+'</div>';
@@ -3826,7 +3846,7 @@ function renderDedupeList(){
           <div style="font-size:.78rem;color:var(--text)">${cat.icon} ${esc(e.name||'')} ${i===0?`<span style="color:var(--green);font-size:.6rem">· ${en?'keep':'manter'}</span>`:''}</div>
           <div style="font-size:.62rem;color:var(--text-muted);margin-top:2px">${esc(e.user||'—')} · ${en?'updated':'atualizada'} ${when}</div>
         </div>
-        ${i>0?`<button class="snap-restore" style="border-color:var(--red);color:var(--red)" onclick="removeDuplicate('${e.id}')">${en?'Remove':'Remover'}</button>`:''}
+        ${i>0?`<button class="snap-restore" style="border-color:var(--red);color:var(--red)" data-act="removeDuplicate" data-arg="${esc(e.id)}">${en?'Remove':'Remover'}</button>`:''}
       </div>`;
     }).join('');
     return `<div class="dedupe-group"><div class="dedupe-group-head">${esc(g.name)} — ${g.entries.length}×</div>${rows}</div>`;
@@ -4062,11 +4082,11 @@ function renderBankCards(){
           <span style="font-size:.52rem;letter-spacing:2px;color:var(--text-muted)">PIN</span>
           <span class="pin-reveal" id="pin-${card.id}">${esc(card.pin)}</span>
           <span style="font-size:.52rem;letter-spacing:2px;color:var(--text-muted)" id="pin-masked-${card.id}">••••</span>
-          <button class="card-btn" id="pin-btn-${card.id}" onclick="togglePin('${card.id}')" style="margin-left:auto">👁️</button>
+          <button class="card-btn" id="pin-btn-${card.id}" data-act="togglePin" data-arg="${esc(card.id)}" style="margin-left:auto">👁️</button>
         </div>`:''}
-        <button class="card-btn" onclick="openCardModal('${card.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
-        <button class="card-btn" onclick="archiveCard('${card.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> ${t('btnArchive')}</button>
-        <button class="card-btn danger" onclick="deleteCard('${card.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
+        <button class="card-btn" data-act="openCardModal" data-arg="${esc(card.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> ${t('btnEdit')}</button>
+        <button class="card-btn" data-act="archiveCard" data-arg="${esc(card.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> ${t('btnArchive')}</button>
+        <button class="card-btn danger" data-act="deleteCard" data-arg="${esc(card.id)}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> ${t('btnDel')}</button>
       </div>
       ${card.notes?`<div style="font-size:.62rem;color:var(--text-muted);padding:8px 2px;line-height:1.5">${esc(card.notes)}</div>`:''}
     </div>`;
@@ -4199,17 +4219,17 @@ function renderAssets(kind){
     let keyRow='';
     if(a.kind==='license'&&a.key){
       keyRow='<div class="asset-key"><span class="asset-key-val" id="ak-'+a.id+'">••••••••••••</span>'+
-        '<button class="asset-mini" onclick="toggleAssetKey(\''+a.id+'\')" id="akb-'+a.id+'">'+(en?'Show':'Ver')+'</button>'+
-        '<button class="asset-mini" onclick="copyAssetKey(\''+a.id+'\')">'+(en?'Copy':'Copiar')+'</button></div>';
+        '<button class="asset-mini" data-act="toggleAssetKey" data-arg="'+esc(a.id)+'" id="akb-'+a.id+'">'+(en?'Show':'Ver')+'</button>'+
+        '<button class="asset-mini" data-act="copyAssetKey" data-arg="'+esc(a.id)+'">'+(en?'Copy':'Copiar')+'</button></div>';
     }
     return '<div class="asset-card">'+
       '<div class="asset-head"><span class="asset-ic">'+ASSET_SCHEMA[kind].icon+'</span>'+
         '<span class="asset-name">'+esc(a.name||'')+'</span>'+
-        '<span class="asset-acts"><button class="asset-mini" onclick="openAssetModal(\''+kind+'\',\''+a.id+'\')">'+(en?'Edit':'Editar')+'</button>'+
-        '<button class="asset-mini danger" onclick="deleteAsset(\''+a.id+'\')">'+(en?'Delete':'Apagar')+'</button></span></div>'+
+        '<span class="asset-acts"><button class="asset-mini" data-act="openAssetModal" data-arg="'+esc(kind)+'" data-arg2="'+esc(a.id)+'">'+(en?'Edit':'Editar')+'</button>'+
+        '<button class="asset-mini danger" data-act="deleteAsset" data-arg="'+esc(a.id)+'">'+(en?'Delete':'Apagar')+'</button></span></div>'+
       (meta.length?'<div class="asset-meta">'+meta.join(' · ')+'</div>':'')+
       keyRow+badge+
-      (a.kind==='vehicle'?'<button class="asset-mini" style="margin-top:8px" onclick="openFuelModal(\''+a.id+'\')">⛽ '+(en?'Refuelling':'Abastecimentos')+((a.fuel&&a.fuel.length)?' ('+a.fuel.length+')':'')+'</button>':'')+
+      (a.kind==='vehicle'?'<button class="asset-mini" style="margin-top:8px" data-act="openFuelModal" data-arg="'+esc(a.id)+'">⛽ '+(en?'Refuelling':'Abastecimentos')+((a.fuel&&a.fuel.length)?' ('+a.fuel.length+')':'')+'</button>':'')+
       attachChips(a,'asset')+
       (a.notes?'<div class="asset-notes">'+esc(a.notes)+'</div>':'')+
     '</div>';
@@ -4365,7 +4385,7 @@ function renderFuel(){
       '<span class="fuel-date">'+ds+'</span>'+
       '<span class="fuel-main">'+(parseFloat(f.liters)||0).toFixed(1)+' L · '+fmtMoney(parseFloat(f.euros)||0)+(f.km?' · '+f.km+' km':'')+'</span>'+
       (c?'<span class="fuel-cons">'+c.toFixed(1)+'</span>':'')+
-      '<button class="att-btn danger" onclick="deleteFuel(\''+f.id+'\')">✕</button>'+
+      '<button class="att-btn danger" data-act="deleteFuel" data-arg="'+esc(f.id)+'">✕</button>'+
     '</div>';
   }).join('');
 }
@@ -4766,7 +4786,7 @@ function syncModal(title,html,extra){
   let ov=document.getElementById('sync-modal');
   if(!ov){ov=document.createElement('div');ov.id='sync-modal';ov.className='modal-overlay';ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});document.body.appendChild(ov);}
   const en=currentLang==='en';
-  ov.innerHTML='<div class="modal" style="max-width:520px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:\'Playfair Display\',serif;font-size:1.15rem;color:var(--text)">'+title+'</div><button class="btn btn-ghost" style="padding:6px 12px" onclick="document.getElementById(\'sync-modal\').classList.remove(\'open\')">'+(en?'Close':'Fechar')+'</button></div><div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">'+html+'</div>'+(extra||'')+'</div>';
+  ov.innerHTML='<div class="modal" style="max-width:520px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:\'Playfair Display\',serif;font-size:1.15rem;color:var(--text)">'+title+'</div><button class="btn btn-ghost" style="padding:6px 12px" data-act="closeSyncModal">'+(en?'Close':'Fechar')+'</button></div><div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">'+html+'</div>'+(extra||'')+'</div>';
   ov.classList.add('open');
   return ov;
 }
@@ -4829,7 +4849,7 @@ async function openSyncHistory(){
   try{
     const files=await driveHistList(true);
     const fmtD=s=>new Date(s).toLocaleString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const rows=files.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div><div style="color:var(--text);font-size:.78rem">'+esc(fmtD(f.createdTime))+'</div><div style="font-size:.62rem;opacity:.7">'+Math.max(1,Math.round((+f.size||0)/1024))+' KB</div></div><button class="btn btn-ghost" style="padding:7px 14px;font-size:.7rem" onclick="syncRestoreFrom(\''+f.id+'\',\''+esc(fmtD(f.createdTime)).replace(/&#39;|'/g,'')+'\')">'+(en?'Restore':'Restaurar')+'</button></div>').join('');
+    const rows=files.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div><div style="color:var(--text);font-size:.78rem">'+esc(fmtD(f.createdTime))+'</div><div style="font-size:.62rem;opacity:.7">'+Math.max(1,Math.round((+f.size||0)/1024))+' KB</div></div><button class="btn btn-ghost" style="padding:7px 14px;font-size:.7rem" data-act="syncRestoreFrom" data-arg="'+esc(f.id)+'" data-arg2="'+esc(fmtD(f.createdTime))+'">'+(en?'Restore':'Restaurar')+'</button></div>').join('');
     syncModal(en?'🕘 Version history on Drive':'🕘 Histórico de versões no Drive',
       (en?'Encrypted copies kept automatically before Drive is overwritten (all from the last 48 h, one per day for 14 days, one per month for 6 months). Restoring loads that version here — then save to confirm.':'Cópias encriptadas guardadas automaticamente antes de o Drive ser substituído (todas das últimas 48 h, uma por dia durante 14 dias, uma por mês durante 6 meses). Restaurar carrega essa versão aqui — depois gravas para confirmar.')
       +'<div style="margin-top:10px">'+(rows||'<div style="padding:14px 0">'+(en?'No copies yet — the first one is made on the next save.':'Ainda não há cópias — a primeira é feita na próxima gravação.')+'</div>')+'</div>');
@@ -4956,8 +4976,8 @@ async function driveOpenLinkPicker(){
       return '<div class="fuel-row" style="flex-direction:column;align-items:flex-start;gap:6px'+(isCurrent?';border-color:var(--accent-dim)':'')+'">'+
         '<span class="fuel-main">'+(isCurrent?'⭐ ':'')+(en?'Modified':'Modificado')+': '+ds+' · '+kb+'</span>'+
         '<div style="display:flex;gap:6px;width:100%">'+
-          '<button type="button" class="att-btn" style="flex:1" onclick="driveLinkExisting(\''+f.id+'\')">'+(en?'Load this':'Carregar este')+'</button>'+
-          '<button type="button" class="att-btn" style="flex:1" onclick="driveLinkKeepLocal(\''+f.id+'\')">'+(en?'Use, keep my current data':'Usar, manter os meus dados')+'</button>'+
+          '<button type="button" class="att-btn" style="flex:1" data-act="driveLinkExisting" data-arg="'+esc(f.id)+'">'+(en?'Load this':'Carregar este')+'</button>'+
+          '<button type="button" class="att-btn" style="flex:1" data-act="driveLinkKeepLocal" data-arg="'+esc(f.id)+'">'+(en?'Use, keep my current data':'Usar, manter os meus dados')+'</button>'+
         '</div>'+
       '</div>';
     }).join('')+'<div class="fuel-hint" style="margin-top:8px">'+(en?'"Load this" replaces what is on screen with that version. "Use, keep my current data" points to that file but uploads what you have now on your next save.':'"Carregar este" substitui o que está no ecrã por essa versão. "Usar, manter os meus dados" aponta para esse ficheiro mas envia o que tens agora na próxima gravação.')+'</div>';
@@ -5520,7 +5540,7 @@ function docNoPreview(ext,en){
     <div class="dnp-text">${en
       ?`Files of type <b>.${esc(ext)}</b> can't be shown in the browser. Download it to open with the right app.`
       :`Ficheiros do tipo <b>.${esc(ext)}</b> não podem ser mostrados no browser. Transfere-o para abrir na app certa.`}</div>
-    <button class="btn btn-gold" onclick="downloadDocFromPreview()" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px">
+    <button class="btn btn-gold" data-act="downloadDocFromPreview" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       ${en?'Download':'Transferir'}
     </button>
@@ -5591,7 +5611,7 @@ function renderRenewals(){
   // Botões de janela temporal
   const windows=[[90,en?'90 days':'90 dias'],[180,en?'6 months':'6 meses'],[365,en?'1 year':'1 ano'],[0,en?'All':'Tudo']];
   const fb=document.getElementById('renewal-filter');
-  if(fb)fb.innerHTML=windows.map(([d,lbl])=>`<button class="renewal-filter-btn ${renewalWindow===d?'active':''}" onclick="setRenewalWindow(${d})">${lbl}</button>`).join('');
+  if(fb)fb.innerHTML=windows.map(([d,lbl])=>`<button class="renewal-filter-btn ${renewalWindow===d?'active':''}" data-act="setRenewalWindow" data-args='[${d}]'>${lbl}</button>`).join('');
   // Filtra pela janela escolhida (0 = tudo)
   const soon=items.filter(i=>renewalWindow===0||i.status.days<=renewalWindow).sort((a,b)=>a.date-b.date);
   if(!soon.length){
@@ -5621,7 +5641,7 @@ function renderRenewals(){
     return en?`in ${humanDur(a)}`:`em ${humanDur(a)}`;
   };
   document.getElementById('dash-renewals').innerHTML=soon.map((i,idx)=>`
-    <div class="renewal-row ${i.status.cls}" onclick="_renewalGo(${idx})">
+    <div class="renewal-row ${i.status.cls}" data-act="_renewalGo" data-args='[${idx}]'>
       <span class="renewal-icon">${i.icon}</span>
       <div class="renewal-body">
         <div class="renewal-name">${esc(i.name)}</div>
@@ -5657,7 +5677,7 @@ function renderDocs(){
     const count=cat==='all'?scope.length:(catCount[cat]||0);
     if(cat!=='all'&&count===0)return '';
     const label=cat==='all'?(currentLang==='en'?'All':'Todas'):getDocCatLabel(cat);
-    return `<button class="doc-filter-btn${currentDocFilter===cat?' active':''}" onclick="setDocFilter('${cat}')">${cat==='all'?'📁 ':''}${label} (${count})</button>`;
+    return `<button class="doc-filter-btn${currentDocFilter===cat?' active':''}" data-act="setDocFilter" data-arg="${esc(cat)}">${cat==='all'?'📁 ':''}${label} (${count})</button>`;
   }).join('');
 
   // Breadcrumb
@@ -5668,13 +5688,13 @@ function renderDocs(){
     let html=`<button class="crumb${currentFolderId?'':' current'}" ${currentFolderId?'onclick="goToFolder(null)"':''}>🏠 ${en?'Documents':'Documentos'}</button>`;
     path.forEach((f,i)=>{
       const isLast=i===path.length-1;
-      html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`onclick="goToFolder('${f.id}')"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
+      html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`data-act="goToFolder" data-arg="${esc(f.id)}"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
     });
     if(currentFolderId){
       const cf=folderById(currentFolderId);
       html+=`<span style="margin-left:auto;display:flex;gap:5px">
-        <button class="card-btn" onclick="openFolderModal('${currentFolderId}')" title="${en?'Rename':'Renomear'}">✏️</button>
-        <button class="card-btn danger" onclick="deleteFolder('${currentFolderId}')" title="${en?'Delete folder':'Apagar pasta'}">🗑️</button>
+        <button class="card-btn" data-act="openFolderModal" data-arg="${esc(currentFolderId)}" title="${en?'Rename':'Renomear'}">✏️</button>
+        <button class="card-btn danger" data-act="deleteFolder" data-arg="${esc(currentFolderId)}" title="${en?'Delete folder':'Apagar pasta'}">🗑️</button>
       </span>`;
     }
     bc.innerHTML=html;
@@ -5725,15 +5745,15 @@ function renderDocs(){
     const parts=[];
     if(cnt.folders)parts.push(`${cnt.folders} ${en?(cnt.folders===1?'folder':'folders'):(cnt.folders===1?'pasta':'pastas')}`);
     parts.push(`${cnt.docs} ${en?(cnt.docs===1?'doc':'docs'):(cnt.docs===1?'doc':'docs')}`);
-    return `<div class="folder-card" onclick="openFolder('${f.id}')" title="${esc(f.name)}">
+    return `<div class="folder-card" data-act="openFolder" data-arg="${esc(f.id)}" title="${esc(f.name)}">
       <div class="folder-icon">${f.icon||'📁'}</div>
       <div class="folder-info">
         <div class="folder-name">${esc(f.name)}</div>
         <div class="folder-count">${parts.join(' · ')}</div>
       </div>
       <div class="folder-menu">
-        <button class="card-btn" onclick="event.stopPropagation();openFolderModal('${f.id}')" title="${en?'Rename':'Renomear'}">✏️</button>
-        <button class="card-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}')" title="${en?'Delete':'Apagar'}">🗑️</button>
+        <button class="card-btn" data-act="openFolderModal" data-arg="${esc(f.id)}" data-stop title="${en?'Rename':'Renomear'}">✏️</button>
+        <button class="card-btn danger" data-act="deleteFolder" data-arg="${esc(f.id)}" data-stop title="${en?'Delete':'Apagar'}">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -5767,23 +5787,23 @@ function renderDocs(){
         ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
       </div>
       <div class="card-actions">
-        ${doc.file?`<button class="card-btn" onclick="event.stopPropagation();previewDoc('${doc.id}')">
+        ${doc.file?`<button class="card-btn" data-act="previewDoc" data-arg="${esc(doc.id)}" data-stop>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           ${currentLang==='en'?'View':'Ver'}
         </button>
-        <button class="card-btn" onclick="event.stopPropagation();downloadDoc('${doc.id}')">
+        <button class="card-btn" data-act="downloadDoc" data-arg="${esc(doc.id)}" data-stop>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           ${currentLang==='en'?'Download':'Transferir'}
         </button>`:''}
-        <button class="card-btn" onclick="event.stopPropagation();openMoveModal('${doc.id}')">
+        <button class="card-btn" data-act="openMoveModal" data-arg="${esc(doc.id)}" data-stop>
           📂 ${currentLang==='en'?'Move':'Mover'}
         </button>
-        <button class="card-btn" onclick="event.stopPropagation();openDocModal('${doc.id}')">
+        <button class="card-btn" data-act="openDocModal" data-arg="${esc(doc.id)}" data-stop>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           ${t('btnEdit')}
         </button>
-        <button class="card-btn" onclick="event.stopPropagation();archiveDoc('${doc.id}')"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> ${t('btnArchive')}</button>
-        <button class="card-btn danger" onclick="event.stopPropagation();deleteDoc('${doc.id}')">
+        <button class="card-btn" data-act="archiveDoc" data-arg="${esc(doc.id)}" data-stop><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> ${t('btnArchive')}</button>
+        <button class="card-btn danger" data-act="deleteDoc" data-arg="${esc(doc.id)}" data-stop>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
           ${t('btnDel')}
         </button>
@@ -5839,13 +5859,13 @@ function renderStoreCards(){
       <div class="store-card-head">
         <span class="store-card-name" style="color:${sc.color||'var(--accent)'}">${esc(sc.name||'')}</span>
         <div class="store-card-actions">
-          <button class="card-btn" onclick="showBarcode('${sc.id}')" title="${en?'Show barcode':'Mostrar código'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14"/></svg></button>
-          <button class="card-btn" onclick="editStoreCard('${sc.id}')" title="${en?'Edit':'Editar'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="card-btn danger" onclick="deleteStoreCard('${sc.id}')" title="${en?'Delete':'Apagar'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+          <button class="card-btn" data-act="showBarcode" data-arg="${esc(sc.id)}" title="${en?'Show barcode':'Mostrar código'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14"/></svg></button>
+          <button class="card-btn" data-act="editStoreCard" data-arg="${esc(sc.id)}" title="${en?'Edit':'Editar'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="card-btn danger" data-act="deleteStoreCard" data-arg="${esc(sc.id)}" title="${en?'Delete':'Apagar'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
         </div>
       </div>
-      <div class="store-card-num" onclick="showBarcode('${sc.id}')">${esc(sc.number||'')}</div>
-      <button class="store-show-btn" onclick="showBarcode('${sc.id}')">📷 ${en?'Show at checkout':'Mostrar na caixa'}</button>
+      <div class="store-card-num" data-act="showBarcode" data-arg="${esc(sc.id)}">${esc(sc.number||'')}</div>
+      <button class="store-show-btn" data-act="showBarcode" data-arg="${esc(sc.id)}">📷 ${en?'Show at checkout':'Mostrar na caixa'}</button>
     </div>`;
   }).join('')+`</div>`;
   box.innerHTML=html;
@@ -5942,7 +5962,7 @@ function renderGreeting(){
       </div>
       <div class="dash-greeting-sub">${dateStr.charAt(0).toUpperCase()+dateStr.slice(1)} · ${itemsTxt}</div>
     </div>
-    <div class="aur-launch aur-ring" role="button" tabindex="0" title="Aurora AI" onclick="auroraOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();auroraOpen();}">
+    <div class="aur-launch aur-ring" role="button" tabindex="0" title="Aurora AI" data-act="auroraOpen" data-keydown="aurLaunchKey" data-ev>
       <div class="aur-launch-in">
         <span class="aur-launch-ico">${spark}</span>
         <span class="aur-launch-txt"><b>Aurora AI</b> · <span id="aur-launch-ph">${en?'How can I help?':'Em que posso ajudar?'}</span><span class="aur-caret"></span></span>
@@ -5960,7 +5980,7 @@ function renderSubsSection(){
     box.innerHTML=`
       <div class="subs-sec-head">
         <div class="subs-sec-titlewrap"><span class="subs-sec-ico">💸</span><span class="subs-sec-title">${en?'Subscriptions':'Subscrições'}</span></div>
-        <button class="subs-sec-add" onclick="openSubsScreen()">＋ ${en?'Add':'Adicionar'}</button>
+        <button class="subs-sec-add" data-act="openSubsScreen">＋ ${en?'Add':'Adicionar'}</button>
       </div>
       <div class="subs-sec-empty">${en?'Track what you spend each month on Netflix, gym, insurance…':'Controla o que gastas por mês na Netflix, ginásio, seguros…'}</div>`;
     return;
@@ -5974,7 +5994,7 @@ function renderSubsSection(){
     const nextTxt=next?next.toLocaleDateString(en?'en-GB':'pt-PT',{day:'2-digit',month:'short'}):'—';
     const daysLeft=next?Math.ceil((next-new Date().setHours(0,0,0,0))/86400000):null;
     const soon=daysLeft!==null&&daysLeft<=7;
-    return `<button class="sub-chip" onclick="openSubsScreen()" title="${esc(s.name)} · ${fmtMoney(m)}${en?'/mo':'/mês'}">
+    return `<button class="sub-chip" data-act="openSubsScreen" title="${esc(s.name)} · ${fmtMoney(m)}${en?'/mo':'/mês'}">
       <span class="sub-chip-dot" style="background:${s.color||'var(--accent)'}"></span>
       <span class="sub-chip-name">${esc(s.name||'')}</span>
       <span class="sub-chip-price">${fmtMoney(m)}<span>${en?'/mo':'/mês'}</span></span>
@@ -5989,14 +6009,14 @@ function renderSubsSection(){
   box.innerHTML=`
     <div class="subs-sec-head">
       <div class="subs-sec-titlewrap"><span class="subs-sec-ico">💸</span><span class="subs-sec-title">${en?'Subscriptions':'Subscrições'}</span></div>
-      <button class="subs-sec-add" onclick="openSubsScreen()">${en?'Manage':'Gerir'} →</button>
+      <button class="subs-sec-add" data-act="openSubsScreen">${en?'Manage':'Gerir'} →</button>
     </div>
     <div class="subs-sec-totals">
       <div class="subs-sec-total"><span class="subs-sec-total-num">${fmtMoney(totalM)}</span><span class="subs-sec-total-lbl">${en?'per month':'por mês'}</span></div>
       <div class="subs-sec-total dim"><span class="subs-sec-total-num">${fmtMoney(totalY)}</span><span class="subs-sec-total-lbl">${en?'per year':'por ano'}</span></div>
       <div class="subs-sec-count">${subscriptions.length} ${en?(subscriptions.length===1?'service':'services'):(subscriptions.length===1?'serviço':'serviços')}</div>
     </div>
-    <button class="subs-sec-toggle ${open?'open':''}" onclick="toggleSubsSection()" aria-expanded="${open}">
+    <button class="subs-sec-toggle ${open?'open':''}" data-act="toggleSubsSection" aria-expanded="${open}">
       <span class="subs-sec-toggle-lbl">${en?(open?'Hide subscriptions':'Show subscriptions'):(open?'Esconder subscrições':'Ver subscrições')}</span>
       <span class="subs-sec-next">${nxt?`${en?'Next':'Próxima'}: <b>${esc(nxt.s.name||'')}</b> · <span class="${nxtSoon?'soon':''}">${nxtRel}</span>`:''}</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -6246,10 +6266,10 @@ function renderInfo(){
         <div class="info-field-head">
           <span class="info-label">${esc(f.label||'')}</span>
           <div class="info-field-actions">
-            ${f.sensitive?`<button class="card-btn" onclick="toggleInfoMask('${f.id}')" title="${en?'Show/Hide':'Mostrar/Ocultar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>`:''}
-            <button class="card-btn" onclick="copyInfoField('${person.id}','${f.id}')" title="${en?'Copy':'Copiar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-            <button class="card-btn" onclick="editInfoField('${person.id}','${f.id}')" title="${en?'Edit':'Editar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-            <button class="card-btn danger" onclick="deleteInfoField('${person.id}','${f.id}')" title="${en?'Delete':'Apagar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+            ${f.sensitive?`<button class="card-btn" data-act="toggleInfoMask" data-arg="${esc(f.id)}" title="${en?'Show/Hide':'Mostrar/Ocultar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>`:''}
+            <button class="card-btn" data-act="copyInfoField" data-arg="${esc(person.id)}" data-arg2="${esc(f.id)}" title="${en?'Copy':'Copiar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="card-btn" data-act="editInfoField" data-arg="${esc(person.id)}" data-arg2="${esc(f.id)}" title="${en?'Edit':'Editar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="card-btn danger" data-act="deleteInfoField" data-arg="${esc(person.id)}" data-arg2="${esc(f.id)}" title="${en?'Delete':'Apagar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
           </div>
         </div>
         ${masked}
@@ -6259,12 +6279,12 @@ function renderInfo(){
       <div class="info-person-head">
         <div class="info-person-name">👤 ${esc(person.name||'')}</div>
         <div class="info-person-actions">
-          <button class="card-btn" onclick="renamePerson('${person.id}')" title="${en?'Rename':'Renomear'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="card-btn danger" onclick="deletePerson('${person.id}')" title="${en?'Delete person':'Apagar pessoa'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+          <button class="card-btn" data-act="renamePerson" data-arg="${esc(person.id)}" title="${en?'Rename':'Renomear'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="card-btn danger" data-act="deletePerson" data-arg="${esc(person.id)}" title="${en?'Delete person':'Apagar pessoa'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
         </div>
       </div>
       <div class="info-fields">${fields||`<div style="font-size:.68rem;color:var(--text-muted);padding:6px 0">${en?'No details yet.':'Sem dados ainda.'}</div>`}</div>
-      <button class="info-add-field" onclick="openInfoModal('${person.id}')">＋ ${en?'Add detail':'Adicionar dado'}</button>
+      <button class="info-add-field" data-act="openInfoModal" data-arg="${esc(person.id)}">＋ ${en?'Add detail':'Adicionar dado'}</button>
     </div>`;
   }).join('');
 }
@@ -6547,9 +6567,9 @@ function renderTotp(){
     <div class="totp-card">
       <div class="totp-name">${esc(t2.name)}</div>
       ${t2.account?`<div class="totp-account">${esc(t2.account)}</div>`:''}
-      ${t2.recovery?`<div class="totp-recovery"><span class="totp-recovery-toggle" onclick="toggleTotpRecovery('${t2.id}')">🔑 ${currentLang==='en'?'Recovery codes':'Códigos de recuperação'} ▾</span><div class="totp-recovery-body" id="totp-rec-${t2.id}" style="display:none"><pre class="totp-recovery-pre">${esc(t2.recovery)}</pre><button class="card-btn" onclick="copyText(${jsq(t2.recovery)},'${currentLang==='en'?'Copied':'Copiado'}')">📋 ${currentLang==='en'?'Copy all':'Copiar tudo'}</button></div></div>`:''}
+      ${t2.recovery?`<div class="totp-recovery"><span class="totp-recovery-toggle" data-act="toggleTotpRecovery" data-arg="${esc(t2.id)}">🔑 ${currentLang==='en'?'Recovery codes':'Códigos de recuperação'} ▾</span><div class="totp-recovery-body" id="totp-rec-${t2.id}" style="display:none"><pre class="totp-recovery-pre">${esc(t2.recovery)}</pre><button class="card-btn" data-act="copyText" data-arg="${esc(t2.recovery)}" data-arg2="${currentLang==='en'?'Copied':'Copiado'}">📋 ${currentLang==='en'?'Copy all':'Copiar tudo'}</button></div></div>`:''}
       <div class="totp-code-row">
-        <div class="totp-code" id="totp-code-${t2.id}" data-code="" onclick="copyTotpCode('${t2.id}')" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">${fmtTotpCode(null,t2.digits)}</div>
+        <div class="totp-code" id="totp-code-${t2.id}" data-code="" data-act="copyTotpCode" data-arg="${esc(t2.id)}" title="${currentLang==='en'?'Click to copy':'Clica para copiar'}">${fmtTotpCode(null,t2.digits)}</div>
         <svg class="totp-ring" width="30" height="30" viewBox="0 0 30 30">
           <circle cx="15" cy="15" r="12" fill="none" stroke="var(--border)" stroke-width="3"/>
           <circle class="totp-ring-fg" id="totp-ring-${t2.id}" cx="15" cy="15" r="12" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="0" transform="rotate(-90 15 15)"/>
@@ -6557,15 +6577,15 @@ function renderTotp(){
         <span class="totp-secs" id="totp-secs-${t2.id}">--</span>
       </div>
       <div class="card-actions" style="margin-top:10px">
-        <button class="card-btn" onclick="copyTotpCode('${t2.id}')">
+        <button class="card-btn" data-act="copyTotpCode" data-arg="${esc(t2.id)}">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           ${currentLang==='en'?'Copy':'Copiar'}
         </button>
-        <button class="card-btn" onclick="openTotpModal('${t2.id}')">
+        <button class="card-btn" data-act="openTotpModal" data-arg="${esc(t2.id)}">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           ${t('btnEdit')}
         </button>
-        <button class="card-btn danger" onclick="deleteTotp('${t2.id}')">
+        <button class="card-btn danger" data-act="deleteTotp" data-arg="${esc(t2.id)}">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
           ${t('btnDel')}
         </button>
@@ -7216,7 +7236,7 @@ async function renderSnapshotList(){
         <div class="snap-when">${when}${i===0?` · <span style="color:var(--accent-ink);font-size:.66rem">${en?'most recent':'mais recente'}</span>`:''}</div>
         <div class="snap-meta">${bits.join(' · ')}</div>
       </div>
-      <button class="snap-restore" onclick="restoreSnapshot(${i})">${en?'Restore':'Restaurar'}</button>
+      <button class="snap-restore" data-act="restoreSnapshot" data-args='[${i}]'>${en?'Restore':'Restaurar'}</button>
     </div>`;
   }).join('');
 }
@@ -7374,7 +7394,7 @@ function renderCatManager(){
       <span style="font-size:1rem">${cu.icon}</span>
       <span style="flex:1;color:var(--text)">${esc(cu.name)}</span>
       <span style="color:var(--text-muted);font-size:.68rem">${count} ${currentLang==='en'?(count===1?'entry':'entries'):(count===1?'entrada':'entradas')}</span>
-      <button class="card-btn danger" onclick="deleteCustomCat('${cu.key}')" style="padding:5px 9px">✕</button>
+      <button class="card-btn danger" data-act="deleteCustomCat" data-arg="${esc(cu.key)}" style="padding:5px 9px">✕</button>
     </div>`;
   }).join('');
 }
@@ -7546,9 +7566,9 @@ function renderFieldRows(){
   const wrap=document.getElementById('field-rows');if(!wrap)return;
   const en=currentLang==='en';
   wrap.innerHTML=entryFields.map((f,i)=>`<div class="field-row">
-    <input class="fr-k" placeholder="${en?'Label':'Nome'}" value="${esc(f.k)}" oninput="entryFields[${i}].k=this.value">
-    <input class="fr-v" placeholder="${en?'Value':'Valor'}" value="${esc(f.v)}" oninput="entryFields[${i}].v=this.value">
-    <button type="button" class="card-btn danger" onclick="removeFieldRow(${i})" style="padding:7px 10px">✕</button>
+    <input class="fr-k" placeholder="${en?'Label':'Nome'}" value="${esc(f.k)}" data-input="setEntryField" data-args='[${i},"k"]' data-value>
+    <input class="fr-v" placeholder="${en?'Value':'Valor'}" value="${esc(f.v)}" data-input="setEntryField" data-args='[${i},"v"]' data-value>
+    <button type="button" class="card-btn danger" data-act="removeFieldRow" data-args='[${i}]' style="padding:7px 10px">✕</button>
   </div>`).join('');
 }
 function addFieldRow(){entryFields.push({k:'',v:''});renderFieldRows();
@@ -7842,11 +7862,11 @@ function renderTrash(){
         <span class="trash-days-badge${urgent?' urgent':''}">⏳ ${daysLeft}d</span>
       </div>
       <div class="card-actions" style="margin-top:0">
-        <button class="card-btn" onclick="restoreTrashItem(${idx})">
+        <button class="card-btn" data-act="restoreTrashItem" data-args='[${idx}]'>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
           ${currentLang==='en'?'Restore':'Restaurar'}
         </button>
-        <button class="card-btn danger" onclick="deleteTrashForever(${idx})">
+        <button class="card-btn danger" data-act="deleteTrashForever" data-args='[${idx}]'>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
           ${currentLang==='en'?'Delete forever':'Apagar já'}
         </button>
@@ -8028,7 +8048,7 @@ function openMoveModal(id,kind='doc'){
   walk(null,1);
   document.getElementById('move-list').innerHTML=list.map(o=>{
     const isCur=(o.id||null)===cur;
-    return `<button class="move-opt${isCur?' current':''}" ${isCur?'disabled':`onclick="confirmMoveDoc('${o.id||''}')"`}>
+    return `<button class="move-opt${isCur?' current':''}" ${isCur?'disabled':`data-act="confirmMoveDoc" data-arg="${esc(o.id||'')}"`}>
       <span style="padding-left:${o.depth*14}px">${o.label}</span>
       ${isCur?`<span style="margin-left:auto;font-size:.6rem;color:var(--text-muted)">${en?'current':'atual'}</span>`:''}
     </button>`;
@@ -8247,7 +8267,7 @@ function generateLegacyDoc(){
  .pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui,sans-serif;font-size:13px;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
  @media print{.pbtn{display:none}body{padding:0}}
 </style></head><body>
-<button class="pbtn" onclick="window.print()">🖨️ ${L.print}</button>
+<button class="pbtn">🖨️ ${L.print}</button>
 <div class="wrap">
   <div class="hd">
     <h1>📜 ${L.title}</h1>
@@ -8291,7 +8311,7 @@ function generateLegacyDoc(){
 </div></body></html>`;
   const w=window.open('','_blank');
   if(!w){toast(en?'Allow pop-ups to open the sheet.':'Permite pop-ups para abrir a folha.');return;}
-  w.document.write(html);w.document.close();
+  w.document.write(html);w.document.close();{const pb=w.document.querySelector('.pbtn');if(pb)pb.addEventListener('click',()=>w.print());}
   closeLegacyModal();
   toast(en?'Sheet ready — print it 🖨️':'Folha pronta — imprime 🖨️');
 }
@@ -8574,7 +8594,7 @@ function renderWifiBar(){
   const en=currentLang==='en';
   const chips=wifiNets.slice(0,4).map(n=>`<button class="wifi-chip" data-act="openWifiNetQR" data-arg="${esc(n.id)}" title="${(en?'Share WiFi: ':'Partilhar WiFi: ')+esc(n.ssid)}">📶 ${esc(n.name||n.ssid)}</button>`).join('');
   const manageLbl=wifiNets.length?(en?'Manage':'Gerir'):(en?'Add WiFi':'Add WiFi');
-  wrap.innerHTML=chips+`<button class="wifi-chip add" onclick="openWifiManager()" title="${en?'Manage WiFi networks':'Gerir redes WiFi'}">${wifiNets.length?'⚙️':'📶＋'} <span>${manageLbl}</span></button>`;
+  wrap.innerHTML=chips+`<button class="wifi-chip add" data-act="openWifiManager" title="${en?'Manage WiFi networks':'Gerir redes WiFi'}">${wifiNets.length?'⚙️':'📶＋'} <span>${manageLbl}</span></button>`;
 }
 function openWifiManager(){
   const en=currentLang==='en';
@@ -8886,13 +8906,13 @@ function renderWelcome(){
       <div class="welcome-text">${step.text}</div>
       <div class="welcome-dots">${dots}</div>
       <div class="welcome-btns">
-        ${!isFirst?`<button class="btn btn-ghost" onclick="prevWelcome()">${t('wBtnPrev')}</button>`:''}
+        ${!isFirst?`<button class="btn btn-ghost" data-act="prevWelcome">${t('wBtnPrev')}</button>`:''}
         ${isLast
-          ?`<button class="btn btn-gold" style="min-width:160px" onclick="skipWelcome()">${t('wBtnDone')}</button>`
-          :`<button class="btn btn-gold" style="min-width:160px" onclick="nextWelcome()">${isFirst?t('wBtnStart'):t('wBtnNext')}</button>`
+          ?`<button class="btn btn-gold" style="min-width:160px" data-act="skipWelcome">${t('wBtnDone')}</button>`
+          :`<button class="btn btn-gold" style="min-width:160px" data-act="nextWelcome">${isFirst?t('wBtnStart'):t('wBtnNext')}</button>`
         }
       </div>
-      ${!isLast?`<button class="welcome-skip" onclick="skipWelcome()">${t('wBtnSkip')}</button>`:''}
+      ${!isLast?`<button class="welcome-skip" data-act="skipWelcome">${t('wBtnSkip')}</button>`:''}
     </div>`;
 }
 function showWelcome(){
@@ -8952,7 +8972,7 @@ function openReadMode(id){
   let actHtml='';
   if(entry.pw)actHtml+=`<button class="btn btn-gold" data-act="avReadTogglePw" data-arg="${esc(entry.id)}">${currentLang==='en'?'Show/Hide Password':'Mostrar/Esconder Password'}</button>`;
   if(entry.pw)actHtml+=`<button class="btn btn-ghost" data-act="avCopyPw" data-arg="${esc(entry.id)}">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
-  if(isWifiEntry(entry))actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
+  if(isWifiEntry(entry))actHtml+=`<button class="btn btn-ghost" data-act="openWifiQR" data-arg="${esc(entry.id)}">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
   if(entry.url)actHtml+=`<button class="btn btn-ghost" data-act="avGoSite" data-arg="${esc(entry.id)}">${t('btnGoSite')}</button>`;
   actHtml+=`<button class="btn btn-ghost" data-act="readShare" data-arg="${esc(entry.id)}">🔗 ${currentLang==='en'?'Share QR':'Partilhar QR'}</button>`;
   actHtml+=`<button class="btn btn-ghost" data-act="readEdit" data-arg="${esc(entry.id)}">${t('btnEdit')}</button>`;
@@ -8982,9 +9002,9 @@ function openDocPreview(id){
   content.innerHTML=html;
   const actions=document.getElementById('read-actions');
   let actHtml='';
-  if(doc.file)actHtml+=`<button class="btn btn-gold" onclick="downloadDoc('${doc.id}')">${currentLang==='en'?'⬇ Download':'⬇ Transferir'}</button>`;
-  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();switchTab('docs');setTimeout(()=>openDocModal('${doc.id}'),150)">${t('btnEdit')}</button>`;
-  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();switchTab('docs');goToFolder(${doc.folderId?`'${doc.folderId}'`:'null'})">${currentLang==='en'?'Open folder':'Abrir pasta'}</button>`;
+  if(doc.file)actHtml+=`<button class="btn btn-gold" data-act="downloadDoc" data-arg="${esc(doc.id)}">${currentLang==='en'?'⬇ Download':'⬇ Transferir'}</button>`;
+  actHtml+=`<button class="btn btn-ghost" data-act="readOpenDoc" data-arg="${esc(doc.id)}">${t('btnEdit')}</button>`;
+  actHtml+=`<button class="btn btn-ghost" data-act="readGoFolder" data-arg="${esc(doc.folderId||'')}">${currentLang==='en'?'Open folder':'Abrir pasta'}</button>`;
   actions.innerHTML=actHtml;
   document.getElementById('read-modal').classList.add('open');
 }
@@ -9694,7 +9714,7 @@ function aurFrame(raw){
 AUR.out=function(h,cls){if(typeof document==='undefined')return null;const m=document.getElementById('aurora-msgs');if(!m)return null;const pn=document.getElementById('aurora-panel');if(pn&&pn.classList.contains('min')&&/ai/.test(cls))pn.classList.add('has-new');const d=document.createElement('div');d.className='aurora-msg '+cls;d.innerHTML=h;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;};
 function aurSay(html,chips,cls){
   const list=(chips||[]).filter(Boolean);let h=html;
-  if(list.length){if(AUR.acts.length>3000)AUR.acts=[];h+='<div class="a-chips">'+list.map(ch=>{const i=AUR.acts.push(ch.fn)-1;return '<span class="a-btn'+(ch.danger?' danger':'')+'" onclick="aurAct('+i+')">'+aurEsc(ch.label)+'</span>';}).join('')+'</div>';}
+  if(list.length){if(AUR.acts.length>3000)AUR.acts=[];h+='<div class="a-chips">'+list.map(ch=>{const i=AUR.acts.push(ch.fn)-1;return '<span class="a-btn'+(ch.danger?' danger':'')+'" data-act="aurAct" data-args="['+i+']">'+aurEsc(ch.label)+'</span>';}).join('')+'</div>';}
   AUR.out(h,cls||'ai');return true;
 }
 function aurAct(i){const f=AUR.acts[i];if(typeof f==='function'){try{f();}catch(e){aurSay(aurL('Não consegui concluir essa ação (','I couldn’t complete that action (')+aurEsc(e.message)+').');}}}
@@ -10541,19 +10561,19 @@ function aurLaunchIdeas(){
   +'}'
   +'@media(prefers-reduced-motion:reduce){.aur-ring,.aur-ring::before,.aur-launch-in::before,#aurora-panel::before,#aurora-fab,.aur-launch-ico svg,.a-logo svg,#aurora-fab svg,.aur-caret{animation:none!important}}';
   const st=document.createElement('style');st.id='aurora-css';st.textContent=css;document.head.appendChild(st);
-  const fab=document.createElement('button');fab.id='aurora-fab';fab.title='Aurora AI';fab.setAttribute('aria-label','Abrir a Aurora AI');fab.setAttribute('onclick','auroraOpen()');
+  const fab=document.createElement('button');fab.id='aurora-fab';fab.title='Aurora AI';fab.setAttribute('aria-label','Abrir a Aurora AI');fab.dataset.act='auroraOpen';
   fab.innerHTML='<span>'+AUR_SVG.spark+'</span>';document.body.appendChild(fab);
   const panel=document.createElement('aside');panel.id='aurora-panel';panel.setAttribute('aria-label','Aurora AI');
   panel.innerHTML='<div class="aurora-grab"></div>'
-   +'<div class="aurora-head" onclick="if(window.matchMedia(\'(max-width:760px)\').matches)auroraToggleMin()">'
+   +'<div class="aurora-head" data-act="auroraHeadTap">'
    +'<div class="a-logo">'+AUR_SVG.spark+'</div>'
    +'<div class="a-ttl"><b>Aurora AI</b><span><i></i>100% offline<em class="a-sub2" style="font-style:normal">&nbsp;· o teu cofre</em></span></div>'
-   +'<button class="a-hbtn" data-k="reset" title="Nova conversa" onclick="event.stopPropagation();auroraReset()">'+AUR_SVG.reset+'</button>'
-   +'<button class="a-hbtn min-only" data-k="min" title="Minimizar" onclick="event.stopPropagation();auroraToggleMin()">'+AUR_SVG.chev+'</button>'
-   +'<button class="a-hbtn" data-k="close" title="Fechar" onclick="event.stopPropagation();auroraClose()">'+AUR_SVG.x+'</button>'
+   +'<button class="a-hbtn" data-k="reset" title="Nova conversa" data-act="auroraReset" data-stop>'+AUR_SVG.reset+'</button>'
+   +'<button class="a-hbtn min-only" data-k="min" title="Minimizar" data-act="auroraToggleMin" data-stop>'+AUR_SVG.chev+'</button>'
+   +'<button class="a-hbtn" data-k="close" title="Fechar" data-act="auroraClose" data-stop>'+AUR_SVG.x+'</button>'
    +'</div>'
    +'<div class="aurora-msgs" id="aurora-msgs"></div>'
-   +'<div class="aurora-in"><div class="aur-ring"><div class="aurora-in-box"><input id="aurora-input" placeholder="Pede-me qualquer coisa do cofre…" autocomplete="off" autocapitalize="sentences" enterkeyhint="send"><button id="aurora-send" onclick="auroraSend()" title="Enviar">'+AUR_SVG.send+'</button></div></div></div>';
+   +'<div class="aurora-in"><div class="aur-ring"><div class="aurora-in-box"><input id="aurora-input" placeholder="Pede-me qualquer coisa do cofre…" autocomplete="off" autocapitalize="sentences" enterkeyhint="send"><button id="aurora-send" data-act="auroraSend" title="Enviar">'+AUR_SVG.send+'</button></div></div></div>';
   document.body.appendChild(panel);
   aurUILang();
   const inp=document.getElementById('aurora-input');
@@ -10609,7 +10629,7 @@ function aurAlertsRender(){
   if(side&&side.previousElementSibling===launch){if(box.parentElement!==side)side.insertBefore(box,side.firstChild);}
   else if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
   const en=aurAppLang()==='en';
-  box.innerHTML='<div class="aur-al-h">✨ Aurora · '+(en?'Heads-up':'Avisos')+'</div>'+list.map((a,i)=>'<div class="aur-al-row" role="button" tabindex="0" onclick="aurAlertGo('+i+')" onkeydown="if(event.key===\'Enter\')aurAlertGo('+i+')"><span class="aur-al-ic">'+a.ic+'</span><span class="aur-al-tx">'+a.html+'</span><button class="aur-al-x" title="'+(en?'Dismiss until tomorrow':'Dispensar até amanhã')+'" onclick="aurAlertDismiss(\''+a.k.replace(/['"\\<>]/g,'')+'\',event)">✕</button></div>').join('');
+  box.innerHTML='<div class="aur-al-h">✨ Aurora · '+(en?'Heads-up':'Avisos')+'</div>'+list.map((a,i)=>'<div class="aur-al-row" role="button" tabindex="0" data-act="aurAlertGo" data-enter="aurAlertGo" data-args="['+i+']"><span class="aur-al-ic">'+a.ic+'</span><span class="aur-al-tx">'+a.html+'</span><button class="aur-al-x" title="'+(en?'Dismiss until tomorrow':'Dispensar até amanhã')+'" data-act="aurAlertDismiss" data-arg="'+esc(a.k)+'" data-ev-last>✕</button></div>').join('');
 }
 (function(){if(typeof renderGreeting!=='function')return;const _rg=renderGreeting;renderGreeting=function(){const r=_rg.apply(this,arguments);try{aurAlertsRender();}catch(e){}return r;};})();
 
@@ -10776,9 +10796,9 @@ async function avOnbSteps(){
   return [
     {k:'create',done:true,t:['Criar o teu cofre','Create your vault']},
     {k:'pw',done:V.length>0,t:['Guardar a primeira password','Store your first password'],d:['Por exemplo, a do teu email. Demora 30 segundos.','For example, your email. Takes 30 seconds.'],b:['Adicionar','Add'],fn:"avAddType('password')"},
-    {k:'quick',done:quick,t:['Entrar com PIN ou impressão digital','Unlock with PIN or fingerprint'],d:['Para não teres de escrever a palavra-passe mestra sempre.','So you don’t have to type the master password every time.'],b:['Configurar','Set up'],fn:"openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('seguranca')"},
+    {k:'quick',done:quick,t:['Entrar com PIN ou impressão digital','Unlock with PIN or fingerprint'],d:['Para não teres de escrever a palavra-passe mestra sempre.','So you don’t have to type the master password every time.'],b:['Configurar','Set up'],fn:"openSettingsTab('seguranca')"},
     {k:'bk',done:bk,t:['Guardar uma cópia de segurança','Make a backup copy'],d:['Se perderes o telemóvel, não perdes nada.','If you lose your phone, you lose nothing.'],b:['Fazer cópia','Back up'],fn:'avOnbBackup()'},
-    {k:'imp',opt:true,done:localStorage.getItem('av_imp_done')==='1',t:['Trazer as passwords do Chrome','Bring your passwords from Chrome'],d:['Importa tudo de uma vez em vez de escrever.','Import everything at once instead of typing.'],b:['Importar','Import'],fn:"openSettings();if(typeof switchSettingsTab==='function')switchSettingsTab('dados')"}
+    {k:'imp',opt:true,done:localStorage.getItem('av_imp_done')==='1',t:['Trazer as passwords do Chrome','Bring your passwords from Chrome'],d:['Importa tudo de uma vez em vez de escrever.','Import everything at once instead of typing.'],b:['Importar','Import'],fn:"openSettingsTab('dados')"}
   ];
 }
 function avOnbBackup(){try{downloadBackupNow();localStorage.setItem('av_bk_done','1');}catch(e){}setTimeout(()=>{try{avOnboardRender();}catch(e){}},600);}
@@ -10796,11 +10816,11 @@ async function avOnboardRender(){
   if(box.previousElementSibling!==host)host.insertAdjacentElement('afterend',box);
   const en=avEn(),nextK=(st.find(s=>!s.done&&!s.opt)||{}).k;let n=0;
   if(avMode()==='simple')avTourOffer();
-  box.innerHTML='<div class="av-onb-h"><h3>'+(en?'First steps':'Primeiros passos')+'</h3><span><button onclick="avTourStart()" style="color:var(--accent-ink);margin-right:10px">🎓 '+(en?'Guided tour':'Ver apresentação')+'</button><button onclick="avOnbHide()">'+(en?'Hide':'Esconder')+'</button></span></div>'
+  box.innerHTML='<div class="av-onb-h"><h3>'+(en?'First steps':'Primeiros passos')+'</h3><span><button data-act="avTourStart" style="color:var(--accent-ink);margin-right:10px">🎓 '+(en?'Guided tour':'Ver apresentação')+'</button><button data-act="avOnbHide">'+(en?'Hide':'Esconder')+'</button></span></div>'
    +'<p class="av-onb-lead">'+(en?'A few quick steps and your vault is ready to use.':'Uns passos rápidos e o teu cofre fica pronto a usar.')+'</p>'
    +'<div class="av-onb-bar"><i style="width:'+Math.round(done/req.length*100)+'%"></i></div><div class="av-onb-prog">'+done+(en?' of ':' de ')+req.length+(en?' done':' concluídos')+'</div>'
-   +st.map(s=>{if(!s.opt)n++;return '<div class="av-step'+(s.done?' done':'')+(s.k===nextK?' next':'')+'"><div class="dot">'+(s.done?'✓':(s.opt?'＋':n))+'</div><div><div class="st">'+avT(s.t)+(s.opt?'<span class="av-opt">'+(en?'optional':'opcional')+'</span>':'')+'</div>'+(s.done||!s.d?'':'<div class="sd">'+avT(s.d)+'</div>')+'</div>'+(s.done||!s.fn?'':'<button class="sb" onclick="'+s.fn+'">'+avT(s.b)+'</button>')+'</div>';}).join('')
-   +'<div class="av-tip" onclick="if(typeof auroraOpen===\'function\')auroraOpen()">💡 '+(en?'Not sure where to start? Tell Aurora, for example: <b>"save my Gmail password"</b> — she does the rest.':'Não sabes por onde começar? Escreve à Aurora, por exemplo: <b>"guarda a password do Gmail"</b> — ela trata do resto.')+'</div>';
+   +st.map(s=>{if(!s.opt)n++;return '<div class="av-step'+(s.done?' done':'')+(s.k===nextK?' next':'')+'"><div class="dot">'+(s.done?'✓':(s.opt?'＋':n))+'</div><div><div class="st">'+avT(s.t)+(s.opt?'<span class="av-opt">'+(en?'optional':'opcional')+'</span>':'')+'</div>'+(s.done||!s.d?'':'<div class="sd">'+avT(s.d)+'</div>')+'</div>'+(s.done||!s.fn?'':'<button class="sb" '+avActAttrs(s.fn)+'>'+avT(s.b)+'</button>')+'</div>';}).join('')
+   +'<div class="av-tip" data-act="auroraOpenSafe">💡 '+(en?'Not sure where to start? Tell Aurora, for example: <b>"save my Gmail password"</b> — she does the rest.':'Não sabes por onde começar? Escreve à Aurora, por exemplo: <b>"guarda a password do Gmail"</b> — ela trata do resto.')+'</div>';
 }
 
 /* ── ligações à app existente ── */
@@ -10862,7 +10882,7 @@ async function avScanStore(){
   let det;try{det=new BarcodeDetector({formats});}catch(e){toast(en?'Barcode reading unavailable.':'Leitura de códigos indisponível.');return;}
   const o=document.createElement('div');o.id='av-scan';
   o.style.cssText='position:fixed;inset:0;z-index:400;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center';
-  o.innerHTML='<video playsinline muted style="width:100%;height:100%;object-fit:cover"></video><div style="position:absolute;left:8%;right:8%;top:38%;height:24%;border:2px solid rgba(201,168,76,.9);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)"></div><div style="position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:0;right:0;text-align:center;color:#fff;font:600 .9rem system-ui;text-shadow:0 1px 6px #000">'+(en?'Point the camera at the card’s barcode':'Aponta a câmara ao código de barras do cartão')+'</div><button type="button" onclick="avScanClose()" style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);padding:12px 26px;border-radius:30px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.55);color:#fff;font:600 .9rem system-ui">'+(en?'Cancel':'Cancelar')+'</button>';
+  o.innerHTML='<video playsinline muted style="width:100%;height:100%;object-fit:cover"></video><div style="position:absolute;left:8%;right:8%;top:38%;height:24%;border:2px solid rgba(201,168,76,.9);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)"></div><div style="position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:0;right:0;text-align:center;color:#fff;font:600 .9rem system-ui;text-shadow:0 1px 6px #000">'+(en?'Point the camera at the card’s barcode':'Aponta a câmara ao código de barras do cartão')+'</div><button type="button" data-act="avScanClose" style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);padding:12px 26px;border-radius:30px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.55);color:#fff;font:600 .9rem system-ui">'+(en?'Cancel':'Cancelar')+'</button>';
   document.body.appendChild(o);
   let stream;
   try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});}
@@ -11067,8 +11087,8 @@ function avtRender(){
   bub.innerHTML='<div class="avt-h"><i>✨</i>Aurora · '+(en?'step ':'passo ')+(AVT.i+1)+(en?' of ':' de ')+AV_TOUR.length+'</div><div class="avt-t">'+avT(s.t)+'</div><div class="avt-d" id="avt-d"></div>'
    +(s.task&&!done?'<div class="avt-task">👉 '+avT(s.task)+'</div>':'')
    +'<div class="avt-f"><div class="avt-dots">'+AV_TOUR.map((x,i)=>'<span class="'+(i===AVT.i?'on':(i<AVT.i?'ok':''))+'"></span>').join('')+'</div>'
-   +'<button class="avt-b" onclick="avTourEnd()">'+(en?'Skip':'Saltar')+'</button>'
-   +(s.task&&!done?'<button class="avt-b go" onclick="avtShowMe()">'+(en?'Show me':'Mostra-me')+'</button>':'<button class="avt-b go" onclick="avtNext()">'+(last?(en?'Finish ✨':'Terminar ✨'):(en?'Next →':'Seguinte →'))+'</button>')+'</div>';
+   +'<button class="avt-b" data-act="avTourEnd">'+(en?'Skip':'Saltar')+'</button>'
+   +(s.task&&!done?'<button class="avt-b go" data-act="avtShowMe">'+(en?'Show me':'Mostra-me')+'</button>':'<button class="avt-b go" data-act="avtNext">'+(last?(en?'Finish ✨':'Terminar ✨'):(en?'Next →':'Seguinte →'))+'</button>')+'</div>';
   avtPlace();requestAnimationFrame(()=>{avtPlace();bub.classList.add('show');});
   const d=document.getElementById('avt-d'),txt=avT(s.d);clearInterval(AVT.typ);
   if(avtReduce()){d.textContent=txt;}else{let n=0;AVT.typ=setInterval(()=>{n+=3;d.textContent=txt.slice(0,n);if(n>=txt.length)clearInterval(AVT.typ);},16);}
@@ -11088,7 +11108,7 @@ function avtTick(){
 function avTourFinish(){
   const en=avEn(),bub=document.getElementById('avt-bub');AVT.i=AV_TOUR.length;
   const spot=document.getElementById('avt-spot');spot.classList.add('center');
-  bub.innerHTML='<div class="avt-h"><i>✨</i>Aurora</div><div class="avt-t">'+(en?'You’re ready ✨':'Estás pronto ✨')+'</div><div class="avt-d">'+(en?'That’s it! Whenever you need me, ask — or type «tutorial» to see this again.':'É isto! Sempre que precisares, pergunta-me — ou escreve «tutorial» para veres isto outra vez.')+'</div><div class="avt-f"><div class="avt-dots">'+AV_TOUR.map(()=>'<span class="ok"></span>').join('')+'</div><button class="avt-b" onclick="avTourStart()">'+(en?'Again':'Repetir')+'</button><button class="avt-b go" onclick="avTourEnd()">'+(en?'Done':'Terminar')+'</button></div>';
+  bub.innerHTML='<div class="avt-h"><i>✨</i>Aurora</div><div class="avt-t">'+(en?'You’re ready ✨':'Estás pronto ✨')+'</div><div class="avt-d">'+(en?'That’s it! Whenever you need me, ask — or type «tutorial» to see this again.':'É isto! Sempre que precisares, pergunta-me — ou escreve «tutorial» para veres isto outra vez.')+'</div><div class="avt-f"><div class="avt-dots">'+AV_TOUR.map(()=>'<span class="ok"></span>').join('')+'</div><button class="avt-b" data-act="avTourStart">'+(en?'Again':'Repetir')+'</button><button class="avt-b go" data-act="avTourEnd">'+(en?'Done':'Terminar')+'</button></div>';
   avtPlace();
   try{localStorage.setItem('av_tour_done','1');}catch(e){}
   if(!avtReduce()){const cx=innerWidth/2,cy=innerHeight/2;for(let k=0;k<40;k++){const s=document.createElement('i');s.className='avt-star';const a=Math.random()*Math.PI*2,dist=120+Math.random()*260;s.style.left=cx+'px';s.style.top=cy+'px';s.style.setProperty('--dx',Math.cos(a)*dist+'px');s.style.setProperty('--dy',Math.sin(a)*dist+'px');s.style.animationDelay=(Math.random()*.25)+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),1800);}}
@@ -11420,9 +11440,9 @@ function avWifiCard(){
   const al=document.getElementById('aur-alerts');if(al&&al.parentElement!==side)side.insertBefore(al,side.firstChild);
   if(card.parentElement!==side)side.appendChild(card);
   const en=avEn();
-  card.innerHTML='<div class="av-wifi-h"><span>'+avWifiIcon(13)+' Wi-Fi</span><button onclick="openWifiManager()" title="'+(en?'Manage Wi-Fi networks':'Gerir redes Wi-Fi')+'">⚙ '+(en?'Manage':'Gerir')+'</button></div>'
+  card.innerHTML='<div class="av-wifi-h"><span>'+avWifiIcon(13)+' Wi-Fi</span><button data-act="openWifiManager" title="'+(en?'Manage Wi-Fi networks':'Gerir redes Wi-Fi')+'">⚙ '+(en?'Manage':'Gerir')+'</button></div>'
    +nets.slice(0,4).map(n=>'<button class="av-wifi-n" data-act="openWifiNetQR" data-arg="'+esc(n.id)+'" title="'+(en?'Show QR code and password':'Mostrar QR code e password')+'">'+avWifiIcon(17)+'<b>'+esc(n.name||n.ssid)+'</b><i>'+(en?'Show QR ›':'Mostrar QR ›')+'</i></button>').join('')
-   +(nets.length>4?'<button class="av-wifi-n" onclick="openWifiManager()"><b style="font-weight:500;color:var(--text-muted)">+'+(nets.length-4)+(en?' more':' mais')+'</b></button>':'');
+   +(nets.length>4?'<button class="av-wifi-n" data-act="openWifiManager"><b style="font-weight:500;color:var(--text-muted)">+'+(nets.length-4)+(en?' more':' mais')+'</b></button>':'');
 }
 (function(){
   if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avWifiCard();}catch(e){}return r;};}
@@ -11648,18 +11668,18 @@ renderBankCards=function(){
   const en=avEn(),activeCards=bankCards.filter(cd=>!cd.archived);
   if(!activeCards.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><p>'+t('cardEmpty')+'</p></div>';try{avEnhanceEmpty();}catch(e){}return;}
   const TL=t('cardTypeLabels')||{};
-  const btn=(fn,svg,lbl,cls)=>'<button class="card-btn'+(cls?' '+cls:'')+'" onclick="'+fn+'">'+svg+' '+lbl+'</button>';
+  const btn=(fn,svg,lbl,cls)=>'<button class="card-btn'+(cls?' '+cls:'')+'" '+avActAttrs(fn)+'>'+svg+' '+lbl+'</button>';
   grid.innerHTML=activeCards.map(card=>{
     const d=String(card.number||'').replace(/\D/g,''),last4=d.slice(-4)||'••••',col=card.color||'#1a3a6b';
     return '<div class="bank-card-wrap av-cc" id="cc-'+card.id+'">'
-     +'<div class="av-cc-scene" onclick="avCardSceneTap(\''+card.id+'\')"><div class="av-cc-card">'
+     +'<div class="av-cc-scene" data-act="avCardSceneTap" data-arg="'+esc(card.id)+'"><div class="av-cc-card">'
      +'<div class="av-cc-face av-cc-front" style="background:linear-gradient(135deg,'+col+','+col+'cc)">'
      +'<div class="av-cc-top"><span class="av-cc-bank">'+esc(card.bank||'')+'</span>'+(card.type&&TL[card.type]?'<span class="av-cc-badge">'+esc(TL[card.type])+'</span>':'')+'</div>'
      +'<div class="av-cc-chip"></div><svg class="av-cc-nfc" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7M12 6a8.5 8.5 0 0 1 0 12M15.5 3.5a12 12 0 0 1 0 17"/></svg>'
      +'<div class="av-cc-num">•••• •••• •••• '+esc(last4)+'</div><div class="av-cc-holder">'+esc(card.holder||'')+'</div>'+avCardNetHTML(d)
      +'</div><div class="av-cc-face av-cc-back" id="cc-back-'+card.id+'" style="background:linear-gradient(135deg,'+col+','+col+'cc)"></div>'
      +'</div></div>'
-     +'<button class="av-cc-reveal" id="cc-btn-'+card.id+'" onclick="avCardReveal(\''+card.id+'\')">'+AV_EYE+'<span>'+(en?'Show details':'Mostrar dados')+'</span></button>'
+     +'<button class="av-cc-reveal" id="cc-btn-'+card.id+'" data-act="avCardReveal" data-arg="'+esc(card.id)+'">'+AV_EYE+'<span>'+(en?'Show details':'Mostrar dados')+'</span></button>'
      +'<div class="av-cc-timer" id="cc-timer-'+card.id+'"></div>'
      +'<div class="bank-card-actions">'
      +btn("openCardModal('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',en?'Edit':'Editar')
@@ -11672,12 +11692,12 @@ function avCardBackHTML(c){
   const en=avEn(),d=String(c.number||'').replace(/\D/g,'');
   return '<div class="av-cc-stripe"></div>'
    +'<div class="av-cc-top"><span class="av-cc-bank">'+esc(c.bank||'')+'</span>'+avCardNetHTML(d,true)+'</div>'
-   +'<div class="av-cc-row"><div><small>'+(en?'Card number':'Número do cartão')+'</small><div class="av-cc-big">'+esc(avCardGroup(d))+'</div></div>'+(d?'<button class="av-cc-cp" title="'+(en?'Copy number':'Copiar número')+'" onclick="event.stopPropagation();avCardCopy(\''+c.id+'\',\'number\')">'+AV_COPY+'</button>':'')+'</div>'
+   +'<div class="av-cc-row"><div><small>'+(en?'Card number':'Número do cartão')+'</small><div class="av-cc-big">'+esc(avCardGroup(d))+'</div></div>'+(d?'<button class="av-cc-cp" title="'+(en?'Copy number':'Copiar número')+'" data-act="avCardCopy" data-arg="'+esc(c.id)+'" data-arg2="number" data-stop>'+AV_COPY+'</button>':'')+'</div>'
    +'<div class="av-cc-row"><div><small>'+(en?'Expiry':'Validade')+'</small><div class="av-cc-mid">'+esc(c.expiry||'—')+'</div></div>'
    +'<div><small>CVV</small><div class="av-cc-mid">'+esc(c.cvv||'—')+'</div></div>'
-   +(c.pin?'<div><small>PIN</small><div class="av-cc-mid av-cc-pin" onclick="event.stopPropagation();avCardPin(this,\''+c.id+'\')">••••</div></div>':'')
+   +(c.pin?'<div><small>PIN</small><div class="av-cc-mid av-cc-pin" data-act="avCardPinTap" data-arg="'+esc(c.id)+'" data-this data-stop>••••</div></div>':'')
    +'<div style="flex:1;text-align:right"><small>'+(en?'Holder':'Titular')+'</small><div class="av-cc-mid" style="font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.holder||'—')+'</div></div>'
-   +(c.cvv?'<button class="av-cc-cp" title="'+(en?'Copy CVV':'Copiar CVV')+'" onclick="event.stopPropagation();avCardCopy(\''+c.id+'\',\'cvv\')">'+AV_COPY+'</button>':'')+'</div>';
+   +(c.cvv?'<button class="av-cc-cp" title="'+(en?'Copy CVV':'Copiar CVV')+'" data-act="avCardCopy" data-arg="'+esc(c.id)+'" data-arg2="cvv" data-stop>'+AV_COPY+'</button>':'')+'</div>';
 }
 function avCardPin(el,id){const c=bankCards.find(x=>x.id===id);if(!c||AV_CC.open!==id)return;el.textContent=el.textContent==='••••'?c.pin:'••••';}
 function avCardCopy(id,f){const c=bankCards.find(x=>x.id===id);if(!c||AV_CC.open!==id)return;const v=f==='number'?String(c.number||'').replace(/\D/g,''):String(c[f]||'');if(v)copyText(v,f==='number'?(avEn()?'Card number copied':'Número do cartão copiado'):(avEn()?'CVV copied':'CVV copiado'));}
@@ -11860,8 +11880,8 @@ function avTabsRender(){
   p.innerHTML='<div class="av-grab"></div><h4>'+(en?'Visible tabs':'Abas visíveis')+'</h4>'
    +AV_GROUPS.map(([g,ic,n,sub])=>{const dash=g==='dashboard',byMode=simple&&(g==='bens'||g==='archive'),on=dash||!hid.includes(g);
      const s=dash?avT(sub):(byMode?(en?'hidden by Simple mode':'escondida pelo Modo Simples'):(on?avT(sub):(en?'hidden — nothing was deleted':'escondida — nada foi apagado')));
-     return '<div class="av-tr'+(on?'':' off')+'" '+(dash?'':'onclick="avTabToggle(\''+g+'\')"')+' role="switch" aria-checked="'+on+'"><span class="ic">'+ic+'</span><span class="av-tr-t"><b>'+avT(n)+'</b><i>'+s+'</i></span><span class="av-sw'+(on?' on':'')+(dash?' lock':'')+'"></span></div>';}).join('')
-   +'<div class="av-tr" onclick="avHideLockToggle()" style="border-top:1px solid var(--border);margin-top:4px"><span class="ic">🔒</span><span class="av-tr-t"><b>'+(en?'Ask for fingerprint / PIN':'Pedir impressão digital / PIN')+'</b><i>'+(en?'to show a hidden tab again':'para voltar a mostrar uma aba escondida')+'</i></span><span class="av-sw'+(avHideLock()?' on':'')+'"></span></div>'
+     return '<div class="av-tr'+(on?'':' off')+'" '+(dash?'':'data-act="avTabToggle" data-arg="'+esc(g)+'"')+' role="switch" aria-checked="'+on+'"><span class="ic">'+ic+'</span><span class="av-tr-t"><b>'+avT(n)+'</b><i>'+s+'</i></span><span class="av-sw'+(on?' on':'')+(dash?' lock':'')+'"></span></div>';}).join('')
+   +'<div class="av-tr" data-act="avHideLockToggle" style="border-top:1px solid var(--border);margin-top:4px"><span class="ic">🔒</span><span class="av-tr-t"><b>'+(en?'Ask for fingerprint / PIN':'Pedir impressão digital / PIN')+'</b><i>'+(en?'to show a hidden tab again':'para voltar a mostrar uma aba escondida')+'</i></span><span class="av-sw'+(avHideLock()?' on':'')+'"></span></div>'
    +'<div class="av-tp-note">✨ '+(en?'<b>Aurora</b> still sees everything, even in hidden tabs.':'A <b>Aurora</b> continua a ver tudo, mesmo nas abas escondidas.')+'</div>';
 }
 async function avTabToggle(g){
@@ -12220,7 +12240,7 @@ function avDriveQuickRender(){
   if(official&&!fid&&(!cid||cid===AV_BUILTIN_CID)){
     o+='<div class="dq-box"><b class="t">'+(en?'No Google Drive copy yet':'Ainda sem cópia na Google Drive')+'</b>'
       +'<p>'+(en?'One tap: sign in with <b>your</b> Google account and the vault (already encrypted) gets a copy in <b>your</b> Drive. Nobody else can access it.':'Um toque: entras com a <b>tua</b> conta Google e o cofre (já encriptado) passa a ter cópia na <b>tua</b> Drive. Mais ninguém lhe tem acesso.')+'</p>'
-      +'<button class="dq-go" id="dq-go" onclick="avDriveQuick()">☁️ '+(en?'Connect my Google Drive':'Ligar a minha Google Drive')+'</button>'
+      +'<button class="dq-go" id="dq-go" data-act="avDriveQuick">☁️ '+(en?'Connect my Google Drive':'Ligar a minha Google Drive')+'</button>'
       +'<div class="dq-hint">'+(en?'Already have this vault in Drive on another device? Use «Use an existing Drive file» below instead.':'Já tens este cofre na Drive noutro dispositivo? Usa antes «Usar um ficheiro já existente na Drive», mais abaixo.')+'</div></div>';
   }
   if(official&&cid){
@@ -12308,13 +12328,13 @@ function avGaOpen(){
   const en=avEn();
   if(typeof totpRecWrap!=='undefined'&&totpRecWrap&&!totpUnlocked){toast(en?'Unlock the 2FA tab first.':'Desbloqueia primeiro a aba 2FA.');try{switchTab('totp');}catch(e){}return;}
   const o=avGaOv();
-  o.innerHTML='<div class="av-ga-box"><button class="av-ga-x" onclick="avGaClose()" aria-label="'+(en?'Close':'Fechar')+'">✕</button><h4>📲 '+(en?'Import from Google Authenticator':'Importar do Google Authenticator')+'</h4>'
+  o.innerHTML='<div class="av-ga-box"><button class="av-ga-x" data-act="avGaClose" aria-label="'+(en?'Close':'Fechar')+'">✕</button><h4>📲 '+(en?'Import from Google Authenticator':'Importar do Google Authenticator')+'</h4>'
    +'<div class="av-ga-sub">'+(en?'Brings all your 2FA codes at once. They keep working in Google Authenticator too.':'Traz todos os teus códigos 2FA de uma vez. Continuam a funcionar também no Google Authenticator.')+'</div>'
    +'<ol>'+(en?'<li>In <b>Google Authenticator</b>: menu <b>☰ → Transfer accounts → Export accounts</b>.</li><li>Pick the accounts → <b>Next</b>. A QR code appears (with many accounts, several).</li><li>Read each QR here.</li>':'<li>No <b>Google Authenticator</b>: menu <b>☰ → Transferir contas → Exportar contas</b>.</li><li>Escolhe as contas → <b>Seguinte</b>. Aparece um QR (com muitas contas, aparecem vários).</li><li>Lê cada QR aqui.</li>')+'</ol>'
    +'<div class="av-ga-warn">⚠ '+(en?'Is Authenticator on <b>this</b> phone? You can’t scan your own screen: open Aurora Vault on your <b>PC or another device</b> to read the QR.':'O Authenticator está <b>neste</b> telemóvel? Não consegues ler o teu próprio ecrã: abre o Aurora Vault no <b>PC ou noutro aparelho</b> para ler o QR.')+'</div>'
    +'<div class="av-ga-warn">🔐 '+(en?'<b>A photo of this QR holds ALL your 2FA codes.</b> Never send it by WhatsApp or email — move it by cable or directly between your devices, and <b>delete the photo</b> right after importing.':'<b>Uma foto deste QR contém TODOS os teus códigos 2FA.</b> Nunca a envies por WhatsApp nem por email — passa-a por cabo ou diretamente entre os teus aparelhos, e <b>apaga a foto</b> logo a seguir a importar.')+'</div>'
-   +'<button class="av-ga-go" onclick="avGaClose();openQrScanner(\'gauth\')">📷 '+(en?'Scan QR with the camera':'Ler QR com a câmara')+'</button>'
-   +'<button class="av-ga-alt" onclick="document.getElementById(\'av-ga-file\').click()">🖼️ '+(en?'Load a photo of the QR':'Carregar foto do QR')+'</button></div>';
+   +'<button class="av-ga-go" data-act="avGaScan">📷 '+(en?'Scan QR with the camera':'Ler QR com a câmara')+'</button>'
+   +'<button class="av-ga-alt" data-click="av-ga-file">🖼️ '+(en?'Load a photo of the QR':'Carregar foto do QR')+'</button></div>';
   o.classList.add('open');
 }
 async function avGaFile(ev){
@@ -12330,14 +12350,14 @@ function avGaResults(){
   const rows=AV_GA.accs.map((a,i)=>{const {svc,acc}=avGaSplit(a),dup=have.has(avGaNorm(a.secret)),bad=!otpAlgo(a.algorithm);
     const ini=svc.replace(/[^A-Za-zÀ-ÿ0-9 ]/g,'').split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
     const col=cols[[...svc].reduce((s,c)=>s+c.charCodeAt(0),0)%cols.length];
-    return '<label class="av-ga-row'+(dup||bad?' off':'')+'"><input type="checkbox" data-i="'+i+'"'+(dup||bad?' disabled':' checked')+' onchange="avGaCount()"><span class="av-ga-ini" style="background:'+col+'">'+esc(ini)+'</span><span class="av-ga-tx"><b>'+esc(svc)+'</b><i>'+esc(acc||'—')+'</i></span>'
+    return '<label class="av-ga-row'+(dup||bad?' off':'')+'"><input type="checkbox" data-i="'+i+'"'+(dup||bad?' disabled':' checked')+' data-change="avGaCount"><span class="av-ga-ini" style="background:'+col+'">'+esc(ini)+'</span><span class="av-ga-tx"><b>'+esc(svc)+'</b><i>'+esc(acc||'—')+'</i></span>'
       +(dup?'<span class="av-ga-tag">'+(en?'already there':'já existe')+'</span>':bad?'<span class="av-ga-tag">'+(en?'not supported':'não suportado')+'</span>':'')+'</label>';}).join('');
   const more=AV_GA.got.size<AV_GA.size;
-  o.innerHTML='<div class="av-ga-box"><button class="av-ga-x" onclick="avGaClose()" aria-label="'+(en?'Close':'Fechar')+'">✕</button><h4>'+(en?'Found '+AV_GA.accs.length+' account'+(AV_GA.accs.length===1?'':'s'):'Encontrei '+AV_GA.accs.length+' conta'+(AV_GA.accs.length===1?'':'s'))+'</h4>'
+  o.innerHTML='<div class="av-ga-box"><button class="av-ga-x" data-act="avGaClose" aria-label="'+(en?'Close':'Fechar')+'">✕</button><h4>'+(en?'Found '+AV_GA.accs.length+' account'+(AV_GA.accs.length===1?'':'s'):'Encontrei '+AV_GA.accs.length+' conta'+(AV_GA.accs.length===1?'':'s'))+'</h4>'
    +'<div class="av-ga-ok">✓ '+(AV_GA.size>1?(en?'QR '+AV_GA.got.size+' of '+AV_GA.size+' read':'QR '+AV_GA.got.size+' de '+AV_GA.size+' lido'+(AV_GA.got.size>1?'s':''))+(more?(en?' — read the next one to bring the rest':' — lê o próximo para trazer o resto'):''):(en?'QR read':'QR lido'))+'</div>'
    +rows+'<div class="av-ga-sub" style="margin-top:10px">'+(en?'Accounts you already have stay out, so nothing is duplicated.':'As que já tens no cofre ficam de fora, para não duplicar.')+'</div>'
-   +(more?'<button class="av-ga-alt" onclick="avGaClose();openQrScanner(\'gauth\')">📷 '+(en?'Read the next QR':'Ler o próximo QR')+'</button>':'')
-   +'<button class="av-ga-go" id="av-ga-imp" onclick="avGaImport()"></button></div>';
+   +(more?'<button class="av-ga-alt" data-act="avGaScan">📷 '+(en?'Read the next QR':'Ler o próximo QR')+'</button>':'')
+   +'<button class="av-ga-go" id="av-ga-imp" data-act="avGaImport"></button></div>';
   o.classList.add('open');avGaCount();
 }
 function avGaCount(){const b=document.getElementById('av-ga-imp');if(!b)return;const n=[...document.querySelectorAll('#av-ga input[type=checkbox]:checked')].length,en=avEn();
@@ -12372,11 +12392,11 @@ function avWalRender(){
   const en=avEn(),open=storeCards.find(s=>s.id===AV_WAL.open)||null,rest=storeCards.filter(s=>s!==open);
   let o='<div class="av-wal"><div class="av-wal-hint">'+(open?(en?'Tap the card to close it':'Toca no cartão para o fechar'):(en?'Tap a card to show its barcode':'Toca num cartão para mostrar o código de barras'))+'</div>';
   if(open){const st=avWalBg(open),num=String(open.number||''),bars=num?barcodeSVG(num):'';
-    o+='<div class="av-wc open" style="background:'+st.bg+';color:'+st.ink+'" onclick="avWalClose()"><div class="av-wc-top"><b>'+esc(open.name||'')+'</b><span>'+(en?'STORE CARD':'CARTÃO DE LOJA')+'</span></div>'
-      +'<div class="av-wc-code" onclick="event.stopPropagation()">'+(bars?'<div class="av-wc-bars">'+bars+'</div><div class="av-wc-num">'+esc(num)+'</div>':'<div class="av-wc-none">'+(en?'No number saved':'Sem número guardado')+'</div>')+'</div>'
-      +'<div class="av-wc-foot"><button onclick="event.stopPropagation();showBarcode(\''+open.id+'\')">⛶ '+(en?'Full screen':'Ecrã inteiro')+'</button><button onclick="event.stopPropagation();avWalClose(true);editStoreCard(\''+open.id+'\')">✎ '+(en?'Edit':'Editar')+'</button><button onclick="event.stopPropagation();avWalClose(true);deleteStoreCard(\''+open.id+'\')">🗑</button><span>'+(en?'Tap to close':'Toca para fechar')+'</span></div></div>';}
+    o+='<div class="av-wc open" style="background:'+st.bg+';color:'+st.ink+'" data-act="avWalClose"><div class="av-wc-top"><b>'+esc(open.name||'')+'</b><span>'+(en?'STORE CARD':'CARTÃO DE LOJA')+'</span></div>'
+      +'<div class="av-wc-code" data-act="" data-stop>'+(bars?'<div class="av-wc-bars">'+bars+'</div><div class="av-wc-num">'+esc(num)+'</div>':'<div class="av-wc-none">'+(en?'No number saved':'Sem número guardado')+'</div>')+'</div>'
+      +'<div class="av-wc-foot"><button data-act="showBarcode" data-arg="'+esc(open.id)+'" data-stop>⛶ '+(en?'Full screen':'Ecrã inteiro')+'</button><button data-act="avWalEdit" data-arg="'+esc(open.id)+'" data-stop>✎ '+(en?'Edit':'Editar')+'</button><button data-act="avWalDelete" data-arg="'+esc(open.id)+'" data-stop>🗑</button><span>'+(en?'Tap to close':'Toca para fechar')+'</span></div></div>';}
   o+=rest.map((sc,i)=>{const st=avWalBg(sc),num=String(sc.number||'').replace(/\s/g,'');
-    return '<div class="av-wc stk" style="background:'+st.bg+';color:'+st.ink+';z-index:'+(i+1)+'" onclick="avWalOpen(\''+sc.id+'\')"><div class="av-wc-top"><b>'+esc(sc.name||'')+'</b><span>'+(num?'•••• '+esc(num.slice(-4)):'')+'</span></div></div>';}).join('');
+    return '<div class="av-wc stk" style="background:'+st.bg+';color:'+st.ink+';z-index:'+(i+1)+'" data-act="avWalOpen" data-arg="'+esc(sc.id)+'"><div class="av-wc-top"><b>'+esc(sc.name||'')+'</b><span>'+(num?'•••• '+esc(num.slice(-4)):'')+'</span></div></div>';}).join('');
   box.innerHTML=o+'</div>';
 }
 async function avWalOpen(id){AV_WAL.open=id;avWalRender();try{window.scrollTo({top:Math.max(0,(document.getElementById('store-content').getBoundingClientRect().top+scrollY)-120),behavior:'smooth'});}catch(e){}
@@ -12428,8 +12448,8 @@ aurAlertsRender=function(){
   else if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
   const en=avEn(),shown=AV_AL_ALL?list:list.slice(0,4);
   box.innerHTML='<div class="avw-h"><span>✨ '+(en?'Heads-up':'Avisos')+'</span>'+(list.length?'<b>'+list.length+'</b>':'')+'</div>'
-   +(list.length?shown.map((a,i)=>'<div class="avw-row s'+a.sev+'" role="button" tabindex="0" onclick="avAlGo('+i+')" onkeydown="if(event.key===\'Enter\')avAlGo('+i+')"><span class="avw-ic">'+a.ic+'</span><span class="avw-tx"><b>'+a.t+'</b>'+(a.s?'<i>'+esc(a.s)+'</i>':'')+(a.chips&&a.chips.length?'<span class="avw-chips">'+a.chips.map(c=>'<span>'+esc(c)+'</span>').join('')+'</span>':'')+'</span><button class="avw-x" onclick="avAlX('+i+',event)" aria-label="'+(en?'Dismiss':'Dispensar')+'">✕</button></div>').join('')
-     +(list.length>4?'<button class="avw-more" onclick="AV_AL_ALL=!AV_AL_ALL;aurAlertsRender()">'+(AV_AL_ALL?(en?'Show less ▴':'Mostrar menos ▴'):(en?'See all ('+list.length+') ▾':'Ver todos ('+list.length+') ▾'))+'</button>':'')
+   +(list.length?shown.map((a,i)=>'<div class="avw-row s'+a.sev+'" role="button" tabindex="0" data-act="avAlGo" data-enter="avAlGo" data-args="['+(i)+']"><span class="avw-ic">'+a.ic+'</span><span class="avw-tx"><b>'+a.t+'</b>'+(a.s?'<i>'+esc(a.s)+'</i>':'')+(a.chips&&a.chips.length?'<span class="avw-chips">'+a.chips.map(c=>'<span>'+esc(c)+'</span>').join('')+'</span>':'')+'</span><button class="avw-x" data-act="avAlX" data-args="['+i+']" data-ev-last aria-label="'+(en?'Dismiss':'Dispensar')+'">✕</button></div>').join('')
+     +(list.length>4?'<button class="avw-more" data-act="avAlToggleAll">'+(AV_AL_ALL?(en?'Show less ▴':'Mostrar menos ▴'):(en?'See all ('+list.length+') ▾':'Ver todos ('+list.length+') ▾'))+'</button>':'')
     :'<div class="avw-ok">✓ '+(en?'All good — no alerts':'Tudo em ordem — nenhum aviso')+'</div>');
 };
 
