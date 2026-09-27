@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='9.97';
+const APP_VERSION='9.98';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -5364,9 +5364,8 @@ function exportPDF(){
 <meta charset="UTF-8">
 <title>Aurora Vault — ${esc(userName)}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',Arial,sans-serif;background:#fff;color:#222;padding:0;}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:#fff;color:#222;padding:0;}
   .page{max-width:900px;margin:0 auto;padding:40px;}
   .header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:3px solid #c9a84c;}
   .header-left h1{font-family:'Playfair Display',serif;font-size:32px;color:#8a6520;letter-spacing:3px;margin-bottom:4px;}
@@ -10943,8 +10942,21 @@ function avScanFill(raw){
   openStoreModal=function(){const r=osm.apply(this,arguments);const b=document.getElementById('sc-scan-btn');if(b){b.style.display=('BarcodeDetector' in window)?'block':'none';b.textContent=avEn()?'📷 Scan with the camera':'📷 Ler com a câmara';}return r;};
 })();
 
-/* ── ⑤ ler a validade de uma foto (OCR local, motor descarregado 1× e guardado offline) ── */
-const AV_OCR_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+/* ── ⑤ ler a validade de uma foto (OCR local, motor descarregado 1× e guardado offline) ──
+   Leitor, motor e dicionários (português e inglês) vêm deste site (vendor/), nunca de servidores de terceiros:
+   é código que corre com o cofre aberto, por isso tem de ser exatamente a versão testada. */
+const AV_OCR_DIR='vendor/tesseract-5.1.1/';
+const AV_OCR_URL=AV_OCR_DIR+'tesseract.min.js';
+function avWasmSimd(){try{return WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]));}catch(e){return false;}}
+async function avOcrWorker(logger){
+  const T=await avLoadTesseract(),base=new URL(AV_OCR_DIR,location.href).href;
+  return T.createWorker(['por','eng'],1,{
+    workerPath:base+'worker.min.js',workerBlobURL:false,
+    corePath:base+(avWasmSimd()?'tesseract-core-simd-lstm.js':'tesseract-core-lstm.js'),
+    langPath:base.replace(/\/$/,''),gzip:true,
+    ...(logger?{logger}:{})
+  });
+}
 let _avTess=null;
 function avLoadTesseract(){
   if(window.Tesseract)return Promise.resolve(window.Tesseract);
@@ -10979,11 +10991,10 @@ async function avOcrDoc(){
   if(!f||!/^image\//.test(f.type||'')||!f.data){toast(en?'Attach a photo of the document first (JPG/PNG).':'Junta primeiro uma foto do documento (JPG/PNG).');return;}
   const say=m=>{if(st){st.style.display='block';st.textContent=m;}};
   if(btn)btn.disabled=true;
-  say(en?'Preparing the reader… (the first time it downloads ~10 MB; after that it works offline)':'A preparar o leitor… (na 1.ª vez descarrega ~10 MB; depois funciona sem internet)');
+  say(en?'Preparing the reader… (the first time it downloads ~7 MB; after that it works offline)':'A preparar o leitor… (na 1.ª vez descarrega ~7 MB; depois funciona sem internet)');
   let worker=null;
   try{
-    const T=await avLoadTesseract();
-    worker=await T.createWorker(['por','eng'],1,{logger:m=>{if(m&&m.status==='recognizing text')say((en?'Reading… ':'A ler… ')+Math.round((m.progress||0)*100)+'%');}});
+    worker=await avOcrWorker(m=>{if(m&&m.status==='recognizing text')say((en?'Reading… ':'A ler… ')+Math.round((m.progress||0)*100)+'%');});
     say(en?'Reading the photo…':'A ler a foto…');
     const res=await worker.recognize(f.data);
     const d=avFindExpiry(res&&res.data&&res.data.text);
@@ -11152,8 +11163,8 @@ const AV_TOUR_RX=/\b(tutorial|apresentacao|visita guiada|tour|guia rapido)\b|com
 
 
 /* ══ v9.74 — AURORA RECEBE FICHEIROS: lê, propõe o destino, cria pastas e guarda (sempre com confirmação) ══ */
-const AV_PDF_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
-const AV_PDF_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+const AV_PDF_URL='vendor/pdfjs-3.11.174/pdf.min.js'; // alojado aqui (ver o OCR acima)
+const AV_PDF_WORKER=new URL('vendor/pdfjs-3.11.174/pdf.worker.min.js',location.href).href;
 let _avPdf=null;
 function avLoadPdf(){
   if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
@@ -11164,13 +11175,13 @@ function avLoadPdf(){
 async function avPdfText(dataUrl){
   const lib=await avLoadPdf();
   const buf=new Uint8Array(await (await fetch(dataUrl)).arrayBuffer());
-  const doc=await lib.getDocument({data:buf}).promise;let out='';
+  const doc=await lib.getDocument({data:buf,isEvalSupported:false}).promise;let out='';
   for(let p=1;p<=Math.min(3,doc.numPages);p++){const pg=await doc.getPage(p);const tc=await pg.getTextContent();out+=tc.items.map(x=>x.str).join(' ')+'\n';}
   try{doc.destroy();}catch(e){}
   return out.slice(0,8000);
 }
 async function avOcrText(dataUrl){
-  const T=await avLoadTesseract();const w=await T.createWorker(['por','eng'],1,{});
+  const w=await avOcrWorker();
   try{const r=await w.recognize(dataUrl);return (r&&r.data&&r.data.text)||'';}finally{try{await w.terminate();}catch(e){}}
 }
 const AVF_KINDS=[

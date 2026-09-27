@@ -11,6 +11,10 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 - **PIN de 6 dígitos** e **biometria** (WebAuthn PRF) para reabrir no mesmo dispositivo; ficam só nesse browser, encriptados,
   com limite de tentativas. PINs antigos de 4 dígitos continuam a funcionar até se escolher um novo.
 - O separador 2FA pode ter uma chave própria (PIN + código de recuperação), independente da palavra-passe mestra.
+- **Sem código de terceiros:** leitor de QR, OCR (tesseract.js + dicionários PT/EN), leitor de PDF (pdf.js) e fontes estão
+  alojados em `vendor/`, na versão testada. A app não faz pedidos a CDNs nem à Google Fonts.
+- **Política de segurança (CSP)** no `index.html`: só corre código deste site e só pode falar com o Google Drive
+  (sincronização) e com o Have I Been Pwned (verificação de fugas). Um código estranho não teria para onde enviar dados.
 
 ## Estrutura
 
@@ -22,6 +26,9 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 | `sw.js` | Service worker: abre sem internet e guarda cada versão uma só vez |
 | `img/` | Fotografias do ecrã de entrada |
 | `vendor/jsqr.js` | Leitor de QR (só é descarregado quando se usa a câmara num browser sem leitor próprio) |
+| `vendor/tesseract-5.1.1/` | OCR (ler validades e documentos em fotos), com os dicionários PT e EN — só descarregado quando se usa |
+| `vendor/pdfjs-3.11.174/` | Leitura de PDFs anexados — só descarregado quando se usa |
+| `vendor/fonts/` | Fontes Playfair Display e JetBrains Mono (licença OFL) |
 | `tests/` | Testes automáticos (Playwright) |
 
 Não há passo de compilação: os ficheiros são publicados tal como estão.

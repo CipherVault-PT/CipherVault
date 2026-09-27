@@ -54,3 +54,9 @@ test('barra de segurança sem espaços vazios quando não há resultados de fuga
   });
   expect(hidden).toEqual(['none', 'none']);
 });
+
+test('as fontes da app vêm deste site e carregam', async ({ page }) => {
+  await openApp(page);
+  const loaded = await page.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/"/g, '')))].sort(); });
+  expect(loaded).toEqual(expect.arrayContaining(['JetBrains Mono', 'Playfair Display']));
+});

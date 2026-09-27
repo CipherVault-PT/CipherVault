@@ -6,15 +6,23 @@ export { expect };
 // e a falhar se aparecer algum erro de JavaScript.
 export const test = base.extend({
   page: async ({ page }, use) => {
-    const errors = [];
+    const errors = [], external = [];
     page.on('pageerror', e => errors.push(e.message));
+    // A app não pode falar com servidores de terceiros (só o Drive e a verificação de fugas, que os testes simulam)
+    page.on('request', r => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && u.hostname !== 'localhost') external.push(u.hostname); });
     page.on('dialog', d => d.accept().catch(() => {}));
-    await page.route(/^https:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.jsdelivr\.net)\//, r => r.abort());
     await page.addInitScript(() => {
       try { localStorage.setItem('cv_welcomed', '1'); localStorage.setItem('av_tour_offered', '1'); } catch (e) {}
     });
+    await page.addInitScript(() => {
+      window.__csp = [];
+      document.addEventListener('securitypolicyviolation', e => window.__csp.push(e.violatedDirective + ' ' + e.blockedURI));
+    });
     await use(page);
     expect(errors, 'erros de JavaScript na página').toEqual([]);
+    expect(external.filter(h => !['example.invalid', 'www.googleapis.com', 'api.pwnedpasswords.com'].includes(h)), 'pedidos a servidores de terceiros').toEqual([]);
+    const csp = await page.evaluate(() => window.__csp || []).catch(() => []);
+    expect(csp, 'bloqueios da política de segurança (CSP)').toEqual([]);
   },
 });
 
