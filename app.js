@@ -10584,6 +10584,7 @@ function aurLaunchIdeas(){
   });
   let aurRaf=0;document.addEventListener('scroll',()=>{if(aurRaf)return;aurRaf=requestAnimationFrame(()=>{aurRaf=0;aurFab();});},true);
   setInterval(function(){
+    if(document.hidden)return;
     const on=typeof masterKey!=='undefined'&&!!masterKey;
     if(!on){if(document.getElementById('aurora-panel').classList.contains('open'))aurClose(true);AUR.resume=null;AUR.pending=null;aurFab();return;}
     aurFab();
