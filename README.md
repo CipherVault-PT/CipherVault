@@ -22,7 +22,9 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 | --- | --- |
 | `index.html` | Estrutura da página |
 | `styles.css` | Aparência |
-| `app.js` | Toda a lógica da app |
+| `js/crypto.js` | Encriptação do cofre (AES-256-GCM, PBKDF2, formato do ficheiro) — testada à parte |
+| `js/actions.js` | Botões e campos sem código dentro do HTML (`data-act`, `data-input`…) |
+| `app.js` | O resto da lógica da app (a ser dividido aos poucos) |
 | `sw.js` | Service worker: abre sem internet e guarda cada versão uma só vez |
 | `img/` | Fotografias do ecrã de entrada |
 | `vendor/jsqr.js` | Leitor de QR (só é descarregado quando se usa a câmara num browser sem leitor próprio) |
@@ -53,9 +55,21 @@ o aspeto em telemóvel/computador e tema claro/escuro, e o consumo do fundo anim
 
 ## Publicar uma versão
 
-Mudar o número (ex.: `9.97` → `9.98`) **em todos estes sítios**, senão os telemóveis continuam com a versão antiga guardada:
+Mudar o número (ex.: `10.0` → `10.1`) **em todos estes sítios**, senão os telemóveis continuam com a versão antiga guardada:
 
-1. `index.html` — `<meta name="app-version">`, o comentário de compatibilidade logo abaixo, `styles.css?v=` e `app.js?v=`, e o `· v9.xx` dos dois rodapés;
+1. `index.html` — `<meta name="app-version">`, o comentário de compatibilidade logo abaixo, todos os `?v=` (`styles.css`, `js/*.js`, `app.js`) e o `· v…` dos dois rodapés;
 2. `app.js` — `const APP_VERSION`.
 
 O teste `tests/version.spec.mjs` falha se algum ficar esquecido.
+
+## Código novo: sem `onclick` no HTML
+
+O objetivo é a política de segurança deixar de precisar de `'unsafe-inline'`. Botões e campos novos usam atributos em vez de código:
+
+```html
+<button data-act="lockEnter">Entrar</button>              <!-- clique → lockEnter() -->
+<button data-act="setLang" data-arg="en">EN</button>      <!-- clique → setLang('en') -->
+<input data-input="onPinInput" data-enter="lockEnter">     <!-- ao escrever / tecla Enter -->
+```
+
+A função tem de estar na lista `AV_ACTS` em `js/actions.js`. O ecrã de entrada já está todo assim (há um teste que o garante).

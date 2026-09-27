@@ -2080,3 +2080,7 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
 }
 /* tema claro: o logótipo dourado sobre fundo claro quase não se lia */
 [data-theme="light"] .topbar-logo{background-image:linear-gradient(100deg,var(--accent-ink) 42%,var(--accent) 50%,var(--accent-ink) 58%)}
+
+/* ecrã de entrada: efeitos de passar o rato (antes eram código dentro do HTML) */
+#l-continue-wrap:hover{transform:translateY(-2px)}
+#file-drop-zone:hover{border-color:var(--accent-dim)!important}
