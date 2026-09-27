@@ -1,2 +1,54 @@
-# CipherVault
-Credential Manager
+# Aurora Vault (CipherVault)
+
+Gestor de palavras-passe, documentos, cartões e códigos 2FA que funciona **100% no dispositivo**: sem servidores, sem contas, também sem internet.
+App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.github.io/CipherVault/>
+
+## Segurança
+
+- Tudo fica num único ficheiro `.vault`, encriptado com **AES-256-GCM**.
+- A chave vem da palavra-passe mestra com **PBKDF2-SHA256, 600 000 iterações** (recomendação atual da OWASP).
+  Cofres antigos (200 000 iterações) continuam a abrir e passam para 600 000 sozinhos na gravação seguinte.
+- **PIN de 6 dígitos** e **biometria** (WebAuthn PRF) para reabrir no mesmo dispositivo; ficam só nesse browser, encriptados,
+  com limite de tentativas. PINs antigos de 4 dígitos continuam a funcionar até se escolher um novo.
+- O separador 2FA pode ter uma chave própria (PIN + código de recuperação), independente da palavra-passe mestra.
+
+## Estrutura
+
+| Ficheiro | O que é |
+| --- | --- |
+| `index.html` | Estrutura da página |
+| `styles.css` | Aparência |
+| `app.js` | Toda a lógica da app |
+| `sw.js` | Service worker: abre sem internet e guarda cada versão uma só vez |
+| `img/` | Fotografias do ecrã de entrada |
+| `vendor/jsqr.js` | Leitor de QR (só é descarregado quando se usa a câmara num browser sem leitor próprio) |
+| `tests/` | Testes automáticos (Playwright) |
+
+Não há passo de compilação: os ficheiros são publicados tal como estão.
+
+## Correr no computador
+
+```bash
+npm install          # só é preciso para os testes
+npm run serve        # http://localhost:4173/
+```
+
+## Testes
+
+```bash
+npx playwright install chromium   # 1.ª vez
+npm test
+```
+
+Correm também no GitHub em cada *pull request* e em cada alteração ao `main` (separador **Actions**).
+Cobrem a encriptação e a migração dos cofres antigos, PIN e biometria, os bugs já corrigidos, o funcionamento sem internet,
+o aspeto em telemóvel/computador e tema claro/escuro, e o consumo do fundo animado.
+
+## Publicar uma versão
+
+Mudar o número (ex.: `9.97` → `9.98`) **em todos estes sítios**, senão os telemóveis continuam com a versão antiga guardada:
+
+1. `index.html` — `<meta name="app-version">`, o comentário de compatibilidade logo abaixo, `styles.css?v=` e `app.js?v=`, e o `· v9.xx` dos dois rodapés;
+2. `app.js` — `const APP_VERSION`.
+
+O teste `tests/version.spec.mjs` falha se algum ficar esquecido.
