@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.1';
+const APP_VERSION='10.2';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1321,6 +1321,17 @@ async function submitOpenVault(pwArg,qk){
   }
 }
 let _openBusy=false;
+function pickPresetColor(type,color){applyColor(type,color);const p=document.getElementById('picker-'+type);if(p)p.value=color;renderPresetHighlights();}
+function pickFlag(id){selectedFlag=id;renderFlagPicker();}
+function pickStoreColor(c){selectedStoreColor=c;renderStoreColors();}
+function pickSubColor(c){selectedSubColor=c;renderSubColors();}
+function fillField(id,v){const el=document.getElementById(id);if(el){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));}}
+function hcGoEntry(id){closeHealthCheck();goToEntry(id);}
+function readShare(id){closeReadMode();openShareModal(id);}
+function readEdit(id){closeReadMode();editEntry(id);}
+function avAddAurora(){avAddClose();if(typeof auroraOpen==='function')auroraOpen();}
+function onEntryPwInput(){checkPwStrength();checkDuplicate();}
+function totpOpenGaImport(){closeTotpModal();avGaOpen();}
 function onNewPw1Input(){checkNewPwMatch();renderPwStrength('new-pw1','new-pw-strength');}
 function checkNewPwMatch(){
   const p1=document.getElementById('new-pw1').value;
@@ -1660,7 +1671,7 @@ function renderThemeGrid(){
   const curBg=(getComputedStyle(document.documentElement).getPropertyValue('--bg')||'').trim().toLowerCase();
   grid.innerHTML=THEME_PRESETS.map(th=>{
     const active=curBg===th.bg.toLowerCase();
-    return `<button class="theme-chip${active?' active':''}" onclick="applyThemePreset('${th.id}')" style="--tc-bg:${th.bg};--tc-accent:${th.accent}">
+    return `<button class="theme-chip${active?' active':''}" data-act="applyThemePreset" data-arg="${esc(th.id)}" style="--tc-bg:${th.bg};--tc-accent:${th.accent}">
       <span class="theme-chip-preview"><span class="theme-chip-dot" style="background:${th.accent}"></span></span>
       <span class="theme-chip-name">${th.emoji} ${th.name}</span>
     </button>`;
@@ -1670,7 +1681,7 @@ function buildPresets(containerId, presets, type){
   const el=document.getElementById(containerId);if(!el)return;
   el.innerHTML=presets.map(color=>`
     <div class="color-preset" style="background:${color}" title="${color}"
-      onclick="applyColor('${type}','${color}');document.getElementById('picker-${type}').value='${color}';renderPresetHighlights()">
+      data-act="pickPresetColor" data-arg="${esc(type)}" data-arg2="${esc(color)}">
     </div>`).join('');
 }
 
@@ -2400,7 +2411,7 @@ function openHealthCheck(){
           </div>
         </div>
         <div class="hc-issue-items">
-          ${iss.items.map(e=>`<button class="hc-chip" onclick="closeHealthCheck();goToEntry('${e.id}')">${esc(e.name||'—')}</button>`).join('')}
+          ${iss.items.map(e=>`<button class="hc-chip" data-act="hcGoEntry" data-arg="${esc(e.id)}">${esc(e.name||'—')}</button>`).join('')}
         </div>
       </div>`).join('');
   }
@@ -3731,7 +3742,7 @@ function renderExportList(){
     const ci=vaultCatInfo(e.cat);
     const on=exportSelection.has(e.id);
     return `<label class="export-row ${on?'on':''}">
-      <input type="checkbox" ${on?'checked':''} onchange="toggleExportEntry('${e.id}')" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+      <input type="checkbox" ${on?'checked':''} data-change="toggleExportEntry" data-arg="${esc(e.id)}" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
       <span style="flex-shrink:0">${ci.icon}</span>
       <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name||'')}</span>
       <span style="font-size:.6rem;color:var(--text-muted);white-space:nowrap">${esc(e.user||'')}</span>
@@ -4240,7 +4251,7 @@ function openAssetModal(kind,id){
     return '<div class="form-group"><label>'+lbl+'</label><input type="'+f.t+'" id="as-'+f.k+'" value="'+esc(v)+'"'+ph+step+'></div>';
   }).join('')+
     '<div class="form-group"><label>'+(en?'Attachments (images or PDF)':'Anexos (imagens ou PDF)')+'</label>'+
-    '<input type="file" id="asset-attach-input" accept="image/*,application/pdf" multiple onchange="handleAttachment(event,\'asset\')" style="font-size:.7rem">'+
+    '<input type="file" id="asset-attach-input" accept="image/*,application/pdf" multiple data-change="handleAttachment" data-ev data-arg="asset" style="font-size:.7rem">'+
     '<div id="asset-attach-list" class="att-list"></div></div>';
   renderAttachList('asset');
   document.getElementById('asset-cancel-btn').textContent=en?'Cancel':'Cancelar';
@@ -5863,13 +5874,13 @@ function editStoreCard(id){
 }
 function renderStorePresets(){
   const box=document.getElementById('sc-presets');
-  if(box)box.innerHTML=STORE_PRESETS.map(p=>`<button type="button" class="im-preset" onclick="document.getElementById('sc-name').value='${p.replace(/'/g,"\\'")}'">${p}</button>`).join('');
+  if(box)box.innerHTML=STORE_PRESETS.map(p=>`<button type="button" class="im-preset" data-act="fillField" data-arg="sc-name" data-arg2="${esc(p)}">${p}</button>`).join('');
 }
 let selectedStoreColor='#c9a84c';
 function renderStoreColors(){
   const cols=['#c9a84c','#e05252','#4caf82','#5b8def','#a970d0','#e0982a','#e0609f','#54c0c0'];
   const box=document.getElementById('sc-colors');
-  if(box)box.innerHTML=cols.map(col=>`<button type="button" class="sub-color-pick${col===selectedStoreColor?' on':''}" style="background:${col}" onclick="selectedStoreColor='${col}';renderStoreColors()"></button>`).join('');
+  if(box)box.innerHTML=cols.map(col=>`<button type="button" class="sub-color-pick${col===selectedStoreColor?' on':''}" style="background:${col}" data-act="pickStoreColor" data-arg="${esc(col)}"></button>`).join('');
 }
 function saveStoreCard(){
   const en=currentLang==='en';
@@ -6001,6 +6012,12 @@ function tbToggleSearch(){
   tb.classList.toggle('m-search',on);const b=document.getElementById('tb-search-btn');if(b)b.classList.toggle('on',on);
   if(on){tbCloseMore();setTimeout(()=>{const i=document.getElementById('search-input');if(i)i.focus();},60);}
 }
+// Opção do menu «⋯»: fecha o menu e só depois faz a ação; o clique não segue (senão outro menu que a ação abra fechava logo)
+function tbMenuAttrs(call){
+  const m=/^(\w+)\((.*)\)$/.exec(call),args=m[2]?[m[2].replace(/^'|'$/g,'')]:[];
+  return 'data-act="tbMenuRun" data-stop data-args=\''+esc(JSON.stringify([m[1],...args]))+'\'';
+}
+function tbMenuRun(name,...args){tbCloseMore();const fn=avFn(name);if(fn)fn(...args);}
 function tbCloseMore(){const m=document.getElementById('tb-more-menu'),b=document.getElementById('tb-more-btn');if(m)m.classList.remove('open');if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false');}}
 function tbToggleMore(ev){
   if(ev)ev.stopPropagation();
@@ -6008,7 +6025,7 @@ function tbToggleMore(ev){
   if(m.classList.contains('open'))return tbCloseMore();
   const en=currentLang==='en';
   const I=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
-  const item=(fn,ico,lbl,sub)=>'<button class="tbm-item" role="menuitem" onclick="tbCloseMore();'+fn+'">'+ico+'<span>'+lbl+(sub?'<small>'+sub+'</small>':'')+'</span></button>';
+  const item=(fn,ico,lbl,sub)=>'<button class="tbm-item" role="menuitem" '+tbMenuAttrs(fn)+'>'+ico+'<span>'+lbl+(sub?'<small>'+sub+'</small>':'')+'</span></button>';
   let driveOnNow=false;try{driveOnNow=typeof driveOn==='function'&&driveOn();}catch(e){}
   const chip=document.getElementById('drive-chip');const chipTxt=chip&&chip.textContent?chip.textContent.trim():'';
   let h=avMoreTop(item,I,en)+item('openCalendar()',I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),en?'Calendar':'Calendário','');
@@ -6016,10 +6033,11 @@ function tbToggleMore(ev){
   h+=avMoreMid(item,I,en);
   h+=item('openSettings()',I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),en?'Settings':'Definições','');
   if(typeof auroraOpen==='function')h+=item('auroraOpen()',I('<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/>'),'Aurora AI',en?'Your offline assistant':'A tua assistente offline');
-  h+='<div class="tbm-sep"></div><div class="tbm-lang"><span>'+(en?'Language':'Idioma')+'</span><div class="tbm-seg"><button class="'+(en?'':'on')+'" onclick="setLang(\'pt\');tbCloseMore()">PT</button><button class="'+(en?'on':'')+'" onclick="setLang(\'en\');tbCloseMore()">ENG</button></div></div>';
+  h+='<div class="tbm-sep"></div><div class="tbm-lang"><span>'+(en?'Language':'Idioma')+'</span><div class="tbm-seg"><button class="'+(en?'':'on')+'" '+tbMenuAttrs("setLang('pt')")+'>PT</button><button class="'+(en?'on':'')+'" '+tbMenuAttrs("setLang('en')")+'>ENG</button></div></div>';
   m.innerHTML=h;m.classList.add('open');if(b){b.classList.add('on');b.setAttribute('aria-expanded','true');}
 }
-document.addEventListener('click',tbCloseMore);
+// fecha ao clicar fora do menu (ou numa das opções); cliques no espaço vazio do menu não o fecham
+document.addEventListener('click',e=>{const m=document.getElementById('tb-more-menu');if(m&&m.contains(e.target)&&!(e.target.closest&&e.target.closest('button')))return;tbCloseMore();});
 (function(){const m=document.getElementById('tb-more-menu'),tb=document.querySelector('.topbar');if(m&&tb&&m.parentElement!==tb)tb.appendChild(m);})();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')tbCloseMore();});
 (function(){const si=document.getElementById('search-input');if(!si)return;si.addEventListener('blur',()=>setTimeout(()=>{const tb=document.querySelector('.topbar');if(tb&&tb.classList.contains('m-search')&&!si.value.trim()){tb.classList.remove('m-search');const b=document.getElementById('tb-search-btn');if(b)b.classList.remove('on');}},180));})();
@@ -6075,7 +6093,7 @@ function renderSubs(){
   const totalY=totalM*12;
   if(badge){badge.textContent=subscriptions.length?fmtMoney(totalM)+(en?'/mo':'/mês'):'';badge.className='dcard-badge'+(subscriptions.length?'':' ');}
   let html=`<div class="subs-head">
-    <button class="btn btn-gold" onclick="openSubModal()" style="display:inline-flex;align-items:center;gap:5px;padding:8px 15px;font-size:.56rem;letter-spacing:2px">
+    <button class="btn btn-gold" data-act="openSubModal" style="display:inline-flex;align-items:center;gap:5px;padding:8px 15px;font-size:.56rem;letter-spacing:2px">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       ${en?'Add subscription':'Adicionar subscrição'}
     </button>
@@ -6106,8 +6124,8 @@ function renderSubs(){
       </div>
       <div class="sub-monthly">${fmtMoney(m)}<span>${en?'/mo':'/mês'}</span></div>
       <div class="sub-actions">
-        <button class="card-btn" onclick="editSub('${s.id}')" title="${en?'Edit':'Editar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="card-btn danger" onclick="deleteSub('${s.id}')" title="${en?'Delete':'Apagar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        <button class="card-btn" data-act="editSub" data-arg="${esc(s.id)}" title="${en?'Edit':'Editar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="card-btn danger" data-act="deleteSub" data-arg="${esc(s.id)}" title="${en?'Delete':'Apagar'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
       </div>
     </div>`;
   }).join('')+`</div>`;
@@ -6148,13 +6166,13 @@ function updateSubCycleUI(){
 }
 function renderSubPresets(){
   const box=document.getElementById('sub-presets');
-  if(box)box.innerHTML=SUB_PRESETS.map(p=>`<button type="button" class="im-preset" onclick="document.getElementById('sub-name').value='${p.replace(/'/g,"\\'")}'">${p}</button>`).join('');
+  if(box)box.innerHTML=SUB_PRESETS.map(p=>`<button type="button" class="im-preset" data-act="fillField" data-arg="sub-name" data-arg2="${esc(p)}">${p}</button>`).join('');
 }
 let selectedSubColor='#c9a84c';
 function renderSubColors(){
   const cols=['#c9a84c','#e05252','#4caf82','#5b8def','#a970d0','#e0982a','#e0609f','#54c0c0'];
   const box=document.getElementById('sub-colors');
-  if(box)box.innerHTML=cols.map(col=>`<button type="button" class="sub-color-pick${col===selectedSubColor?' on':''}" style="background:${col}" onclick="selectedSubColor='${col}';renderSubColors()"></button>`).join('');
+  if(box)box.innerHTML=cols.map(col=>`<button type="button" class="sub-color-pick${col===selectedSubColor?' on':''}" style="background:${col}" data-act="pickSubColor" data-arg="${esc(col)}"></button>`).join('');
 }
 function saveSub(){
   const en=currentLang==='en';
@@ -6318,7 +6336,7 @@ function renderInfoPresets(){
   const en=currentLang==='en';
   const presets=en?INFO_PRESETS_EN:INFO_PRESETS_PT;
   const box=document.getElementById('im-presets');
-  if(box)box.innerHTML=presets.map(p=>`<button type="button" class="im-preset" onclick="document.getElementById('im-label').value='${p.replace(/'/g,"\\'")}'">${p}</button>`).join('');
+  if(box)box.innerHTML=presets.map(p=>`<button type="button" class="im-preset" data-act="fillField" data-arg="im-label" data-arg2="${esc(p)}">${p}</button>`).join('');
 }
 function closeInfoModal(){document.getElementById('info-overlay').classList.remove('open');}
 function saveInfo(){
@@ -7036,9 +7054,9 @@ function renderFlagPicker(){
   box.innerHTML=ENTRY_FLAGS.map(f=>{
     const sel=f.id===selectedFlag;
     if(!f.id){
-      return `<button type="button" class="flag-opt${sel?' active':''}" onclick="selectedFlag='';renderFlagPicker()" title="${en?f.en:f.pt}"><span class="flag-none">∅</span> ${en?f.en:f.pt}</button>`;
+      return `<button type="button" class="flag-opt${sel?' active':''}" data-act="pickFlag" data-arg="" title="${en?f.en:f.pt}"><span class="flag-none">∅</span> ${en?f.en:f.pt}</button>`;
     }
-    return `<button type="button" class="flag-opt${sel?' active':''}" onclick="selectedFlag='${f.id}';renderFlagPicker()" title="${en?f.en:f.pt}"><span class="flag-dot" style="background:${f.color}"></span> ${en?f.en:f.pt}</button>`;
+    return `<button type="button" class="flag-opt${sel?' active':''}" data-act="pickFlag" data-arg="${esc(f.id)}" title="${en?f.en:f.pt}"><span class="flag-dot" style="background:${f.color}"></span> ${en?f.en:f.pt}</button>`;
   }).join('');
 }
 function saveVaultName(){
@@ -7055,7 +7073,7 @@ function renderBgPicker(){
   const en=currentLang==='en';
   box.innerHTML=BG_STYLES.map(st=>{
     const m=BG_META[st];
-    return `<button class="bg-opt${st===currentBg?' active':''}" onclick="setBackground('${st}')">
+    return `<button class="bg-opt${st===currentBg?' active':''}" data-act="setBackground" data-arg="${esc(st)}">
       <span class="bg-opt-preview" style="background:${m.grad}">${st===currentBg?'<span class=\'bg-opt-check\'>✓</span>':''}</span>
       <span class="bg-opt-name">${m.ico} ${en?m.en:m.pt}</span>
     </button>`;
@@ -8554,7 +8572,7 @@ const CVQR=(function(){
 function renderWifiBar(){
   const wrap=document.getElementById('tabs-wifi');if(!wrap)return;
   const en=currentLang==='en';
-  const chips=wifiNets.slice(0,4).map(n=>`<button class="wifi-chip" onclick="openWifiNetQR('${n.id}')" title="${(en?'Share WiFi: ':'Partilhar WiFi: ')+esc(n.ssid)}">📶 ${esc(n.name||n.ssid)}</button>`).join('');
+  const chips=wifiNets.slice(0,4).map(n=>`<button class="wifi-chip" data-act="openWifiNetQR" data-arg="${esc(n.id)}" title="${(en?'Share WiFi: ':'Partilhar WiFi: ')+esc(n.ssid)}">📶 ${esc(n.name||n.ssid)}</button>`).join('');
   const manageLbl=wifiNets.length?(en?'Manage':'Gerir'):(en?'Add WiFi':'Add WiFi');
   wrap.innerHTML=chips+`<button class="wifi-chip add" onclick="openWifiManager()" title="${en?'Manage WiFi networks':'Gerir redes WiFi'}">${wifiNets.length?'⚙️':'📶＋'} <span>${manageLbl}</span></button>`;
 }
@@ -8587,9 +8605,9 @@ function renderWifiList(){
       <div class="wifi-row-title">${esc(n.name||n.ssid)}</div>
       <div class="wifi-row-ssid">${esc(n.ssid)}${n.sec==='nopass'?' · '+(en?'open':'aberta'):''}</div>
     </div>
-    <button class="card-btn" onclick="openWifiNetQR('${n.id}')" title="QR">📷</button>
-    <button class="card-btn" onclick="editWifiNet('${n.id}')" title="${en?'Edit':'Editar'}">✏️</button>
-    <button class="card-btn danger" onclick="deleteWifiNet('${n.id}')" title="${en?'Delete':'Apagar'}">🗑️</button>
+    <button class="card-btn" data-act="openWifiNetQR" data-arg="${esc(n.id)}" title="QR">📷</button>
+    <button class="card-btn" data-act="editWifiNet" data-arg="${esc(n.id)}" title="${en?'Edit':'Editar'}">✏️</button>
+    <button class="card-btn danger" data-act="deleteWifiNet" data-arg="${esc(n.id)}" title="${en?'Delete':'Apagar'}">🗑️</button>
   </div>`).join('');
 }
 function resetWifiForm(){
@@ -8932,12 +8950,12 @@ function openReadMode(id){
   content.innerHTML=html;
   const actions=document.getElementById('read-actions');
   let actHtml='';
-  if(entry.pw)actHtml+=`<button class="btn btn-gold" onclick="avReadTogglePw('${entry.id}')">${currentLang==='en'?'Show/Hide Password':'Mostrar/Esconder Password'}</button>`;
-  if(entry.pw)actHtml+=`<button class="btn btn-ghost" onclick="avCopyPw('${entry.id}')">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
+  if(entry.pw)actHtml+=`<button class="btn btn-gold" data-act="avReadTogglePw" data-arg="${esc(entry.id)}">${currentLang==='en'?'Show/Hide Password':'Mostrar/Esconder Password'}</button>`;
+  if(entry.pw)actHtml+=`<button class="btn btn-ghost" data-act="avCopyPw" data-arg="${esc(entry.id)}">${currentLang==='en'?'Copy Password':'Copiar Password'}</button>`;
   if(isWifiEntry(entry))actHtml+=`<button class="btn btn-ghost" onclick="openWifiQR('${entry.id}')">📶 ${currentLang==='en'?'WiFi QR':'QR WiFi'}</button>`;
-  if(entry.url)actHtml+=`<button class="btn btn-ghost" onclick="avGoSite('${entry.id}')">${t('btnGoSite')}</button>`;
-  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();openShareModal('${entry.id}')">🔗 ${currentLang==='en'?'Share QR':'Partilhar QR'}</button>`;
-  actHtml+=`<button class="btn btn-ghost" onclick="closeReadMode();editEntry('${entry.id}')">${t('btnEdit')}</button>`;
+  if(entry.url)actHtml+=`<button class="btn btn-ghost" data-act="avGoSite" data-arg="${esc(entry.id)}">${t('btnGoSite')}</button>`;
+  actHtml+=`<button class="btn btn-ghost" data-act="readShare" data-arg="${esc(entry.id)}">🔗 ${currentLang==='en'?'Share QR':'Partilhar QR'}</button>`;
+  actHtml+=`<button class="btn btn-ghost" data-act="readEdit" data-arg="${esc(entry.id)}">${t('btnEdit')}</button>`;
   actions.innerHTML=actHtml;
   document.getElementById('read-modal').classList.add('open');
 }
@@ -10642,12 +10660,12 @@ function avAddMenu(e){
   let p=document.getElementById('av-add-pop'),d=document.getElementById('av-add-dim');
   if(p&&p.classList.contains('open')){avAddClose();return;}
   if(!p){d=document.createElement('div');d.id='av-add-dim';d.className='av-dim';d.onclick=avAddCloseSafe;document.body.appendChild(d);
-    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';p.setAttribute('role','menu');p.onclick=ev=>ev.stopPropagation();document.body.appendChild(p);}
+    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';p.setAttribute('role','menu');document.body.appendChild(p);}
   const en=avEn(),full=avMode()==='full';
   p.innerHTML='<div class="av-grab"></div><h4>'+(en?'What do you want to store?':'O que queres guardar?')+'</h4><div class="av-list">'
-   +AV_ADD.filter(t=>!avTabHidden(t.tab)).map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" onclick="avAddType(\''+t.k+'\')"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
-   +((full||AV_ADD_MORE.some(t=>t.simple))?'<h4>'+(en?'More':'Mais')+'</h4><div class="av-more">'+AV_ADD_MORE.filter(t=>(full||t.simple)&&!avTabHidden(t.tab)).map(t=>'<button onclick="avAddType(\''+t.k+'\')">'+t.ic+' '+avT(t.t)+'</button>').join('')+'</div>':'')
-   +'<button class="av-aur" onclick="avAddClose();if(typeof auroraOpen===\'function\')auroraOpen()">✨ '+(en?'Or tell Aurora: <b>"add Netflix"</b>':'Ou escreve à Aurora: <b>"adiciona a Netflix"</b>')+'</button>';
+   +AV_ADD.filter(t=>!avTabHidden(t.tab)).map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" data-act="avAddType" data-arg="'+esc(t.k)+'"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
+   +((full||AV_ADD_MORE.some(t=>t.simple))?'<h4>'+(en?'More':'Mais')+'</h4><div class="av-more">'+AV_ADD_MORE.filter(t=>(full||t.simple)&&!avTabHidden(t.tab)).map(t=>'<button data-act="avAddType" data-arg="'+esc(t.k)+'">'+t.ic+' '+avT(t.t)+'</button>').join('')+'</div>':'')
+   +'<button class="av-aur" data-act="avAddAurora">✨ '+(en?'Or tell Aurora: <b>"add Netflix"</b>':'Ou escreve à Aurora: <b>"adiciona a Netflix"</b>')+'</button>';
   if(avIsDesk()){
     p.classList.remove('sheet');d.classList.remove('open');
     const a=document.getElementById('tb-add');const r=a?a.getBoundingClientRect():{bottom:60,right:window.innerWidth-20};
@@ -11403,7 +11421,7 @@ function avWifiCard(){
   if(card.parentElement!==side)side.appendChild(card);
   const en=avEn();
   card.innerHTML='<div class="av-wifi-h"><span>'+avWifiIcon(13)+' Wi-Fi</span><button onclick="openWifiManager()" title="'+(en?'Manage Wi-Fi networks':'Gerir redes Wi-Fi')+'">⚙ '+(en?'Manage':'Gerir')+'</button></div>'
-   +nets.slice(0,4).map(n=>'<button class="av-wifi-n" onclick="openWifiNetQR(\''+n.id+'\')" title="'+(en?'Show QR code and password':'Mostrar QR code e password')+'">'+avWifiIcon(17)+'<b>'+esc(n.name||n.ssid)+'</b><i>'+(en?'Show QR ›':'Mostrar QR ›')+'</i></button>').join('')
+   +nets.slice(0,4).map(n=>'<button class="av-wifi-n" data-act="openWifiNetQR" data-arg="'+esc(n.id)+'" title="'+(en?'Show QR code and password':'Mostrar QR code e password')+'">'+avWifiIcon(17)+'<b>'+esc(n.name||n.ssid)+'</b><i>'+(en?'Show QR ›':'Mostrar QR ›')+'</i></button>').join('')
    +(nets.length>4?'<button class="av-wifi-n" onclick="openWifiManager()"><b style="font-weight:500;color:var(--text-muted)">+'+(nets.length-4)+(en?' more':' mais')+'</b></button>':'');
 }
 (function(){
@@ -11830,7 +11848,7 @@ function avTabsPanel(e){
   let p=document.getElementById('av-tabs-pop'),d=document.getElementById('av-tabs-dim');
   if(p&&p.classList.contains('open')){avTabsClose();return;}
   if(!p){d=document.createElement('div');d.id='av-tabs-dim';d.className='av-dim';d.onclick=avTabsClose;document.body.appendChild(d);
-    p=document.createElement('div');p.id='av-tabs-pop';p.className='av-pop';p.onclick=ev=>ev.stopPropagation();document.body.appendChild(p);}
+    p=document.createElement('div');p.id='av-tabs-pop';p.className='av-pop';document.body.appendChild(p);}
   avTabsRender();
   if(avIsDesk()){p.classList.remove('sheet');d.classList.remove('open');const g=document.getElementById('grp-gear').getBoundingClientRect();
     p.style.top=Math.round(g.bottom+8)+'px';p.style.left=Math.max(10,Math.min(innerWidth-390,Math.round(g.left-160)))+'px';p.style.right='auto';p.style.bottom='auto';}
@@ -12213,7 +12231,7 @@ function avDriveQuickRender(){
   o+='<details class="dq-guide"'+(official?'':' open')+'><summary>'+(en?'Use my own credential (advanced)':'Usar uma credencial própria (avançado)')+'</summary><ol>'
     +(en?'<li>Create a project in Google Cloud and enable the <b>Google Drive API</b>.</li><li>In <b>OAuth consent screen</b>: type External, fill in the name and email, then <b>Publish app</b> (otherwise access expires every 7 days).</li><li>In <b>Credentials → Create credentials → OAuth client ID</b>: type <b>Web application</b>.</li><li>Under <b>Authorized JavaScript origins</b>, add: <code>'+org+'</code></li><li>Copy the <b>Client ID</b>, paste it in the field below → Save credential.</li>'
         :'<li>Cria um projeto na Google Cloud e ativa a <b>Google Drive API</b>.</li><li>Em <b>Ecrã de consentimento OAuth</b>: tipo Externo, preenche o nome e o email, e depois <b>Publicar app</b> (senão o acesso expira de 7 em 7 dias).</li><li>Em <b>Credenciais → Criar credenciais → ID de cliente OAuth</b>: tipo <b>Aplicação Web</b>.</li><li>Em <b>Origens JavaScript autorizadas</b>, junta: <code>'+org+'</code></li><li>Copia o <b>ID de cliente</b> e cola-o no campo abaixo → Guardar credencial.</li>')
-    +'</ol><button class="dq-open" onclick="avDriveConsole()">'+(en?'Open Google Cloud Console ↗':'Abrir a Google Cloud Console ↗')+'</button></details>';
+    +'</ol><button class="dq-open" data-act="avDriveConsole">'+(en?'Open Google Cloud Console ↗':'Abrir a Google Cloud Console ↗')+'</button></details>';
   box.innerHTML=o;
   const st=document.getElementById('drive-state');
   if(st&&!cid&&official)st.textContent=en?'Not configured — tap «Connect my Google Drive».':'Por configurar — toca em «Ligar a minha Google Drive».';

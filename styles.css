@@ -2084,3 +2084,6 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
 /* ecrã de entrada: efeitos de passar o rato (antes eram código dentro do HTML) */
 #l-continue-wrap:hover{transform:translateY(-2px)}
 #file-drop-zone:hover{border-color:var(--accent-dim)!important}
+
+/* contorno ao passar o rato (antes era código dentro do HTML) */
+[data-hoverline]:hover{border-color:var(--accent-dim)!important}
