@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.7';
+const APP_VERSION='10.8';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -28,7 +28,7 @@ const T={
   pt:{
     sub:'Cofre Digital Pessoal',sub2:'Passwords · Documentos · Notas · Cartões',masterLabel:'Palavra-passe mestra',hint:'Mínimo 4 caracteres',
     openVault:'📂 Abrir Cofre',newVault:'✦ Novo Cofre',
-    firstUseInfo:'<strong>Primeiro uso?</strong> Clica em <strong>Criar Novo Cofre</strong> e define a tua palavra-passe.<br>Já tens um cofre? Clica em <strong>Abrir Cofre Existente</strong> e seleciona o ficheiro <em>.vault</em>.',
+    firstUseInfo:'<strong>Primeiro uso?</strong> Escreve a palavra-passe que queres usar e toca em <strong>Criar cofre</strong>.<br>Já tens um cofre? Escreve a palavra-passe dele e toca em <strong>Carregar cofre</strong> para escolher o ficheiro <em>.vault</em>.',
     howToTitle:'📖 Como usar o Aurora Vault',
     howCards:[
       ['01','Cria o Cofre','Clica <strong>Novo Cofre</strong> e define a tua palavra-passe mestra — a única chave que precisas de decorar.'],
@@ -113,7 +113,7 @@ const T={
   en:{
     sub:'Your Personal Digital Vault',sub2:'Passwords · Documents · Notes · Cards',masterLabel:'Master password',hint:'Minimum 4 characters',
     openVault:'📂 Open Vault',newVault:'✦ New Vault',
-    firstUseInfo:'<strong>First time?</strong> Click <strong>Create New Vault</strong> and set your password.<br>Already have a vault? Click <strong>Open Existing Vault</strong> and select your <em>.vault</em> file.',
+    firstUseInfo:'<strong>First time?</strong> Type the password you want to use and tap <strong>Create vault</strong>.<br>Already have a vault? Type its password and tap <strong>Load vault</strong> to choose your <em>.vault</em> file.',
     howToTitle:'📖 How to use Aurora Vault',
     howCards:[
       ['01','Create the Vault','Click <strong>New Vault</strong> and set your master password — the only key you need to remember.'],
@@ -268,7 +268,7 @@ async function continueLastVault(){
     let perm=await h.queryPermission({mode:'readwrite'});
     if(perm!=='granted')perm=await h.requestPermission({mode:'readwrite'});
     if(perm!=='granted'){toast(currentLang==='en'?'Permission denied.':'Permissão negada.');return;}
-    vaultFileHandle=h;
+    vaultFileHandle=h;lockSwipeNeed=false;
     const file=await h.getFile();
     pendingVaultFile=file;
     document.getElementById('login-state-initial').style.display='none';
@@ -306,7 +306,7 @@ async function pickVaultFile(){
     document.getElementById('l-file-name').textContent=file.name;
     document.getElementById('master-pw').value='';
     showFileMeta(file);lockSubText();
-    refreshQuickUnlock(true);
+    refreshQuickUnlock(true);lockUseTypedPw();
   }catch(e){/* cancelado */}
 }
 
@@ -535,7 +535,8 @@ function applyUnlockMode(autoBio){
     if(pi){pi.value='';pi.type='password';pi.maxLength=quickAvail.pinLen;pi.placeholder='•'.repeat(quickAvail.pinLen);const pe=document.getElementById('pin-err');if(pe)pe.textContent='';setTimeout(()=>pi.focus(),120);}
   }
   if(unlockMode==='master')setTimeout(()=>{const mp=document.getElementById('master-pw');if(mp)mp.focus();},120);
-  if(unlockMode==='bio'&&autoBio)setTimeout(()=>doBioUnlock(true),420);
+  if(unlockMode==='bio'&&autoBio&&!lockSwipeNeed)setTimeout(()=>doBioUnlock(true),420);
+  lockSwipeApply();
 }
 let _avUserMode=null;
 function setUnlockMode(m){
@@ -1210,7 +1211,7 @@ let pendingVaultFile=null;
 let pendingVaultText=null;
 
 function backToInitial(){
-  pendingVaultFile=null;pendingVaultText=null;lockHeldPw=null;
+  pendingVaultFile=null;pendingVaultText=null;lockHeldPw=null;lockTypedPw='';
   document.getElementById('login-state-initial').style.display='block';
   document.getElementById('login-state-open').style.display='none';
   document.getElementById('login-state-new').style.display='none';
@@ -1220,6 +1221,7 @@ function backToInitial(){
 }
 function startOpenVault(){
   if(lockedOut)return;
+  lockSwipeNeed=false;
   pendingVaultFile=null;pendingVaultText=null;lockHeldPw=null;
   document.getElementById('login-state-initial').style.display='none';
   document.getElementById('login-state-open').style.display='block';
@@ -1255,7 +1257,7 @@ function onFileSelected(e){
   document.getElementById('l-file-name').textContent=file.name;
   document.getElementById('master-pw').value='';
   showFileMeta(file);lockSubText();
-  refreshQuickUnlock(true);
+  refreshQuickUnlock(true);lockUseTypedPw();
   e.target.value='';
 }
 async function submitOpenVault(pwArg,qk){
@@ -1470,7 +1472,7 @@ function lockApp(){
   document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
   document.getElementById('welcome-screen').classList.remove('show');
   const pwStep=document.getElementById('open-step-pw');
-  if(pwStep&&pwStep.style.display!=='none')refreshQuickUnlock(false);
+  if(pwStep&&pwStep.style.display!=='none'){lockSwipeNeed=true;refreshQuickUnlock(false);}
   try{lockSubText();auroraSkyStart();}catch(e){}
   try{avFlushNow();}catch(e){}
 }
@@ -2124,8 +2126,8 @@ function applyLangStatic(){
   }
   h('l-first-use','firstUseInfo');
   // New login flow labels
-  const btnOpenTxt=document.getElementById('l-btn-open-txt');if(btnOpenTxt)btnOpenTxt.textContent=currentLang==='en'?'Open Existing Vault':'Abrir Cofre Existente';
-  const btnNewTxt=document.getElementById('l-btn-new-txt');if(btnNewTxt)btnNewTxt.textContent=currentLang==='en'?'Create New Vault':'Criar Novo Cofre';
+  const btnOpenTxt=document.getElementById('l-btn-open-txt');if(btnOpenTxt)btnOpenTxt.textContent=currentLang==='en'?'Load vault':'Carregar cofre';
+  const btnNewTxt=document.getElementById('l-btn-new-txt');if(btnNewTxt)btnNewTxt.textContent=currentLang==='en'?'Create vault':'Criar cofre';
   const openTitle=document.getElementById('l-open-title');if(openTitle)openTitle.textContent=currentLang==='en'?'Open Existing Vault':'Abrir Cofre Existente';
   const fileHint=document.getElementById('l-file-hint');if(fileHint)fileHint.textContent=currentLang==='en'?'Click to select your .vault file':'Clica para selecionar o ficheiro .vault';
   const fileHint2=document.getElementById('l-file-hint2');if(fileHint2)fileHint2.textContent=currentLang==='en'?'or drag here':'ou arrasta para aqui';
@@ -9099,6 +9101,9 @@ function lockLangExtras(){
   s('l-forget-mine',en?'Forget':'Esquecer');
   s('lock-encrypt-short',en?'100% Encrypted · 100% Offline':'100% Encriptado · 100% Offline');
   s('l-master-label',en?'Master password':'Palavra-passe mestra');
+  s('lk-start-label',en?'Master password':'Palavra-passe mestra');
+  s('lk-start-msg',en?'Create a new vault or load one you already have.':'Cria um cofre novo ou carrega um que já tenhas.');
+  lockSwipeText();
   if(lockOnPwStep()&&typeof applyUnlockMode==='function')try{applyUnlockMode(false);}catch(e){}
 }
 function lockShowPwStep(){
@@ -9115,7 +9120,7 @@ async function lockDirectInit(){
   let hd=null;try{hd=await idbGet('vaultHandle');}catch(e){}
   if(!hd&&!pendingVaultFile&&!pendingVaultText&&localStorage.getItem('av_dev_mode')==='1')return avDevInit(true);
   if(!hd||pendingVaultFile||pendingVaultText)return false;
-  vaultFileHandle=hd;lockShowPwStep();
+  vaultFileHandle=hd;lockSwipeNeed=true;lockShowPwStep();
   const fn=document.getElementById('l-file-name');if(fn)fn.textContent=hd.name||'';
   const fm=document.getElementById('l-file-meta');if(fm)fm.style.display='none';
   let granted=false;
@@ -9205,6 +9210,77 @@ async function lockForgetMine(){
   try{await idbDel('vaultHandle');}catch(e){}
   vaultFileHandle=null;pendingVaultFile=null;pendingVaultText=null;lockHeldPw=null;
   lockMineLinks();toast(en?'Vault forgotten on this device.':'Cofre esquecido neste dispositivo.');
+}
+
+/* ══ ECRÃ DE ENTRADA v10.8 — cofre memorizado: «desliza para cima» → impressão digital (ou PIN, ou palavra-passe);
+   primeira vez: palavra-passe mestra logo à vista + «Carregar cofre» / «Criar cofre» ══ */
+var lockSwipeNeed=false,lockTypedPw='';
+function lockSwipeText(){
+  const en=currentLang==='en',touch=!window.matchMedia||matchMedia('(pointer:coarse)').matches;
+  const t=touch?(en?'Swipe up to unlock':'Desliza para cima para desbloquear'):(en?'Click or swipe up to unlock':'Clica ou desliza para cima para desbloquear');
+  const el=document.getElementById('lk-swipe-txt');if(el)el.textContent=t;
+  const sw=document.getElementById('lk-swipe');if(sw)sw.setAttribute('aria-label',t);
+}
+function lockSwipeApply(){
+  const sw=document.getElementById('lk-swipe');if(!sw)return;
+  const on=lockSwipeNeed&&!lockedOut&&lockOnPwStep();
+  sw.style.display=on?'':'none';sw.classList.remove('gone');sw.style.removeProperty('--dy');
+  ['quick-unlock','master-entry','l-enter-btn','unlock-links'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('lk-hide',on);});
+  if(on)lockSwipeText();
+}
+function lockSwipeGo(){
+  if(!lockSwipeNeed)return;
+  lockSwipeNeed=false;
+  const sw=document.getElementById('lk-swipe');
+  if(sw)sw.classList.add('gone');
+  setTimeout(()=>{
+    lockSwipeApply();
+    if(unlockMode==='bio')doBioUnlock(false);
+    else{const el=document.getElementById(unlockMode==='pin'?'pin-input':'master-pw');if(el)el.focus();}
+  },sw?180:0);
+}
+(function(){
+  const sw=typeof document!=='undefined'&&document.getElementById('lk-swipe');if(!sw)return;
+  let y0=null,dy=0;
+  const end=e=>{
+    if(y0===null)return;
+    const d=dy;y0=null;dy=0;sw.classList.remove('drag');
+    if(d<-60||(e.type==='pointerup'&&e.pointerType==='mouse'&&d>-6))return lockSwipeGo();
+    sw.style.removeProperty('--dy');
+    if(e.type==='pointerup'){sw.classList.remove('nudge');void sw.offsetWidth;sw.classList.add('nudge');}
+  };
+  sw.addEventListener('pointerdown',e=>{if(!lockSwipeNeed)return;y0=e.clientY;dy=0;sw.classList.add('drag');try{sw.setPointerCapture(e.pointerId);}catch(_){}});
+  sw.addEventListener('pointermove',e=>{if(y0===null)return;dy=Math.min(0,e.clientY-y0);sw.style.setProperty('--dy',Math.max(dy,-140)+'px');});
+  sw.addEventListener('pointerup',end);sw.addEventListener('pointercancel',end);
+  sw.addEventListener('keydown',e=>{if(e.key===' '){e.preventDefault();lockSwipeGo();}});
+})();
+function lockStartPw(){const el=document.getElementById('start-pw');return el?el.value:'';}
+function lockStartOpen(){
+  lockTypedPw=lockStartPw();
+  const el=document.getElementById('start-pw');if(el)el.value='';
+  startOpenVault();
+}
+function lockStartNew(){
+  const pw=lockStartPw(),en=currentLang==='en';
+  if(!pw){setLockError(en?'Type the master password you want to use first.':'Escreve primeiro a palavra-passe mestra que queres usar.');const el=document.getElementById('start-pw');if(el)el.focus();return;}
+  if(pw.length<4){setLockError(t('lockMinChars'));return;}
+  document.getElementById('start-pw').value='';
+  startNewVault();
+  const p1=document.getElementById('new-pw1');p1.value=pw;
+  try{onNewPw1Input();}catch(e){}
+  setTimeout(()=>{const p2=document.getElementById('new-pw2');if(p2)p2.focus();},140);
+}
+function lockStartEnter(){
+  const en=currentLang==='en';
+  if(!lockStartPw()){const el=document.getElementById('start-pw');if(el)el.focus();return;}
+  setLockError(en?'Now choose: Load vault or Create vault.':'Agora escolhe: Carregar cofre ou Criar cofre.');
+}
+// Palavra-passe escrita no início + ficheiro escolhido → entra logo
+function lockUseTypedPw(){
+  const pw=lockTypedPw;lockTypedPw='';if(!pw)return;
+  _avUserMode='master';unlockMode='master';applyUnlockMode(false);
+  const mp=document.getElementById('master-pw');if(mp)mp.value=pw;
+  submitOpenVault();
 }
 
 /* ══ AURORA DO ECRÃ DE ENTRADA — fotografia (ampliada a 4K) com a aurora animada na placa gráfica (WebGL) ══
@@ -11345,7 +11421,7 @@ function avFileSave(){
 async function avDevInit(migr){
   let loc=null;try{loc=await localVaultGet();}catch(e){}
   if(!loc||!loc.json||pendingVaultFile||pendingVaultText)return false;
-  pendingVaultText=loc.json;lockShowPwStep();AV_MIGR=!!migr;
+  pendingVaultText=loc.json;lockSwipeNeed=true;lockShowPwStep();AV_MIGR=!!migr;
   if(!FSA_OK){try{localStorage.setItem('av_dev_mode','1');}catch(e){}}
   const fn=document.getElementById('l-file-name');if(fn)fn.textContent=migr?(currentLang==='en'?'📱 Copy on this device (most recent)':'📱 Cópia deste dispositivo (a mais recente)'):(currentLang==='en'?'📱 Vault stored on this device':'📱 Cofre guardado neste dispositivo');
   const fm=document.getElementById('l-file-meta');if(fm)fm.style.display='none';
@@ -11444,7 +11520,7 @@ function avDevHint(show){
   if(!show){if(el)el.style.display='none';return;}
   if(!el){const init=document.getElementById('login-state-initial');if(!init)return;el=document.createElement('div');el.id='l-dev-hint';el.style.cssText='margin-top:14px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(var(--accent-rgb),.45);font-size:.66rem;line-height:1.6;color:var(--text-muted);text-align:left';init.appendChild(el);}
   const en=avEn();el.style.display='block';
-  el.innerHTML=en?'💡 In this browser the vault is kept inside the app. <b>Lost access?</b> Tap <b>Open existing vault</b> and choose the most recent copy in Downloads (<i>ciphervault_backup_YYYY-MM-DD.vault</i>).':'💡 Neste browser o cofre fica guardado na app. <b>Perdeste o acesso?</b> Toca em <b>Abrir cofre existente</b> e escolhe a cópia mais recente nas Transferências (<i>ciphervault_backup_AAAA-MM-DD.vault</i>).';
+  el.innerHTML=en?'💡 In this browser the vault is kept inside the app. <b>Lost access?</b> Tap <b>Load vault</b> and choose the most recent copy in Downloads (<i>ciphervault_backup_YYYY-MM-DD.vault</i>).':'💡 Neste browser o cofre fica guardado na app. <b>Perdeste o acesso?</b> Toca em <b>Carregar cofre</b> e escolhe a cópia mais recente nas Transferências (<i>ciphervault_backup_AAAA-MM-DD.vault</i>).';
 }
 (function(){
   if(typeof doUnlock==='function'){const du=doUnlock;doUnlock=function(){const r=du.apply(this,arguments);
