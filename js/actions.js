@@ -125,3 +125,36 @@ document.addEventListener('drop',e=>{const z=e.target.closest&&e.target.closest(
   else if(type==='drop'){const fn=f(kind.drop);if(fn)fn(id);}
   else{const fn=f(kind.end);if(fn)fn();}
 }));
+
+/* ── acessibilidade: leitores de ecrã ──
+   Liga cada <label> ao campo logo a seguir (sem «for», o leitor de ecrã não sabia de que campo era a etiqueta)
+   e dá nome aos botões só com ícone. Corre ao abrir e sempre que aparece HTML novo (janelas, listas). */
+const AV_A11Y_NAMES={lockApp:['Bloquear','Lock'],toggleField:['Mostrar ou esconder','Show or hide'],togglePw:['Mostrar ou esconder a password','Show or hide the password'],
+  avCopyPw:['Copiar password','Copy password'],copyText:['Copiar','Copy'],pickStoreColor:['Cor','Colour'],pickSubColor:['Cor','Colour']};
+let avA11yN=0;
+function avA11yFix(root){
+  if(!root||!root.querySelectorAll)return;
+  const en=document.documentElement.lang==='en';
+  root.querySelectorAll('label:not([for])').forEach(l=>{
+    if(l.querySelector('input,select,textarea'))return;
+    const n=l.nextElementSibling;if(!n)return;
+    const c=n.matches('input,select,textarea')?n:n.querySelector('input,select,textarea');
+    if(!c||c.type==='hidden'||c.hasAttribute('aria-label')||c.labels&&c.labels.length)return;
+    if(!c.id)c.id='avf-'+(++avA11yN);
+    l.htmlFor=c.id;
+  });
+  root.querySelectorAll('input:not([aria-label]),select:not([aria-label]),textarea:not([aria-label])').forEach(c=>{
+    if(c.type==='hidden'||(c.labels&&c.labels.length)||c.getAttribute('aria-labelledby'))return;
+    const t=c.getAttribute('placeholder')||c.title;if(t)c.setAttribute('aria-label',t);
+  });
+  root.querySelectorAll('button:not([aria-label]):not([title])').forEach(b=>{
+    if(b.textContent.trim())return;
+    const nm=AV_A11Y_NAMES[b.dataset.act];if(!nm)return;
+    b.setAttribute('aria-label',nm[en?1:0]+(/Color$/.test(b.dataset.act)&&b.dataset.arg?' '+b.dataset.arg:''));
+  });
+}
+{const q=new Set();let t=0;
+  const flush=()=>{t=0;const l=[...q];q.clear();l.forEach(n=>{if(n.isConnected)avA11yFix(n);});};
+  const later=()=>{if(!t)t=(window.requestIdleCallback||setTimeout)(flush,{timeout:600});};
+  const start=()=>{avA11yFix(document);new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)q.add(n.parentElement||n);if(q.size)later();}).observe(document.body,{childList:true,subtree:true});};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();}

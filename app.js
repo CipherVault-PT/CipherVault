@@ -1590,13 +1590,12 @@ function applyThemeColors(theme){
   root.style.setProperty('--panel-glass',`rgba(${panelR},${panelG},${panelB},.9)`);
   root.style.setProperty('--card-glass',`rgba(${cardR},${cardG},${cardB},.85)`);
   root.style.setProperty('--text',c.text);
-  // text-muted = text at 50% opacity mix with bg
+  // text-muted = 60% do caminho entre o fundo e o texto (a 50% ficava abaixo do contraste mínimo legível, 4,5:1)
   const textR=parseInt(c.text.slice(1,3),16);
   const textG=parseInt(c.text.slice(3,5),16);
   const textB=parseInt(c.text.slice(5,7),16);
-  const mutedR=Math.round((textR+bgR)/2);
-  const mutedG=Math.round((textG+bgG)/2);
-  const mutedB=Math.round((textB+bgB)/2);
+  const mix=(t,b)=>Math.round(b+(t-b)*0.6);
+  const mutedR=mix(textR,bgR),mutedG=mix(textG,bgG),mutedB=mix(textB,bgB);
   root.style.setProperty('--text-muted',`rgb(${mutedR},${mutedG},${mutedB})`);
   // Accent
   root.style.setProperty('--accent',c.accent);
@@ -10801,7 +10800,7 @@ function avAddMenu(e){
   let p=document.getElementById('av-add-pop'),d=document.getElementById('av-add-dim');
   if(p&&p.classList.contains('open')){avAddClose();return;}
   if(!p){d=document.createElement('div');d.id='av-add-dim';d.className='av-dim';d.onclick=avAddCloseSafe;document.body.appendChild(d);
-    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';p.setAttribute('role','menu');document.body.appendChild(p);}
+    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';document.body.appendChild(p);}
   const en=avEn(),full=avMode()==='full';
   p.innerHTML='<div class="av-grab"></div><h4>'+(en?'What do you want to store?':'O que queres guardar?')+'</h4><div class="av-list">'
    +AV_ADD.filter(t=>!avTabHidden(t.tab)).map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" data-act="avAddType" data-arg="'+esc(t.k)+'"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
@@ -12581,7 +12580,7 @@ aurAlertsRender=function(){
   else if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
   const en=avEn(),shown=AV_AL_ALL?list:list.slice(0,4);
   box.innerHTML='<div class="avw-h"><span>✨ '+(en?'Heads-up':'Avisos')+'</span>'+(list.length?'<b>'+list.length+'</b>':'')+'</div>'
-   +(list.length?shown.map((a,i)=>'<div class="avw-row s'+a.sev+'" role="button" tabindex="0" data-act="avAlGo" data-enter="avAlGo" data-args="['+(i)+']"><span class="avw-ic">'+a.ic+'</span><span class="avw-tx"><b>'+a.t+'</b>'+(a.s?'<i>'+esc(a.s)+'</i>':'')+(a.chips&&a.chips.length?'<span class="avw-chips">'+a.chips.map(c=>'<span>'+esc(c)+'</span>').join('')+'</span>':'')+'</span><button class="avw-x" data-act="avAlX" data-args="['+i+']" data-ev-last aria-label="'+(en?'Dismiss':'Dispensar')+'">✕</button></div>').join('')
+   +(list.length?shown.map((a,i)=>'<div class="avw-row s'+a.sev+'" tabindex="0" data-act="avAlGo" data-enter="avAlGo" data-args="['+(i)+']"><span class="avw-ic">'+a.ic+'</span><span class="avw-tx"><b>'+a.t+'</b>'+(a.s?'<i>'+esc(a.s)+'</i>':'')+(a.chips&&a.chips.length?'<span class="avw-chips">'+a.chips.map(c=>'<span>'+esc(c)+'</span>').join('')+'</span>':'')+'</span><button class="avw-x" data-act="avAlX" data-args="['+i+']" data-ev-last aria-label="'+(en?'Dismiss':'Dispensar')+'">✕</button></div>').join('')
      +(list.length>4?'<button class="avw-more" data-act="avAlToggleAll">'+(AV_AL_ALL?(en?'Show less ▴':'Mostrar menos ▴'):(en?'See all ('+list.length+') ▾':'Ver todos ('+list.length+') ▾'))+'</button>':'')
     :'<div class="avw-ok">✓ '+(en?'All good — no alerts':'Tudo em ordem — nenhum aviso')+'</div>');
 };
