@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.5';
+const APP_VERSION='10.6';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1791,7 +1791,8 @@ function updateNoteCharCount(){
 }
 
 // ══ EXPORT CSV ══
-function exportCSV(){
+async function exportCSV(){
+  if(!await avPlainExportOk('CSV'))return;
   const active=vault.filter(e=>!e.archived);
   const headers=['Name','Category','Username','Password','URL','Notes','Tags'];
   const rows=active.map(e=>[
@@ -3372,33 +3373,44 @@ function reviewedLabel(ts){
   return en?`Reviewed ${years} year${years>1?'s':''} ago`:`Revista há ${years} ano${years>1?'s':''}`;
 }
 function archiveEntry(id){const e=vault.find(v=>v.id===id);if(e){logActivity('archive',e.name,'📦');e.archived=true;renderAll();toast(t('toastArchived'));markUnsaved();}}
-let clipboardTimerInterval=null;
+let clipboardTimerInterval=null,clipClearAt=0,clipClearPending=false;
+// Tudo o que sai do cofre é sensível (passwords, cartões, CVV, códigos 2FA, chaves): apaga-se sempre ao fim de 30 s
 function copyText(text,msg){
   navigator.clipboard.writeText(text).then(()=>{
     toast(msg);
-    // Start 30s clipboard clear timer only for passwords
-    if(msg===t('pwCopied')||msg==='Password copiada!'||msg==='Password copied!'){
-      startClipboardTimer();
-    }
+    startClipboardTimer();
   }).catch(()=>toast(currentLang==='en'?'Could not copy — try again.':'Não foi possível copiar — tenta outra vez.'));
+}
+// Com a app em segundo plano o browser recusa mexer na área de transferência: fica pendente e apaga-se ao voltar
+function clipClearNow(){
+  return navigator.clipboard.writeText('').then(()=>{clipClearPending=false;clipClearAt=0;},()=>{clipClearPending=true;});
 }
 function startClipboardTimer(){
   if(clipboardTimerInterval)clearInterval(clipboardTimerInterval);
-  let secs=30;
+  clipClearAt=Date.now()+30000;clipClearPending=false;
   const toastEl=document.getElementById('clipboard-toast');
   const timerEl=document.getElementById('clipboard-timer');
   const txtEl=document.getElementById('clipboard-toast-txt');
-  txtEl.textContent=currentLang==='en'?'Password copied — clears in':'Password copiada — apaga em';
-  timerEl.textContent=secs;
-  toastEl.classList.add('show');
-  clipboardTimerInterval=setInterval(()=>{
-    secs--;timerEl.textContent=secs;
+  txtEl.textContent=currentLang==='en'?'Copied — clears in':'Copiado — apaga em';
+  const tick=()=>{
+    const secs=Math.max(0,Math.ceil((clipClearAt-Date.now())/1000));timerEl.textContent=secs;
     if(secs<=0){
       clearInterval(clipboardTimerInterval);clipboardTimerInterval=null;
       toastEl.classList.remove('show');
-      navigator.clipboard.writeText('').catch(()=>{});
+      clipClearNow();
     }
-  },1000);
+  };
+  toastEl.classList.add('show');tick();
+  clipboardTimerInterval=setInterval(tick,1000);
+}
+{const retry=()=>{if(!document.hidden&&clipClearPending)clipClearNow();};
+  document.addEventListener('visibilitychange',retry);window.addEventListener('focus',retry);}
+// Exportar em texto simples (todas as passwords legíveis): aviso + confirmar identidade
+async function avPlainExportOk(kind){
+  const en=currentLang==='en';
+  if(!confirm(en?`⚠️ The ${kind} file will contain ALL your passwords in plain text — anyone who opens it can read them.\n\nKeep it safe and delete it when you no longer need it. Continue?`
+    :`⚠️ O ficheiro ${kind} vai ter TODAS as tuas passwords em texto simples — quem o abrir consegue lê-las.\n\nGuarda-o num sítio seguro e apaga-o quando já não precisares. Continuar?`))return false;
+  return avAuth(en?`Export passwords to ${kind}`:`Exportar passwords para ${kind}`);
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
@@ -5256,7 +5268,8 @@ function confirmImport(){
 function closeImport(){document.getElementById('import-overlay').classList.remove('open');pendingImportData=[];}
 
 // ══ EXPORT PDF ══
-function exportPDF(){
+async function exportPDF(){
+  if(!await avPlainExportOk('PDF'))return;
   // Ask for user name
   const userName=prompt(currentLang==='en'?'Your name (for the document):':'O teu nome (para o documento):','') || 'Aurora Vault';
   const active=vault.filter(e=>!e.archived);
@@ -10838,6 +10851,12 @@ async function avOnboardRender(){
 
 
 /* ══ v9.70 — PARTILHAR → AURORA VAULT · LER CÓDIGO DE BARRAS · LER VALIDADE (OCR) ══ */
+async function avSharePurgeOld(){
+  try{const c=await caches.open('av-share');const mr=await c.match('./__share/meta');if(!mr)return;
+    let at=0;try{at=(await mr.json()).at||0;}catch(e){}
+    if(Date.now()-at>3600000)for(const k of await c.keys())await c.delete(k);}catch(e){}
+}
+if(typeof caches!=='undefined')avSharePurgeOld();
 async function avShareImport(){
   const en=avEn();let c;
   try{c=await caches.open('av-share');}catch(e){return;}
