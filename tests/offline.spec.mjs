@@ -41,3 +41,30 @@ test('o service worker guarda os ficheiros com a versão que a página usa (sem 
   expect(r.app).not.toContain('/app.js');
   expect(r.img.length).toBe(1); // só a foto que este ecrã usa
 });
+
+test('ícone da app: escudo AV em PNG no manifesto, favicon e ícone Apple', async ({ page }) => {
+  await openApp(page);
+  const r = await page.evaluate(async () => {
+    const mf = await (await fetch(document.getElementById('pwa-manifest').href)).json();
+    const size = src => new Promise(res => { const i = new Image(); i.onload = () => res(i.naturalWidth + 'x' + i.naturalHeight); i.onerror = () => res('erro'); i.src = src; });
+    const icons = [];
+    for (const ic of mf.icons) icons.push({ purpose: ic.purpose, type: ic.type, declared: ic.sizes, real: await size(ic.src), file: ic.src.split('/').pop() });
+    const links = [...document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')];
+    const linkSizes = [];
+    for (const l of links) linkSizes.push(await size(l.href));
+    return { icons, linkSizes };
+  });
+  expect(r.icons.map(i => i.purpose).sort()).toEqual(['any', 'any', 'maskable']);
+  for (const i of r.icons) { expect(i.type).toBe('image/png'); expect(i.real).toBe(i.declared); expect(i.file).toMatch(/^av-icon-/); }
+  expect(r.linkSizes).toHaveLength(3);
+  expect(r.linkSizes).not.toContain('erro');
+});
+
+test('o Chrome aceita o manifesto: endereço de arranque válido e sem erros', async ({ page, context }) => {
+  await openApp(page);
+  const cdp = await context.newCDPSession(page);
+  const m = await cdp.send('Page.getAppManifest');
+  expect(m.errors).toEqual([]);
+  const errs = (await cdp.send('Page.getInstallabilityErrors')).installabilityErrors.map(e => e.errorId).filter(e => e !== 'in-incognito');
+  expect(errs.filter(e => /manifest|start-url|icon/.test(e))).toEqual([]);
+});
