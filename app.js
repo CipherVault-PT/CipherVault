@@ -6674,11 +6674,17 @@ function avIdle(){return performance.now()-AV_IDLE.last>AV_IDLE.ms;}
 (function(){
   // Animações SVG (escudo do ecrã de entrada): não obedecem ao CSS, param-se à mão (e sempre com «reduzir movimento»)
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Animações SVG só correm se estiverem à vista (as do ecrã de entrada continuavam a correr por trás da app: ~300 recálculos de estilo por segundo)
   const smil=on=>{let l;try{l=document.querySelectorAll('svg:has(animate,animateTransform)');}catch(e){l=document.querySelectorAll('svg');}
-    l.forEach(v=>{try{on&&!reduce?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+    l.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+  // Sem atividade: as animações decorativas em ciclo (brilhos, manchas do fundo, ícones a flutuar) param até ao próximo toque
+  const still=on=>document.documentElement.classList.toggle('av-still',on);
+  window.avSmilSync=()=>smil(!AV_IDLE.asleep);
   if(reduce)document.addEventListener('DOMContentLoaded',()=>smil(false));
-  setInterval(()=>{if(!AV_IDLE.asleep&&avIdle()){AV_IDLE.asleep=true;smil(false);}},5000);
-  AV_IDLE.cbs.push(()=>{if(AV_IDLE.asleep){AV_IDLE.asleep=false;smil(true);}});
+  setInterval(()=>{if(!AV_IDLE.asleep&&avIdle()){AV_IDLE.asleep=true;smil(false);still(true);}else if(!AV_IDLE.asleep)smil(true);},5000);
+  AV_IDLE.cbs.push(()=>{if(AV_IDLE.asleep){AV_IDLE.asleep=false;smil(true);still(false);}});
+  ['lockApp','doUnlock','switchTab'].forEach(n=>{const f=window[n];if(typeof f==='function')window[n]=function(){const r=f.apply(this,arguments);setTimeout(avSmilSync,60);return r;};});
+  addEventListener('load',()=>setTimeout(avSmilSync,300));
   const poke=()=>{const n=performance.now(),was=n-AV_IDLE.last>AV_IDLE.ms;AV_IDLE.last=n;if(was)AV_IDLE.cbs.forEach(f=>{try{f();}catch(e){}});};
   ['pointerdown','pointermove','keydown','wheel','touchstart','scroll'].forEach(ev=>addEventListener(ev,poke,{passive:true,capture:true}));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)poke();});
