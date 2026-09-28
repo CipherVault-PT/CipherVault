@@ -64,7 +64,7 @@ O teste `tests/version.spec.mjs` falha se algum ficar esquecido.
 
 ## Código novo: sem `onclick` no HTML
 
-O objetivo é a política de segurança deixar de precisar de `'unsafe-inline'`. Botões e campos novos usam atributos em vez de código:
+A política de segurança **não aceita código dentro do HTML** (`script-src` sem `'unsafe-inline'`): um `onclick="…"` ou `<script>` metido no HTML é bloqueado pelo browser — é isto que trava ataques por injeção. Botões e campos usam atributos:
 
 ```html
 <button data-act="lockEnter">Entrar</button>              <!-- clique → lockEnter() -->
