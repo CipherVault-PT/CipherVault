@@ -32,7 +32,7 @@ self.addEventListener('message',e=>{
   const d=e.data;if(!d||d.type!=='av-precache'||!Array.isArray(d.urls))return;
   e.waitUntil(Promise.all(d.urls.slice(0,40).map(async u=>{
     const url=new URL(u,self.registration.scope);if(url.origin!==self.location.origin)return;
-    const name=/\.(webp|png|jpe?g)$/i.test(url.pathname)?IMG:url.pathname.includes('/vendor/')?LIB:null;if(!name)return;
+    const name=/\.(webp|png|svg|jpe?g)$/i.test(url.pathname)?IMG:url.pathname.includes('/vendor/')?LIB:null;if(!name)return;
     const c=await caches.open(name);if(await c.match(url.href,{ignoreSearch:true}))return;
     const r=await fetch(url.href);if(r.ok)await c.put(url.href,r);
   })).catch(()=>{}));
@@ -70,7 +70,7 @@ self.addEventListener('fetch',e=>{
   if(r.method!=='GET')return;
   const u=new URL(r.url);
   if(u.origin===self.location.origin){
-    if(/\.(webp|png|jpe?g)$/i.test(u.pathname)){
+    if(/\.(webp|png|svg|jpe?g)$/i.test(u.pathname)){
       e.respondWith(caches.open(IMG).then(c=>c.match(r,{ignoreSearch:true}).then(m=>m||fetch(r).then(res=>{
         if(res&&res.ok)c.put(r,res.clone()).catch(()=>{});return res;}))));
       return;

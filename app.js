@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.9';
+const APP_VERSION='10.10';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -7610,19 +7610,19 @@ function getPwaPrefs(){
 function buildManifest(){
   const prefs=getPwaPrefs();
   const tc=themeColors[currentTheme]||themeColors.dark;
-  const bg=tc.bg||'#0d0f14',ac=tc.accent||'#c9a84c';
-  const encBg=encodeURIComponent(bg),encAc=encodeURIComponent(ac);
-  let inner;
-  if(prefs.emoji){
-    inner=`%3Ctext x='256' y='330' font-size='300' text-anchor='middle'%3E${encodeURIComponent(prefs.emoji)}%3C/text%3E`;
-  }else{
-    inner=`%3Crect x='156' y='256' width='200' height='176' rx='16' fill='none' stroke='${encAc}' stroke-width='24'/%3E%3Cpath d='M196 256v-80a60 60 0 0 1 120 0v80' fill='none' stroke='${encAc}' stroke-width='24'/%3E%3Ccircle cx='256' cy='336' r='20' fill='${encAc}'/%3E`;
-  }
+  const bg=tc.bg||'#0d0f14';
+  const encBg=encodeURIComponent(bg);
+  const inner=`%3Ctext x='256' y='330' font-size='300' text-anchor='middle'%3E${encodeURIComponent(prefs.emoji||'')}%3C/text%3E`;
   const icon=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='${encBg}'/%3E${inner}%3C/svg%3E`;
-  const mf={name:prefs.name,short_name:prefs.name.slice(0,12),description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:'.',display:'standalone',background_color:bg,theme_color:bg,orientation:'any',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  let base='./';try{if(/^https?:$/.test(location.protocol))base=new URL('./',location.href).href;}catch(e){}
+  // Ícone da app = escudo AV (PNG: é o que o Android usa para instalar); com emoji escolhido nas definições, fica o emoji
+  const icons=prefs.emoji?[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]:[
+    {src:base+'img/av-icon-v1-192.png',sizes:'192x192',type:'image/png',purpose:'any'},
+    {src:base+'img/av-icon-v1-512.png',sizes:'512x512',type:'image/png',purpose:'any'},
+    {src:base+'img/av-icon-v1-maskable-512.png',sizes:'512x512',type:'image/png',purpose:'maskable'}];
+  const mf={name:prefs.name,short_name:prefs.name.slice(0,12),description:'Cofre digital pessoal — passwords, documentos, notas, cartões e 2FA — tudo encriptado',start_url:base,scope:base,display:'standalone',background_color:bg,theme_color:bg,orientation:'any',icons};
   const en_=currentLang==='en';
   const shIc=e=>`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='${encBg}'/%3E%3Ctext x='48' y='68' font-size='52' text-anchor='middle'%3E${encodeURIComponent(e)}%3C/text%3E%3C/svg%3E`;
-  let base='./';try{if(/^https?:$/.test(location.protocol))base=new URL('./',location.href).href;}catch(e){}
   mf.shortcuts=[
     {name:en_?'Add':'Adicionar',short_name:en_?'Add':'Adicionar',url:base+'?go=add',icons:[{src:shIc('＋'),sizes:'96x96',type:'image/svg+xml'}]},
     {name:en_?'2FA codes':'Códigos 2FA',short_name:'2FA',url:base+'?go=totp',icons:[{src:shIc('🔢'),sizes:'96x96',type:'image/svg+xml'}]},
