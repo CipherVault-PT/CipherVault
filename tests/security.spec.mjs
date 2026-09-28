@@ -10,6 +10,7 @@ test.describe('Política de segurança (CSP)', () => {
     expect(d['script-src']).not.toContain('*');
     expect(d['script-src'].filter(v => /^https?:/.test(v))).toEqual([]);
     expect(d['script-src']).not.toContain("'unsafe-eval'");
+    expect(d['script-src']).not.toContain("'unsafe-inline'");
     expect(d['connect-src'].filter(v => /^https?:/.test(v)).sort()).toEqual(['https://api.pwnedpasswords.com', 'https://www.googleapis.com']);
     expect(d['object-src']).toEqual(["'none'"]);
     expect(d['base-uri']).toEqual(["'self'"]);
@@ -31,6 +32,25 @@ test.describe('Política de segurança (CSP)', () => {
     });
     expect(r).toEqual({ sent: false, loaded: false, evalOk: false, blocked: 2 });
     await page.waitForFunction(() => window.__csp.includes('script-src eval'));
+    await page.evaluate(() => { window.__csp = []; }); // bloqueios provocados de propósito por este teste
+  });
+
+  test('código metido no HTML (ataque por injeção) não corre', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    const ran = await page.evaluate(async () => {
+      window.__pwned = 0;
+      const box = document.createElement('div');
+      box.innerHTML = '<img src="data:," onerror="window.__pwned++"><button id="__x" onclick="window.__pwned++">x</button>';
+      document.body.appendChild(box);
+      const s = document.createElement('script'); s.textContent = 'window.__pwned++'; document.head.appendChild(s);
+      document.getElementById('__x').click();
+      await new Promise(r => setTimeout(r, 300));
+      box.remove(); s.remove();
+      return window.__pwned;
+    });
+    expect(ran).toBe(0);
+    expect(await page.evaluate(() => window.__csp.filter(v => v.startsWith('script-src')).length)).toBeGreaterThanOrEqual(3);
     await page.evaluate(() => { window.__csp = []; }); // bloqueios provocados de propósito por este teste
   });
 });
