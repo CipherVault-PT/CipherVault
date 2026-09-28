@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.4';
+const APP_VERSION='10.5';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -5685,7 +5685,7 @@ function renderDocs(){
   const bc=document.getElementById('docs-breadcrumb');
   if(bc){
     const path=folderPath(currentFolderId);
-    let html=`<button class="crumb${currentFolderId?'':' current'}" ${currentFolderId?'onclick="goToFolder(null)"':''}>🏠 ${en?'Documents':'Documentos'}</button>`;
+    let html=`<button class="crumb${currentFolderId?'':' current'}" ${currentFolderId?'data-act="goToFolder" data-null':''}>🏠 ${en?'Documents':'Documentos'}</button>`;
     path.forEach((f,i)=>{
       const isLast=i===path.length-1;
       html+=`<span class="crumb-sep">/</span><button class="crumb${isLast?' current':''}" ${isLast?'':`data-act="goToFolder" data-arg="${esc(f.id)}"`}>${f.icon||'📁'} ${esc(f.name)}</button>`;
@@ -11816,7 +11816,7 @@ function avTopOverlay(){
   return ovs.map((o,i)=>({o,i,z:parseInt(getComputedStyle(o).zIndex,10)||0})).sort((a,b)=>b.z-a.z||b.i-a.i)[0].o;
 }
 function avCloseOverlay(o){
-  const b=[...o.querySelectorAll('button,[onclick]')].find(x=>/close|fechar|cancel/i.test((x.getAttribute('onclick')||'')+' '+(x.className||'')+' '+(x.getAttribute('aria-label')||'')));
+  const b=[...o.querySelectorAll('button,[data-act]')].find(x=>/close|fechar|cancel/i.test((x.dataset.act||'')+' '+(x.className||'')+' '+(x.getAttribute('aria-label')||'')));
   if(b){b.click();if(!o.classList.contains('open'))return;}
   o.classList.remove('open');
 }

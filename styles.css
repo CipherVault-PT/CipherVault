@@ -1546,11 +1546,11 @@ body::after{bottom:-32vmax;right:-24vmax;
   .topbar-actions>button{width:36px;height:36px;min-width:36px!important;padding:0!important;border-radius:11px!important;flex-direction:row!important;justify-content:center;align-items:center;gap:0!important}
   .topbar-actions>button svg{width:17px!important;height:17px!important}
   .topbar-actions .tb-mini,.topbar-actions .tb-label,#tb-save-txt,#tb-lock-txt{display:none!important}
-  .topbar-actions .lang-switcher,#cal-topbar-btn,#drive-sync-btn,.topbar-actions>button[onclick="openSettings()"]{display:none!important}
+  .topbar-actions .lang-switcher,#cal-topbar-btn,#drive-sync-btn,.topbar-actions>button[data-act="openSettings"]:not([data-arg]):not([data-args]){display:none!important}
   .topbar-actions .tb-m-only{display:flex}
   @media(max-width:380px){.topbar{padding-left:12px!important;padding-right:10px!important}.topbar-actions{gap:4px!important}.topbar-actions>button{width:34px;height:34px;min-width:34px!important}}
   @media(max-width:352px){.topbar{padding-left:10px!important;padding-right:8px!important;gap:6px!important}.topbar-actions{gap:3px!important}.topbar-actions>button{width:31px;height:31px;min-width:31px!important;border-radius:9px!important}.topbar-actions>button svg{width:15px!important;height:15px!important}.topbar-logo{font-size:.74rem!important;letter-spacing:.3px!important}}
-  #tb-search-btn{order:1}#privacy-btn{order:2}.topbar-actions .btn-save-file{order:3}.topbar-actions>button[onclick="lockApp()"]{order:4}#tb-more-btn{order:5}
+  #tb-search-btn{order:1}#privacy-btn{order:2}.topbar-actions .btn-save-file{order:3}.topbar-actions>button[data-act="lockApp"]:not([data-arg]):not([data-args]){order:4}#tb-more-btn{order:5}
   .topbar .search-wrap{display:none!important}
   .topbar.m-search .search-wrap{display:flex!important;flex:1 0 100%!important;order:99;max-width:none!important;animation:tbDrop .22s ease}
   #tb-search-btn.on,#tb-more-btn.on{border-color:var(--accent)!important;color:var(--accent-ink)!important}
@@ -1584,9 +1584,9 @@ body::after{bottom:-32vmax;right:-24vmax;
 
 /* ══ ENTRADA v9.64 — aurora desenhada em código + layout compacto ══ */
 /* v9.73 — um só botão de adicionar: o ＋ de cima (e o + do telemóvel) substitui os botões de dentro das abas */
-#tab-vault .header-controls button[onclick="openModal()"],#tab-notes button[onclick="newNote()"],#tab-docs button[onclick="openDocModal()"],
-#tab-cards button[onclick="openCardModal()"],#tab-store button[onclick="openStoreModal()"],#totp-add-btn,#tab-info button[onclick="addPerson()"],
-button[onclick="openAssetModal('warranty')"],button[onclick="openAssetModal('license')"],button[onclick="openAssetModal('vehicle')"],button[onclick="openAssetModal('dates')"]{display:none!important}
+#tab-vault .header-controls button[data-act="openModal"]:not([data-arg]):not([data-args]),#tab-notes button[data-act="newNote"]:not([data-arg]):not([data-args]),#tab-docs button[data-act="openDocModal"]:not([data-arg]):not([data-args]),
+#tab-cards button[data-act="openCardModal"]:not([data-arg]):not([data-args]),#tab-store button[data-act="openStoreModal"]:not([data-arg]):not([data-args]),#totp-add-btn,#tab-info button[data-act="addPerson"]:not([data-arg]):not([data-args]),
+button[data-act="openAssetModal"][data-arg="warranty"],button[data-act="openAssetModal"][data-arg="license"],button[data-act="openAssetModal"][data-arg="vehicle"],button[data-act="openAssetModal"][data-arg="dates"]{display:none!important}
 .av-empty-cta{margin-top:16px!important;display:inline-flex!important;align-items:center;gap:6px;padding:10px 18px!important;font-size:.66rem!important;letter-spacing:1.5px}
 #cards-grid .entry-card,#docs-grid .doc-card,#totp-grid .totp-card,.dash-cards .dcard{--i:14}
 .cards-grid>.entry-card{content-visibility:auto;contain-intrinsic-size:auto 150px;}
@@ -1714,7 +1714,7 @@ button[onclick="openAssetModal('warranty')"],button[onclick="openAssetModal('lic
 .tb-add .tb-add-chev{border-left:1px solid rgba(27,20,7,.25)!important;padding:8px 10px!important;font-size:.62rem!important}
 .tb-add button:hover{background:rgba(255,255,255,.14)!important}
 @media(min-width:769px){
-  .topbar-actions>.btn-save-file,.topbar-actions>#privacy-btn,.topbar-actions>#cal-topbar-btn,.topbar-actions>button[onclick="openSettings()"],.topbar-actions>#drive-sync-btn,.topbar-actions>.lang-switcher{display:none!important}
+  .topbar-actions>.btn-save-file,.topbar-actions>#privacy-btn,.topbar-actions>#cal-topbar-btn,.topbar-actions>button[data-act="openSettings"]:not([data-arg]):not([data-args]),.topbar-actions>#drive-sync-btn,.topbar-actions>.lang-switcher{display:none!important}
   .topbar-actions #tb-more-btn{display:inline-flex!important;align-items:center;justify-content:center}
   .topbar-actions .tb-lock-btn #tb-lock-txt{display:none}
   .topbar{position:relative}

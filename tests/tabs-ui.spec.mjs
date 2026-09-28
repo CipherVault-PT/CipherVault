@@ -24,8 +24,50 @@ test.describe('Separadores e painel', () => {
 
   test('o código da app não gera handlers dentro do HTML', () => {
     const src = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
-    expect(src.match(/\son(click|input|change|keydown|keyup|submit|error|load|focus|blur|mouse\w*|touch\w*|drag\w*|drop)=/g) || []).toEqual([]);
+    expect(src.match(/[\s'"`{(+]on[a-z]+=\\?['"]/g) || []).toEqual([]);
     expect(src.match(/setAttribute\(\s*['"]on/g) || []).toEqual([]);
+  });
+
+  test('o CSS e o JS não procuram botões pelo onclick (que já não existe)', () => {
+    for (const f of ['../styles.css', '../app.js']) {
+      const src = readFileSync(new URL(f, import.meta.url), 'utf8');
+      expect(src.match(/\[onclick|getAttribute\(\s*['"]onclick/g) || [], f).toEqual([]);
+    }
+  });
+
+  test('um só botão de adicionar: os das abas ficam escondidos', async ({ page }) => {
+    const shown = await page.evaluate(async () => {
+      const out = [];
+      const noArg = ':not([data-arg]):not([data-args])';
+      const sel = { vault: `#tab-vault .header-controls [data-act="openModal"]${noArg}`, notes: `#tab-notes [data-act="newNote"]${noArg}`, docs: `#tab-docs [data-act="openDocModal"]${noArg}`,
+        cards: `#tab-cards [data-act="openCardModal"]${noArg}`, store: `#tab-store [data-act="openStoreModal"]${noArg}`, totp: '#totp-add-btn', info: `#tab-info [data-act="addPerson"]${noArg}` };
+      for (const t of ['vault', 'notes', 'docs', 'cards', 'store', 'totp', 'info', 'warranty', 'license', 'vehicle', 'dates']) {
+        switchTab(t); await new Promise(r => setTimeout(r, 80));
+        document.querySelectorAll(sel[t] || `[data-act="openAssetModal"][data-arg="${t}"]`)
+          .forEach(b => { if (b.offsetParent !== null && !b.classList.contains('av-empty-cta')) out.push(t); });
+      }
+      return out;
+    });
+    expect(shown).toEqual([]);
+    expect(await page.locator('#tb-add, .tb-add, #av-fab-add').first().count()).toBe(1);
+  });
+
+  test('«Voltar» do telemóvel fecha a janela pelo botão de fechar dela', async ({ page }) => {
+    const r = await page.evaluate(() => {
+      openModal(); const o = document.getElementById('modal-overlay') || document.querySelector('.modal-overlay.open');
+      let hit = ''; const b = [...o.querySelectorAll('[data-act]')].find(x => /close|fechar|cancel/i.test(x.dataset.act));
+      if (b) b.addEventListener('click', () => { hit = b.dataset.act; });
+      avCloseOverlay(o);
+      return { hit, open: o.classList.contains('open') };
+    });
+    expect(r.hit).not.toBe('');
+    expect(r.open).toBe(false);
+  });
+
+  test('pastas de documentos: «Documentos» volta à raiz', async ({ page }) => {
+    await page.evaluate(() => { docFolders.push({ id: 'fd1', name: 'Casa' }); renderAll(); switchTab('docs'); goToFolder('fd1'); });
+    await page.locator('#tab-docs .crumb[data-act="goToFolder"][data-null]').click();
+    expect(await page.evaluate(() => currentFolderId)).toBeFalsy();
   });
 
   test('todas as ações permitidas existem', async ({ page }) => {
