@@ -2087,3 +2087,20 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
 
 /* contorno ao passar o rato (antes era código dentro do HTML) */
 [data-hoverline]:hover{border-color:var(--accent-dim)!important}
+
+/* ══ v10.8 — ECRÃ DE ENTRADA: «desliza para cima» (cofre memorizado) · palavra-passe logo à vista (primeira vez) ══ */
+.lk-hide{display:none!important}
+.lk-swipe{--dy:0px;display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px auto 4px;padding:22px 12px 26px;width:100%;border-radius:18px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;color:var(--accent-ink);transform:translateY(var(--dy));opacity:calc(1 + var(--dy) / 180px);transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .25s;outline:none}
+.lk-swipe:focus-visible{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.6)}
+.lk-swipe.drag{transition:none;cursor:grabbing}
+.lk-swipe.gone{transform:translateY(-70px);opacity:0}
+.lk-swipe.nudge{animation:lkNudge .5s cubic-bezier(.2,.8,.2,1)}
+.lk-swipe-arrows{display:flex;flex-direction:column;align-items:center;line-height:0}
+.lk-swipe-arrows svg{width:30px;height:30px;margin-top:-14px;animation:lkUp 1.8s ease-in-out infinite}
+.lk-swipe-arrows svg:first-child{margin-top:0;animation-delay:.18s}
+.lk-swipe-txt{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2.5px;text-transform:uppercase;text-align:center}
+@keyframes lkUp{0%,100%{transform:translateY(4px);opacity:.35}50%{transform:translateY(-4px);opacity:1}}
+@keyframes lkNudge{0%,100%{transform:translateY(0)}35%{transform:translateY(-16px)}}
+@media(prefers-reduced-motion:reduce){.lk-swipe-arrows svg,.lk-swipe.nudge{animation:none}}
+.lk-start{margin-bottom:14px;text-align:left}
+.lk-start-msg{font-size:.72rem;line-height:1.6;color:var(--text-muted);text-align:center;margin-bottom:12px}
