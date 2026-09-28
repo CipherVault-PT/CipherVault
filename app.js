@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.8';
+const APP_VERSION='10.9';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -512,10 +512,10 @@ function applyUnlockMode(autoBio){
   const masterEntry=document.getElementById('master-entry');
   const links=document.getElementById('unlock-links');
   if(!q||!bioBtn||!pinEntry||!masterEntry||!links)return;
-  bioBtn.style.display=unlockMode==='bio'?'block':'none';
+  bioBtn.style.display='none';
   pinEntry.style.display=unlockMode==='pin'?'block':'none';
   masterEntry.style.display=unlockMode==='master'?'block':'none';
-  q.style.display=(unlockMode==='bio'||unlockMode==='pin')?'block':'none';
+  q.style.display=unlockMode==='pin'?'block':'none';
   const bt=document.getElementById('bio-btn-txt');
   if(bt)bt.textContent=en?'Unlock with biometrics':'Desbloquear com biometria';
   const pl=document.getElementById('l-pin-label');
@@ -535,14 +535,14 @@ function applyUnlockMode(autoBio){
     if(pi){pi.value='';pi.type='password';pi.maxLength=quickAvail.pinLen;pi.placeholder='•'.repeat(quickAvail.pinLen);const pe=document.getElementById('pin-err');if(pe)pe.textContent='';setTimeout(()=>pi.focus(),120);}
   }
   if(unlockMode==='master')setTimeout(()=>{const mp=document.getElementById('master-pw');if(mp)mp.focus();},120);
-  if(unlockMode==='bio'&&autoBio&&!lockSwipeNeed)setTimeout(()=>doBioUnlock(true),420);
+  if(unlockMode==='bio'&&!lockBioPrompting){if(autoBio&&!lockSwipeNeed){lockSwipeApply();return lockBioStart();}lockSwipeNeed=true;}
   lockSwipeApply();
 }
 let _avUserMode=null;
 function setUnlockMode(m){
-  _avUserMode=m;unlockMode=m;
-  applyUnlockMode(false);
-  if(m==='bio')doBioUnlock(false);
+  _avUserMode=m;unlockMode=m;lockSwipeRetry=false;
+  if(m==='bio'){lockSwipeNeed=false;return lockBioStart();}
+  lockSwipeNeed=false;applyUnlockMode(false);
 }
 async function onPinInput(){
   const el=document.getElementById('pin-input');
@@ -564,16 +564,17 @@ async function onPinInput(){
 }
 let bioBusy=false;
 async function doBioUnlock(isAuto){
-  if(bioBusy||unlockMode!=='bio')return;
+  if(bioBusy||unlockMode!=='bio')return 'busy';
   bioBusy=true;
   const en=currentLang==='en';
   try{
-    if(!pendingVaultFile&&!pendingVaultText&&!(await lockEnsureFile()))return;
+    if(!pendingVaultFile&&!pendingVaultText&&!(await lockEnsureFile()))return 'fail';
     const res=await tryBio();
-    if(res.pw){submitOpenVault(res.pw,res.qk);return;}
-    if(res.gone){refreshQuickUnlock();return;}
-    if(res.err==='cancelled')return;
+    if(res.pw){submitOpenVault(res.pw,res.qk);return 'ok';}
+    if(res.gone){refreshQuickUnlock();return 'gone';}
+    if(res.err==='cancelled')return 'cancel';
     toast(en?'Biometrics failed. Try again or use the PIN.':'Biometria falhou. Tenta outra vez ou usa o PIN.');
+    return 'fail';
   }finally{bioBusy=false;}
 }
 
@@ -1472,7 +1473,7 @@ function lockApp(){
   document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
   document.getElementById('welcome-screen').classList.remove('show');
   const pwStep=document.getElementById('open-step-pw');
-  if(pwStep&&pwStep.style.display!=='none'){lockSwipeNeed=true;refreshQuickUnlock(false);}
+  if(pwStep&&pwStep.style.display!=='none'){lockSwipeNeed=true;lockSwipeRetry=false;refreshQuickUnlock(false);}
   try{lockSubText();auroraSkyStart();}catch(e){}
   try{avFlushNow();}catch(e){}
 }
@@ -9120,7 +9121,7 @@ async function lockDirectInit(){
   let hd=null;try{hd=await idbGet('vaultHandle');}catch(e){}
   if(!hd&&!pendingVaultFile&&!pendingVaultText&&localStorage.getItem('av_dev_mode')==='1')return avDevInit(true);
   if(!hd||pendingVaultFile||pendingVaultText)return false;
-  vaultFileHandle=hd;lockSwipeNeed=true;lockShowPwStep();
+  vaultFileHandle=hd;lockSwipeNeed=true;lockSwipeRetry=false;lockShowPwStep();
   const fn=document.getElementById('l-file-name');if(fn)fn.textContent=hd.name||'';
   const fm=document.getElementById('l-file-meta');if(fm)fm.style.display='none';
   let granted=false;
@@ -9168,7 +9169,7 @@ async function lockEnter(){
   if(lockedOut)return;
   const en=currentLang==='en';
   if(lockHeldPw){const pw=lockHeldPw,qk=lockHeldQk;if(await lockEnsureFile())submitOpenVault(pw,qk);return;}
-  if(unlockMode==='bio')return doBioUnlock(false);
+  if(unlockMode==='bio')return lockBioStart();
   if(unlockMode==='pin'){
     const el=document.getElementById('pin-input');
     const n=quickAvail.pinLen;
@@ -9214,10 +9215,22 @@ async function lockForgetMine(){
 
 /* ══ ECRÃ DE ENTRADA v10.8 — cofre memorizado: «desliza para cima» → impressão digital (ou PIN, ou palavra-passe);
    primeira vez: palavra-passe mestra logo à vista + «Carregar cofre» / «Criar cofre» ══ */
-var lockSwipeNeed=false,lockTypedPw='';
+var lockSwipeNeed=false,lockTypedPw='',lockBioPrompting=false,lockSwipeRetry=false;
+// Pede a impressão digital já (tem de ser dentro do gesto: deslizar, tocar ou escolher o ficheiro); se não der, volta o «desliza»
+function lockBioStart(){
+  lockBioPrompting=true;lockSwipeNeed=false;
+  applyUnlockMode(false);
+  return Promise.resolve(doBioUnlock(false)).then(r=>{
+    lockBioPrompting=false;
+    if(r==='ok'||r==='busy'||(typeof masterKey!=='undefined'&&masterKey))return;
+    if(r==='gone'){lockSwipeRetry=false;return;}
+    lockSwipeNeed=true;lockSwipeRetry=true;applyUnlockMode(false);
+  },()=>{lockBioPrompting=false;lockSwipeNeed=true;lockSwipeRetry=true;applyUnlockMode(false);});
+}
 function lockSwipeText(){
   const en=currentLang==='en',touch=!window.matchMedia||matchMedia('(pointer:coarse)').matches;
-  const t=touch?(en?'Swipe up to unlock':'Desliza para cima para desbloquear'):(en?'Click or swipe up to unlock':'Clica ou desliza para cima para desbloquear');
+  const t=lockSwipeRetry?(touch?(en?'Swipe up to try again':'Desliza para cima para tentar outra vez'):(en?'Click or swipe up to try again':'Clica ou desliza para cima para tentar outra vez'))
+    :touch?(en?'Swipe up to unlock':'Desliza para cima para desbloquear'):(en?'Click or swipe up to unlock':'Clica ou desliza para cima para desbloquear');
   const el=document.getElementById('lk-swipe-txt');if(el)el.textContent=t;
   const sw=document.getElementById('lk-swipe');if(sw)sw.setAttribute('aria-label',t);
 }
@@ -9225,7 +9238,8 @@ function lockSwipeApply(){
   const sw=document.getElementById('lk-swipe');if(!sw)return;
   const on=lockSwipeNeed&&!lockedOut&&lockOnPwStep();
   sw.style.display=on?'':'none';sw.classList.remove('gone');sw.style.removeProperty('--dy');
-  ['quick-unlock','master-entry','l-enter-btn','unlock-links'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('lk-hide',on);});
+  ['quick-unlock','master-entry','l-enter-btn'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('lk-hide',on);});
+  const ln=document.getElementById('unlock-links');if(ln)ln.classList.toggle('lk-hide',on&&!lockSwipeRetry);   // depois de uma falha: «Usar PIN», «Recuperar acesso»…
   if(on)lockSwipeText();
 }
 function lockSwipeGo(){
@@ -9233,6 +9247,7 @@ function lockSwipeGo(){
   lockSwipeNeed=false;
   const sw=document.getElementById('lk-swipe');
   if(sw)sw.classList.add('gone');
+  if(unlockMode==='bio'){lockSwipeRetry=false;return lockBioStart();}
   setTimeout(()=>{
     lockSwipeApply();
     if(unlockMode==='bio')doBioUnlock(false);
@@ -11421,7 +11436,7 @@ function avFileSave(){
 async function avDevInit(migr){
   let loc=null;try{loc=await localVaultGet();}catch(e){}
   if(!loc||!loc.json||pendingVaultFile||pendingVaultText)return false;
-  pendingVaultText=loc.json;lockSwipeNeed=true;lockShowPwStep();AV_MIGR=!!migr;
+  pendingVaultText=loc.json;lockSwipeNeed=true;lockSwipeRetry=false;lockShowPwStep();AV_MIGR=!!migr;
   if(!FSA_OK){try{localStorage.setItem('av_dev_mode','1');}catch(e){}}
   const fn=document.getElementById('l-file-name');if(fn)fn.textContent=migr?(currentLang==='en'?'📱 Copy on this device (most recent)':'📱 Cópia deste dispositivo (a mais recente)'):(currentLang==='en'?'📱 Vault stored on this device':'📱 Cofre guardado neste dispositivo');
   const fm=document.getElementById('l-file-meta');if(fm)fm.style.display='none';
