@@ -23,8 +23,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Verificar sintaxe
-        run: node --check app.js && node --check sw.js
+      - name: Verificar sintaxe e que app.js corresponde a src/
+        run: node --check app.js && node --check sw.js && node scripts/build.mjs --check
       - run: npm ci
       - name: Instalar o Chromium e o WebKit (Safari)
         run: npx playwright install --with-deps chromium webkit
