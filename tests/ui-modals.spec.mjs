@@ -74,12 +74,12 @@ test.describe('Janelas, definições e menus', () => {
 
   test('entrada nova: força da password, gerador e campos', async ({ page }) => {
     await page.evaluate(() => openModal());
+    await expect(page.locator('#f-pw')).toBeVisible();
     await page.locator('#f-pw').fill('abc');
+    await expect(page.locator('#pw-strength-label')).not.toHaveText('');
     const weak = await page.locator('#pw-strength-label').textContent();
     await page.locator('#f-pw').fill('Muito-Forte#2031!xQ');
-    const strong = await page.locator('#pw-strength-label').textContent();
-    expect(weak).not.toBe('');
-    expect(strong).not.toBe(weak);
+    await expect(page.locator('#pw-strength-label')).not.toHaveText(weak);
     await page.evaluate(() => { closeModal(); openPwGen(); });
     const before = await page.locator('#pwgen-result').inputValue();
     await page.locator('#pwgen-overlay input[type=checkbox][data-change="updatePwGen"]:visible').first().click();

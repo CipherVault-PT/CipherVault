@@ -2093,7 +2093,27 @@ function setLang(lang){
   applyLangStatic();
   if(vault.length>=0){renderAll();}
 }
+// Atributos (textos de ajuda, títulos, nomes para leitores de ecrã) que ficavam em português com a app em inglês
+const AV_LANG_ATTRS=[
+  ['#search-input','placeholder','Pesquisar em tudo...','Search everything...'],
+  ['#tb-more-btn','title','Mais opções','More options'],['#tb-more-btn','aria-label','Mais opções','More options'],
+  ['#vault-newfolder-btn','title','Nova pasta','New folder'],['#vault-newfolder-btn','aria-label','Nova pasta','New folder'],
+  ['.docview-close','title','Fechar','Close'],
+  ['#doc-desc','placeholder','Sobre o que é, onde foi emitido, notas importantes...','What it is, where it was issued, important notes...'],
+  ['#tf-account','placeholder','ex: carlos@gmail.com','e.g. carlos@gmail.com'],
+  ['#tf-recovery','placeholder','Cola aqui os códigos de recuperação que o serviço te deu (um por linha)','Paste the recovery codes the service gave you (one per line)'],
+  ['.tb-lock-btn','aria-label','Bloquear','Lock'],['#sort-select,#doc-sort','aria-label','Ordenar','Sort'],['.sidebar','aria-label','Categorias','Categories'],
+  ['#picker-bg','aria-label','Cor de fundo','Background colour'],['#picker-accent','aria-label','Cor de destaque','Accent colour'],['#picker-text','aria-label','Cor do texto','Text colour'],
+  ['#catmgr-color','aria-label','Cor da categoria','Category colour'],['#csv-input-app','aria-label','Importar ficheiro CSV','Import CSV file'],
+  ['#card-overlay .btn-ghost[data-act="closeCardModal"]','text','Cancelar','Cancel'],
+  ['#clipboard-toast-txt','text','Copiado — apaga em','Copied — clears in'],['.lk-eye','aria-label','Mostrar','Show']];
+function avLangAttrs(){
+  const en=currentLang==='en';
+  AV_LANG_ATTRS.forEach(([sel,a,pt,enT])=>document.querySelectorAll(sel).forEach(el=>{if(a==='text')el.textContent=en?enT:pt;else el.setAttribute(a,en?enT:pt);}));
+  if(typeof avA11yRelabel==='function')avA11yRelabel();
+}
 function applyLangStatic(){
+  avLangAttrs();
   const s=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=t(key);};
   const h=(id,key)=>{const el=document.getElementById(id);if(el)el.innerHTML=t(key);};
   s('l-sub','sub');
@@ -5808,7 +5828,7 @@ function renderDocs(){
       </div>
       <div class="doc-card-meta">
         ${doc.date?`<span>📅 ${esc(doc.date)}</span>`:''}
-        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:'<span style="color:var(--text-muted);font-style:italic">${currentLang==="en"?"No file":"Sem ficheiro"}</span>'}
+        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:`<span style="color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file':'Sem ficheiro'}</span>`}
         ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
       </div>
       <div class="card-actions">

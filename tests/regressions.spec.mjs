@@ -147,3 +147,26 @@ test.describe('Regressões', () => {
     expect(r).toEqual({ kept: true, step: 'block' });
   });
 });
+
+test('nenhum ecrã mostra código por engano (${…}) e os textos de ajuda mudam de idioma', async ({ page }) => {
+  await openApp(page);
+  await createVault(page);
+  await page.evaluate(() => {
+    documents.push({ id: 'dx', title: 'Sem ficheiro', cat: 'pessoal' }); vault.push({ id: 'ax', name: 'A', cat: 'email', pw: 'x' });
+    totp.push({ id: 'tx', name: 'G', secret: 'JBSWY3DPEHPK3PXP', type: 'totp', digits: 6, period: 30, algorithm: 'SHA1' }); renderAll();
+  });
+  for (const lang of ['pt', 'en']) {
+    const leaks = await page.evaluate(async lang => {
+      setLang(lang); const out = [];
+      const tabs = [...new Set([...document.querySelectorAll('[data-act="switchTab"]')].map(b => b.dataset.arg).filter(Boolean))];
+      for (const t of tabs) { switchTab(t); await new Promise(r => setTimeout(r, 80)); if (document.body.innerText.includes('${')) out.push(t); }
+      return out;
+    }, lang);
+    expect(leaks, lang).toEqual([]);
+  }
+  const attrs = await page.evaluate(() => ({
+    search: document.getElementById('search-input').placeholder, lock: document.querySelector('.tb-lock-btn').getAttribute('aria-label'),
+    close: document.querySelector('.docview-close').title, cancel: document.querySelector('#card-overlay .btn-ghost[data-act="closeCardModal"]').textContent.trim(),
+  }));
+  expect(attrs).toEqual({ search: 'Search everything...', lock: 'Lock', close: 'Close', cancel: 'Cancel' });
+});
