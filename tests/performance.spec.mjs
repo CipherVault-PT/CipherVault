@@ -21,6 +21,14 @@ test.describe('Fundo animado', () => {
     expect(r).toBeCloseTo(0.5, 1);
   });
 
+  test('para durante o scroll e retoma logo a seguir', async ({ page }) => {
+    await page.evaluate(() => { setBackground('aurora'); for (let i = 0; i < 80; i++) vault.push({ id: 's' + i, name: 'C' + i, cat: 'email', pw: 'x' }); renderAll(); switchTab('vault'); });
+    await page.waitForTimeout(300);
+    const stopped = await page.evaluate(async () => { scrollBy(0, 200); await new Promise(r => setTimeout(r, 50)); return !AuroraBG.isRunning(); });
+    expect(stopped).toBe(true);
+    await expect.poll(() => page.evaluate(() => AuroraBG.isRunning())).toBe(true);
+  });
+
   test('para com uma janela aberta por cima e volta quando fecha', async ({ page }) => {
     await page.evaluate(() => { setBackground('net'); openSettings(); });
     await page.waitForTimeout(800);
@@ -46,4 +54,20 @@ test.describe('Fundo animado', () => {
       .filter(a => a.playState === 'running' && a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#aurora-panel')).length);
     expect(running).toBe(0);
   });
+});
+
+test('pesquisa num cofre grande: espera pelo fim da escrita e mostra no máximo 60 por secção', async ({ page }) => {
+  await openApp(page);
+  await createVault(page);
+  await page.evaluate(() => { for (let i = 0; i < 400; i++) vault.push({ id: 'g' + i, name: 'Conta ' + i, cat: 'email', pw: 'x' }); renderAll(); });
+  const runs = await page.evaluate(async () => {
+    let n = 0; const o = gsRun; gsRun = () => { n++; o(); };
+    const si = document.getElementById('search-input');
+    for (const q of ['c', 'co', 'con', 'cont', 'conta']) { si.value = q; onSearchInput(); }
+    await new Promise(r => setTimeout(r, 400));
+    return n;
+  });
+  expect(runs).toBe(1);
+  await expect(page.locator('#global-search-results [data-act="gsOpenEntry"]')).toHaveCount(60);
+  await expect(page.locator('#global-search-results')).toContainText('+340');
 });
