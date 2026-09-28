@@ -69,7 +69,7 @@ test.describe('Janelas, definições e menus', () => {
     await expect(page.locator('#av-add-pop')).toHaveClass(/open/);
     await page.locator('#av-add-pop [data-act="avAddType"]').first().click();
     await expect(page.locator('#av-add-pop')).not.toHaveClass(/open/);
-    expect(await page.locator('.modal-overlay.open').count()).toBeGreaterThan(0);
+    await expect(page.locator('.modal-overlay.open').first()).toBeVisible();   // abre ~80 ms depois de o menu fechar
   });
 
   test('entrada nova: força da password, gerador e campos', async ({ page }) => {
@@ -88,6 +88,7 @@ test.describe('Janelas, definições e menus', () => {
 
   test('pesquisa: escrever filtra e Escape fecha', async ({ page }) => {
     const si = page.locator('#search-input');
+    if (!(await si.isVisible())) await page.locator('#tb-search-btn').click();   // no telemóvel a pesquisa abre por um botão
     await si.fill('gmail');
     await expect(page.locator('#global-search-results, .gs-results, [id*="search-res"]').first()).toBeVisible();
     await si.press('Escape');

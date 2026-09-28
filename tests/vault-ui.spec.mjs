@@ -67,9 +67,12 @@ test.describe('Cofre de passwords', () => {
     expect(await page.evaluate(() => currentCat)).toBe('banco');
     await expect(page.locator('#card-b2')).toBeVisible();
     await expect(page.locator('#card-a1')).toHaveCount(0);
-    await page.locator('.sidebar [data-act="selectTag"][data-arg="it\'s"]').click();
-    expect(await page.evaluate(() => currentTag)).toBe("it's");
-    await page.locator('.sidebar [data-act="selectTag"][data-arg=""]').click();
+    // no telemóvel as etiquetas não aparecem na barra (só as categorias, em fila)
+    if ((page.viewportSize()?.width ?? 1280) > 768) {
+      await page.locator('.sidebar [data-act="selectTag"][data-arg="it\'s"]').click();
+      expect(await page.evaluate(() => currentTag)).toBe("it's");
+      await page.locator('.sidebar [data-act="selectTag"][data-arg=""]').click();
+    }
     await page.locator('.sidebar [data-act="selectCat"][data-arg="all"]').click();
 
     await page.locator('.folder-card[data-act="openVaultFolder"]').click();
@@ -86,6 +89,7 @@ test.describe('Cofre de passwords', () => {
   });
 
   test('arrastar um cartão muda a ordem', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 1280) <= 768, 'arrastar para reordenar é com rato (computador)');
     await page.locator('#card-b2').dragTo(page.locator('#card-a1'));
     const order = await page.evaluate(() => vault.filter(v => !v.folderId).sort((a, b) => a.order - b.order).map(v => v.id));
     expect(order).toEqual(['b2', 'a1']);

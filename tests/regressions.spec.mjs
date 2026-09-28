@@ -33,13 +33,20 @@ test.describe('Regressões', () => {
   });
 
   test('gravações em simultâneo não perdem alterações feitas a meio', async ({ page }) => {
+    // cofre guardado na app (como no telemóvel): aí a gravação automática marca mesmo o cofre como gravado
+    await page.addInitScript(() => { delete window.showOpenFilePicker; });
+    await openApp(page);
     await createVault(page);
     const r = await page.evaluate(async () => {
       const all = await Promise.all([saveFile({ auto: true }), saveFile({ auto: true }), saveFile({ auto: true })]);
-      markUnsaved(); const p = saveFile({ auto: true }); markUnsaved(); await p;
-      return { n: all.length, kept: hasUnsaved, local: !!JSON.parse((await localVaultGet()).json).payload };
+      const clean = !hasUnsaved;
+      // alteração feita enquanto a gravação está a encriptar: tem de ficar por gravar
+      const enc = encrypt; let once = true;
+      encrypt = async (...a) => { if (once) { once = false; markUnsaved(); } return enc(...a); };
+      markUnsaved(); await saveFile({ auto: true }); encrypt = enc;
+      return { n: all.length, clean, kept: hasUnsaved, local: !!JSON.parse((await localVaultGet()).json).payload };
     });
-    expect(r).toEqual({ n: 3, kept: true, local: true });
+    expect(r).toEqual({ n: 3, clean: true, kept: true, local: true });
   });
 
   test('entradas: editar, validar nome, histórico e textos certos', async ({ page }) => {
