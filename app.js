@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.6';
+const APP_VERSION='10.7';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2924,7 +2924,14 @@ function markSaved(){
   const btn=document.querySelector('.btn-save-file');
   if(btn)btn.classList.remove('has-changes');
 }
+// Cofres grandes: espera que se acabe de escrever e desenha no máximo GS_MAX resultados por secção
+let _gsT=0;const GS_MAX=60;
 function onSearchInput(){
+  clearTimeout(_gsT);
+  if(vault.length+notes.length+documents.length>300){_gsT=setTimeout(gsRun,150);const si=document.getElementById('search-input'),clr=document.getElementById('search-clear');if(clr&&si)clr.style.display=si.value?'block':'none';return;}
+  gsRun();
+}
+function gsRun(){
   const si=document.getElementById('search-input');
   const q=si.value.toLowerCase().trim();
   const clr=document.getElementById('search-clear');
@@ -2948,23 +2955,26 @@ function onSearchInput(){
   let html=`<div style="font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">${t('globalSearchResults')}: <strong style="color:var(--accent-ink)">${total}</strong></div>`;
   if(vaultMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">🔐 ${t('tabVault')} (${vaultMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${vaultMatches.map(e=>`<div class="entry-card" data-act="gsOpenEntry" data-arg="${esc(e.id)}" style="cursor:pointer"><div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(e.cat).color}26;color:${vaultCatInfo(e.cat).color}">${vaultCatInfo(e.cat).icon} ${esc(vaultCatInfo(e.cat).label)}</span>${e.fav?'⭐':''}</div><div class="card-name">${esc(e.name)}</div>${e.user?`<div style="font-size:.75rem;color:var(--text-muted)">${esc(e.user)}</div>`:''}</div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${vaultMatches.slice(0,GS_MAX).map(e=>`<div class="entry-card" data-act="gsOpenEntry" data-arg="${esc(e.id)}" style="cursor:pointer"><div class="card-top"><span class="card-cat-badge" style="background:${vaultCatInfo(e.cat).color}26;color:${vaultCatInfo(e.cat).color}">${vaultCatInfo(e.cat).icon} ${esc(vaultCatInfo(e.cat).label)}</span>${e.fav?'⭐':''}</div><div class="card-name">${esc(e.name)}</div>${e.user?`<div style="font-size:.75rem;color:var(--text-muted)">${esc(e.user)}</div>`:''}</div>`).join('')}</div>`;
   }
   if(noteMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">📝 ${t('tabNotes')} (${noteMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${noteMatches.map(n=>`<div class="entry-card" data-act="gsOpenNote" data-arg="${esc(n.id)}" style="cursor:pointer"><div class="card-name">${esc(n.title||'...')}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc((n.body||'').slice(0,60))}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${noteMatches.slice(0,GS_MAX).map(n=>`<div class="entry-card" data-act="gsOpenNote" data-arg="${esc(n.id)}" style="cursor:pointer"><div class="card-name">${esc(n.title||'...')}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc((n.body||'').slice(0,60))}</div></div>`).join('')}</div>`;
   }
   if(cardMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">💳 ${t('tabCards')} (${cardMatches.length})</div>`;
-    html+=`<div class="cards-grid" style="margin-bottom:18px">${cardMatches.map(c=>`<div class="entry-card" data-act="gsOpenCards" style="cursor:pointer"><div class="card-name">${esc(c.bank)}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc(c.holder||'')} ${c.expiry?'· '+esc(c.expiry):''}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid" style="margin-bottom:18px">${cardMatches.slice(0,GS_MAX).map(c=>`<div class="entry-card" data-act="gsOpenCards" style="cursor:pointer"><div class="card-name">${esc(c.bank)}</div><div style="font-size:.75rem;color:var(--text-muted)">${esc(c.holder||'')} ${c.expiry?'· '+esc(c.expiry):''}</div></div>`).join('')}</div>`;
   }
   if(docMatches.length){
     html+=`<div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">📁 ${currentLang==='en'?'Documents':'Documentos'} (${docMatches.length})</div>`;
-    html+=`<div class="cards-grid">${docMatches.map(d=>`<div class="entry-card" data-act="openDocPreview" data-arg="${esc(d.id)}" style="cursor:pointer"><div class="card-name">${esc(d.title)}</div><div style="font-size:.75rem;color:var(--text-muted)">${getDocCatLabel(d.cat)} ${d.expiry?'· '+esc(d.expiry):''}</div><div class="doc-loc">📍 ${esc(folderPathLabel(d.folderId||null))}</div></div>`).join('')}</div>`;
+    html+=`<div class="cards-grid">${docMatches.slice(0,GS_MAX).map(d=>`<div class="entry-card" data-act="openDocPreview" data-arg="${esc(d.id)}" style="cursor:pointer"><div class="card-name">${esc(d.title)}</div><div style="font-size:.75rem;color:var(--text-muted)">${getDocCatLabel(d.cat)} ${d.expiry?'· '+esc(d.expiry):''}</div><div class="doc-loc">📍 ${esc(folderPathLabel(d.folderId||null))}</div></div>`).join('')}</div>`;
   }
+  const cut=[vaultMatches,noteMatches,cardMatches,docMatches].reduce((n,a)=>n+Math.max(0,a.length-GS_MAX),0);
+  if(cut)html+=`<div style="font-size:.7rem;color:var(--text-muted);text-align:center;margin:6px 0 14px">${currentLang==='en'?`+${cut} more — keep typing to narrow it down`:`+${cut} — escreve mais para afinar`}</div>`;
   resultsEl.innerHTML=html;
 }
 function closeGlobalSearch(){
+  clearTimeout(_gsT);
   const si=document.getElementById('search-input');
   if(si){si.value='';si.blur();}
   const clr=document.getElementById('search-clear');
@@ -12049,6 +12059,12 @@ function avGestTarget(dir){const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+
 function avGestPeek(){AV_G.raf=0;if(!AV_G.els||!AV_G.els.length)return;const W=innerWidth,d=AV_G.dx,has=!!avGestTarget(d<0?1:-1);let x;
   if(has){const lim=W*0.42;x=d*0.6;if(Math.abs(x)>lim)x=Math.sign(x)*(lim+(Math.abs(x)-lim)*0.15);}else x=Math.sign(d)*Math.min(48,Math.abs(d)*0.12);
   AV_G.els.forEach(el=>el.style.transform='translateX('+x.toFixed(1)+'px)');}
+// Scroll: o fundo animado para enquanto a página se mexe (é o que mais pesa num telemóvel lento) e retoma logo a seguir
+{let held=false,t=0;
+  addEventListener('scroll',()=>{
+    if(!held&&typeof AuroraBG!=='undefined'&&AuroraBG.isRunning()&&!AV_G.bgHeld){AuroraBG.stop();held=true;}
+    clearTimeout(t);t=setTimeout(()=>{if(held){held=false;if(!AV_G.bgHeld&&!document.hidden)AuroraBG.start();}},180);
+  },{passive:true,capture:true});}
 function avBgHold(on){try{if(typeof AuroraBG==='undefined')return;if(on){if(!AV_G.bgHeld&&AuroraBG.isRunning()){AuroraBG.stop();AV_G.bgHeld=true;}}else if(AV_G.bgHeld){AV_G.bgHeld=false;AuroraBG.start();}}catch(e){}}
 function avGestReset(anim){if(anim)setTimeout(()=>{if(!AV_G.busy)avBgHold(false);},230);const els=AV_G.els||[];els.forEach(el=>{if(anim){el.style.transition='transform .2s cubic-bezier(.2,.8,.2,1)';el.style.transform='';setTimeout(()=>{el.style.transition='';el.style.willChange='';},220);}else{el.style.transition='';el.style.transform='';el.style.willChange='';}});AV_G.els=[];AV_G.el=null;}
 function avVTok(){return !!document.startViewTransition&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)&&avSwStyle()!=='off';}
