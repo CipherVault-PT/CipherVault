@@ -1,4 +1,5 @@
 import { test, expect, openApp, createVault } from './fixtures.mjs';
+import { readFileSync } from 'node:fs';
 
 // O fundo animado é o que mais gasta bateria: estes limites impedem que volte a correr sem necessidade.
 test.describe('Fundo animado', () => {
@@ -92,4 +93,11 @@ test('aba 2FA: cartões fora do ecrã não são desenhados', async ({ page }) =>
   await page.evaluate(() => { for (let i = 0; i < 40; i++) totp.push({ id: 'p' + i, name: 'S' + i, secret: 'JBSWY3DPEHPK3PXP', type: 'totp', digits: 6, period: 30, algorithm: 'SHA1' }); renderAll(); switchTab('totp'); });
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('#totp-grid .totp-card')).contentVisibility)).toBe('auto');
   await expect(page.locator('#totp-code-p0')).not.toHaveText(/—|-{3}/);
+});
+
+test('nada pesado a cada frame do scroll nem seletores caros em intervalos', () => {
+  const src = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  expect(src).not.toContain('svg:has(');                                   // ~120 ms por chamada com um cofre grande
+  const fab = src.slice(src.indexOf('function aurFab(){'), src.indexOf('function aurFab(){') + 600);
+  expect(fab).not.toContain('getBoundingClientRect');                     // obrigava a recalcular o layout a cada frame
 });

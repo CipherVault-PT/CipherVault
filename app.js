@@ -6694,7 +6694,8 @@ function avIdle(){return performance.now()-AV_IDLE.last>AV_IDLE.ms;}
   // Animações SVG (escudo do ecrã de entrada): não obedecem ao CSS, param-se à mão (e sempre com «reduzir movimento»)
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Animações SVG só correm se estiverem à vista (as do ecrã de entrada continuavam a correr por trás da app: ~300 recálculos de estilo por segundo)
-  const smil=on=>{let l;try{l=document.querySelectorAll('svg:has(animate,animateTransform)');}catch(e){l=document.querySelectorAll('svg');}
+  // (procura pelas etiquetas <animate>: «svg:has(…)» custava ~120 ms por chamada com um cofre grande num telemóvel lento)
+  const smil=on=>{const l=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)l.add(v.ownerSVGElement||v);});
     l.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
   // Sem atividade: as animações decorativas em ciclo (brilhos, manchas do fundo, ícones a flutuar) param até ao próximo toque
   const still=on=>document.documentElement.classList.toggle('av-still',on);
@@ -9857,8 +9858,18 @@ function aurSay(html,chips,cls){
   AUR.out(h,cls||'ai');return true;
 }
 function aurAct(i){const f=AUR.acts[i];if(typeof f==='function'){try{f();}catch(e){aurSay(aurL('Não consegui concluir essa ação (','I couldn’t complete that action (')+aurEsc(e.message)+').');}}}
+// Barra da Aurora à vista? Um observador diz quando entra/sai do ecrã (antes media a posição a cada frame do scroll, o que obrigava a recalcular o layout)
+let _aurLaunchEl=null,_aurLaunchVis=false,_aurIO=null;
+function aurLaunchVisible(){
+  const l=document.querySelector('.aur-launch');
+  if(l!==_aurLaunchEl){
+    if(_aurIO)_aurIO.disconnect();_aurLaunchEl=l;_aurLaunchVis=false;
+    if(l&&typeof IntersectionObserver!=='undefined'){_aurIO=new IntersectionObserver(es=>{_aurLaunchVis=es[es.length-1].isIntersecting;aurFab();},{rootMargin:'-40px 0px -40px 0px'});_aurIO.observe(l);}
+  }
+  return _aurLaunchVis;
+}
 function aurIsMobile(){return typeof window!=='undefined'&&!!window.matchMedia&&window.matchMedia('(max-width:760px)').matches;}
-function aurFab(){if(typeof document==='undefined')return;const f=document.getElementById('aurora-fab'),p=document.getElementById('aurora-panel');if(!f)return;const on=typeof masterKey!=='undefined'&&!!masterKey;let lv=false;const l=document.querySelector('.aur-launch');if(l&&l.offsetParent!==null){const r=l.getBoundingClientRect();lv=r.width>0&&r.bottom>40&&r.top<window.innerHeight-40;}f.style.display=on&&!(p&&p.classList.contains('open'))&&!lv?'flex':'none';}
+function aurFab(){if(typeof document==='undefined')return;const f=document.getElementById('aurora-fab'),p=document.getElementById('aurora-panel');if(!f)return;const on=typeof masterKey!=='undefined'&&!!masterKey;const lv=aurLaunchVisible();f.style.display=on&&!(p&&p.classList.contains('open'))&&!lv?'flex':'none';}
 function aurClose(force){
   if(typeof document==='undefined')return;const p=document.getElementById('aurora-panel');if(!p)return;
   if(force){p.classList.remove('open','min','has-new');document.body.classList.remove('aur-docked');aurFab();return;}
@@ -10721,7 +10732,6 @@ function aurLaunchIdeas(){
     else if(e.key==='ArrowUp'&&AUR.hist.length){AUR.hIdx=Math.max(0,AUR.hIdx-1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
     else if(e.key==='ArrowDown'&&AUR.hist.length){AUR.hIdx=Math.min(AUR.hist.length,AUR.hIdx+1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
   });
-  let aurRaf=0;document.addEventListener('scroll',()=>{if(aurRaf)return;aurRaf=requestAnimationFrame(()=>{aurRaf=0;aurFab();});},true);
   setInterval(function(){
     if(document.hidden)return;
     const on=typeof masterKey!=='undefined'&&!!masterKey;

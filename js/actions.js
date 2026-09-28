@@ -135,7 +135,8 @@ let avA11yN=0;
 function avA11yFix(root){
   if(!root||!root.querySelectorAll)return;
   const en=document.documentElement.lang==='en';
-  root.querySelectorAll('label:not([for])').forEach(l=>{
+  const all=sel=>{const l=[...root.querySelectorAll(sel)];if(root.matches&&root.matches(sel))l.unshift(root);return l;};   // o próprio elemento acrescentado também conta
+  all('label:not([for])').forEach(l=>{
     if(l.querySelector('input,select,textarea'))return;
     const n=l.nextElementSibling;if(!n)return;
     const c=n.matches('input,select,textarea')?n:n.querySelector('input,select,textarea');
@@ -143,7 +144,7 @@ function avA11yFix(root){
     if(!c.id)c.id='avf-'+(++avA11yN);
     l.htmlFor=c.id;
   });
-  root.querySelectorAll('button:not([aria-label]):not([title])').forEach(b=>{
+  all('button:not([aria-label]):not([title])').forEach(b=>{
     if(b.textContent.trim()||!AV_A11Y_NAMES[b.dataset.act])return;
     b.dataset.a11yAuto='1';avA11yName(b,en);
   });
@@ -154,5 +155,5 @@ function avA11yRelabel(){const en=document.documentElement.lang==='en';document.
 {const q=new Set();let t=0;
   const flush=()=>{t=0;const l=[...q];q.clear();l.forEach(n=>{if(n.isConnected)avA11yFix(n);});};
   const later=()=>{if(!t)t=(window.requestIdleCallback||setTimeout)(flush,{timeout:600});};
-  const start=()=>{avA11yFix(document);new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)q.add(n.parentElement||n);if(q.size)later();}).observe(document.body,{childList:true,subtree:true});};
+  const start=()=>{avA11yFix(document);new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)q.add(n);if(q.size)later();}).observe(document.body,{childList:true,subtree:true});};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();}
