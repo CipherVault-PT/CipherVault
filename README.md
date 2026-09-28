@@ -24,7 +24,8 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 | `styles.css` | Aparência |
 | `js/crypto.js` | Encriptação do cofre (AES-256-GCM, PBKDF2, formato do ficheiro) — testada à parte |
 | `js/actions.js` | Botões e campos sem código dentro do HTML (`data-act`, `data-input`…) |
-| `app.js` | O resto da lógica da app (a ser dividido aos poucos) |
+| `src/*.js` | A lógica da app, dividida por área (estado e idiomas, desbloqueio, 2FA, cofre, documentos, Drive, Aurora AI…) |
+| `app.js` | **Gerado** a partir de `src/` com `npm run build` — é o que o browser carrega. Não editar à mão |
 | `sw.js` | Service worker: abre sem internet e guarda cada versão uma só vez |
 | `img/` | Fotografias do ecrã de entrada |
 | `vendor/jsqr.js` | Leitor de QR (só é descarregado quando se usa a câmara num browser sem leitor próprio) |
@@ -58,7 +59,7 @@ o aspeto em telemóvel/computador e tema claro/escuro, e o consumo do fundo anim
 Mudar o número (ex.: `10.0` → `10.1`) **em todos estes sítios**, senão os telemóveis continuam com a versão antiga guardada:
 
 1. `index.html` — `<meta name="app-version">`, o comentário de compatibilidade logo abaixo, todos os `?v=` (`styles.css`, `js/*.js`, `app.js`) e o `· v…` dos dois rodapés;
-2. `app.js` — `const APP_VERSION`.
+2. `src/01-estado-idiomas.js` — `const APP_VERSION` (e depois `npm run build`).
 
 O teste `tests/version.spec.mjs` falha se algum ficar esquecido.
 

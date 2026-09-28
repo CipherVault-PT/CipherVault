@@ -12,7 +12,7 @@
 /* ══ ROOT DEFAULTS (fallback antes do JS) ══ */
 :root{
   --bg:#0a0e1a;--panel:#0f1424;--border:#1a2040;
-  --text:#e8e4d8;--text-muted:#6b7280;--red:#e05252;--green:#4caf82;
+  --text:#e8e4d8;--text-muted:#8b909a;--red:#e05252;--green:#4caf82;
   --card:#131828;--shadow:rgba(0,0,0,.5);
   --accent:#c9a84c;--accent-dim:#8a6e2f;--accent-rgb:201,168,76;--accent-ink:#c9a84c;
   --panel-glass:rgba(15,20,36,.9);--card-glass:rgba(19,24,40,.85);--accent2-rgb:76,140,175;
@@ -21,7 +21,7 @@
 /* ══ THEMES ══ */
 [data-theme="dark"]{
   --bg:#0a0e1a;--panel:#0f1424;--border:#1a2040;
-  --text:#e8e4d8;--text-muted:#6b7280;--red:#e05252;--green:#4caf82;
+  --text:#e8e4d8;--text-muted:#8b909a;--red:#e05252;--green:#4caf82;
   --card:#131828;--shadow:rgba(0,0,0,.5);
   --accent:#c9a84c;--accent-dim:#8a6e2f;--accent-rgb:201,168,76;
 }
@@ -2104,3 +2104,9 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
 @media(prefers-reduced-motion:reduce){.lk-swipe-arrows svg,.lk-swipe.nudge{animation:none}}
 .lk-start{margin-bottom:14px;text-align:left}
 .lk-start-msg{font-size:.72rem;line-height:1.6;color:var(--text-muted);text-align:center;margin-bottom:12px}
+
+/* ══ v10.11 — poupar bateria ══ */
+/* Sem atividade (60 s): animações em ciclo param até ao próximo toque */
+html.av-still *,html.av-still *::before,html.av-still *::after,html.av-still body::before,html.av-still body::after{animation-play-state:paused!important}
+/* Aba 2FA: cartões fora do ecrã não são desenhados nem recalculados (o relógio atualiza-os a cada segundo) */
+#totp-grid .totp-card{content-visibility:auto;contain-intrinsic-size:auto 190px}

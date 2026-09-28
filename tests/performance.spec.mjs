@@ -1,4 +1,5 @@
 import { test, expect, openApp, createVault } from './fixtures.mjs';
+import { readFileSync } from 'node:fs';
 
 // O fundo animado é o que mais gasta bateria: estes limites impedem que volte a correr sem necessidade.
 test.describe('Fundo animado', () => {
@@ -70,4 +71,33 @@ test('pesquisa num cofre grande: espera pelo fim da escrita e mostra no máximo 
   expect(runs).toBe(1);
   await expect(page.locator('#global-search-results [data-act="gsOpenEntry"]')).toHaveCount(60);
   await expect(page.locator('#global-search-results')).toContainText('+340');
+});
+
+test('animações escondidas não correm por trás da app e tudo para sem atividade', async ({ page }) => {
+  await openApp(page);
+  await createVault(page);
+  await page.waitForTimeout(400);
+  const hiddenRunning = await page.evaluate(() => { avSmilSync();
+    return [...document.querySelectorAll('svg')].filter(s => s.querySelector('animate,animateTransform') && !s.getClientRects().length && !s.animationsPaused()).length; });
+  expect(hiddenRunning).toBe(0);
+  await page.evaluate(() => { AV_IDLE.last = performance.now() - 70000; });
+  await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('av-still')), { timeout: 8000 }).toBe(true);
+  expect(await page.evaluate(() => getComputedStyle(document.body, '::before').animationPlayState)).toBe('paused');
+  await page.mouse.move(40, 300);
+  await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('av-still'))).toBe(false);
+});
+
+test('aba 2FA: cartões fora do ecrã não são desenhados', async ({ page }) => {
+  await openApp(page);
+  await createVault(page);
+  await page.evaluate(() => { for (let i = 0; i < 40; i++) totp.push({ id: 'p' + i, name: 'S' + i, secret: 'JBSWY3DPEHPK3PXP', type: 'totp', digits: 6, period: 30, algorithm: 'SHA1' }); renderAll(); switchTab('totp'); });
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('#totp-grid .totp-card')).contentVisibility)).toBe('auto');
+  await expect(page.locator('#totp-code-p0')).not.toHaveText(/—|-{3}/);
+});
+
+test('nada pesado a cada frame do scroll nem seletores caros em intervalos', () => {
+  const src = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  expect(src).not.toContain('svg:has(');                                   // ~120 ms por chamada com um cofre grande
+  const fab = src.slice(src.indexOf('function aurFab(){'), src.indexOf('function aurFab(){') + 600);
+  expect(fab).not.toContain('getBoundingClientRect');                     // obrigava a recalcular o layout a cada frame
 });

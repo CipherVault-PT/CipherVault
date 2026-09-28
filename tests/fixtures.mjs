@@ -7,7 +7,8 @@ export { expect };
 export const test = base.extend({
   page: async ({ page }, use) => {
     const errors = [], external = [];
-    page.on('pageerror', e => errors.push(e.message));
+    // (o WebKit relata como erro da página a verificação automática do service worker interrompida por um recarregamento)
+    page.on('pageerror', e => { if (!/sw\.js due to access control checks/.test(e.message)) errors.push(e.message); });
     // A app não pode falar com servidores de terceiros (só o Drive e a verificação de fugas, que os testes simulam)
     page.on('request', r => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && u.hostname !== 'localhost') external.push(u.hostname); });
     page.on('dialog', d => d.accept().catch(() => {}));

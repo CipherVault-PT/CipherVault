@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.10';
+const APP_VERSION='10.11';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1590,13 +1590,12 @@ function applyThemeColors(theme){
   root.style.setProperty('--panel-glass',`rgba(${panelR},${panelG},${panelB},.9)`);
   root.style.setProperty('--card-glass',`rgba(${cardR},${cardG},${cardB},.85)`);
   root.style.setProperty('--text',c.text);
-  // text-muted = text at 50% opacity mix with bg
+  // text-muted = 60% do caminho entre o fundo e o texto (a 50% ficava abaixo do contraste mínimo legível, 4,5:1)
   const textR=parseInt(c.text.slice(1,3),16);
   const textG=parseInt(c.text.slice(3,5),16);
   const textB=parseInt(c.text.slice(5,7),16);
-  const mutedR=Math.round((textR+bgR)/2);
-  const mutedG=Math.round((textG+bgG)/2);
-  const mutedB=Math.round((textB+bgB)/2);
+  const mix=(t,b)=>Math.round(b+(t-b)*0.6);
+  const mutedR=mix(textR,bgR),mutedG=mix(textG,bgG),mutedB=mix(textB,bgB);
   root.style.setProperty('--text-muted',`rgb(${mutedR},${mutedG},${mutedB})`);
   // Accent
   root.style.setProperty('--accent',c.accent);
@@ -2094,7 +2093,27 @@ function setLang(lang){
   applyLangStatic();
   if(vault.length>=0){renderAll();}
 }
+// Atributos (textos de ajuda, títulos, nomes para leitores de ecrã) que ficavam em português com a app em inglês
+const AV_LANG_ATTRS=[
+  ['#search-input','placeholder','Pesquisar em tudo...','Search everything...'],
+  ['#tb-more-btn','title','Mais opções','More options'],['#tb-more-btn','aria-label','Mais opções','More options'],
+  ['#vault-newfolder-btn','title','Nova pasta','New folder'],['#vault-newfolder-btn','aria-label','Nova pasta','New folder'],
+  ['.docview-close','title','Fechar','Close'],
+  ['#doc-desc','placeholder','Sobre o que é, onde foi emitido, notas importantes...','What it is, where it was issued, important notes...'],
+  ['#tf-account','placeholder','ex: carlos@gmail.com','e.g. carlos@gmail.com'],
+  ['#tf-recovery','placeholder','Cola aqui os códigos de recuperação que o serviço te deu (um por linha)','Paste the recovery codes the service gave you (one per line)'],
+  ['.tb-lock-btn','aria-label','Bloquear','Lock'],['#sort-select,#doc-sort','aria-label','Ordenar','Sort'],['.sidebar','aria-label','Categorias','Categories'],
+  ['#picker-bg','aria-label','Cor de fundo','Background colour'],['#picker-accent','aria-label','Cor de destaque','Accent colour'],['#picker-text','aria-label','Cor do texto','Text colour'],
+  ['#catmgr-color','aria-label','Cor da categoria','Category colour'],['#csv-input-app','aria-label','Importar ficheiro CSV','Import CSV file'],
+  ['#card-overlay .btn-ghost[data-act="closeCardModal"]','text','Cancelar','Cancel'],
+  ['#clipboard-toast-txt','text','Copiado — apaga em','Copied — clears in'],['.lk-eye','aria-label','Mostrar','Show']];
+function avLangAttrs(){
+  const en=currentLang==='en';
+  AV_LANG_ATTRS.forEach(([sel,a,pt,enT])=>document.querySelectorAll(sel).forEach(el=>{if(a==='text')el.textContent=en?enT:pt;else el.setAttribute(a,en?enT:pt);}));
+  if(typeof avA11yRelabel==='function')avA11yRelabel();
+}
 function applyLangStatic(){
+  avLangAttrs();
   const s=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=t(key);};
   const h=(id,key)=>{const el=document.getElementById(id);if(el)el.innerHTML=t(key);};
   s('l-sub','sub');
@@ -5809,7 +5828,7 @@ function renderDocs(){
       </div>
       <div class="doc-card-meta">
         ${doc.date?`<span>📅 ${esc(doc.date)}</span>`:''}
-        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:'<span style="color:var(--text-muted);font-style:italic">${currentLang==="en"?"No file":"Sem ficheiro"}</span>'}
+        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:`<span style="color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file':'Sem ficheiro'}</span>`}
         ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
       </div>
       <div class="card-actions">
@@ -6674,11 +6693,18 @@ function avIdle(){return performance.now()-AV_IDLE.last>AV_IDLE.ms;}
 (function(){
   // Animações SVG (escudo do ecrã de entrada): não obedecem ao CSS, param-se à mão (e sempre com «reduzir movimento»)
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const smil=on=>{let l;try{l=document.querySelectorAll('svg:has(animate,animateTransform)');}catch(e){l=document.querySelectorAll('svg');}
-    l.forEach(v=>{try{on&&!reduce?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+  // Animações SVG só correm se estiverem à vista (as do ecrã de entrada continuavam a correr por trás da app: ~300 recálculos de estilo por segundo)
+  // (procura pelas etiquetas <animate>: o seletor :has() em svg custava ~120 ms por chamada com um cofre grande num telemóvel lento)
+  const smil=on=>{const l=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)l.add(v.ownerSVGElement||v);});
+    l.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+  // Sem atividade: as animações decorativas em ciclo (brilhos, manchas do fundo, ícones a flutuar) param até ao próximo toque
+  const still=on=>document.documentElement.classList.toggle('av-still',on);
+  window.avSmilSync=()=>smil(!AV_IDLE.asleep);
   if(reduce)document.addEventListener('DOMContentLoaded',()=>smil(false));
-  setInterval(()=>{if(!AV_IDLE.asleep&&avIdle()){AV_IDLE.asleep=true;smil(false);}},5000);
-  AV_IDLE.cbs.push(()=>{if(AV_IDLE.asleep){AV_IDLE.asleep=false;smil(true);}});
+  setInterval(()=>{if(!AV_IDLE.asleep&&avIdle()){AV_IDLE.asleep=true;smil(false);still(true);}else if(!AV_IDLE.asleep)smil(true);},5000);
+  AV_IDLE.cbs.push(()=>{if(AV_IDLE.asleep){AV_IDLE.asleep=false;smil(true);still(false);}});
+  ['lockApp','doUnlock','switchTab'].forEach(n=>{const f=window[n];if(typeof f==='function')window[n]=function(){const r=f.apply(this,arguments);setTimeout(avSmilSync,60);return r;};});
+  addEventListener('load',()=>setTimeout(avSmilSync,300));
   const poke=()=>{const n=performance.now(),was=n-AV_IDLE.last>AV_IDLE.ms;AV_IDLE.last=n;if(was)AV_IDLE.cbs.forEach(f=>{try{f();}catch(e){}});};
   ['pointerdown','pointermove','keydown','wheel','touchstart','scroll'].forEach(ev=>addEventListener(ev,poke,{passive:true,capture:true}));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)poke();});
@@ -9832,8 +9858,18 @@ function aurSay(html,chips,cls){
   AUR.out(h,cls||'ai');return true;
 }
 function aurAct(i){const f=AUR.acts[i];if(typeof f==='function'){try{f();}catch(e){aurSay(aurL('Não consegui concluir essa ação (','I couldn’t complete that action (')+aurEsc(e.message)+').');}}}
+// Barra da Aurora à vista? Um observador diz quando entra/sai do ecrã (antes media a posição a cada frame do scroll, o que obrigava a recalcular o layout)
+let _aurLaunchEl=null,_aurLaunchVis=false,_aurIO=null;
+function aurLaunchVisible(){
+  const l=document.querySelector('.aur-launch');
+  if(l!==_aurLaunchEl){
+    if(_aurIO)_aurIO.disconnect();_aurLaunchEl=l;_aurLaunchVis=false;
+    if(l&&typeof IntersectionObserver!=='undefined'){_aurIO=new IntersectionObserver(es=>{_aurLaunchVis=es[es.length-1].isIntersecting;aurFab();},{rootMargin:'-40px 0px -40px 0px'});_aurIO.observe(l);}
+  }
+  return _aurLaunchVis;
+}
 function aurIsMobile(){return typeof window!=='undefined'&&!!window.matchMedia&&window.matchMedia('(max-width:760px)').matches;}
-function aurFab(){if(typeof document==='undefined')return;const f=document.getElementById('aurora-fab'),p=document.getElementById('aurora-panel');if(!f)return;const on=typeof masterKey!=='undefined'&&!!masterKey;let lv=false;const l=document.querySelector('.aur-launch');if(l&&l.offsetParent!==null){const r=l.getBoundingClientRect();lv=r.width>0&&r.bottom>40&&r.top<window.innerHeight-40;}f.style.display=on&&!(p&&p.classList.contains('open'))&&!lv?'flex':'none';}
+function aurFab(){if(typeof document==='undefined')return;const f=document.getElementById('aurora-fab'),p=document.getElementById('aurora-panel');if(!f)return;const on=typeof masterKey!=='undefined'&&!!masterKey;const lv=aurLaunchVisible();f.style.display=on&&!(p&&p.classList.contains('open'))&&!lv?'flex':'none';}
 function aurClose(force){
   if(typeof document==='undefined')return;const p=document.getElementById('aurora-panel');if(!p)return;
   if(force){p.classList.remove('open','min','has-new');document.body.classList.remove('aur-docked');aurFab();return;}
@@ -10696,7 +10732,6 @@ function aurLaunchIdeas(){
     else if(e.key==='ArrowUp'&&AUR.hist.length){AUR.hIdx=Math.max(0,AUR.hIdx-1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
     else if(e.key==='ArrowDown'&&AUR.hist.length){AUR.hIdx=Math.min(AUR.hist.length,AUR.hIdx+1);inp.value=AUR.hist[AUR.hIdx]||'';e.preventDefault();}
   });
-  let aurRaf=0;document.addEventListener('scroll',()=>{if(aurRaf)return;aurRaf=requestAnimationFrame(()=>{aurRaf=0;aurFab();});},true);
   setInterval(function(){
     if(document.hidden)return;
     const on=typeof masterKey!=='undefined'&&!!masterKey;
@@ -10795,7 +10830,7 @@ function avAddMenu(e){
   let p=document.getElementById('av-add-pop'),d=document.getElementById('av-add-dim');
   if(p&&p.classList.contains('open')){avAddClose();return;}
   if(!p){d=document.createElement('div');d.id='av-add-dim';d.className='av-dim';d.onclick=avAddCloseSafe;document.body.appendChild(d);
-    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';p.setAttribute('role','menu');document.body.appendChild(p);}
+    p=document.createElement('div');p.id='av-add-pop';p.className='av-pop';document.body.appendChild(p);}
   const en=avEn(),full=avMode()==='full';
   p.innerHTML='<div class="av-grab"></div><h4>'+(en?'What do you want to store?':'O que queres guardar?')+'</h4><div class="av-list">'
    +AV_ADD.filter(t=>!avTabHidden(t.tab)).map((t,i)=>'<button class="av-it'+(i===0?' hl':'')+'" role="menuitem" data-act="avAddType" data-arg="'+esc(t.k)+'"><span class="ic">'+t.ic+'</span><span><b>'+avT(t.t)+'</b><i>'+avT(t.d)+'</i></span></button>').join('')+'</div>'
@@ -12575,7 +12610,7 @@ aurAlertsRender=function(){
   else if(box.previousElementSibling!==launch)launch.insertAdjacentElement('afterend',box);
   const en=avEn(),shown=AV_AL_ALL?list:list.slice(0,4);
   box.innerHTML='<div class="avw-h"><span>✨ '+(en?'Heads-up':'Avisos')+'</span>'+(list.length?'<b>'+list.length+'</b>':'')+'</div>'
-   +(list.length?shown.map((a,i)=>'<div class="avw-row s'+a.sev+'" role="button" tabindex="0" data-act="avAlGo" data-enter="avAlGo" data-args="['+(i)+']"><span class="avw-ic">'+a.ic+'</span><span class="avw-tx"><b>'+a.t+'</b>'+(a.s?'<i>'+esc(a.s)+'</i>':'')+(a.chips&&a.chips.length?'<span class="avw-chips">'+a.chips.map(c=>'<span>'+esc(c)+'</span>').join('')+'</span>':'')+'</span><button class="avw-x" data-act="avAlX" data-args="['+i+']" data-ev-last aria-label="'+(en?'Dismiss':'Dispensar')+'">✕</button></div>').join('')
+   +(list.length?shown.map((a,i)=>'<div class="avw-row s'+a.sev+'" tabindex="0" data-act="avAlGo" data-enter="avAlGo" data-args="['+(i)+']"><span class="avw-ic">'+a.ic+'</span><span class="avw-tx"><b>'+a.t+'</b>'+(a.s?'<i>'+esc(a.s)+'</i>':'')+(a.chips&&a.chips.length?'<span class="avw-chips">'+a.chips.map(c=>'<span>'+esc(c)+'</span>').join('')+'</span>':'')+'</span><button class="avw-x" data-act="avAlX" data-args="['+i+']" data-ev-last aria-label="'+(en?'Dismiss':'Dispensar')+'">✕</button></div>').join('')
      +(list.length>4?'<button class="avw-more" data-act="avAlToggleAll">'+(AV_AL_ALL?(en?'Show less ▴':'Mostrar menos ▴'):(en?'See all ('+list.length+') ▾':'Ver todos ('+list.length+') ▾'))+'</button>':'')
     :'<div class="avw-ok">✓ '+(en?'All good — no alerts':'Tudo em ordem — nenhum aviso')+'</div>');
 };

@@ -1,0 +1,200 @@
+// ══ STATE ══
+(function(){
+  try{
+    if(location.hash&&location.hash.indexOf('access_token')>=0&&window.opener){
+      window.opener.postMessage({avOAuth:location.hash},location.origin);
+      window.close();
+    }
+  }catch(e){}
+})();
+const APP_VERSION='10.11';
+let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
+let activityLog=[];
+let trash=[];
+let totp=[];let customCats=[];let docFolders=[];let currentFolderId=null;let vaultFolders=[];let currentVaultFolderId=null;let wifiNets=[];let editingWifiId=null;let legacyNote='';let legacyOwner='';
+let totpEnc=null,totpRecWrap=null,totpKey=null,totpUnlocked=false;
+const VAULT_FMT=2;
+const KNOWN_KEYS=['savedAt','fmt','vault','notes','bankCards','activityLog','documents','trash','totp','customCats','docFolders','vaultFolders','wifiNets','legacyNote','legacyOwner','totpEnc','totpRecWrap','personalInfo','subscriptions','storeCards','assets','vaultName'];
+let payloadExtras={},vaultReadOnly=false;let currentDocSort='added';let lastSavedAt=null;let totpCounters={};
+let failedAttempts=0,lockedOut=false,autoLockCountdown=null,autoLockSeconds=300,autoLockSecondsLeft=300;
+let currentTheme='dark',currentLang='pt',currentView='normal',currentAccent='gold';
+let pendingImport=[],editingNoteId=null,entryTags=[],entryAttachment=null;
+let entryAttachments=[],assetAttachments=[];
+const MAX_ATTEMPTS=5;
+const CATS={all:{icon:'◈'},email:{icon:'📧'},banco:{icon:'🏦'},jogo:{icon:'🎮'},social:{icon:'💬'},trabalho:{icon:'💼'},outro:{icon:'📁'}};
+
+// ══ TRANSLATIONS ══
+const T={
+  pt:{
+    sub:'Cofre Digital Pessoal',sub2:'Passwords · Documentos · Notas · Cartões',masterLabel:'Palavra-passe mestra',hint:'Mínimo 4 caracteres',
+    openVault:'📂 Abrir Cofre',newVault:'✦ Novo Cofre',
+    firstUseInfo:'<strong>Primeiro uso?</strong> Escreve a palavra-passe que queres usar e toca em <strong>Criar cofre</strong>.<br>Já tens um cofre? Escreve a palavra-passe dele e toca em <strong>Carregar cofre</strong> para escolher o ficheiro <em>.vault</em>.',
+    howToTitle:'📖 Como usar o Aurora Vault',
+    howCards:[
+      ['01','Cria o Cofre','Clica <strong>Novo Cofre</strong> e define a tua palavra-passe mestra — a única chave que precisas de decorar.'],
+      ['02','Guarda Tudo','Passwords, <strong>notas seguras</strong>, cartões bancários e <strong>documentos</strong> reais (PDF, imagens, Word...) — tudo num só sítio.'],
+      ['03','Autenticador 2FA','Lê o <strong>QR code</strong> dos sites com a câmara e a app gera os códigos de 6 dígitos — como o Google Authenticator.'],
+      ['04','Encontra Rápido','Pesquisa <strong>em tudo</strong> na barra do topo, marca favoritos e vê alertas de passwords fracas e documentos a expirar.'],
+      ['05','Faz Teu','Cores totalmente personalizáveis, <strong>categorias próprias</strong>, QR do WiFi para visitas, PT/EN — e uma reciclagem de 30 dias.'],
+      ['06','Guardar Ficheiro','<strong>Ctrl+S</strong> descarrega o <strong>.vault</strong> encriptado + um backup com data. Guarda na pen ou na cloud — só tu o abres.'],
+    ],
+    tbNew:'Nova entrada',tbImport:'Importar CSV',tbSave:'Guardar ficheiro',tbPdf:'Exportar PDF',tbCsv:'Exportar CSV',tbChangePw:'Alterar pass',tbLock:'Bloquear',
+    tabDash:'📊 Dashboard',tabVault:'Cofre',tabNotes:'Notas',tabArchive:'Arquivo',
+    allEntries:'Todas as Entradas',search:'Pesquisar em tudo...',
+    sortFav:'⭐ Favoritos',sortName:'A→Z',sortDate:'📅 Recentes',sortCat:'📁 Categoria',
+    catAll:'Todas',catEmail:'Email',catBanco:'Banco',catJogo:'Jogo',catSocial:'Social',catTrabalho:'Trabalho',catOutro:'Outro',
+    dashTotal:'Total',dashWeak:'Fracas',dashDups:'Repetidas',dashOld:'Antigas',dashFavs:'Favoritos',
+    alertEmpty:'O teu cofre está vazio.',alertEmptySub:'Toca em «＋ Adicionar», em cima, para começar.',
+    alertWeak:'password(s) fraca(s) detetada(s).',alertCommon:'conta(s) com passwords muito comuns!',alertDups:'conta(s) com passwords repetidas.',alertOld:'password(s) com mais de 6 meses.',alertDupEntries:'entrada(s) duplicada(s).',
+    alertGood:'Tudo em ordem! O teu cofre está seguro.',alertGoodSub:'Continua assim.',
+    scoreLabels:['Crítico','Fraco','Razoável','Bom','Excelente'],
+    modalNew:'Nova Entrada',modalEdit:'Editar Entrada',
+    fName:'Nome / Serviço',fNamePh:'ex: Gmail',fIcon:'Ícone',fIconBtn:'Escolher',fCat:'Categoria',fUser:'Utilizador / Email',fUserPh:'utilizador@exemplo.com',
+    fPw:'Palavra-passe',fPwPh:'palavra-passe',fPwGen:'Gerar',fUrl:'URL',fUrlPh:'https://exemplo.com',
+    fTags:'Tags',fAttach:'Anexo (imagem)',fNotes:'Notas',fNotesPh:'Informação adicional...',
+    btnSave:'Guardar',btnCancel:'Cancelar',
+    pwVeryWeak:'Muito fraca',pwWeak:'Fraca',pwMedium:'Média',pwGood:'Boa',pwStrong:'Forte',
+    dupWarn:'⚠️ Esta password já está a ser usada noutra conta!',
+    cardUser:'Utilizador',cardPw:'Password',cardUrl:'URL',cardNotes:'Notas',
+    btnEdit:'Editar',btnDel:'Apagar',btnArchive:'Arquivar',btnRestore:'Restaurar',btnGoSite:'Ir para o site',btnRead:'Ver',
+    globalSearchResults:'Resultados da pesquisa',globalSearchEmpty:'Nenhum resultado para',
+    welcomeSteps:[
+      {icon:'⬡',title:'Aurora Vault',text:'Bem-vindo ao teu <strong>cofre digital pessoal</strong>.<br>Guarda passwords, documentos, notas, cartões bancários e muito mais.<br><br><strong>100% encriptado, 100% offline, 100% teu.</strong>'},
+      {icon:'🔐',title:'O teu Cofre',text:'Guarda os teus <strong>utilizadores e passwords</strong> no separador <strong>Cofre</strong>.<br><br>Organiza por categorias e adiciona <strong>tags personalizadas</strong> para encontrar tudo rapidamente.'},
+      {icon:'💳',title:'Cartões & Notas',text:'Guarda os teus <strong>cartões bancários com PIN</strong> no separador Cartões.<br><br>Usa as <strong>Notas seguras</strong> para PINs, IBANs, documentos ou qualquer texto encriptado.'},
+      {icon:'💾',title:'Guarda sempre!',text:'Após cada alteração, clica em <strong>Guardar ficheiro</strong> na barra de topo.<br><br>Ficheiro <strong>ciphervault.vault</strong> encriptado com <strong>AES-256-GCM</strong>.<br><br>⚠️ <strong>Nunca percas a palavra-passe mestra</strong> — não há recuperação.'},
+    ],
+    wBtnStart:'Começar →',wBtnNext:'Seguinte →',wBtnPrev:'← Anterior',wBtnSkip:'Saltar',wBtnDone:'Entendido! 🎉',
+    dragOverlay:'⬡ Largar para abrir cofre',
+    pwHistory:'Histórico de passwords',
+    favAdd:'Marcar favorito',favRemove:'Remover favorito',
+    pwOld:'⏰ Password antiga (+6 meses)',pwRecent:'✓ Atualizada recentemente',
+    emptyState:'Nenhuma entrada encontrada',emptyArchive:'Arquivo vazio',
+    notesTitle:'Notas',notesEmpty:'Seleciona ou cria uma nota',notesNew:'Nova Nota',
+    noteTitlePh:'Título da nota...',noteBodyPh:'Escreve aqui...',
+    btnSaveNote:'Guardar nota',btnDelNote:'Apagar nota',
+    archiveTitle:'Arquivo',
+    settingsTitle:'⚙️ Definições',sTheme:'Tema',sAccent:'Cor de Destaque',sTimeout:'Auto-lock (minutos de inatividade)',sDark:'🌙 Escuro',sLight:'☀️ Claro',sClose:'Fechar',
+    cpTitle:'🔑 Alterar Palavra-passe Mestra',cpInfo:'Será gerado um novo <strong style="color:var(--accent-ink)">ciphervault.vault</strong>. Substitui o antigo na pen!',
+    cpCur:'Palavra-passe atual',cpNew:'Nova palavra-passe',cpConf:'Confirmar nova',cpSave:'Alterar e Guardar',
+    cpErrWrong:'A palavra-passe atual está incorreta!',cpErrShort:'Mínimo 4 caracteres!',cpErrMatch:'As palavras-passe não coincidem!',cpErrSame:'A nova password é igual à atual!',
+    pwgenTitle:'⚙️ Gerador Avançado',pwgenLen:'Comprimento: ',pwgenResult:'Password Gerada',pwgenUse:'Usar esta password',
+    pgUpper:'A-Z',pgLower:'a-z',pgNumbers:'0-9',pgSymbols:'!@#$',
+    importTitle:'📥 Importar do Chrome',importConfirm:'Importar tudo',
+    toastSaved:'Cofre guardado! ✓',toastLocked:'Bloqueado por inatividade.',toastPwChanged:'Password alterada! ✓',
+    toastAdded:'Entrada adicionada!',toastUpdated:'Entrada atualizada!',toastDeleted:'Entrada apagada.',
+    toastArchived:'Entrada arquivada.',toastRestored:'Entrada restaurada.',
+    toastInstalled:'Aurora Vault instalado! ✓',toastNoteSaved:'Nota guardada! ✓',toastNoteDeleted:'Nota apagada.',
+    confirmDelete:'Apagar esta entrada?',confirmDeleteNote:'Apagar esta nota?',
+    lockErr:'Palavra-passe incorreta ou ficheiro inválido.',lockErrTooMany:'Demasiadas tentativas! Cofre bloqueado.',
+    lockErrReload:'🔒 Recarrega a página para tentar novamente.',lockErrRemaining:'tentativa(s) restante(s).',
+    lockMinChars:'Mínimo 4 caracteres!',lockFirstRequired:'Insere a palavra-passe primeiro!',
+    sbCats:'Categorias',sbTags:'Tags',tagAll:'Todas as Tags',
+    userCopied:'Utilizador copiado!',pwCopied:'Password copiada!',
+    pwaTitle:'📲 Instalar Aurora Vault',pwaSub:'Instala como app!',pwaInstall:'Instalar',pwaDismiss:'Agora não',
+    toNever:'∞ Nunca',
+    // CARDS
+    tabCards:'Cartões',cardsTitle:'Cartões Bancários',cardsAdd:'Adicionar cartão',
+    cardModalNew:'💳 Novo Cartão',cardModalEdit:'💳 Editar Cartão',
+    cardBank:'Banco / Emissor',cardBankPh:'ex: Santander, CGD, Visa...',
+    cardHolder:'Nome no cartão',cardHolderPh:'ex: CARLOS SILVA',
+    cardNumber:'Número do cartão',cardNumberPh:'**** **** **** 1234',
+    cardExpiry:'Validade',cardType:'Tipo',
+    cardTypeDebito:'💳 Débito',cardTypeCredito:'💰 Crédito',cardTypePrepago:'🎫 Pré-pago',cardTypeOutro:'📋 Outro',
+    cardPin:'PIN',cardPinHint:'(encriptado)',
+    cardNotes:'Notas',cardNotesPh:'IBAN, limite, observações...',
+    cardColor:'Cor do cartão',
+    cardExpired:'Cartão expirado!',cardExpiringSoon:'Cartão expira em breve',cardDaysLeft:'dias restantes',
+    cardAdded:'Cartão adicionado!',cardUpdated:'Cartão atualizado!',cardDeleted:'Cartão apagado.',
+    cardConfirmDelete:'Apagar este cartão?',cardEmpty:'Ainda não tens cartões.',
+    cardSave:'Guardar',cardRequired:'Indica o banco / emissor do cartão!',nameRequired:'O nome é obrigatório!',
+    cardTypeLabels:{debito:'Débito',credito:'Crédito',prepago:'Pré-pago',outro:'Outro'},
+  },
+  en:{
+    sub:'Your Personal Digital Vault',sub2:'Passwords · Documents · Notes · Cards',masterLabel:'Master password',hint:'Minimum 4 characters',
+    openVault:'📂 Open Vault',newVault:'✦ New Vault',
+    firstUseInfo:'<strong>First time?</strong> Type the password you want to use and tap <strong>Create vault</strong>.<br>Already have a vault? Type its password and tap <strong>Load vault</strong> to choose your <em>.vault</em> file.',
+    howToTitle:'📖 How to use Aurora Vault',
+    howCards:[
+      ['01','Create the Vault','Click <strong>New Vault</strong> and set your master password — the only key you need to remember.'],
+      ['02','Store Everything','Passwords, <strong>secure notes</strong>, bank cards and real <strong>documents</strong> (PDF, images, Word...) — all in one place.'],
+      ['03','2FA Authenticator','Scan the sites\' <strong>QR code</strong> with your camera and the app generates the 6-digit codes — like Google Authenticator.'],
+      ['04','Find It Fast','Search <strong>everything</strong> from the top bar, pin favourites and get alerts for weak passwords and expiring documents.'],
+      ['05','Make It Yours','Fully customisable colours, <strong>your own categories</strong>, WiFi QR for guests, PT/EN — and a 30-day recycle bin.'],
+      ['06','Save the File','<strong>Ctrl+S</strong> downloads the encrypted <strong>.vault</strong> + a dated backup. Keep it on a drive or cloud — only you can open it.'],
+    ],
+    tbNew:'New entry',tbImport:'Import CSV',tbSave:'Save file',tbPdf:'Export PDF',tbCsv:'Export CSV',tbChangePw:'Change pass',tbLock:'Lock',
+    tabDash:'📊 Dashboard',tabVault:'Vault',tabNotes:'Notes',tabArchive:'Archive',
+    allEntries:'All Entries',search:'Search everything...',
+    sortFav:'⭐ Favourites',sortName:'A→Z',sortDate:'📅 Recent',sortCat:'📁 Category',
+    catAll:'All',catEmail:'Email',catBanco:'Bank',catJogo:'Game',catSocial:'Social',catTrabalho:'Work',catOutro:'Other',
+    dashTotal:'Total',dashWeak:'Weak',dashDups:'Repeated',dashOld:'Old',dashFavs:'Favourites',
+    alertEmpty:'Your vault is empty.',alertEmptySub:'Tap “＋ Add” at the top to get started.',
+    alertWeak:'weak password(s) detected.',alertCommon:'account(s) with very common passwords!',alertDups:'account(s) with repeated passwords.',alertOld:'password(s) not updated in over 6 months.',alertDupEntries:'duplicate entr(y/ies).',
+    alertGood:'All good! Your vault is secure.',alertGoodSub:'Keep it up.',
+    scoreLabels:['Critical','Weak','Fair','Good','Excellent'],
+    modalNew:'New Entry',modalEdit:'Edit Entry',
+    fName:'Name / Service',fNamePh:'e.g. Gmail',fIcon:'Icon',fIconBtn:'Choose',fCat:'Category',fUser:'Username / Email',fUserPh:'user@example.com',
+    fPw:'Password',fPwPh:'password',fPwGen:'Generate',fUrl:'URL',fUrlPh:'https://example.com',
+    fTags:'Tags',fAttach:'Attachment (image)',fNotes:'Notes',fNotesPh:'Additional info...',
+    btnSave:'Save',btnCancel:'Cancel',
+    pwVeryWeak:'Very weak',pwWeak:'Weak',pwMedium:'Medium',pwGood:'Good',pwStrong:'Strong',
+    dupWarn:'⚠️ This password is already used in another account!',
+    cardUser:'Username',cardPw:'Password',cardUrl:'URL',cardNotes:'Notes',
+    btnEdit:'Edit',btnDel:'Delete',btnArchive:'Archive',btnRestore:'Restore',btnGoSite:'Go to site',btnRead:'View',
+    globalSearchResults:'Search results',globalSearchEmpty:'No results for',
+    welcomeSteps:[
+      {icon:'⬡',title:'Aurora Vault',text:'Welcome to your <strong>personal digital vault</strong>.<br>Store passwords, documents, notes, bank cards and more.<br><br><strong>100% encrypted, 100% offline, 100% yours.</strong>'},
+      {icon:'🔐',title:'Your Vault',text:'Store your <strong>usernames and passwords</strong> in the <strong>Vault</strong> tab.<br><br>Organise by category and add <strong>custom tags</strong> to find everything quickly.'},
+      {icon:'💳',title:'Cards & Notes',text:'Store your <strong>bank cards with PIN</strong> in the Cards tab.<br><br>Use <strong>Secure Notes</strong> for PINs, IBANs, documents or any encrypted text.'},
+      {icon:'💾',title:'Always save!',text:'After every change, click <strong>Save file</strong> in the top bar.<br><br>A <strong>ciphervault.vault</strong> file encrypted with <strong>AES-256-GCM</strong> will be created.<br><br>⚠️ <strong>Never lose your master password</strong> — there is no recovery.'},
+    ],
+    wBtnStart:'Get started →',wBtnNext:'Next →',wBtnPrev:'← Back',wBtnSkip:'Skip',wBtnDone:'Got it! 🎉',
+    dragOverlay:'⬡ Drop to open vault',
+    pwHistory:'Password history',
+    favAdd:'Add to favourites',favRemove:'Remove favourite',
+    pwOld:'⏰ Old password (+6 months)',pwRecent:'✓ Recently updated',
+    emptyState:'No entries found',emptyArchive:'Archive is empty',
+    notesTitle:'Notes',notesEmpty:'Select or create a note',notesNew:'New Note',
+    noteTitlePh:'Note title...',noteBodyPh:'Write here...',
+    btnSaveNote:'Save note',btnDelNote:'Delete note',
+    archiveTitle:'Archive',
+    settingsTitle:'⚙️ Settings',sTheme:'Theme',sAccent:'Accent Colour',sTimeout:'Auto-lock (minutes of inactivity)',sDark:'🌙 Dark',sLight:'☀️ Light',sClose:'Close',
+    cpTitle:'🔑 Change Master Password',cpInfo:'A new <strong style="color:var(--accent-ink)">ciphervault.vault</strong> will be generated. Replace the old one on your drive!',
+    cpCur:'Current password',cpNew:'New password',cpConf:'Confirm new',cpSave:'Change & Save',
+    cpErrWrong:'Current password is incorrect!',cpErrShort:'Minimum 4 characters!',cpErrMatch:'Passwords do not match!',cpErrSame:'New password is the same as current!',
+    pwgenTitle:'⚙️ Advanced Generator',pwgenLen:'Length: ',pwgenResult:'Generated Password',pwgenUse:'Use this password',
+    pgUpper:'A-Z',pgLower:'a-z',pgNumbers:'0-9',pgSymbols:'!@#$',
+    importTitle:'📥 Import from Chrome',importConfirm:'Import all',
+    toastSaved:'Vault saved! ✓',toastLocked:'Locked due to inactivity.',toastPwChanged:'Password changed! ✓',
+    toastAdded:'Entry added!',toastUpdated:'Entry updated!',toastDeleted:'Entry deleted.',
+    toastArchived:'Entry archived.',toastRestored:'Entry restored.',
+    toastInstalled:'Aurora Vault installed! ✓',toastNoteSaved:'Note saved! ✓',toastNoteDeleted:'Note deleted.',
+    confirmDelete:'Delete this entry?',confirmDeleteNote:'Delete this note?',
+    lockErr:'Incorrect password or invalid file.',lockErrTooMany:'Too many attempts! Vault locked.',
+    lockErrReload:'🔒 Reload the page to try again.',lockErrRemaining:'attempt(s) remaining.',
+    lockMinChars:'Minimum 4 characters!',lockFirstRequired:'Enter your password first!',
+    sbCats:'Categories',sbTags:'Tags',tagAll:'All Tags',
+    userCopied:'Username copied!',pwCopied:'Password copied!',
+    pwaTitle:'📲 Install Aurora Vault',pwaSub:'Install as an app!',pwaInstall:'Install',pwaDismiss:'Not now',
+    toNever:'∞ Never',
+    // CARDS
+    tabCards:'Cards',cardsTitle:'Bank Cards',cardsAdd:'Add card',
+    cardModalNew:'💳 New Card',cardModalEdit:'💳 Edit Card',
+    cardBank:'Bank / Issuer',cardBankPh:'e.g. Barclays, Visa...',
+    cardHolder:'Name on card',cardHolderPh:'e.g. CARLOS SILVA',
+    cardNumber:'Card number',cardNumberPh:'**** **** **** 1234',
+    cardExpiry:'Expiry',cardType:'Type',
+    cardTypeDebito:'💳 Debit',cardTypeCredito:'💰 Credit',cardTypePrepago:'🎫 Prepaid',cardTypeOutro:'📋 Other',
+    cardPin:'PIN',cardPinHint:'(encrypted)',
+    cardNotes:'Notes',cardNotesPh:'IBAN, limit, notes...',
+    cardColor:'Card colour',
+    cardExpired:'Card expired!',cardExpiringSoon:'Card expiring soon',cardDaysLeft:'days left',
+    cardAdded:'Card added!',cardUpdated:'Card updated!',cardDeleted:'Card deleted.',
+    cardConfirmDelete:'Delete this card?',cardEmpty:'No cards yet.',
+    cardSave:'Save',cardRequired:'Enter the card bank / issuer!',nameRequired:'Name is required!',
+    cardTypeLabels:{debito:'Debit',credito:'Credit',prepago:'Prepaid',outro:'Other'},
+  }
+};
+function t(k){return(T[currentLang]||T.pt)[k]||k;}
+

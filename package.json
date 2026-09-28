@@ -3,10 +3,13 @@
   "private": true,
   "description": "Aurora Vault — testes automáticos (a app em si não precisa de instalar nada)",
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
     "test": "playwright test",
     "serve": "node tests/serve.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1"
+    "@playwright/test": "1.56.1",
+    "axe-core": "^4.13.0"
   }
 }

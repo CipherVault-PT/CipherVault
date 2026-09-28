@@ -69,17 +69,17 @@ test.describe('Janelas, definições e menus', () => {
     await expect(page.locator('#av-add-pop')).toHaveClass(/open/);
     await page.locator('#av-add-pop [data-act="avAddType"]').first().click();
     await expect(page.locator('#av-add-pop')).not.toHaveClass(/open/);
-    expect(await page.locator('.modal-overlay.open').count()).toBeGreaterThan(0);
+    await expect(page.locator('.modal-overlay.open').first()).toBeVisible();   // abre ~80 ms depois de o menu fechar
   });
 
   test('entrada nova: força da password, gerador e campos', async ({ page }) => {
     await page.evaluate(() => openModal());
+    await expect(page.locator('#f-pw')).toBeVisible();
     await page.locator('#f-pw').fill('abc');
+    await expect(page.locator('#pw-strength-label')).not.toHaveText('');
     const weak = await page.locator('#pw-strength-label').textContent();
     await page.locator('#f-pw').fill('Muito-Forte#2031!xQ');
-    const strong = await page.locator('#pw-strength-label').textContent();
-    expect(weak).not.toBe('');
-    expect(strong).not.toBe(weak);
+    await expect(page.locator('#pw-strength-label')).not.toHaveText(weak);
     await page.evaluate(() => { closeModal(); openPwGen(); });
     const before = await page.locator('#pwgen-result').inputValue();
     await page.locator('#pwgen-overlay input[type=checkbox][data-change="updatePwGen"]:visible').first().click();
@@ -88,6 +88,7 @@ test.describe('Janelas, definições e menus', () => {
 
   test('pesquisa: escrever filtra e Escape fecha', async ({ page }) => {
     const si = page.locator('#search-input');
+    if (!(await si.isVisible())) await page.locator('#tb-search-btn').click();   // no telemóvel a pesquisa abre por um botão
     await si.fill('gmail');
     await expect(page.locator('#global-search-results, .gs-results, [id*="search-res"]').first()).toBeVisible();
     await si.press('Escape');

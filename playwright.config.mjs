@@ -23,5 +23,11 @@ export default defineConfig({
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: ['layout.spec.mjs', 'smoke.spec.mjs'] },
+    // Safari do iPhone (motor WebKit): só no GitHub, onde o browser é instalado (PW_WEBKIT=1 para correr noutro sítio)
+    ...(process.env.CI || process.env.PW_WEBKIT ? [{
+      name: 'iphone', use: { ...devices['iPhone 14'] },
+      testMatch: ['smoke.spec.mjs', 'layout.spec.mjs', 'crypto.spec.mjs', 'pin.spec.mjs', 'lock-ui.spec.mjs', 'vault-ui.spec.mjs',
+        'ui-modals.spec.mjs', 'tabs-ui.spec.mjs', 'data-safety.spec.mjs', 'regressions.spec.mjs', 'a11y.spec.mjs'],
+    }] : []),
   ],
 });
