@@ -157,12 +157,16 @@ function avSnippet(text,terms){
   const a=Math.max(0,at-50),b=Math.min(T.length,at+len+70);
   return (a>0?'…':'')+aurEsc(T.slice(a,at))+'<mark>'+aurEsc(T.slice(at,at+len))+'</mark>'+aurEsc(T.slice(at+len,b)).replace(/\n/g,' ')+(b<T.length?'…':'');
 }
+// «luz» encontra a fatura da EDP, «internet» a da MEO…
+const AV_DOC_SYN={luz:['luz','eletricidade','electricidade','edp','endesa','iberdrola','goldenergy','galp','repsol','energia'],eletricidade:['eletricidade','electricidade','edp','endesa','iberdrola','goldenergy','energia'],
+  internet:['internet','fibra','meo','nos','vodafone','digi','nowo'],net:['internet','fibra','meo','nos','vodafone','digi','nowo'],telemovel:['telemovel','movel','meo','nos','vodafone','digi','nowo'],
+  agua:['agua','aguas','epal','smas','indaqua'],gas:['gas','galp','goldenergy','edp gas','lisboagas'],renda:['renda','arrendamento','senhorio'],seguro:['seguro','apolice']};
 function avDocPick(F,list){
   // documentos que falam das palavras do pedido (entidade, título, pasta, texto)
-  const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_MONEY|NUM|D_EXPIRY)$/.test(x))&&!/^(fatura|faturas|factura|recibo|recibos|apolice|policy|invoice|bill|ultima|ultimo|last|numero|paguei|pago|pagar|vence|valor|total|quanto|foi|custou|conta|contas|tenho|qual|quais|sobre|seguro|seguros)$/.test(t));
+  const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_MONEY|NUM|D_EXPIRY)$/.test(x))&&!/^(fatura|faturas|factura|recibo|recibos|apolice|policy|invoice|bill|ultima|ultimo|last|numero|paguei|pago|pagar|vence|valor|total|quanto|foi|custou|conta|contas|tenho|qual|quais|sobre|seguro|seguros|gastei|gasto|gastos|gasta|gastar|pagas|paga|paguei|mes|ano|anos|meses|este|esta|deste|desta|neste|passado|ultimos|ultimas|por|pagar|foi|foram)$/.test(t));
   if(!terms.length)return {terms,list};
   const hay=d=>aurNorm([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate,d.text].filter(Boolean).join(' '));
-  const hit=list.filter(d=>{const h=hay(d);return terms.some(t=>h.includes(t));});
+  const hit=list.filter(d=>{const h=hay(d);return terms.some(t=>(AV_DOC_SYN[t]||[t]).some(x=>h.includes(x)));});
   return {terms,list:hit.length?hit:[]};
 }
 const AV_FACT_Q=[
@@ -239,8 +243,8 @@ function aurDocReadAll(F){
 
 function avDocPeriod(n){
   const t=new Date(),y=t.getFullYear(),z=x=>String(x).padStart(2,'0'),iso=(Y,M,D)=>Y+'-'+z(M)+'-'+z(D),today=iso(y,t.getMonth()+1,t.getDate());
-  if(/\b(este|neste) ano\b|\bthis year\b/.test(n))return {from:iso(y,1,1),to:today,label:aurL('este ano','this year')};
-  if(/\b(este|neste) mes\b|\bthis month\b/.test(n))return {from:iso(y,t.getMonth()+1,1),to:today,label:aurL('este mês','this month')};
+  if(/\b(este|neste|deste) ano\b|\bthis year\b/.test(n))return {from:iso(y,1,1),to:today,label:aurL('este ano','this year')};
+  if(/\b(este|neste|deste) mes\b|\bthis month\b/.test(n))return {from:iso(y,t.getMonth()+1,1),to:today,label:aurL('este mês','this month')};
   if(/\b(ano passado|last year)\b/.test(n))return {from:iso(y-1,1,1),to:iso(y-1,12,31),label:aurL('no ano passado','last year')};
   const mi=AUR_MESES.findIndex(m=>new RegExp('\\b'+m+'\\b').test(n)),mj=mi>=0?mi:AUR_MONTHS.findIndex(m=>new RegExp('\\b'+m+'\\b').test(n));
   if(mj>=0){const Y=mj>t.getMonth()?y-1:y,last=new Date(Y,mj+1,0).getDate();return {from:iso(Y,mj+1,1),to:iso(Y,mj+1,last),label:aurL('em '+AUR_MESES[mj].replace('marco','março'),'in '+AUR_MONTHS[mj])};}

@@ -73,7 +73,7 @@ function auriBadge(){
   const h=aurHandle;
   aurHandle=function(raw){
     const n=aurCanon(raw||'');
-    if(!AUR.pending&&/^(?:(?:tens|ha|tenho|mostra|mostra me|quais|any|show|show me|my)\s+)*(?:(?:os|as|algum|alguns|alguma|algumas|meus|minhas)\s+)?(avisos?|alertas?|notificacoes|pendentes|novidades|alerts?|notifications)\??$|\bo que (?:devo|tenho de|tenho que|preciso de) tratar\b|\bo que ha de novo\b|\bha (?:alguma coisa|algo) (?:urgente|importante)\b|\bwhat needs my attention\b|\bwhat s new\b|\banything (?:urgent|important)\b/.test(n)){const dl=aurDetectLang(raw,new Set());if(dl)AUR.lang=dl;return aurInsightsSay();}
+    if(!AUR.pending&&/^(?:(?:tens|ha|tenho|mostra|mostra me|quais|any|show|show me|my)\s+)*(?:(?:os|as|algum|alguns|alguma|algumas|meus|minhas)\s+)?(avisos?|alertas?|notificacoes|pendentes|novidades|alerts?|notifications)\??$|\bo que (?:devo|tenho de|tenho que|preciso de) tratar\b|\bo que ha de novo\b|^(?:ha |tenho |existe )?(?:alguma coisa|algo) (?:urgente|importante|pendente)$|\bwhat needs my attention\b|\bwhat s new\b|\banything (?:urgent|important)\b/.test(n)){const dl=aurDetectLang(raw,new Set());if(dl)AUR.lang=dl;return aurInsightsSay();}
     return h(raw);
   };
   // saudação: junta os avisos mais importantes

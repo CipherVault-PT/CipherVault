@@ -3,6 +3,7 @@
    Compreende português e inglês e responde na língua em que lhe escrevem. 100% local e offline. */
 const AUR={last:null,pending:null,resume:null,acts:[],hist:[],hIdx:-1,lang:'pt'};
 const AUR_PASS={pass:true};
+const AUR_PRE=[];   // pedidos tratados antes dos outros (ver src/20-aurora-entende.js)
 const aurA=x=>Array.isArray(x)?x:[];
 function aurL(pt,en){return AUR.lang==='en'?en:pt;}
 function aurAppLang(){return typeof currentLang!=='undefined'&&currentLang==='en'?'en':'pt';}
@@ -242,7 +243,7 @@ function aurReason(raw){
   r=r.replace(/\b\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?\b/g,' ');
   r=r.replace(new RegExp('\\b(?:(?:no|ao|a|o|on|the|on the)\\s+)?(?:dia\\s+)?\\d{1,2}(?:st|nd|rd|th)?\\s+(?:de\\s+|of\\s+)?'+MONR+'(?:\\s+(?:de\\s+)?\\d{4})?','gi'),' ');
   r=r.replace(new RegExp('\\b(?:on\\s+)?'+MONR+'\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?','gi'),' ');
-  r=r.replace(/\b(depois de amanh[aã]|day after tomorrow|amanh[aã]|tomorrow|hoje|today)\b/gi,' ');
+  r=r.replace(/(?<![\wÀ-ú])(depois de amanh[aã]|day after tomorrow|amanh[aã]|tomorrow|hoje|today)(?![\wÀ-ú])/gi,' ');
   r=r.replace(/\b(?:daqui a|dentro de|in|within)\s+\S+\s+(?:dias?|semanas?|m[eê]s(?:es)?|anos?|days?|weeks?|months?|years?)\b/gi,' ');
   r=r.replace(/\b(?:na |no |esta |este |pr[oó]xim[ao] |next |this |on )?(?:domingo|segunda|ter[cç]a|quarta|quinta|sexta|s[aá]bado|sunday|monday|tuesday|wednesday|thursday|friday|saturday)(?:-feira)?\b/gi,' ');
   r=r.replace(/\b(?:no |ao |on the )?dia\s+\d{1,2}\b|\bon the \d{1,2}(?:st|nd|rd|th)?\b/gi,' ');
@@ -267,7 +268,7 @@ function aurIndex(){
   try{aurA(typeof storeCards!=='undefined'?storeCards:[]).forEach(s=>add('store',s,s.name||s.store));}catch(e){}
   try{aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>add('totp',t,t.name||t.issuer||t.label,t.issuer));}catch(e){}
   try{aurA(typeof wifiNets!=='undefined'?wifiNets:[]).forEach(w=>add('wifi',w,w.name||w.ssid,w.ssid));}catch(e){}
-  try{aurA(typeof notes!=='undefined'?notes:[]).forEach(n=>add('note',n,n.title));}catch(e){}
+  try{aurA(typeof notes!=='undefined'?notes:[]).forEach(n=>add('note',n,n.title,String(n.body||'').slice(0,4000)));}catch(e){}
   try{aurA(typeof assets!=='undefined'?assets:[]).forEach(a=>add('asset',a,a.name,a.plate));}catch(e){}
   try{aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>add('sub',s,s.name));}catch(e){}
   try{aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>{if(p&&Array.isArray(p.fields))add('person',p,p.name);});}catch(e){}
@@ -397,7 +398,7 @@ function aurHandle(raw){
   if(c.has('HELP'))return aurHelp();
   if((c.has('HELLO')||c.has('THANKS'))&&![...c].some(x=>AUR_ACTIONS.has(x)||x.indexOf('D_')===0)&&!F.confident)return aurSmall(F);
   if(c.has('CLOSE')&&!F.hasDomain){aurSay(aurL('Até já! ✨','See you soon! ✨'));aurClose(true);return true;}
-  for(const h of [aurDocReadAll,aurDocSearch,aurDocFacts,aurCardSecret,aurBreach,aurSamePw,aurOld,aurVehicleDate,aurCatAccount,aurDocsAbout]){const r=h(F);if(r!==AUR_PASS)return r;}
+  for(const h of [...AUR_PRE,aurDocReadAll,aurDocSearch,aurDocFacts,aurCardSecret,aurBreach,aurSamePw,aurOld,aurVehicleDate,aurCatAccount,aurDocsAbout]){const r=h(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_MASTER'))return aurSettings('seguranca',aurL('A palavra-passe mestra, o PIN, a biometria e o auto-bloqueio mudam-se em Definições → Segurança — por segurança não os altero pela conversa. Abri-te lá.','The master password, PIN, biometrics and auto-lock are changed in Settings → Security — for safety I don’t change them through chat. I opened it for you.'));
   if(c.has('D_2FA')||c.has('D_2FAW')){const r=aur2fa(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_EXPIRY')&&!(c.has('SCHEDULE')&&F.date)&&!(c.has('D_PW')&&!/expir|caduc|venc|validade|valid/.test(F.n)))return aurExpiry(F);
@@ -1332,7 +1333,7 @@ function aurVehicleDate(F){
   const k=AUR_VEH_K.find(x=>x[1].test(F.n));if(!k)return AUR_PASS;
   const V=aurA(typeof assets!=='undefined'?assets:[]).filter(a=>a&&a.kind==='vehicle');if(!V.length)return AUR_PASS;
   const named=F.cands.filter(e=>e.type==='asset'&&e.obj.kind==='vehicle'&&e.score>=0.5).map(e=>e.obj);
-  if(!k[4]&&!named.length&&!F.c.has('D_VEHICLE'))return AUR_PASS;   // «seguro»/«revisão» só com um veículo à vista (não confundir com «é seguro?»)
+  if(!k[4]&&!named.length&&!F.c.has('D_VEHICLE')&&!((F.c.has('WHEN')||F.c.has('D_EXPIRY'))&&!F.cands.some(e=>e.score>=0.5)))return AUR_PASS;   // «seguro»/«revisão» só com um veículo à vista (não confundir com «é seguro?»)
   const pick=named.length?named:V;
   const lines=pick.map(v=>{const d=v[k[0]]?new Date(v[k[0]]):null;return '• 🚗 <b>'+aurEsc(v.name)+'</b> — '+(d&&!isNaN(d)?aurDate(d)+' ('+aurRel(d)+')':aurL('sem data registada','no date saved'));});
   return aurSay('<b>'+aurCap(aurL(k[2],k[3]))+'</b>\n'+lines.join('\n'),[{label:aurL('Abrir veículos','Open vehicles'),fn:()=>aurGoTab('vehicle')}]);
@@ -1342,7 +1343,8 @@ function aurVehicleDate(F){
 function aurCardSecret(F){
   const m=/\b(pin|cvv|cvc)\b|\bcodigo de seguranca\b|\bsecurity code\b/.exec(F.n);if(!m)return AUR_PASS;
   const C=aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>c&&!c.archived);
-  const named=F.cands.filter(e=>e.type==='bank'&&e.score>=0.5);
+  let named=F.cands.filter(e=>e.type==='bank'&&e.score>=0.5);
+  if(!named.length){const q=F.Q.filter(t=>t.length>=3&&!/^(cartao|cartoes|card|cards|bancario|pin|cvv|cvc|codigo|seguranca|qual|meu|minha)$/.test(t));const byName=C.filter(c=>{const h=aurNorm([c.name,c.bank].join(' ')).split(/\s+/);return q.some(t=>h.includes(t));});if(byName.length)named=byName.map(c=>({obj:c}));}
   if(!(F.c.has('D_CARD')||F.c.has('D_BANK')||named.length)||!C.length)return AUR_PASS;
   const field=m[1]==='pin'?'pin':'cvv',lbl=field==='pin'?'PIN':'CVV';
   const show=card=>{
