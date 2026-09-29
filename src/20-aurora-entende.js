@@ -94,7 +94,8 @@ aurPre(F=>{
   const what=W.join(' ');
   const nm=aurCap(what);
   const add={vault:()=>aurQuick(aurL('adiciona '+what,'add '+what)),store:()=>{if(typeof openStoreModal==='function'){aurClose();openStoreModal();}},bank:()=>{if(typeof openCardModal==='function'){aurClose();openCardModal();}},doc:()=>aurQuick(aurL('adiciona um documento','add a document')),totp:()=>aurQuick(aurL('adiciona um código 2fa','add a 2fa code')),wifi:()=>{if(typeof openWifiManager==='function'){aurClose();openWifiManager();}},note:()=>aurQuick(aurL('cria uma nota','create a note'))}[k[0]];
-  return aurSay(aurL('Não, não tens <b>'+aurEsc(nm)+'</b> guardado.','No, you don’t have <b>'+aurEsc(nm)+'</b> saved.'),[{label:aurL('Adicionar ','Add ')+nm,fn:add}]);
+  const kl={vault:['',''],store:['cartão ','card '],bank:['cartão ','card '],doc:['documento ','document '],totp:['código 2FA do ','2FA code for '],wifi:['rede ','network '],note:['nota ','note ']}[k[0]];
+  return aurSay(aurL('Não, não tens '+kl[0]+'<b>'+aurEsc(nm)+'</b> guardado.','No, you don’t have a '+kl[1]+'<b>'+aurEsc(nm)+'</b> saved.'),[{label:aurL('Adicionar ','Add ')+nm,fn:add}]);
 });
 
 /* ── cartões: validade de um cartão; lista de cartões ── */
@@ -265,7 +266,7 @@ aurV('CHANGE','renomeia renomear');
 // «tudo sobre o carro», «tudo o que tenho do golf»
 aurPre(F=>{
   const n=F.n;
-  if(!/\b(tudo|everything|all)\b.*\b(sobre|relacionad\w*|ligad\w*|do|da|de|about|on|for|related)\b/.test(n)||aurHas(F,'DELETE','ARCHIVE','EXPORT','COPY'))return AUR_PASS;
+  if(!/\b(tudo|everything|all)\b.*\b(sobre|relacionad\w*|ligad\w*|do|da|de|about|on|for|related)\b/.test(n)||aurHas(F,'DELETE','ARCHIVE','EXPORT','COPY','RESTORE','EMPTY'))return AUR_PASS;
   const generic=/^(tudo|mostra|mostrar|tenho|sobre|relacionado|relacionada|ligado|ligada|everything|all|about|related|show|have|que|o|a)$/;
   let terms=F.Q.filter(t=>t.length>=3&&!generic.test(t));
   const car=aurHas(F,'D_VEHICLE');
@@ -293,7 +294,7 @@ aurPre(F=>{
   const n=F.n;
   const v=(F.cands.find(e=>e.type==='vault'&&e.score>=0.5)||{}).obj;
   if(!v)return AUR_PASS;
-  if(/\b(favorit\w*|estrela|estrelas|favourit\w*|favorite\w*|star|pin to top)\b/.test(n)){
+  if(/\b(favorit\w*|estrela|estrelas|favourit\w*|favorite\w*|star|pin to top)\b/.test(n)&&/\b(poe|por|mete|meter|marca|marcar|adiciona|adicionar|coloca|colocar|tira|tirar|remove|remover|retira|desmarca|add|mark|make|set|unfav\w*|unstar)\b/.test(n)){
     const off=/\b(tira|tirar|remove|remover|retira|desmarca|unfav\w*|unstar|sai)\b/.test(n);
     v.fav=!off;aurLog('edit',v.name,'⭐');aurDirty();
     return aurSay(off?aurL('☆ Tirei <b>'+aurEsc(v.name)+'</b> dos favoritos.','☆ Removed <b>'+aurEsc(v.name)+'</b> from favourites.'):aurL('⭐ <b>'+aurEsc(v.name)+'</b> está nos favoritos — aparece no topo e no Dashboard.','⭐ <b>'+aurEsc(v.name)+'</b> is now a favourite — it shows at the top and on the Dashboard.'));
@@ -353,4 +354,84 @@ aurPre(F=>{
   rows.sort((a,b)=>String(b.f.date).localeCompare(String(a.f.date)));
   const {v,f}=rows[0];
   return aurSay('⛽ '+aurL('Último abastecimento do <b>','Last refuel for <b>')+aurEsc(v.name)+'</b>: <b>'+aurMoney(f.euros)+'</b>'+(f.liters?' · '+f.liters+' L':'')+(f.liters&&f.euros?' ('+aurMoney(f.euros/f.liters)+'/L)':'')+' · '+aurDateTxt(f.date)+' ('+aurRel(new Date(f.date))+').');
+});
+
+/* ── 4.ª ronda: arquivo, bloqueio, notas, contas, sites, 2FA, Wi-Fi ── */
+AUR_PHR.push(
+  [/\b(?:tira|tirar|retira|sai)\s+(?:o |a |os |as )?(.+?)\s+do\s+arquivo\b/g,' desarquiva $1 '],
+  [/\b(?:tira|tirar|retira)\s+(?:o |a |os |as )?(.+?)\s+da\s+(?:reciclagem|lixeira|lixo)\b/g,' recupera $1 '],
+  [/\bbloqueio\s+automatico\b|\bbloqueio\s+auto\b/g,' autobloqueio ']
+);
+const aurVEnt2=v=>({type:'vault',obj:v,name:v.name,toks:aurSig(aurCanon(v.name||''))});
+aurPre(F=>{
+  const n=F.n,V=aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived);
+  const ent=F.cands.find(e=>e.score>=0.5);
+  const v=(F.cands.find(e=>e.type==='vault'&&e.score>=0.5)||{}).obj;
+  // «bloqueia depois de 5 minutos» é o auto-bloqueio (não bloquear já)
+  if(/\b(bloqueia|bloquear|bloqueie|tranca|lock)\b.*\b(depois de|apos|ao fim de|passados|after|em)\s+\d+\s*(s|seg|segundos|min|mins|minutos|h|horas|seconds|minutes|hours)\b/.test(n)||aurHas(F,'D_AUTOLOCK')||/\bautobloqueio\b/.test(n))
+    return aurSettings('seguranca',aurL('⏱️ O tempo do bloqueio automático escolhe-se em <b>Definições → Segurança</b> — por segurança não o mudo pela conversa. Abri-te lá.','⏱️ Set the auto-lock time in <b>Settings → Security</b> — for safety I don’t change it through chat. I opened it for you.'));
+  // versão
+  if(/\b(versao|version)\b/.test(n)&&/\b(app|aplicacao|aurora|cofre|vault|qual|what)\b/.test(n)&&!ent)
+    return aurSay(aurL('ℹ️ Aurora Vault <b>v','ℹ️ Aurora Vault <b>v')+aurEsc(typeof APP_VERSION!=='undefined'?APP_VERSION:'?')+'</b>.');
+  // «restaura tudo da reciclagem»
+  if(aurHas(F,'RESTORE')&&/\b(tudo|todos|todas|everything|all)\b/.test(n)&&/\b(reciclagem|lixo|lixeira|trash|bin)\b/.test(n)){
+    const T=aurA(typeof trash!=='undefined'?trash:[]);
+    if(!T.length)return aurSay(aurL('A reciclagem está vazia ✓','The trash is empty ✓'));
+    AUR.pending={ok:()=>{let k=0;const total=T.length;while(trash.length&&k++<total)restoreTrashItem(trash.length-1);return aurSay(aurL('♻️ Recuperei '+total+(total===1?' item':' itens')+'.','♻️ Restored '+total+(total===1?' item':' items')+'.'));}};
+    return aurSay(aurL('Recupero os <b>'+T.length+'</b> itens da reciclagem?','Restore all <b>'+T.length+'</b> items from the trash?'),aurConfirmChips());
+  }
+  // notas: ler e acrescentar
+  const note=(F.cands.find(e=>e.type==='note'&&e.score>=0.5)||{}).obj;
+  if(note){
+    const add=F.raw.match(/^(?:acrescenta|acrescentar|adiciona|adicionar|junta|juntar|poe|põe|mete|escreve|add|append)\b.*?\bnota\b[^:–-]*[:–-]\s*(.+)$/i);
+    if(add){note.body=(note.body?note.body.replace(/\s+$/,'')+'\n':'')+add[1].trim();note.updatedAt=Date.now();aurLog('edit',note.title,'📝');aurDirty();
+      return aurSay(aurL('📝 Acrescentei à nota <b>','📝 Added to the note <b>')+aurEsc(note.title)+'</b>: '+aurEsc(add[1].trim()),[{label:aurL('Abrir nota','Open note'),fn:()=>aurOpenEnt({type:'note',obj:note,name:note.title},F,true)}]);}
+    if(/\b(le|ler|le me|diz|dizer|conteudo|texto|o que diz|o que tem|read|what does|says|content)\b/.test(n)&&!aurHas(F,'CHANGE','DELETE','ARCHIVE')){
+      const b=String(note.body||'').trim();
+      return aurSay('📝 <b>'+aurEsc(note.title)+'</b>\n'+(b?aurEsc(b.length>700?b.slice(0,700)+'…':b):aurL('<span class="a-dim">(nota vazia)</span>','<span class="a-dim">(empty note)</span>')),[{label:aurL('Abrir nota','Open note'),fn:()=>aurOpenEnt({type:'note',obj:note,name:note.title},F,true)},b?{label:aurL('Copiar texto','Copy text'),fn:()=>aurCopy(b,aurL('Texto copiado','Text copied'))}:null]);
+    }
+  }
+  // 2FA: «quanto tempo falta para o código mudar»
+  const tt=(F.cands.find(e=>e.type==='totp'&&e.score>=0.5)||{}).obj;
+  if(tt&&/\b(quanto tempo|falta|faltam|segundos|valido|how long|expires?)\b/.test(n)&&typeof aurShowCode==='function'&&!aurTotpLocked())return aurShowCode(tt);
+  // Wi-Fi: nome da rede
+  const w=(F.cands.find(e=>e.type==='wifi'&&e.score>=0.5)||{}).obj;
+  if(w&&/\b(nome|ssid|name|chama)\b/.test(n)&&!aurHas(F,'CHANGE'))return aurSay('📶 '+aurL('A rede <b>','The <b>')+aurEsc(w.name)+aurL('</b> chama-se <b>','</b> network is called <b>')+aurEsc(w.ssid||w.name)+'</b>.',[{label:aurL('Copiar nome','Copy name'),fn:()=>aurCopy(w.ssid||w.name)}]);
+  // favoritos: «mostra os favoritos», «o gmail é favorito?»
+  if(/\bfavorit\w*|favourit\w*|favorite\w*\b/.test(n)){
+    if(v&&/\b(e|esta|is)\b/.test(n)&&!/\b(poe|por|mete|marca|adiciona|coloca|tira|remove|retira|desmarca|add|mark|make|set)\b/.test(n))
+      return aurSay(v.fav?aurL('⭐ Sim, <b>'+aurEsc(v.name)+'</b> está nos favoritos.','⭐ Yes, <b>'+aurEsc(v.name)+'</b> is a favourite.'):aurL('Não, <b>'+aurEsc(v.name)+'</b> não está nos favoritos.','No, <b>'+aurEsc(v.name)+'</b> isn’t a favourite.'),v.fav?[]:[{label:aurL('Pôr nos favoritos','Make favourite'),fn:()=>{v.fav=true;aurDirty();return aurSay('⭐ '+aurEsc(v.name));}}]);
+    if(!v&&/^(mostra|quais|que|lista|os meus|as minhas|abre|show|list|my|which)\b/.test(n)){
+      const L=V.filter(x=>x.fav);
+      if(!L.length)return aurSay(aurL('Ainda não tens favoritos. Diz «põe o gmail nos favoritos».','No favourites yet. Say “make gmail a favourite”.'));
+      return aurSay('⭐ '+aurL('Favoritos','Favourites')+' ('+L.length+'):',L.slice(0,10).map(x=>({label:x.name,fn:()=>aurOpenEnt(aurVEnt2(x),F,false)})));
+    }
+  }
+  // quando foi criada / há quanto tempo
+  if(v&&/\b(quando (criei|adicionei|guardei|registei|abri)|desde quando|ha quanto tempo|quanto tempo tenho|when did i (create|add|save)|how long)\b/.test(n)){
+    const at=v.createdAt||v.created;
+    return aurSay(at?'🔑 <b>'+aurEsc(v.name)+'</b> '+aurL('está no cofre desde ','has been in your vault since ')+aurDate(at)+' ('+aurRel(at)+')'+'.'+(v.pwUpdated?aurL('\nPassword mudada pela última vez: ','\nPassword last changed: ')+aurDate(v.pwUpdated)+'.':''):aurL('Não sei quando <b>'+aurEsc(v.name)+'</b> foi criada — é anterior ao registo de datas.','I don’t know when <b>'+aurEsc(v.name)+'</b> was created — it predates date tracking.'));
+  }
+  // site de uma conta
+  if(v&&/\b(site|sites|url|link|endereco|pagina|website|web)\b/.test(n)&&!/\b(mesma|mesmas|iguais|same|usam|usa|use|uses)\b/.test(n)&&!aurHas(F,'CHANGE','DELETE')){
+    if(!v.url)return aurSay(aurL('<b>'+aurEsc(v.name)+'</b> não tem site guardado.','<b>'+aurEsc(v.name)+'</b> has no website saved.'));
+    const u=String(v.url);
+    if(aurHas(F,'OPEN')&&typeof avGoSite==='function'){avGoSite(v.id);return aurSay(aurL('🌐 A abrir <b>','🌐 Opening <b>')+aurEsc(u)+'</b>…');}
+    return aurSay('🌐 <b>'+aurEsc(v.name)+'</b>: '+aurEsc(u),[typeof avGoSite==='function'?{label:aurL('Abrir site','Open site'),fn:()=>avGoSite(v.id)}:null,{label:aurL('Copiar','Copy'),fn:()=>aurCopy(u)}]);
+  }
+  if(!v&&/\b(sites|websites)\b/.test(n)&&!/\b(mesma|mesmas|iguais|same|usam|use)\b/.test(n)&&/\b(que|quais|tenho|mostra|lista|which|what|my|list)\b/.test(n)){
+    const L=V.filter(x=>x.url);
+    return aurSay('🌐 '+aurL('Sites guardados','Saved sites')+' ('+L.length+'):\n'+L.slice(0,15).map(x=>'• <b>'+aurEsc(x.name)+'</b> — '+aurEsc(x.url)).join('\n'));
+  }
+  // «quantas contas de banco tenho», «qual a conta mais recente»
+  if(aurHas(F,'COUNT')&&!v){
+    const key=typeof aurCatOf==='function'?aurCatOf(n):null;
+    if(key){const L=V.filter(x=>x.cat===key);return aurSay(aurL('Tens <b>'+L.length+'</b> '+(L.length===1?'conta':'contas')+' nessa categoria'+(L.length?': ':'.'),'You have <b>'+L.length+'</b> '+(L.length===1?'account':'accounts')+' in that category'+(L.length?': ':'.'))+L.map(x=>aurEsc(x.name)).join(', '));}
+  }
+  if(/\b(mais recente|mais nova|ultima conta(?! d[aeo]\b)|ultima entrada|ultima que (criei|adicionei)|newest|most recent|latest)\b/.test(n)&&/\b(conta|entrada|acesso|password|account|entry)\b/.test(n)){
+    const L=V.filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt);
+    if(!L.length)return aurSay(aurL('Não tenho datas de criação guardadas.','I have no creation dates.'));
+    return aurSay(aurL('🆕 A conta mais recente é <b>','🆕 The newest account is <b>')+aurEsc(L[0].name)+'</b> ('+aurDate(L[0].createdAt)+').',[{label:L[0].name,fn:()=>aurOpenEnt(aurVEnt2(L[0]),F,false)}]);
+  }
+  return AUR_PASS;
 });

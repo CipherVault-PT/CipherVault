@@ -913,8 +913,14 @@ function avSuggestDoc(d){
 })();
 
 /* ── alcunhas: «quando eu disser banco, é o Millennium» ── */
-function avAliases(){try{return JSON.parse(localStorage.getItem('av_aliases')||'{}')||{};}catch(e){return {};}}
-function avAliasSaveAll(o){try{localStorage.setItem('av_aliases',JSON.stringify(o));}catch(e){}}
+// guardadas dentro do cofre (encriptadas); as antigas, que estavam em claro no browser, passam para lá uma vez
+function avAliases(){
+  if(typeof payloadExtras==='undefined')return {};
+  const m=payloadExtras.aurMem=payloadExtras.aurMem||{};
+  if(!m.words){m.words={};try{const old=JSON.parse(localStorage.getItem('av_aliases')||'{}');if(old&&Object.keys(old).length){Object.assign(m.words,old);if(typeof markUnsaved==='function')markUnsaved();}localStorage.removeItem('av_aliases');}catch(e){}}
+  return m.words;
+}
+function avAliasSaveAll(o){if(typeof payloadExtras==='undefined')return;const m=payloadExtras.aurMem=payloadExtras.aurMem||{};m.words=o;if(typeof markUnsaved==='function')markUnsaved();}
 function avAliasItems(){const out=[];const add=(a,f)=>(a||[]).forEach(x=>{const n=x&&f(x);if(n)out.push(String(n));});
   try{add(vault,x=>!x.archived&&x.name);add(bankCards,x=>x.name||x.bank);add(storeCards,x=>x.name);add(documents,x=>x.title||x.name);add(assets,x=>x.name);add(personalInfo,x=>x.name);add(typeof subscriptions!=='undefined'?subscriptions:[],x=>x.name);}catch(e){}return out;}
 function avAliasResolve(t){const k=aurNorm(t).trim();if(!k)return null;const items=avAliasItems();return items.find(n=>aurNorm(n)===k)||items.find(n=>aurNorm(n).includes(k))||items.find(n=>k.includes(aurNorm(n))&&aurNorm(n).length>=3)||null;}
@@ -940,6 +946,7 @@ function avAliasHandle(raw){
   return true;
 }
 function avApplyAliases(raw){
+  if(/^\s*(esquece|esquecer|forget|apaga a alcunha|remove a alcunha)\b/i.test(raw||''))return raw;
   const A=avAliases(),ks=Object.keys(A).sort((a,b)=>b.length-a.length);if(!ks.length)return raw;
   let n=' '+aurNorm(raw)+' ',hit=false;
   ks.forEach(k=>{const re=new RegExp('([\\s,.;:!?«»"“”(])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=[\\s,.;:!?«»"“”)])','g');if(re.test(n)){hit=true;n=n.replace(re,'$1'+aurNorm(A[k]));}});
