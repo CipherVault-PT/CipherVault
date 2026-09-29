@@ -1,4 +1,4 @@
-import { test, expect, openApp, createVault } from './fixtures.mjs';
+import { test, expect, openApp, createVault, modalSettled } from './fixtures.mjs';
 import { readFileSync } from 'node:fs';
 
 const SEED = () => {
@@ -97,6 +97,7 @@ test.describe('Janelas, definições e menus', () => {
 
   test('caixas que ativam botões e botões que abrem campos de ficheiro', async ({ page }) => {
     await page.evaluate(() => showRecoveryModal('ABCD-EFGH-JKLM-NPQR-STUV', false));
+    await modalSettled(page);
     const done = page.locator('#t2rec-done');
     await expect(done).toBeDisabled();
     await page.locator('#t2rec-ack').check();

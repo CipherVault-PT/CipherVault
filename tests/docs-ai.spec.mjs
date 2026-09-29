@@ -21,6 +21,11 @@ const EDP2 = ['EDP Comercial - Fatura de Eletricidade', 'Data de emissao: 03/08/
 const SEGURO = ['Fidelidade - Seguro Automovel', 'Apolice n. AU-55667788', 'Matricula: 12-AB-34', 'Periodo: de 01/10/2026 a 30/09/2027', 'Premio anual 312,40 EUR'];
 const RECIBO = ['Recibo de Vencimento', 'Empresa XPTO Lda', 'Periodo: de 01/09/2026 a 30/09/2026', 'Vencimento base 1.500,00', 'Total iliquido 1.500,00',
   'Seguro de Acidentes de Trabalho: Fidelidade Apolice n. AT-99887766', 'Seguranca Social 165,00', 'IRS 180,00', 'Liquido a receber 1.155,00'];
+const CONTRATO = ['Contrato de Prestacao de Servicos de Internet e Televisao', 'MEO - Servicos de Comunicacoes e Multimedia', 'Data de inicio: 01/10/2026',
+  'Periodo de fidelizacao de 24 meses, ate 30/09/2028.', 'Mensalidade de 39,99 EUR com IVA incluido.',
+  'Em caso de rescisao antecipada aplica-se uma penalizacao de 150,00 EUR.', 'O contrato renova automaticamente por periodos de 12 meses.',
+  'A denuncia deve ser comunicada com pre-aviso de 30 dias.', 'O cliente pode pedir a portabilidade do numero de telefone.',
+  'A assistencia tecnica esta disponivel 24 horas por dia, todos os dias.', 'O servico de internet inclui velocidade de 1 Gbps.'];
 const WORTEN = ['Worten - Fatura Recibo', 'Televisor Samsung 55', 'Data da fatura: 15/06/2026', 'Total a pagar: 599,99 EUR'];
 
 test.describe('Aurora lê documentos', () => {
@@ -135,5 +140,27 @@ test.describe('Aurora lê documentos', () => {
     });
     expect(d.textSrc).toBe('ocr');
     expect(d.facts).toMatchObject({ entity: 'Worten', total: 129.9, issueDate: '2026-05-10' });
+  });
+
+  test('«resume o contrato da meo»: datas, valores e pontos de atenção tirados do documento', async ({ page }) => {
+    await upload(page, 'contrato-meo.pdf', PDF(CONTRATO));
+    await upload(page, 'fatura-edp.pdf', PDF(EDP));
+    const r = await ask(page, 'resume o contrato da meo');
+    expect(r).toMatch(/Resumo de contrato-meo/);
+    expect(r).toMatch(/Datas[\s\S]*01\/10\/2026[\s\S]*30\/09\/2028/);
+    expect(r).toMatch(/Valores[\s\S]*39,99[\s\S]*150,00/);
+    expect(r).toMatch(/Pontos de atenção[\s\S]*(renova automaticamente|pre-aviso de 30 dias)/);
+    expect(r).toMatch(/O essencial/);
+    expect(r).not.toMatch(/EDP/);
+    // «resume-o» depois de falar dele, e um documento ainda por ler
+    expect(await ask(page, 'quais são os pontos importantes do contrato')).toMatch(/Resumo de contrato-meo/);
+    const r2 = await page.evaluate(async () => {
+      documents.push({ id: 'nt', title: 'Escritura', cat: 'casa', file: { name: 'e.pdf', type: 'application/pdf', size: 10, data: 'data:application/pdf;base64,' } });
+      renderAll(); const box = document.getElementById('aurora-msgs'), before = box.children.length;
+      AUR.pending = null; aurQuick('resume a escritura'); await new Promise(r => setTimeout(r, 60));
+      return [...box.children].slice(before + 1).map(m => m.innerText).join(' ');
+    });
+    expect(r2).toMatch(/Ainda não li Escritura[\s\S]*Lê agora/);
+    expect(await ask(page, 'resume o meu cofre')).toMatch(/Ponto de situação/);
   });
 });

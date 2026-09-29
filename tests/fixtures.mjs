@@ -59,3 +59,10 @@ export async function openVaultText(page, text, pw) {
     await submitOpenVault();
   }, [text, pw]);
 }
+
+// Espera que as janelas abertas acabem de animar: a entrada (0,28 s) começa uns fotogramas depois e sobe o conteúdo ~13 px,
+// e um clique feito antes disso pode cair ao lado do alvo (máquinas carregadas no CI)
+export async function modalSettled(page) {
+  await page.waitForFunction(() => [...document.querySelectorAll('.modal-overlay.open')]
+    .every(o => o.getAnimations({ subtree: true }).every(a => a.playState === 'finished' || a.playState === 'idle' || (a.effect && a.effect.getComputedTiming().iterations === Infinity))));
+}

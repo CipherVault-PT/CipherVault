@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.19';
+const APP_VERSION='10.20';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -9789,7 +9789,24 @@ function aurReason(raw){
 
 /* ── índice de entidades de TODO o cofre ── */
 function aurSig(n){return n.split(' ').map(t=>t.replace(/^[.\-]+|[.\-]+$/g,'')).filter(t=>t&&!AUR_STOP.has(t));}
+// O índice do cofre só é refeito quando os dados mudam (antes era refeito várias vezes em cada pedido)
+let AUR_DATA_VER=0,AUR_IDX=null;
+function aurDataRefs(){const g=n=>{try{return aurGlobal(n)||null;}catch(e){return null;}};return [g('vault'),g('documents'),g('bankCards'),g('storeCards'),g('totp'),g('wifiNets'),g('notes'),g('assets'),g('subscriptions'),typeof personalInfo!=='undefined'?personalInfo:null];}
+function aurDataSame(C){if(!C||C.ver!==AUR_DATA_VER)return false;const R=aurDataRefs();return R.every((a,i)=>a===C.refs[i]&&(a?a.length:-1)===C.lens[i]);}
+function aurDataStamp(){const R=aurDataRefs();return {ver:AUR_DATA_VER,refs:R,lens:R.map(a=>a?a.length:-1)};}
+// texto dos documentos já normalizado, guardado só em memória (e refeito se o texto mudar)
+const AUR_TXT=new WeakMap();
+function aurDocText(d,canon){
+  if(!d||!d.text)return '';
+  let c=AUR_TXT.get(d);if(!c||c.src!==d.text){c={src:d.text};AUR_TXT.set(d,c);}
+  const k=canon?'c':'n';if(c[k]==null)c[k]=canon?aurCanon(d.text):aurNorm(d.text);
+  return c[k];
+}
 function aurIndex(){
+  if(aurDataSame(AUR_IDX))return AUR_IDX.E;
+  const E=aurIndexBuild();AUR_IDX=Object.assign(aurDataStamp(),{E});return E;
+}
+function aurIndexBuild(){
   const E=[];
   const add=(type,obj,name,extra,more)=>{if(!name)return;const nn=aurCanon(name);const toks=aurSig(nn);if(!toks.length)return;let alias=[];Object.keys(AUR_ALIAS).forEach(k=>{if(nn.indexOf(k)>=0)alias=alias.concat(AUR_ALIAS[k]);});if(more)alias=alias.concat(more);E.push({type,obj,name:String(name).trim(),norm:nn,toks,alias,extra:aurNorm(extra||''),archived:!!(obj&&obj.archived)});};
   try{aurA(typeof vault!=='undefined'?vault:[]).forEach(v=>add('vault',v,v.name,[v.user,v.url].join(' ')));}catch(e){}
@@ -9984,6 +10001,8 @@ function aurCore(raw){
 [['docs.lerTodos',aurDocReadAll],['docs.procurar',aurDocSearch],['docs.dados',aurDocFacts],['cartao.segredo',aurCardSecret],['seguranca.fuga',aurBreach],
  ['seguranca.mesmaPw',aurSamePw],['seguranca.antigas',aurOld],['veiculo.datas',aurVehicleDate],['conta.categoria',aurCatAccount],['docs.sobre',aurDocsAbout]]
   .forEach(([name,fn],i)=>aurIntent(name,500+i*10,F=>fn(F)));
+// qualquer alteração aos dados (gravar, redesenhar) invalida o índice guardado
+['markUnsaved','renderAll'].forEach(nm=>{const f=typeof window!=='undefined'&&window[nm];if(typeof f!=='function')return;window[nm]=function(){AUR_DATA_VER++;return f.apply(this,arguments);};});
 // no motor base, a primeira função de resposta chamada diz o caminho (ex.: core:aurExpiry)
 ['aur2fa','aurExpiry','aurSummary','aurAudit','aurGenerate','aurChangePw','aurChangeUser','aurRename','aurInfoSet','aurSchedule','aurTheme','aurPriv','aurLang',
  'aurEmptyTrash','aurRestore','aurArchive','aurDelete','aurAdd','aurCopyCmd','aurInfo','aurExport','aurSettings','aurList','aurEmails','aurFuel','aurSubs','aurCount','aurCal','aurWifi','aurOpenEnt','aurChoose','aurGoTab','aurSmall']
@@ -10010,7 +10029,7 @@ function aurHelp(){
   '🗑️ <b>Archive/Trash</b>: "archive hotmail", "restore paypal", "empty the trash"\n'+
   '🎨 <b>Appearance</b>: "apply the ocean theme", "light themes", "turn on privacy mode", "switch to portuguese"\n'+
   '⚙️ <b>Actions</b>: "save", "sync", "back up", "export to pdf", "open digital legacy", "lock"\n'+
-  '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
+  '📑 <b>Your documents</b>: "summarise the meo contract", "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
   '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
   '💶 <b>Spending & tidying</b>: "how much did I spend this month", "compare with last month", "tidy up my vault", "undo"\n'+
   '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank", "that\'s wrong", "what didn\'t you understand?"\n'+
@@ -10029,7 +10048,7 @@ function aurHelp(){
   '🗑️ <b>Arquivo/Reciclagem</b>: "arquiva o hotmail", "recupera o paypal", "esvazia a reciclagem"\n'+
   '🎨 <b>Aspeto</b>: "aplica o tema oceano", "temas claros", "ativa o modo privado", "muda para inglês"\n'+
   '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"\n'+
-  '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
+  '📑 <b>Os teus documentos</b>: "resume o contrato da meo", "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
   '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
   '💶 <b>Gastos e arrumação</b>: "quanto gastei este mês no total", "compara com o mês passado", "arruma o meu cofre", "desfaz", "quanto recebi de ordenado"\n'+
   '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco", "não era isso", "o que não percebeste?"\n'+
@@ -10859,7 +10878,7 @@ function aurDocsAbout(F){
   const skipC=x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_PDF|D_CSV|D_EXPIRY|D_AUDIT|D_SUMMARY|D_MONEY|D_CAL|NUM)$/.test(x);
   const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(skipC)&&!/^(tenho|sobre|about|have|any)$/.test(t));if(!terms.length)return AUR_PASS;
   const folders=aurA(typeof docFolders!=='undefined'?docFolders:[]);
-  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name,d.facts&&d.facts.entity,d.text].filter(Boolean).join(' '))+' ';
+  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name,d.facts&&d.facts.entity].filter(Boolean).join(' '))+' '+aurDocText(d,true)+' ';
   const D=aurA(typeof documents!=='undefined'?documents:[]).filter(d=>d&&!d.archived);
   const hit=D.filter(d=>{const h=hay(d);return terms.some(t=>h.includes(' '+t)||h.includes(t+' '));});
   const q=aurEsc(terms.join(' '));
@@ -12971,7 +12990,7 @@ function avDocSuggest(d){
     assets.push(a);markUnsaved();try{renderAll();}catch(e){}
     aurSay(aurL('✓ Garantia criada: <b>'+aurEsc(a.name)+'</b> até '+aurDate(avAddYears(a.buyDate,3))+'. Confirma o nome do produto.','✓ Warranty created: <b>'+aurEsc(a.name)+'</b> until '+aurDate(avAddYears(a.buyDate,3))+'. Check the product name.'),[{label:aurL('Abrir','Open'),fn:()=>{aurClose();switchTab('warranty');setTimeout(()=>{try{openAssetModal('warranty',a.id);}catch(e){}},200);}}]);}});
   // só um seguro automóvel vai para o carro (não o de acidentes de trabalho, saúde, casa…)
-  const auto=f.kind==='seguro'&&(f.plate||/\b(automovel|auto|viatura|veiculo|matricula|carro|motociclo)\b/.test(aurNorm(d.text||'')));
+  const auto=f.kind==='seguro'&&(f.plate||/\b(automovel|auto|viatura|veiculo|matricula|carro|motociclo)\b/.test(aurDocText(d)));
   const veh=auto&&f.endDate?avDocVehicleFor(f):null;
   if(veh&&veh.insurance!==f.endDate)chips.push({label:aurL('🚗 Seguro do '+veh.name+' até '+aurDate(f.endDate),'🚗 '+veh.name+' insurance until '+aurDate(f.endDate)),fn:()=>{veh.insurance=f.endDate;if(f.plate&&!veh.plate)veh.plate=f.plate;markUnsaved();try{renderAll();}catch(e){}aurSay(aurL('✓ Pus o fim do seguro do <b>'+aurEsc(veh.name)+'</b> a '+aurDate(f.endDate)+' — aviso-te antes.','✓ Set the <b>'+aurEsc(veh.name)+'</b> insurance end to '+aurDate(f.endDate)+' — I’ll remind you.'));}});
   const mine=avDocOwnerIbans(),newIban=(f.ibans||[]).find(i=>!mine.has(i));
@@ -13006,7 +13025,7 @@ function avDocPick(F,list){
   // documentos que falam das palavras do pedido (entidade, título, pasta, texto)
   const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_MONEY|NUM|D_EXPIRY)$/.test(x))&&!/^(fatura|faturas|factura|recibo|recibos|apolice|policy|invoice|bill|ultima|ultimo|last|numero|paguei|pago|pagar|vence|valor|total|quanto|foi|custou|conta|contas|tenho|qual|quais|sobre|seguro|seguros|gastei|gasto|gastos|gasta|gastar|pagas|paga|paguei|mes|ano|anos|meses|este|esta|deste|desta|neste|passado|ultimos|ultimas|por|pagar|foi|foram)$/.test(t));
   if(!terms.length)return {terms,list};
-  const hay=d=>aurNorm([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate,d.text].filter(Boolean).join(' '));
+  const hay=d=>aurNorm([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate].filter(Boolean).join(' '))+' '+aurDocText(d);
   const hit=list.filter(d=>{const h=hay(d);return terms.some(t=>(AV_DOC_SYN[t]||[t]).some(x=>h.includes(x)));});
   return {terms,list:hit.length?hit:[]};
 }
@@ -13023,7 +13042,7 @@ function aurDocFacts(F){
   const withFact=all.filter(d=>d.facts&&(q[0]==='policy'?d.facts.policy:q[0]==='due'?d.facts.dueDate:d.facts.total!=null));
   const car=/\b(carro|automovel|veiculo|viatura|car|vehicle)\b/.test(n);
   let {list}=avDocPick(F,withFact);
-  if(!list.length&&car&&q[0]==='policy')list=withFact.filter(d=>d.facts.plate||d.facts.kind==='seguro'||/auto|carro|automovel|viatura/.test(aurNorm(d.text||'')));
+  if(!list.length&&car&&q[0]==='policy')list=withFact.filter(d=>d.facts.plate||d.facts.kind==='seguro'||/auto|carro|automovel|viatura/.test(aurDocText(d)));
   if(!list.length&&!avDocPick(F,withFact).terms.length)list=withFact;
   if(!withFact.length)return aurSay(aurL('Ainda não encontrei esse dado em nenhum documento. Se tens documentos por ler, diz «lê os meus documentos».','I haven’t found that in any document yet. If some aren’t read yet, say “read my documents”.'));
   if(!list.length)return aurSay(aurL('Não encontrei nenhum documento com esse dado sobre isso.','I found no document with that about it.'));
@@ -13061,7 +13080,7 @@ function aurDocSearch(F){
   }
   if(!terms||!terms.length)return AUR_PASS;
   const flat=s=>aurNorm(s).replace(/\s+/g,'');
-  const hits=avDocsWithText().filter(d=>{const h=aurNorm([d.title,d.desc,d.text].filter(Boolean).join(' '));const hf=h.replace(/\s+/g,'');return terms.some(t=>h.includes(t)||(/^\w{9,}$/.test(t.replace(/\s/g,''))&&hf.includes(flat(t))));});
+  const hits=avDocsWithText().filter(d=>{const h=aurNorm([d.title,d.desc].filter(Boolean).join(' '))+' '+aurDocText(d);const hf=h.replace(/\s+/g,'');return terms.some(t=>h.includes(t)||(/^\w{9,}$/.test(t.replace(/\s/g,''))&&hf.includes(flat(t))));});
   const label=aurEsc(q?q[1]:terms.length>1?terms[0]+'…':terms[0]);
   if(!hits.length){const unread=avDocsWithText().filter(d=>d.file&&!d.textAt).length;return aurSay(aurL('Não encontrei «'+label+'» em nenhum documento.','I didn’t find «'+label+'» in any document.')+(unread?aurL(' ('+unread+' ainda por ler — diz «lê os meus documentos».)',' ('+unread+' not read yet — say “read my documents”.)'):''));}
   return aurSay('🔎 '+aurL('«'+label+'» aparece em <b>'+hits.length+'</b> '+(hits.length===1?'documento':'documentos')+':','«'+label+'» appears in <b>'+hits.length+'</b> '+(hits.length===1?'document':'documents')+':')+'\n'+hits.slice(0,6).map(d=>'• <b>'+aurEsc(d.title)+'</b>'+(d.text?' — <span class="a-dim">'+avSnippet(d.text,terms.map(t=>aurNorm(t)))+'</span>':'')).join('\n'),
@@ -13109,6 +13128,62 @@ aurIntent('docs.ordenado',100,F=>{
     return aurSay('💼 '+aurL('Ordenado ','Pay ')+aurEsc(R.label)+': <b>'+aurMoney(sum)+'</b>'+aurL(' líquido',' net')+(S.length>1?' ('+S.length+aurL(' recibos)',' payslips)'):'')+'\n'+S.slice(0,12).map(line).join('\n'));}
   const d=S[0];
   return aurSay('💼 '+aurL('Último recibo de vencimento','Latest payslip')+(when(d)?' ('+aurDate(when(d))+')':'')+': '+aurL('líquido ','net ')+'<b>'+aurMoney(d.facts.net)+'</b>'+(d.facts.gross!=null?aurL(' · bruto ',' · gross ')+aurMoney(d.facts.gross):'')+'.'+(S.length>1?'\n'+S.slice(1,4).map(line).join('\n'):''),[{label:aurL('Abrir recibo','Open payslip'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},F,true)}]);
+});
+
+/* ── «resume o contrato da MEO»: resumo tirado do próprio documento (frases dele, nada inventado) ── */
+const AV_SUM_ATT=/\b(rescis\w*|denunci\w*|fideliza\w*|penaliza\w*|multa\w*|renova\w* automatic\w*|automatica\w* renova\w*|pre[- ]?aviso|aviso previo|cancelamento|franquia\w*|exclus\w*|juros|mora|indemniza\w*|cobertura\w*|periodo experimental|obrigatori\w*|devoluc\w*|incumprimento|caucao)\b/;
+function avDocSentences(t){
+  return String(t||'').split(/\n+|(?<=[.!?;])\s+(?=[A-ZÀ-Ú0-9«"])/).map(s=>s.replace(/\s+/g,' ').trim()).filter(s=>s.length>=12&&s.length<=320);
+}
+function avDocSummary(d){
+  const title=aurEsc(d.title||d.name||aurL('documento','document'));
+  const text=String(d.text||'').trim();
+  if(!text){
+    const chips=d.file?[{label:aurL('Lê agora','Read it now'),fn:async()=>{aurSay(aurL('📖 A ler <b>','📖 Reading <b>')+title+'</b>…');try{const r=await avDocExtractText(d.file,{ocr:true});avDocSetText(d,r.text,r.src);if(typeof markUnsaved==='function')markUnsaved();}catch(e){}return d.text?avDocSummary(d):aurSay(aurL('Não consegui ler texto neste documento.','I couldn’t read any text in this document.'));}}]:[];
+    return aurSay(aurL('Ainda não li <b>'+title+'</b>, por isso não o consigo resumir.','I haven’t read <b>'+title+'</b> yet, so I can’t summarise it.'),chips);
+  }
+  const S=avDocSentences(text),cut=s=>aurEsc(s.length>150?s.slice(0,147)+'…':s),used=new Set(),out=['📄 <b>'+aurL('Resumo de ','Summary of ')+title+'</b>'];
+  if(d.facts&&Object.keys(d.facts).length){const fl=avFactsLine(d.facts);if(fl)out.push(fl);}
+  if(text.length<260){out.push(aurEsc(text));return aurSay(out.join('\n'),[{label:aurL('Abrir','Open'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},{c:new Set(['OPEN']),n:'',raw:''},true)}]);}
+  // datas (por ordem) com o contexto de cada uma
+  const dates=[];S.forEach(s=>avDatesIn(s).forEach(iso=>{if(!dates.some(x=>x.iso===iso))dates.push({iso,s});}));
+  dates.sort((a,b)=>a.iso.localeCompare(b.iso));
+  if(dates.length){out.push('\n📅 <b>'+aurL('Datas','Dates')+'</b>');dates.slice(0,5).forEach(x=>{used.add(x.s);out.push('• '+aurDate(x.iso)+' <span class="a-dim">('+aurRel(x.iso)+')</span> — '+cut(x.s));});}
+  // valores
+  const money=S.filter(s=>/\d[\d.\s]*,\d{2}\s*(€|eur)|€\s*\d|\d+[.,]\d{2}\s*euros?/i.test(s)).slice(0,4);
+  if(money.length){out.push('\n💶 <b>'+aurL('Valores','Amounts')+'</b>');money.forEach(s=>{used.add(s);out.push((AV_SUM_ATT.test(aurNorm(s))?'• ⚠️ ':'• ')+cut(s));});}
+  // pontos de atenção (cláusulas que costumam custar dinheiro ou prazos)
+  const att=S.filter(s=>AV_SUM_ATT.test(aurNorm(s))&&!used.has(s)).slice(0,5);
+  if(att.length){out.push('\n⚠️ <b>'+aurL('Pontos de atenção','Watch out for')+'</b>');att.forEach(s=>{used.add(s);out.push('• '+cut(s));});}
+  // o essencial: as frases com as palavras mais repetidas no documento (e as do início pesam mais)
+  const words=s=>aurNorm(s).split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!AUR_STOP.has(w));
+  const tf={};S.forEach(s=>words(s).forEach(w=>{tf[w]=(tf[w]||0)+1;}));
+  const top=S.map((s,i)=>({s,i,sc:words(s).reduce((a,w)=>a+(tf[w]>1?tf[w]:0),0)/Math.sqrt(words(s).length+1)+(i<3?1.5:0)}))
+    .filter(x=>!used.has(x.s)).sort((a,b)=>b.sc-a.sc).slice(0,3).sort((a,b)=>a.i-b.i);
+  if(top.length){out.push('\n📝 <b>'+aurL('O essencial','Key points')+'</b>');top.forEach(x=>out.push('• '+cut(x.s)));}
+  return aurSay(out.join('\n'),[{label:aurL('Abrir documento','Open document'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},{c:new Set(['OPEN']),n:'',raw:''},true)}]);
+}
+aurIntent('docs.resumo',90,F=>{
+  const n=F.n;
+  if(!/\b(resume|resumir|resumes|resumo|resumido|sumario|sintese|summari[sz]e|summary|pontos (importantes|principais)|principais pontos|o essencial|o mais importante|key points|tl dr)\b/.test(n)&&!/^(o que diz|explica me|explica|what does)\b.*\b(documento|contrato|fatura|apolice|recibo|escritura|carta|document|contract|policy)\b/.test(n))return AUR_PASS;
+  if(F.cands.some(e=>e.type==='note'&&e.score>=0.5))return AUR_PASS;
+  const docWord=/\b(documento|documentos|contrato|contratos|fatura|faturas|apolice|recibo|escritura|carta|regulamento|condicoes|pdf|document|contract|policy|invoice|terms)\b/.test(n);
+  const named=F.cands.filter(e=>e.type==='doc'&&e.score>=0.5).map(e=>e.obj);
+  if(!named.length&&!docWord&&!(AUR.last&&AUR.last.type==='doc'))return AUR_PASS;   // «resume o meu cofre» é outra coisa
+  if(named.length===1)return avDocSummary(named[0]);
+  const all=avDocsWithText();
+  let L=named.length?named:[];
+  if(!L.length){const {terms,list}=avDocPick(F,all.filter(d=>d.text));
+    const real=terms.filter(t=>!/^(resume|resumir|resumo|documento|contrato|fatura|apolice|recibo|pdf|meu|minha|summary|summarize|document|contract|essencial|importante|pontos|principais)$/.test(t));
+    L=real.length?list:[];}
+  if(!L.length&&AUR.last&&AUR.last.type==='doc')L=[AUR.last.obj];
+  if(!L.length){
+    const kind=(n.match(/\b(contrato|fatura|apolice|recibo|escritura)\b/)||[])[1];
+    if(kind)L=all.filter(d=>d.text&&aurNorm(d.title+' '+(d.facts&&d.facts.kind||'')+' '+aurDocText(d).slice(0,400)).includes(kind));
+  }
+  if(!L.length)return aurSay(aurL('Qual documento queres que resuma? Diz, por exemplo, «resume o contrato da MEO».','Which document should I summarise? Say e.g. “summarise the MEO contract”.'));
+  if(L.length===1)return avDocSummary(L[0]);
+  return aurChoose(L.slice(0,8).map(d=>({type:'doc',obj:d,name:d.title||d.name,toks:[]})),F,aurL('Qual destes queres que resuma?','Which one should I summarise?'),e=>avDocSummary(e.obj));
 });
 
 /* ═══════════ AURORA · CONVERSA ═══════════
@@ -13632,7 +13707,7 @@ aurPre('tudo.sobre',310,F=>{
   const folders=aurA(typeof docFolders!=='undefined'?docFolders:[]);
   aurA(typeof documents!=='undefined'?documents:[]).forEach(d=>{
     const fo=folders.find(f=>f.id===d.folderId);
-    if(hit([d.title,d.desc,d.text,d.facts&&d.facts.entity,d.facts&&d.facts.plate,fo&&fo.name,car&&d.cat==='carro'?'carro':''].filter(Boolean).join(' ')))push({type:'doc',obj:d,name:d.title||d.name});});
+    if(hit(aurDocText(d))||hit([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate,fo&&fo.name,car&&d.cat==='carro'?'carro':''].filter(Boolean).join(' ')))push({type:'doc',obj:d,name:d.title||d.name});});
   if(!out.length)return aurSay(aurL('Não encontrei nada sobre «','I found nothing about «')+aurEsc(terms.join(' '))+'».');
   const L=out.slice(0,12);
   return aurSay(aurL('🔎 Tudo o que tens sobre <b>','🔎 Everything about <b>')+aurEsc(terms[0])+'</b> ('+out.length+'):\n'+L.map(x=>'• '+aurEsc(aurEntLabel(x.e))).join('\n'),L.map(x=>({label:x.e.name,fn:()=>aurOpenEnt(x.e,F,true)})));
@@ -14049,30 +14124,43 @@ aurPre('limpeza',460,F=>{
 });
 
 /* ── sugestões enquanto escreves (com os nomes do teu cofre) ── */
+let AUR_SUGP=null;
 function aurSugPool(){
+  const key=aurAppLang()+'|'+aurTotpLocked();
+  if(AUR_SUGP&&AUR_SUGP.key===key&&aurDataSame(AUR_SUGP))return AUR_SUGP.P;
+  const P=aurSugPoolBuild();AUR_SUGP=Object.assign(aurDataStamp(),{key,P});return P;
+}
+function aurSugPoolBuild(){
   const en=aurAppLang()==='en',P=[];const add=(t,w)=>P.push({t,n:aurNorm(t),w:w||1});
   (en?['what expires this month','what needs my attention','how much did I spend this month','compare with last month','tidy up my vault','any weak passwords','generate a strong password','what have you learned','what didn\'t you understand','undo','unpaid bills','status overview','2fa codes','my tax number','my iban']
     :['o que expira este mês','o que devo tratar','quanto gastei este mês no total','compara com o mês passado','arruma o meu cofre','tenho passwords fracas','gera uma password forte','o que aprendeste','o que não percebeste','desfaz','faturas por pagar','ponto de situação','códigos 2fa','qual o meu nif','qual o meu iban']).forEach(t=>add(t,2));
   aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived&&v.name).slice(0,300).forEach(v=>{add((en?'password for ':'password do ')+v.name,3);add((en?'copy the password for ':'copia a password do ')+v.name);add((en?'username for ':'utilizador do ')+v.name);});
   if(!aurTotpLocked())aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>{const nm=t.name||t.issuer;if(nm)add((en?'code for ':'código do ')+nm,3);});
   aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>!c.archived).forEach(c=>{const nm=c.name||c.bank;if(nm){add((en?'pin for card ':'pin do cartão ')+nm);add((en?'when does card ':'quando expira o cartão ')+nm+(en?' expire':''));}});
-  aurA(typeof documents!=='undefined'?documents:[]).filter(d=>!d.archived&&(d.title||d.name)).slice(0,200).forEach(d=>{add((en?'open ':'abre o ')+(d.title||d.name));if(d.expiry)add((en?'when does ':'quando expira o ')+(d.title||d.name)+(en?' expire':''),2);});
+  aurA(typeof documents!=='undefined'?documents:[]).filter(d=>!d.archived&&(d.title||d.name)).slice(0,200).forEach(d=>{add((en?'open ':'abre o ')+(d.title||d.name));if(d.text&&d.text.length>260)add((en?'summarise ':'resume o ')+(d.title||d.name));if(d.expiry)add((en?'when does ':'quando expira o ')+(d.title||d.name)+(en?' expire':''),2);});
   aurA(typeof notes!=='undefined'?notes:[]).filter(x=>x.title).forEach(x=>add((en?'read the note ':'lê a nota ')+x.title));
   aurA(typeof wifiNets!=='undefined'?wifiNets:[]).forEach(w=>add((en?'wifi password for ':'password do wifi ')+(w.name||w.ssid)));
   aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>add((en?'how much is ':'quanto pago de ')+s.name));
   return P;
 }
+function aurSugMatch(n,qw){const words=n.split(/\s+/);return qw.every(w=>words.some(x=>x.startsWith(w)));}
+function aurSugQuery(q){return aurNorm(q).replace(/[^\w\s-]/g,' ').trim();}
 function aurSuggest(q){
-  const qn=aurNorm(q).replace(/[^\w\s-]/g,' ').trim();if(qn.length<2)return [];
+  const qn=aurSugQuery(q);if(qn.length<2)return [];
   const qw=qn.split(/\s+/);
   const R=[];
   for(const p of aurSugPool()){
-    if(p.n===qn)continue;
-    const words=p.n.split(/\s+/);
-    if(!qw.every(w=>words.some(x=>x.startsWith(w))))continue;
+    if(p.n===qn||!aurSugMatch(p.n,qw))continue;
     R.push({t:p.t,s:(p.n.startsWith(qn)?10:0)+p.w-p.n.length/100});
   }
   return R.sort((a,b)=>b.s-a.s).slice(0,4).map(r=>r.t);
+}
+// enquanto a lista nova não chega, tira já as sugestões que deixaram de corresponder ao que está escrito
+function aurSugPrune(q){
+  const box=document.getElementById('aurora-sugg');if(!box||box.hidden)return;
+  const qn=aurSugQuery(q),qw=qn.split(/\s+/);
+  box.querySelectorAll('button[data-q]').forEach(b=>{const n=aurNorm(b.dataset.q);if(qn.length<2||n===qn||!aurSugMatch(n,qw))b.remove();});
+  if(!box.firstChild)box.hidden=true;
 }
 function aurSugRender(){
   const inp=document.getElementById('aurora-input'),box0=document.querySelector('#aurora-panel .aurora-in');if(!inp||!box0)return;
@@ -14084,9 +14172,12 @@ function aurSugRender(){
   box.innerHTML=L.map(t=>'<button type="button" role="option" class="a-sug" data-q="'+aurEsc(t)+'">'+aurEsc(t)+'</button>').join('');
 }
 if(typeof document!=='undefined'){
-  document.addEventListener('input',e=>{if(e.target&&e.target.id==='aurora-input')aurSugRender();});
+  // espera por uma pausa na escrita (não refaz as sugestões a cada tecla)
+  let _sugT=null;
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='aurora-input'){clearTimeout(_sugT);_sugT=setTimeout(()=>{_sugT=null;aurSugRender();},90);aurSugPrune(e.target.value);}});
   document.addEventListener('keydown',e=>{
     if(!e.target||e.target.id!=='aurora-input')return;
+    if(e.key==='Tab'&&_sugT){clearTimeout(_sugT);_sugT=null;aurSugRender();}   // Tab logo a seguir a escrever: calcula já
     const box=document.getElementById('aurora-sugg');
     if(e.key==='Tab'&&box&&!box.hidden&&box.firstChild){e.preventDefault();e.target.value=box.firstChild.dataset.q+' ';aurSugRender();}
     else if(e.key==='Enter'||e.key==='Escape'){if(box){box.innerHTML='';box.hidden=true;}}
