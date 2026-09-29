@@ -55,6 +55,7 @@ test.describe('Aurora lê documentos', () => {
     expect(await ask(page, 'quanto paguei na última fatura da edp')).toMatch(/45,20/);
     expect(await ask(page, 'quando vence a fatura da edp')).toMatch(/20\/09\/2026/);
     expect(await ask(page, 'quanto paguei de luz à edp em agosto')).toMatch(/52,10/);
+    expect(await ask(page, 'e em setembro?')).toMatch(/45,20/);
     expect(await ask(page, 'procura "fidelizacao" nos documentos')).toMatch(/fatura-edp[\s\S]*fidelizacao de 24 meses/i);
     expect(await ask(page, 'em que documentos aparece o meu IBAN')).toMatch(/1 documento[\s\S]*fatura-edp/);
     expect(await ask(page, 'documentos sobre fidelizacao')).toMatch(/fatura-edp/);
