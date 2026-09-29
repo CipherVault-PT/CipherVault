@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.11';
+const APP_VERSION='10.12';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -9795,8 +9795,8 @@ function aurMatchEnt(e,Q,Qset){
   e.toks.forEach(t=>{
     const w=AUR_VOCAB[t]?0.35:1;total+=w;
     let hit=Qset.has(t);
-    if(!hit&&t.length>=4){for(const q of Q){if(q.length>=4&&Math.abs(q.length-t.length)<=2&&aurLev(q,t)<=(t.length>=8?2:1)){hit=true;break;}}}
-    if(!hit&&t.length>=5){for(const q of Q){if(q.length>=4&&t.startsWith(q)){hit=true;break;}}}
+    if(!hit&&t.length>=4){for(const q of Q){if(q.length>=4&&!AUR_VOCAB[q]&&Math.abs(q.length-t.length)<=2&&aurLev(q,t)<=(t.length>=8?2:1)){hit=true;break;}}}
+    if(!hit&&t.length>=5){for(const q of Q){if(q.length>=4&&!AUR_VOCAB[q]&&t.startsWith(q)){hit=true;break;}}}
     if(hit){got+=w;if(w===1)spec++;}
   });
   let s=got/total;
@@ -9834,6 +9834,7 @@ function aurFrame(raw){
   const allowTheme=c.has('D_THEME')||c.has('APPLY');
   let cands=E.filter(e=>e.type!=='theme'||allowTheme).map(e=>Object.assign({},e,{score:aurMatchEnt(e,Q,Qset)})).filter(e=>e.score>=0.34);
   cands.forEach(e=>{const d={vault:['D_PW','D_VAULT','D_EMAIL'],doc:['D_DOC'],bank:['D_BANK','D_CARD'],store:['D_STORE','D_CARD'],totp:['D_2FA','D_2FAW'],wifi:['D_WIFI'],note:['D_NOTE'],asset:['D_WARRANTY','D_VEHICLE','D_LICENSE','D_DATES','D_ASSETS'],sub:['D_SUBS','D_MONEY'],person:['D_INFO','D_FIELD'],theme:['D_THEME']}[e.type];if(d&&d.some(x=>c.has(x)))e.score+=0.15;if(e.archived)e.score-=0.05;});
+  if(c.has('D_PW')||c.has('D_EMAIL'))cands.forEach(e=>{if(e.type==='vault')e.score+=0.2;});
   cands.sort((a,b)=>b.score-a.score);
   const best=cands[0]||null,second=cands[1]||null;
   const confident=!!best&&best.score>=0.5&&(!second||best.score-second.score>=0.15);
@@ -9911,6 +9912,7 @@ function aurHandle(raw){
   if(c.has('HELP'))return aurHelp();
   if((c.has('HELLO')||c.has('THANKS'))&&![...c].some(x=>AUR_ACTIONS.has(x)||x.indexOf('D_')===0)&&!F.confident)return aurSmall(F);
   if(c.has('CLOSE')&&!F.hasDomain){aurSay(aurL('Até já! ✨','See you soon! ✨'));aurClose(true);return true;}
+  for(const h of [aurCardSecret,aurBreach,aurSamePw,aurOld,aurVehicleDate,aurCatAccount,aurDocsAbout]){const r=h(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_MASTER'))return aurSettings('seguranca',aurL('A palavra-passe mestra, o PIN, a biometria e o auto-bloqueio mudam-se em Definições → Segurança — por segurança não os altero pela conversa. Abri-te lá.','The master password, PIN, biometrics and auto-lock are changed in Settings → Security — for safety I don’t change them through chat. I opened it for you.'));
   if(c.has('D_2FA')||c.has('D_2FAW')){const r=aur2fa(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_EXPIRY')&&!(c.has('SCHEDULE')&&F.date)&&!(c.has('D_PW')&&!/expir|caduc|venc|validade|valid/.test(F.n)))return aurExpiry(F);
@@ -10784,6 +10786,158 @@ function aurAlertsRender(){
 (function(){if(typeof renderGreeting!=='function')return;const _rg=renderGreeting;renderGreeting=function(){const r=_rg.apply(this,arguments);try{aurAlertsRender();}catch(e){}return r;};})();
 
 
+
+
+/* ═══════════ v10.12 — compreende mais pedidos (tudo local, nada sai do dispositivo) ═══════════ */
+function aurVault(){return aurA(typeof vault!=='undefined'?vault:[]).filter(v=>v&&!v.archived);}
+function aurVEnt(v){return {type:'vault',obj:v,name:v.name,score:1};}
+function aurNamesChips(L,fn){return L.slice(0,8).map(v=>({label:v.name,fn:()=>fn(v)}));}
+
+// «a conta do banco», «o email do trabalho» → acessos dessa categoria
+const AUR_CAT_EXTRA={banco:'banco bancos bancaria bank banking',trabalho:'trabalho emprego empresa work job office',jogo:'jogo jogos gaming game games',
+  social:'social sociais facebook instagram redes',compras:'compras shopping loja lojas online',email:'correio mailbox webmail'};
+function aurCatOf(n){
+  const cats=typeof allEntryCats==='function'?allEntryCats():[];const words=' '+n+' ';
+  const hit=k=>{const extra=(AUR_CAT_EXTRA[k.key]||'').split(' ');const lbl=aurSig(aurCanon(k.label||''));return [k.key,...extra,...lbl].some(w=>w&&w.length>=3&&words.includes(' '+w+' '));};
+  const nonEmail=cats.find(k=>k.key!=='email'&&k.key!=='outro'&&hit(k));if(nonEmail)return nonEmail.key;
+  if(/\b(conta|contas) (de |do )?(email|correio)\b|\bemail account\b|\bcorreio eletronico\b/.test(n))return 'email';
+  return null;
+}
+function aurCatAccount(F){
+  const c=F.c;if(!(c.has('D_PW')||c.has('D_EMAIL')||c.has('D_VAULT')))return AUR_PASS;
+  if(c.has('ADD')||c.has('DELETE')||c.has('CHANGE')||c.has('ARCHIVE')||c.has('GEN')||c.has('SCHEDULE'))return AUR_PASS;
+  if(F.cands.some(e=>e.type==='vault'&&e.score>=0.8))return AUR_PASS;
+  const key=aurCatOf(F.n);if(!key)return AUR_PASS;
+  const L=aurVault().filter(v=>v.cat===key);if(!L.length)return AUR_PASS;
+  if(L.length===1)return aurOpenEnt(aurVEnt(L[0]),F,false);
+  return aurChoose(L.map(aurVEnt),F,aurL('Tens '+L.length+' contas nesta categoria — qual é?','You have '+L.length+' accounts in this category — which one?'));
+}
+
+// «que documentos tenho da casa» → procura nos documentos (título, categoria, pasta, descrição, ficheiro)
+function aurDocsAbout(F){
+  const c=F.c;if(!c.has('D_DOC')||['ADD','DELETE','CHANGE','ARCHIVE','RESTORE','SCHEDULE','COUNT','D_EXPIRY','EXPORT','OPEN'].some(k=>c.has(k)))return AUR_PASS;
+  if(F.confident&&F.best.type==='doc')return AUR_PASS;
+  // assunto = palavras do pedido que não são ações nem «documento» (sem corrector: «barco» não pode virar «banco»)
+  const skipC=x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_PDF|D_CSV|D_EXPIRY|D_AUDIT|D_SUMMARY|D_MONEY|D_CAL|NUM)$/.test(x);
+  const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(skipC)&&!/^(tenho|sobre|about|have|any)$/.test(t));if(!terms.length)return AUR_PASS;
+  const folders=aurA(typeof docFolders!=='undefined'?docFolders:[]);
+  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name].filter(Boolean).join(' '))+' ';
+  const D=aurA(typeof documents!=='undefined'?documents:[]).filter(d=>d&&!d.archived);
+  const hit=D.filter(d=>{const h=hay(d);return terms.some(t=>h.includes(' '+t)||h.includes(t+' '));});
+  const q=aurEsc(terms.join(' '));
+  if(!hit.length)return aurSay(aurL('Não encontrei documentos sobre «'+q+'».','I found no documents about «'+q+'».'),[{label:aurL('Ver documentos','See documents'),fn:()=>aurGoTab('docs')}]);
+  const ents=hit.map(d=>({type:'doc',obj:d,name:d.title||d.name||'',score:1}));
+  if(ents.length===1)return aurOpenEnt(ents[0],F,true);
+  return aurChoose(ents,F,aurL('📄 Tens '+ents.length+' documentos sobre «'+q+'»:','📄 You have '+ents.length+' documents about «'+q+'»:'));
+}
+
+// «quando é a inspeção do golf», «quando acaba o seguro do carro»
+const AUR_VEH_K=[['inspection',/\b(inspecao|inspecoes|ipo|inspection|inspections|mot)\b/,'inspeção','inspection',true],
+  ['insurance',/\b(seguro|seguros|insurance)\b/,'seguro','insurance',false],['service',/\b(revisao|revisoes|manutencao|service|servicing)\b/,'revisão','service',false]];
+function aurVehicleDate(F){
+  if(F.c.has('SCHEDULE')||F.c.has('ADD')||F.c.has('CHANGE')||(F.date&&!F.c.has('WHEN')))return AUR_PASS;   // «lembra-me do seguro a 15 de março» é um lembrete
+  const k=AUR_VEH_K.find(x=>x[1].test(F.n));if(!k)return AUR_PASS;
+  const V=aurA(typeof assets!=='undefined'?assets:[]).filter(a=>a&&a.kind==='vehicle');if(!V.length)return AUR_PASS;
+  const named=F.cands.filter(e=>e.type==='asset'&&e.obj.kind==='vehicle'&&e.score>=0.5).map(e=>e.obj);
+  if(!k[4]&&!named.length&&!F.c.has('D_VEHICLE'))return AUR_PASS;   // «seguro»/«revisão» só com um veículo à vista (não confundir com «é seguro?»)
+  const pick=named.length?named:V;
+  const lines=pick.map(v=>{const d=v[k[0]]?new Date(v[k[0]]):null;return '• 🚗 <b>'+aurEsc(v.name)+'</b> — '+(d&&!isNaN(d)?aurDate(d)+' ('+aurRel(d)+')':aurL('sem data registada','no date saved'));});
+  return aurSay('<b>'+aurCap(aurL(k[2],k[3]))+'</b>\n'+lines.join('\n'),[{label:aurL('Abrir veículos','Open vehicles'),fn:()=>aurGoTab('vehicle')}]);
+}
+
+// «qual o PIN do cartão da CGD» → confirma que és tu e mostra por 20 s
+function aurCardSecret(F){
+  const m=/\b(pin|cvv|cvc)\b|\bcodigo de seguranca\b|\bsecurity code\b/.exec(F.n);if(!m)return AUR_PASS;
+  const C=aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>c&&!c.archived);
+  const named=F.cands.filter(e=>e.type==='bank'&&e.score>=0.5);
+  if(!(F.c.has('D_CARD')||F.c.has('D_BANK')||named.length)||!C.length)return AUR_PASS;
+  const field=m[1]==='pin'?'pin':'cvv',lbl=field==='pin'?'PIN':'CVV';
+  const show=card=>{
+    const val=card[field];const nm=aurEsc(card.bank||card.name||'');
+    if(!val)return aurSay(aurL('O cartão <b>'+nm+'</b> não tem '+lbl+' guardado.','The <b>'+nm+'</b> card has no '+lbl+' saved.'));
+    aurSay(aurL('🔒 Confirma que és tu para ver o '+lbl+' do cartão <b>'+nm+'</b>.','🔒 Confirm it’s you to see the '+lbl+' of the <b>'+nm+'</b> card.'));
+    const ask=typeof avAuth==='function'?avAuth(aurL('Mostrar o '+lbl+' do cartão '+(card.bank||''),'Show the '+lbl+' of the '+(card.bank||'')+' card')):Promise.resolve(true);
+    Promise.resolve(ask).then(ok=>{
+      if(!ok)return aurSay(aurL('Ok, não mostrei.','Ok, I didn’t show it.'));
+      const id='aurs'+Date.now().toString(36);
+      aurSay('💳 '+lbl+aurL(' do cartão <b>',' of the <b>')+nm+'</b>'+aurL(': ',' card: ')+'<b id="'+id+'" style="letter-spacing:3px">'+aurEsc(val)+'</b>'+aurL(' · esconde-se em 20 s',' · hides in 20 s'),[{label:aurL('Copiar','Copy'),fn:()=>aurCopy(val,aurL(lbl+' copiado','Copied'))}]);
+      setTimeout(()=>{const el=document.getElementById(id);if(el)el.textContent='••••';},20000);
+    });
+    return true;
+  };
+  const pick=named.length?named.map(e=>e.obj):C.length===1?C:null;
+  if(pick&&pick.length===1)return show(pick[0]);
+  return aurSay(aurL('De que cartão?','Which card?'),(pick||C).slice(0,8).map(c=>({label:c.bank||c.name||'•••• '+String(c.number||'').slice(-4),fn:()=>show(c)})));
+}
+
+// «quais sites usam a mesma password que o gmail»
+function aurSamePw(F){
+  if(!/\b(mesma|mesmas|igual|iguais|repetida|repetidas|reutiliz\w*|same|reused?)\b/.test(F.n))return AUR_PASS;
+  const tgt=F.cands.find(e=>e.type==='vault'&&e.score>=0.5);if(!tgt)return AUR_PASS;
+  const v=tgt.obj,nm=aurEsc(v.name);if(!v.pw)return aurSay(aurL('<b>'+nm+'</b> não tem password guardada.','<b>'+nm+'</b> has no password saved.'));
+  const same=aurVault().filter(x=>x!==v&&x.pw===v.pw);
+  if(!same.length)return aurSay(aurL('✅ Nenhuma outra conta usa a mesma password que <b>'+nm+'</b>.','✅ No other account uses the same password as <b>'+nm+'</b>.'));
+  return aurSay(aurL('⚠️ <b>'+same.length+'</b> '+(same.length===1?'conta usa':'contas usam')+' a mesma password que <b>'+nm+'</b>: ','⚠️ <b>'+same.length+'</b> '+(same.length===1?'account uses':'accounts use')+' the same password as <b>'+nm+'</b>: ')+same.map(x=>'<b>'+aurEsc(x.name)+'</b>').join(', ')+aurL('.\nSe uma for roubada, as outras ficam expostas — toca para mudar:','.\nIf one leaks, the others are exposed — tap to change:'),
+    aurNamesChips([v,...same],x=>aurChangePwOn(x,F)));
+}
+
+// «roubaram-me a password do email, o que faço?» → plano de ação
+const AUR_BREACH=/\b(roubad\w*|roubaram|roubou|pirat\w*|hack\w*|comprometid\w*|vazad\w*|vazou|fuga|fugas|leak\w*|stolen|breach\w*|compromised|invadid\w*|invadiram|entraram|intrus\w*)\b/;
+function aurBreach(F){
+  if(!AUR_BREACH.test(F.n))return AUR_PASS;
+  let tgt=F.cands.find(e=>e.type==='vault'&&e.score>=0.5);
+  if(!tgt){
+    const key=aurCatOf(F.n)||((F.c.has('D_EMAIL')||/\b(email|correio|mail)\b/.test(F.n))?'email':null);
+    const L=key?aurVault().filter(v=>v.cat===key):[];
+    if(L.length===1)tgt=aurVEnt(L[0]);
+    else if(L.length>1)return aurChoose(L.map(aurVEnt),F,aurL('Qual das contas foi afetada?','Which account was affected?'),e=>aurBreachOn(e.obj,F));
+  }
+  if(!tgt&&/\b(verifica|verificar|analisa|analisar|procura|procurar|testa|testar|check|scan|test|estao|estou|aparecem|is|are|am)\b/.test(F.n)&&/\b(fuga|fugas|vazad\w*|leak\w*|breach\w*|pwned|comprometid\w*|compromised)\b/.test(F.n)){
+    aurClose();if(typeof openHealthCheck==='function')openHealthCheck();
+    return aurSay(aurL('🔎 Abri a verificação de fugas: cada password é comparada com as bases de dados de fugas conhecidas sem sair do dispositivo — só vão os primeiros 5 caracteres de um resumo (hash) da password, nunca a password.','🔎 I opened the leak check: each password is compared with known breach databases without leaving your device — only the first 5 characters of a hash are sent, never the password.'));
+  }
+  if(!tgt){
+    if(!/\b(o que faco|que faco|que devo|ajuda|what (do|should) i do|help)\b/.test(F.n)&&(F.c.has('D_AUDIT')||F.c.has('D_PW')))return AUR_PASS;
+    return aurSay(aurL('🛡️ Se achas que uma conta foi comprometida:\n1. Muda já a password dessa conta (diz-me qual e eu gero uma nova).\n2. Muda também em todas as contas onde usas a mesma password.\n3. Ativa a verificação em 2 passos (2FA).\n4. No site, termina a sessão em todos os dispositivos.\nDe que conta se trata?',
+      '🛡️ If you think an account was compromised:\n1. Change its password now (tell me which and I’ll generate one).\n2. Change it everywhere you reuse that password.\n3. Turn on 2-step verification (2FA).\n4. On the site, sign out of all devices.\nWhich account is it?'),
+      [{label:aurL('Verificar fugas de todas','Check all for leaks'),fn:()=>{aurClose();if(typeof openHealthCheck==='function')openHealthCheck();}}]);
+  }
+  return aurBreachOn(tgt.obj,F);
+}
+function aurBreachOn(v,F){
+  const nm=aurEsc(v.name),base=aurNorm(v.name).split(' ')[0];
+  const same=aurVault().filter(x=>x!==v&&x.pw&&x.pw===v.pw);
+  const has2fa=aurA(typeof totp!=='undefined'?totp:[]).some(t=>{const n=aurNorm((t.name||'')+' '+(t.issuer||''));return base&&n.includes(base);});
+  const isMail=v.cat==='email'||/\b(gmail|outlook|hotmail|yahoo|sapo|icloud|proton|mail)\b/.test(aurNorm(v.name+' '+(v.url||'')));
+  const addr=isMail&&v.user&&/@/.test(v.user)?v.user:(isMail?aurNorm(v.name):'');
+  const viaMail=isMail?aurVault().filter(x=>x!==v&&x.user&&v.user&&x.user.toLowerCase()===v.user.toLowerCase()):[];
+  const steps=[aurL('1. <b>Muda já a password de '+nm+'</b> — gero uma forte e fica aqui guardada.','1. <b>Change the '+nm+' password now</b> — I’ll generate a strong one and keep it here.')];
+  let k=2;
+  if(same.length)steps.push(k+++'. '+aurL('<b>Usas a mesma password em '+same.length+' '+(same.length===1?'conta':'contas')+'</b> ('+same.map(x=>aurEsc(x.name)).join(', ')+') — muda-as também.','<b>You reuse this password in '+same.length+' '+(same.length===1?'account':'accounts')+'</b> ('+same.map(x=>aurEsc(x.name)).join(', ')+') — change them too.'));
+  if(!has2fa)steps.push(k+++'. '+aurL('<b>Ativa a verificação em 2 passos</b> em '+nm+' e guarda o código em 2FA.','<b>Turn on 2-step verification</b> for '+nm+' and save the code in 2FA.'));
+  if(viaMail.length)steps.push(k+++'. '+aurL('Este email recupera <b>'+viaMail.length+'</b> '+(viaMail.length===1?'conta':'contas')+' ('+viaMail.slice(0,5).map(x=>aurEsc(x.name)).join(', ')+(viaMail.length>5?'…':'')+') — vê se houve pedidos de recuperação de password.','This email recovers <b>'+viaMail.length+'</b> '+(viaMail.length===1?'account':'accounts')+' ('+viaMail.slice(0,5).map(x=>aurEsc(x.name)).join(', ')+(viaMail.length>5?'…':'')+') — check for password-reset requests.'));
+  steps.push(k+++'. '+aurL('No site, <b>termina a sessão em todos os dispositivos</b>.','On the site, <b>sign out of all devices</b>.'));
+  const chips=[{label:aurL('Mudar a password de ','Change password of ')+v.name,fn:()=>aurChangePwOn(v,F)}];
+  same.slice(0,4).forEach(x=>chips.push({label:aurL('Mudar ','Change ')+x.name,fn:()=>aurChangePwOn(x,F)}));
+  if(!has2fa)chips.push({label:aurL('Adicionar 2FA','Add 2FA'),fn:()=>{aurTab('totp');aurClose();if(typeof openTotpModal==='function')openTotpModal();}});
+  chips.push({label:aurL('Verificar fugas','Check for leaks'),fn:()=>{aurClose();if(typeof openHealthCheck==='function')openHealthCheck();}});
+  return aurSay(aurL('🛡️ Vamos proteger <b>'+nm+'</b>:\n','🛡️ Let’s secure <b>'+nm+'</b>:\n')+steps.join('\n'),chips);
+}
+
+// «contas mais antigas», «passwords que não mudo há mais de 2 anos»
+function aurOld(F){
+  if(!/\b(antig\w*|velh\w*|nao (uso|usei|mexo|mexi|mudo|mudei|altero|alterei|troco|troquei)|sem (mudar|alterar|trocar)|ha mais de|oldest|older|unused|not used|havent|stale|aged)\b/.test(F.n))return AUR_PASS;
+  if(!(F.c.has('D_VAULT')||F.c.has('D_PW')))return AUR_PASS;
+  const n=aurNumWords(F.n);const m=n.match(/(\d+)\s*(anos?|years?|mes|meses|months?)\b/);
+  const days=m?(+m[1])*(/^(ano|anos|year|years)$/.test(m[2])?365:30):(/\b(ano|year)\b/.test(n)?365:180);
+  const now=Date.now(),age=v=>{const t=v.pwUpdated||v.createdAt;return t?now-t:null;};
+  const L=aurVault().filter(v=>{const a=age(v);return a!=null&&a>=days*864e5;}).sort((a,b)=>age(b)-age(a));
+  const since=d=>{const y=Math.floor(d/365);return y>=1?aurL('há '+y+(y===1?' ano':' anos'),y+(y===1?' year':' years')+' ago'):aurL('há '+Math.floor(d/30)+' meses',Math.floor(d/30)+' months ago');};
+  const note=aurL('\n<i>(conta desde a última mudança da password — a app não regista quando usas cada conta)</i>','\n<i>(counted from the last password change — the app doesn’t track when you use each account)</i>');
+  if(!L.length)return aurSay(aurL('✅ Nenhuma password com mais de '+(days>=365?Math.round(days/365)+(days>=730?' anos':' ano'):Math.round(days/30)+' meses')+'.','✅ No password older than '+(days>=365?Math.round(days/365)+(days>=730?' years':' year'):Math.round(days/30)+' months')+'.')+note);
+  return aurSay(aurL('🕰️ <b>'+L.length+'</b> '+(L.length===1?'conta tem':'contas têm')+' a password sem mudar há muito tempo:\n','🕰️ <b>'+L.length+'</b> '+(L.length===1?'account has':'accounts have')+' an old password:\n')+L.slice(0,10).map(v=>'• <b>'+aurEsc(v.name)+'</b> — '+since(Math.floor(age(v)/864e5))).join('\n')+(L.length>10?'\n…':'')+note,
+    aurNamesChips(L,v=>aurChangePwOn(v,F)));
+}
 /* ══ v9.70 — ＋ ADICIONAR · GRAVAÇÃO AUTOMÁTICA · MODO SIMPLES/COMPLETO · PRIMEIROS PASSOS ══ */
 const AV_ADD=[
  {k:'password',ic:'🔑',t:['Password','Password'],d:['Login de um site ou app','Login for a site or app'],n:['Nova password','New password'],tab:'vault',run:()=>openModal()},
