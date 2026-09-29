@@ -3,7 +3,21 @@
    Compreende português e inglês e responde na língua em que lhe escrevem. 100% local e offline. */
 const AUR={last:null,pending:null,resume:null,acts:[],hist:[],hIdx:-1,lang:'pt'};
 const AUR_PASS={pass:true};
-const AUR_PRE=[];   // pedidos tratados antes dos outros (ver src/20-aurora-entende.js)
+/* ── motor: um pedido passa por ETAPAS (por ordem) e depois pelas INTENÇÕES (por prioridade) ──
+   Etapas: tratam o pedido inteiro antes de o perceber (desfazer, avisos, conversa, alcunhas, ficheiros).
+   Intenções: cada uma recebe o pedido já percebido (F) e responde ou devolve AUR_PASS.
+   AUR.trace diz quem respondeu — usado nos testes de encaminhamento e para aprender o que falhou. */
+const AUR_STAGES=[];
+function aurStage(name,order,fn){AUR_STAGES.push({name,order,fn});AUR_STAGES.sort((a,b)=>a.order-b.order);}
+function aurRunStages(raw,i){const s=AUR_STAGES[i];if(!s)return aurCore(raw);AUR.trace='stage:'+s.name;return s.fn(raw,r=>aurRunStages(r,i+1));}
+function aurHandle(raw){return aurRunStages(raw,0);}
+const AUR_INTENTS=[];
+function aurIntent(name,prio,fn,safe){
+  if(AUR_INTENTS.some(x=>x.name===name))throw new Error('Intenção repetida: '+name);
+  AUR_INTENTS.push({name,prio,fn:safe?F=>{try{return fn(F);}catch(e){return AUR_PASS;}}:fn,seq:AUR_INTENTS.length});
+  AUR_INTENTS.sort((a,b)=>a.prio-b.prio||a.seq-b.seq);
+}
+const AUR_FRAME_HOOKS=[];   // ajustam o pedido percebido (ex.: alcunhas aprendidas)
 const aurA=x=>Array.isArray(x)?x:[];
 function aurL(pt,en){return AUR.lang==='en'?en:pt;}
 function aurAppLang(){return typeof currentLang!=='undefined'&&currentLang==='en'?'en':'pt';}
@@ -335,7 +349,9 @@ function aurFrame(raw){
   const hasDomain=[...c].some(x=>x.indexOf('D_')===0);
   const yes=/^(sim|s|siga|confirmo|confirma|confirmar|ok|okay|okey|pode|podes|pode ser|avanca|avancar|claro|isso|exato|certo|faz|faz isso|sim por favor|yes|y|yeah|yep|yup|sure|confirm|confirmed|do it|go ahead|go|please do|correct|right|bora|vamos|vai|confirmado)$/.test(n);
   const no=/^(nao|n|cancela|cancelar|esquece|deixa|deixa estar|nao obrigado|para|stop|no|nope|nah|cancel|never mind|nevermind|forget it|dont|nada)$/.test(n);
-  return {raw:r,n,toks,Q,Qset,c,fields,cands,best,confident,persons,labelHits,terms,stab,hasAction,hasDomain,yes,no,date:null,suggest};
+  const F={raw:r,n,toks,Q,Qset,c,fields,cands,best,confident,persons,labelHits,terms,stab,hasAction,hasDomain,yes,no,date:null,suggest};
+  for(const h of AUR_FRAME_HOOKS)h(F);
+  return F;
 }
 
 /* ── saída ── */
@@ -383,23 +399,24 @@ const AUR_QUICK=[['O que expira?','o que expira nos proximos 3 meses','What expi
 function aurQuickChips(){return AUR_QUICK.map(q=>({label:aurL(q[0],q[2]),fn:()=>aurQuick(aurL(q[1],q[3]))}));}
 
 /* ═══════════ DECISÃO ═══════════ */
-function aurHandle(raw){
-  raw=(raw||'').trim();if(!raw)return;
+function aurCore(raw){
+  raw=(raw||'').trim();if(!raw)return;AUR.trace='core';
   const F=aurFrame(raw);const c=F.c;
   const skip=new Set();F.cands.filter(e=>e.score>=0.5).forEach(e=>aurNorm(e.name).replace(/[^a-z0-9\s-]/g,' ').split(/\s+/).forEach(w=>{if(w)skip.add(w);}));
   const dl=aurDetectLang(raw,skip);if(dl)AUR.lang=dl;
   F.date=aurParseDate(F.n);
-  if(AUR.pending){const p=AUR.pending;
+  if(AUR.pending){const p=AUR.pending;AUR.trace='pending';
     if(F.yes){AUR.pending=null;return p.ok?p.ok():aurSay('Ok.');}
     if(F.no){AUR.pending=null;return aurSay(aurL('Ok, cancelado.','Ok, cancelled.'));}
     if(p.withText&&(!F.hasAction||p.type==='askDate')){AUR.pending=null;return p.withText(raw,F);}
     AUR.pending=null;
   }
-  if((F.yes||F.no)&&!F.confident)return aurSay(aurL('Não havia nada à espera de confirmação.','There was nothing waiting for confirmation.'));
-  if(c.has('HELP'))return aurHelp();
+  if((F.yes||F.no)&&!F.confident){AUR.trace='yesno';return aurSay(aurL('Não havia nada à espera de confirmação.','There was nothing waiting for confirmation.'));}
+  if(c.has('HELP')){AUR.trace='help';return aurHelp();}
   if((c.has('HELLO')||c.has('THANKS'))&&![...c].some(x=>AUR_ACTIONS.has(x)||x.indexOf('D_')===0)&&!F.confident)return aurSmall(F);
   if(c.has('CLOSE')&&!F.hasDomain){aurSay(aurL('Até já! ✨','See you soon! ✨'));aurClose(true);return true;}
-  for(const h of [...AUR_PRE,aurDocReadAll,aurDocSearch,aurDocFacts,aurCardSecret,aurBreach,aurSamePw,aurOld,aurVehicleDate,aurCatAccount,aurDocsAbout]){const r=h(F);if(r!==AUR_PASS)return r;}
+  for(const it of AUR_INTENTS){const r=it.fn(F);if(r!==AUR_PASS){AUR.trace=it.name;return r;}}
+  AUR.trace='core';
   if(c.has('D_MASTER'))return aurSettings('seguranca',aurL('A palavra-passe mestra, o PIN, a biometria e o auto-bloqueio mudam-se em Definições → Segurança — por segurança não os altero pela conversa. Abri-te lá.','The master password, PIN, biometrics and auto-lock are changed in Settings → Security — for safety I don’t change them through chat. I opened it for you.'));
   if(c.has('D_2FA')||c.has('D_2FAW')){const r=aur2fa(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_EXPIRY')&&!(c.has('SCHEDULE')&&F.date)&&!(c.has('D_PW')&&!/expir|caduc|venc|validade|valid/.test(F.n)))return aurExpiry(F);
@@ -441,13 +458,21 @@ function aurHandle(raw){
   if(c.has('D_WIFI')&&!(F.best&&F.best.type==='wifi'&&F.confident))return aurWifi(F);
   if(!F.hasDomain&&!F.confident&&/\b(tenho|ha|acontece|marcado|have|there|coming|upcoming|happening|scheduled)\b/.test(F.n)&&aurPeriod(F.n).explicit)return aurCal(Object.assign({},F,{n:F.n+' eventos'}));
   if(F.confident)return aurOpenEnt(F.best,F,c.has('OPEN'));
-  if(F.suggest&&!F.confident){const fixed=F.n.split(' ').map(w=>w===F.suggest.from?F.suggest.to:w).join(' ');return aurSay(aurL('Querias dizer «<b>','Did you mean «<b>')+aurEsc(fixed)+'</b>»?',[{label:aurL('Sim, ','Yes, ')+F.suggest.to,fn:()=>aurQuick(fixed)},{label:aurL('Não','No'),fn:()=>aurSay(aurL('Ok — diz-me de outra forma.','Ok — try saying it another way.'))}]);}
+  if(F.suggest&&!F.confident){AUR.trace='suggest';const fixed=F.n.split(' ').map(w=>w===F.suggest.from?F.suggest.to:w).join(' ');return aurSay(aurL('Querias dizer «<b>','Did you mean «<b>')+aurEsc(fixed)+'</b>»?',[{label:aurL('Sim, ','Yes, ')+F.suggest.to,fn:()=>aurQuick(fixed)},{label:aurL('Não','No'),fn:()=>aurSay(aurL('Ok — diz-me de outra forma.','Ok — try saying it another way.'))}]);}
   const strong=F.cands.filter(e=>e.score>=0.5);
   if(strong.length>1)return aurChoose(strong,F);
   const tab=aurDomainTab(c);
   if(tab&&!F.terms.length)return aurGoTab(tab);
   return aurFind(F,tab);
 }
+// intenções do motor base (prioridade 500+); os módulos seguintes registam as suas antes (100–499)
+[['docs.lerTodos',aurDocReadAll],['docs.procurar',aurDocSearch],['docs.dados',aurDocFacts],['cartao.segredo',aurCardSecret],['seguranca.fuga',aurBreach],
+ ['seguranca.mesmaPw',aurSamePw],['seguranca.antigas',aurOld],['veiculo.datas',aurVehicleDate],['conta.categoria',aurCatAccount],['docs.sobre',aurDocsAbout]]
+  .forEach(([name,fn],i)=>aurIntent(name,500+i*10,F=>fn(F)));
+// no motor base, a primeira função de resposta chamada diz o caminho (ex.: core:aurExpiry)
+['aur2fa','aurExpiry','aurSummary','aurAudit','aurGenerate','aurChangePw','aurChangeUser','aurRename','aurInfoSet','aurSchedule','aurTheme','aurPriv','aurLang',
+ 'aurEmptyTrash','aurRestore','aurArchive','aurDelete','aurAdd','aurCopyCmd','aurInfo','aurExport','aurSettings','aurList','aurEmails','aurFuel','aurSubs','aurCount','aurCal','aurWifi','aurOpenEnt','aurChoose','aurGoTab','aurSmall']
+  .forEach(nm=>{const f=typeof window!=='undefined'&&window[nm];if(typeof f!=='function')return;window[nm]=function(){if(AUR.trace==='core')AUR.trace='core:'+nm;return f.apply(this,arguments);};});
 
 function aurDomainTab(c){
   const map=[['D_2FA','totp'],['D_BANK','cards'],['D_STORE','store'],['D_CARD','cards'],['D_DOC','docs'],['D_NOTE','notes'],['D_INFO','info'],['D_FIELD','info'],['D_WARRANTY','warranty'],['D_LICENSE','license'],['D_VEHICLE','vehicle'],['D_DATES','dates'],['D_ASSETS','warranty'],['D_TRASH','trash'],['D_ARCHIVE','archive'],['D_DASH','dashboard'],['D_PW','vault'],['D_VAULT','vault']];
@@ -473,7 +498,7 @@ function aurHelp(){
   '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
   '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
   '💶 <b>Spending & tidying</b>: "how much did I spend this month", "compare with last month", "tidy up my vault", "undo"\n'+
-  '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank"\n'+
+  '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank", "that\'s wrong", "what didn\'t you understand?"\n'+
   '💬 <b>Conversation</b>: "and for netflix?", "and in july?", "copy it", "show gmail and then copy the password", "the second one", "again"',aurQuickChips());
   return aurSay('✨ <b>O que eu sei fazer — em todo o cofre</b>\n'+
   '🔑 <b>Passwords</b>: "abre o gmail", "qual a password da revolut", "copia a password do paypal", "muda a password do gmail", "adiciona a netflix com user x e pass y", "gera uma password forte / fácil de decorar"\n'+
@@ -492,7 +517,7 @@ function aurHelp(){
   '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
   '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
   '💶 <b>Gastos e arrumação</b>: "quanto gastei este mês no total", "compara com o mês passado", "arruma o meu cofre", "desfaz", "quanto recebi de ordenado"\n'+
-  '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco"\n'+
+  '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco", "não era isso", "o que não percebeste?"\n'+
   '💬 <b>Conversa</b>: "e do netflix?", "e em julho?", "copia-a", "mostra o gmail e depois copia a password", "o segundo", "repete"\n'+
   '🌍 Também percebo inglês — respondo na língua em que me escreves.',aurQuickChips());
 }
@@ -1013,17 +1038,18 @@ function aurEmails(){
 /* ── procura livre (último recurso — nunca fica sem resposta útil) ── */
 function aurFind(F,tab){
   const terms=F.terms;
-  if(!terms.length)return aurSay(aurL('Diz-me um pouco mais — por exemplo:','Tell me a bit more — for example:'),aurQuickChips().concat([{label:aurL('Tudo o que sei fazer','Everything I can do'),fn:aurHelp}]));
+  if(!terms.length){AUR.trace='vague';return aurSay(aurL('Diz-me um pouco mais — por exemplo:','Tell me a bit more — for example:'),aurQuickChips().concat([{label:aurL('Tudo o que sei fazer','Everything I can do'),fn:aurHelp}]));}
   const q=terms.join(' ');const E=aurIndex();
   let hits=F.cands.filter(e=>e.score>=0.34&&e.type!=='theme');
   const seen=new Set(hits.map(h=>h.obj));
   E.forEach(e=>{if(seen.has(e.obj)||e.type==='theme')return;if(e.extra&&terms.some(t=>t.length>=3&&e.extra.indexOf(t)>=0)){hits.push(Object.assign({},e,{score:0.3}));seen.add(e.obj);}});
   const infoRows=[];aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>aurA(p&&p.fields).forEach(f=>{const hay=aurNorm((f.label||'')+' '+(f.value||''));if(terms.some(t=>t.length>=3&&hay.indexOf(t)>=0))infoRows.push({p,f});}));
-  if(hits.length===1&&hits[0].score>=0.5&&!infoRows.length)return aurOpenEnt(hits[0],F,true);
-  if(hits.length||infoRows.length){const ch=hits.slice(0,8).map(e=>({label:aurEntLabel(e),fn:()=>aurOpenEnt(e,F,true)}));infoRows.slice(0,4).forEach(r=>ch.push({label:r.f.label+' · '+String(r.p.name).split(' ')[0],fn:()=>aurPersonCard([r.p],[r],false)}));return aurSay(aurL('Encontrei isto sobre «','Here’s what I found for «')+aurEsc(q)+'»:',ch);}
+  if(hits.length===1&&hits[0].score>=0.5&&!infoRows.length){AUR.trace='find:one';return aurOpenEnt(hits[0],F,true);}
+  if(hits.length||infoRows.length){AUR.trace='find:hits';const ch=hits.slice(0,8).map(e=>({label:aurEntLabel(e),fn:()=>aurOpenEnt(e,F,true)}));infoRows.slice(0,4).forEach(r=>ch.push({label:r.f.label+' · '+String(r.p.name).split(' ')[0],fn:()=>aurPersonCard([r.p],[r],false)}));return aurSay(aurL('Encontrei isto sobre «','Here’s what I found for «')+aurEsc(q)+'»:',ch);}
   const near=[];const used=new Set();
   E.forEach(e=>{if(e.type==='theme')return;let bd=99;e.toks.forEach(t=>terms.forEach(x=>{if(x.length>=3&&t.length>=3){const d=aurLev(x,t);if(d<bd)bd=d;}}));const lim=Math.max(2,Math.floor(Math.max(...e.toks.map(t=>t.length))/3));if(bd<=lim&&!used.has(e.obj)){near.push({e,d:bd});used.add(e.obj);}});
   near.sort((a,b)=>a.d-b.d);
+  AUR.trace=near.length?'find:near':'find:none';
   if(near.length)return aurSay(aurL('Não encontrei «','I couldn’t find «')+aurEsc(q)+aurL('». Querias dizer:','». Did you mean:'),near.slice(0,6).map(x=>({label:aurEntLabel(x.e),fn:()=>aurOpenEnt(x.e,F,true)})));
   return aurSay(aurL('Não encontrei «','I couldn’t find «')+aurEsc(q)+aurL('» em nenhuma parte do cofre (passwords, 2FA, documentos, cartões, notas, Info, bens, subscrições, Wi-Fi).','» anywhere in your vault (passwords, 2FA, documents, cards, notes, Info, assets, subscriptions, Wi-Fi).'),[tab?{label:aurL('Abrir ','Open ')+aurTabShort(tab),fn:()=>aurGoTab(tab)}:null,{label:aurL('Tudo o que sei fazer','Everything I can do'),fn:aurHelp}]);
 }

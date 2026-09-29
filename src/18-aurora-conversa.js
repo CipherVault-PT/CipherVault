@@ -28,6 +28,7 @@ function aurcPronoun(raw){
   const ent=aurcEnt();if(!ent||!ent.name)return raw;
   const clit=/([a-zà-ú])-(o|a|os|as|lo|la|los|las)\b/i;
   const n=aurCanon(raw);
+  if(/^(nao|no|nope|errado|wrong)\b/.test(n))return raw;   // «não era isso» é uma correção, não um pronome
   if(!clit.test(raw)&&!/\b(dele|dela|deles|delas|desse|dessa|deste|desta|nele|nela|nesse|nessa|isso|essa|esse|it|its|that one|this one)\b/.test(n))return raw;
   const F=aurFrame(raw.replace(clit,'$1'));
   if(F.yes||F.no||F.confident)return raw;
@@ -123,10 +124,10 @@ function aurcRun(steps,base,first=true){
 }
 
 (function(){
-  const base=aurHandle,say=aurSay,open=aurOpenEnt;
+  const say=aurSay,open=aurOpenEnt;
   aurSay=function(html,chips,cls){if(!cls||cls==='ai'){const l=(chips||[]).filter(Boolean);AURC.chips=l.length?l:null;}return say(html,chips,cls);};
   aurOpenEnt=function(e,F,o){if(e&&e.obj)AUR.last=e;return open(e,F,o);};
-  aurHandle=function(raw){
+  aurStage('conversa',30,(raw,base)=>{
     raw=(raw||'').trim();if(!raw)return;
     if(AURC.depth)return base(raw);
     if(AUR.pending){AURC.depth++;try{return base(raw);}finally{AURC.depth--;}}
@@ -140,5 +141,5 @@ function aurcRun(steps,base,first=true){
     const steps=aurcSplit(raw);
     if(steps.length>1)return aurcRun(steps,base);
     return aurcOne(aurcPronoun(raw),base);
-  };
+  });
 })();

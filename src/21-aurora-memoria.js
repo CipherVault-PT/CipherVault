@@ -36,10 +36,8 @@ function aurMemPick(F,e){
 
 (function(){
   // aplicar o que aprendeu: a entidade da alcunha passa a ser a escolha certa
-  const frame=aurFrame;
-  aurFrame=function(raw){
-    const F=frame(raw);
-    let A;try{A=aurMem().alias;}catch(e){return F;}
+  AUR_FRAME_HOOKS.push(F=>{
+    let A;try{A=aurMem().alias;}catch(e){return;}
     const keys=Object.keys(A).sort((a,b)=>b.split(' ').length-a.split(' ').length);
     for(const k of keys){
       const kt=k.split(' ');if(!kt.every(t=>F.Qset.has(t)))continue;
@@ -52,8 +50,7 @@ function aurMemPick(F,e){
       if(e.type==='person')F.persons=[c];
       break;
     }
-    return F;
-  };
+  });
   // escolhas feitas nas listas da Aurora
   const choose=aurChoose;
   aurChoose=function(cs,F,title,fn){
@@ -61,7 +58,7 @@ function aurMemPick(F,e){
   };
 })();
 
-aurPre(F=>{
+aurPre('memoria',400,F=>{
   const n=F.n;
   // «o que aprendeste?», «esquece banco», «esquece tudo o que aprendeste»
   if(!/^(esquece|esquecer|forget)\b/.test(n)&&/\b(o que (aprendeste|sabes de mim|memorizaste)|que alcunhas|as minhas alcunhas|what have you learn(ed|t)|what did you learn)\b/.test(n)){
@@ -103,6 +100,44 @@ aurPre(F=>{
     aurHandle(q);
     if(learn)aurSay(aurMemNote(key,e));
     return true;
+  }
+  return AUR_PASS;
+});
+
+/* ── frases que a Aurora não percebeu: guardadas (encriptadas, com dados sensíveis tapados) para ela melhorar ── */
+const AURM={depth:0,lastQ:'',prevQ:''};
+const AUR_MISS=new Set(['vague','find:none','find:near','suggest']);
+function aurMaskSecrets(t){
+  return String(t||'').replace(/\bPT\s?\d{2}(?:\s?\d){19,23}\b/gi,'«IBAN»').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,'«email»')
+    .replace(/\b\d{5,}\b/g,'«nº»').replace(/(?=\S*\d)(?=\S*[A-Za-z])[^\s«»]{6,}/g,'«…»').slice(0,160);
+}
+function aurMissLog(q,why){
+  q=aurMaskSecrets(q).trim();if(!q)return;
+  const m=aurMem();m.missed=aurA(m.missed).filter(x=>aurNorm(x.q)!==aurNorm(q));
+  m.missed.unshift({q,why,at:Date.now()});if(m.missed.length>60)m.missed.length=60;aurMemSave();
+}
+aurStage('aprender',5,(raw,next)=>{
+  if(AURM.depth)return next(raw);
+  const pend=!!AUR.pending;AURM.depth++;let r;
+  try{r=next(raw);}finally{AURM.depth--;}
+  try{if(!pend&&AUR_MISS.has(AUR.trace))aurMissLog(raw,AUR.trace);}catch(e){}
+  AURM.prevQ=AURM.lastQ;AURM.lastQ=String(raw||'');
+  return r;
+});
+aurPre('aprender',395,F=>{
+  const n=F.n;
+  // «não era isso» → a resposta anterior estava errada
+  if(/^(nao era (isso|isto|nada disso)|nao e (isso|isto)( que eu queria)?|nao era o que eu queria|percebeste mal|nao percebeste|resposta errada|enganaste te|that s wrong|wrong answer|not what i meant|you misunderstood)$/.test(n)){
+    if(!AURM.lastQ)return aurSay(aurL('Diz-me por outras palavras o que querias.','Tell me in other words what you wanted.'));
+    aurMissLog(AURM.lastQ,'user');
+    return aurSay(aurL('Obrigada — anotei «'+aurEsc(aurMaskSecrets(AURM.lastQ))+'» como algo que percebi mal. Diz-me por outras palavras o que querias?','Thanks — I noted “'+aurEsc(aurMaskSecrets(AURM.lastQ))+'” as something I got wrong. Could you say it another way?'));
+  }
+  if(/\b(o que nao (percebeste|entendeste|conseguiste)|frases que nao (percebeste|entendeste)|o que falhou|o que nao sabes|what didn t you understand|what you didn t understand|missed (phrases|requests))\b/.test(n)){
+    const L=aurA(aurMem().missed);
+    if(!L.length)return aurSay(aurL('✅ Não tenho frases por perceber. Se eu errar, diz «não era isso» e eu anoto.','✅ Nothing I missed so far. If I get something wrong, say “that’s wrong” and I’ll note it.'));
+    const txt=L.map(x=>'• '+x.q).join('\n');
+    return aurSay(aurL('🧩 Frases que não percebi ('+L.length+') — os dados sensíveis ficam tapados:','🧩 Phrases I didn’t get ('+L.length+') — sensitive data is hidden:')+'\n'+aurEsc(L.slice(0,15).map(x=>'• '+x.q).join('\n'))+(L.length>15?'\n…':'')+aurL('\n<span class="a-dim">Copia a lista e envia-a a quem mantém a app, para eu aprender estas frases.</span>','\n<span class="a-dim">Copy the list and send it to whoever maintains the app so I can learn them.</span>'),
+      [{label:aurL('📋 Copiar lista','📋 Copy list'),fn:()=>{aurCopy(txt,aurL('Lista copiada','List copied'));return true;}},{label:aurL('Limpar lista','Clear list'),fn:()=>{aurMem().missed=[];aurMemSave();return aurSay(aurL('🧹 Lista limpa.','🧹 List cleared.'));}}]);
   }
   return AUR_PASS;
 });
