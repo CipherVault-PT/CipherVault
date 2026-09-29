@@ -378,8 +378,8 @@ function renderDashboard(){
       };
       actList.innerHTML=activityLog.slice(0,8).map(a=>`
         <div class="activity-item">
-          <span class="activity-icon">${a.icon||'📝'}</span>
-          <div class="activity-text"><strong>${actionLabels[a.action]||a.action}</strong> ${esc(a.name)}</div>
+          <span class="activity-icon">${esc(a.icon||'📝')}</span>
+          <div class="activity-text"><strong>${esc(actionLabels[a.action]||a.action)}</strong> ${esc(a.name)}</div>
           <span class="activity-time">${timeAgo(a.ts)}</span>
         </div>`).join('');
     }

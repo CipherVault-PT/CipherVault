@@ -113,7 +113,7 @@ aurPre('cartao.validadeLista',240,F=>{
     return aurSay('💳 '+aurL('Cartão <b>','<b>')+aurEsc(c.name||c.bank)+aurL('</b>: válido até <b>','</b> card: valid until <b>')+c.expiry+'</b> ('+aurRel(d)+').');
   }
   if(/^(que|quais|quantos|mostra|lista|os meus|as minhas|what|which|list|show)\b/.test(n)&&/\bcartoes\b|\bcards\b|\bcartao bancario\b/.test(n)&&!named.length&&!/\bloja\b/.test(n)&&!aurHas(F,'D_EXPIRY')){
-    return aurSay(aurL('💳 Tens <b>'+C.length+'</b> '+(C.length===1?'cartão':'cartões')+':','💳 You have <b>'+C.length+'</b> '+(C.length===1?'card':'cards')+':')+'\n'+C.map(c=>'• <b>'+aurEsc(c.name||c.bank)+'</b> ···· '+aurEsc(String(c.number||'').slice(-4))+(c.expiry?' · '+c.expiry:'')).join('\n'),C.slice(0,6).map(c=>({label:c.name||c.bank,fn:()=>aurOpenEnt({type:'bank',obj:c,name:c.name||c.bank},F,true)})));
+    return aurSay(aurL('💳 Tens <b>'+C.length+'</b> '+(C.length===1?'cartão':'cartões')+':','💳 You have <b>'+C.length+'</b> '+(C.length===1?'card':'cards')+':')+'\n'+C.map(c=>'• <b>'+aurEsc(c.name||c.bank)+'</b> ···· '+aurEsc(String(c.number||'').slice(-4))+(c.expiry?' · '+aurEsc(c.expiry):'')).join('\n'),C.slice(0,6).map(c=>({label:c.name||c.bank,fn:()=>aurOpenEnt({type:'bank',obj:c,name:c.name||c.bank},F,true)})));
   }
   return AUR_PASS;
 });
@@ -342,7 +342,7 @@ aurPre('historico',340,F=>{
     const R=(today?L.filter(a=>a.ts>=t0):L).slice(0,10);
     if(!R.length)return aurSay(today?aurL('Hoje ainda não mudaste nada.','You haven’t changed anything today.'):aurL('Ainda não há atividade registada.','No activity yet.'));
     const verb={add:aurL('adicionaste','added'),edit:aurL('editaste','edited'),delete:aurL('apagaste','deleted'),archive:aurL('arquivaste','archived'),restore:aurL('recuperaste','restored')};
-    return aurSay('🕘 '+(today?aurL('Hoje:','Today:'):aurL('Últimas alterações:','Recent changes:'))+'\n'+R.map(a=>'• '+(a.icon||'📝')+' '+(verb[a.action]||a.action)+' <b>'+aurEsc(a.name)+'</b> <span class="a-dim">'+(typeof timeAgo==='function'?timeAgo(a.ts):'')+'</span>').join('\n'));
+    return aurSay('🕘 '+(today?aurL('Hoje:','Today:'):aurL('Últimas alterações:','Recent changes:'))+'\n'+R.map(a=>'• '+aurEsc(a.icon||'📝')+' '+aurEsc(verb[a.action]||a.action)+' <b>'+aurEsc(a.name)+'</b> <span class="a-dim">'+(typeof timeAgo==='function'?timeAgo(a.ts):'')+'</span>').join('\n'));
   }
   return AUR_PASS;
 });

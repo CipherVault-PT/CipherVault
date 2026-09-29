@@ -179,3 +179,20 @@ if(typeof document!=='undefined'){
     else if(e.key==='Enter'||e.key==='Escape'){if(box){box.innerHTML='';box.hidden=true;}}
   },true);
 }
+
+/* ── ao bloquear (ou trocar de cofre): a Aurora esquece tudo o que tinha em memória e na página ── */
+function aurWipe(){
+  try{const m=document.getElementById('aurora-msgs');if(m){m.innerHTML='';delete m.dataset.greeted;}
+    const s=document.getElementById('aurora-sugg');if(s){s.innerHTML='';s.hidden=true;}
+    const i=document.getElementById('aurora-input');if(i)i.value='';}catch(e){}
+  AUR.pending=null;AUR.last=null;AUR.resume=null;AUR.acts=[];AUR.hist=[];AUR.hIdx=-1;AUR.trace='';
+  if(typeof AURC!=='undefined'){AURC.ctx=null;AURC.chips=null;}
+  AURU.stack=[];AURU.op=null;AURU.last='';
+  AUR_IDX=null;AUR_SUGP=null;
+  if(typeof AURM!=='undefined'){AURM.lastQ='';AURM.prevQ='';}
+  AURL.q=[];
+  if(typeof AVF!=='undefined')AVF.q=null;
+  if(typeof AVDX!=='undefined')AVDX.q=[];
+  if(typeof AVC!=='undefined'){AVC.q=[];AVC.newPw=null;AVC.undo=null;}
+}
+(function(){if(typeof resetVaultState!=='function')return;const r=resetVaultState;resetVaultState=function(){const x=r.apply(this,arguments);aurWipe();return x;};})();
