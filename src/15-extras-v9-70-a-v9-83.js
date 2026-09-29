@@ -523,13 +523,14 @@ async function avOcrText(dataUrl){
 }
 const AVF_KINDS=[
  {k:'identidade',cat:'pessoal',rx:/cartao de cidadao|citizen card|passaporte|passport|carta de conducao|driving licen|bilhete de identidade|titulo de residencia/,t:['documento de identificação','ID document'],f:['identificacao','identidade','pessoal','documentos pessoais']},
+ // o recibo de vencimento traz por lei a apólice do seguro de acidentes de trabalho: tem de ganhar ao «seguro»
+ {k:'trabalho',cat:'trabalho',rx:/contrato de trabalho|recibo de (vencimento|remuneracao|ordenado|salario)|vencimento base|salario base|remuneracao base|liquido a receber|total liquido|entidade patronal|payslip|pay slip|employment contract/,t:['documento de trabalho','work document'],f:['trabalho','emprego','ordenados','vencimentos']},
  {k:'seguro',cat:'pessoal',rx:/apolice|seguro|seguradora|insurance|policy/,t:['apólice de seguro','insurance policy'],f:['seguros','seguro']},
  {k:'carro',cat:'pessoal',rx:/\b(iuc|inspecao|ipo|dua|livrete|imposto unico de circulacao|oficina|revisao do carro)\b/,t:['documento do carro','car document'],f:['carro','automovel','veiculo','viatura','carros']},
  {k:'fatura',cat:'outro',rx:/fatura|factura|invoice|recibo|receipt|talao|garantia|warranty|nota de credito/,t:['fatura / recibo','invoice / receipt'],f:['faturas','garantias','compras','recibos']},
  {k:'saude',cat:'saude',rx:/receita medica|analises|relatorio medico|consulta|hospital|clinica|vacina|atestado medico/,t:['documento de saúde','health document'],f:['saude','medico','medicos']},
  {k:'banco',cat:'banco',rx:/extrato|credito habitacao|emprestimo|contrato de credito|bank statement|mortgage|\biban\b/,t:['documento bancário','bank document'],f:['banco','bancos','financas']},
  {k:'impostos',cat:'juridico',rx:/\birs\b|autoridade tributaria|\bimi\b|declaracao de rendimentos|nota de liquidacao|tax return/,t:['documento de impostos','tax document'],f:['impostos','irs','financas']},
- {k:'trabalho',cat:'trabalho',rx:/contrato de trabalho|recibo de vencimento|entidade patronal|payslip|employment contract/,t:['documento de trabalho','work document'],f:['trabalho','emprego']},
  {k:'casa',cat:'juridico',rx:/escritura|caderneta predial|licenca de utilizacao|contrato de arrendamento|condominio|projeto de arquitetura/,t:['documento da casa','home document'],f:['casa','habitacao']},
  {k:'escola',cat:'educacao',rx:/certificado de habilitacoes|diploma|matricula escolar|universidade|escola|certificado de formacao/,t:['documento de educação','education document'],f:['educacao','escola','formacao']}
 ];

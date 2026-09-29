@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.17';
+const APP_VERSION='10.18';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -9987,6 +9987,7 @@ function aurHelp(){
   '⚙️ <b>Actions</b>: "save", "sync", "back up", "export to pdf", "open digital legacy", "lock"\n'+
   '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
   '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
+  '💶 <b>Spending & tidying</b>: "how much did I spend this month", "compare with last month", "tidy up my vault", "undo"\n'+
   '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank"\n'+
   '💬 <b>Conversation</b>: "and for netflix?", "and in july?", "copy it", "show gmail and then copy the password", "the second one", "again"',aurQuickChips());
   return aurSay('✨ <b>O que eu sei fazer — em todo o cofre</b>\n'+
@@ -10005,6 +10006,7 @@ function aurHelp(){
   '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"\n'+
   '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
   '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
+  '💶 <b>Gastos e arrumação</b>: "quanto gastei este mês no total", "compara com o mês passado", "arruma o meu cofre", "desfaz", "quanto recebi de ordenado"\n'+
   '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco"\n'+
   '💬 <b>Conversa</b>: "e do netflix?", "e em julho?", "copia-a", "mostra o gmail e depois copia a password", "o segundo", "repete"\n'+
   '🌍 Também percebo inglês — respondo na língua em que me escreves.',aurQuickChips());
@@ -11476,13 +11478,14 @@ async function avOcrText(dataUrl){
 }
 const AVF_KINDS=[
  {k:'identidade',cat:'pessoal',rx:/cartao de cidadao|citizen card|passaporte|passport|carta de conducao|driving licen|bilhete de identidade|titulo de residencia/,t:['documento de identificação','ID document'],f:['identificacao','identidade','pessoal','documentos pessoais']},
+ // o recibo de vencimento traz por lei a apólice do seguro de acidentes de trabalho: tem de ganhar ao «seguro»
+ {k:'trabalho',cat:'trabalho',rx:/contrato de trabalho|recibo de (vencimento|remuneracao|ordenado|salario)|vencimento base|salario base|remuneracao base|liquido a receber|total liquido|entidade patronal|payslip|pay slip|employment contract/,t:['documento de trabalho','work document'],f:['trabalho','emprego','ordenados','vencimentos']},
  {k:'seguro',cat:'pessoal',rx:/apolice|seguro|seguradora|insurance|policy/,t:['apólice de seguro','insurance policy'],f:['seguros','seguro']},
  {k:'carro',cat:'pessoal',rx:/\b(iuc|inspecao|ipo|dua|livrete|imposto unico de circulacao|oficina|revisao do carro)\b/,t:['documento do carro','car document'],f:['carro','automovel','veiculo','viatura','carros']},
  {k:'fatura',cat:'outro',rx:/fatura|factura|invoice|recibo|receipt|talao|garantia|warranty|nota de credito/,t:['fatura / recibo','invoice / receipt'],f:['faturas','garantias','compras','recibos']},
  {k:'saude',cat:'saude',rx:/receita medica|analises|relatorio medico|consulta|hospital|clinica|vacina|atestado medico/,t:['documento de saúde','health document'],f:['saude','medico','medicos']},
  {k:'banco',cat:'banco',rx:/extrato|credito habitacao|emprestimo|contrato de credito|bank statement|mortgage|\biban\b/,t:['documento bancário','bank document'],f:['banco','bancos','financas']},
  {k:'impostos',cat:'juridico',rx:/\birs\b|autoridade tributaria|\bimi\b|declaracao de rendimentos|nota de liquidacao|tax return/,t:['documento de impostos','tax document'],f:['impostos','irs','financas']},
- {k:'trabalho',cat:'trabalho',rx:/contrato de trabalho|recibo de vencimento|entidade patronal|payslip|employment contract/,t:['documento de trabalho','work document'],f:['trabalho','emprego']},
  {k:'casa',cat:'juridico',rx:/escritura|caderneta predial|licenca de utilizacao|contrato de arrendamento|condominio|projeto de arquitetura/,t:['documento da casa','home document'],f:['casa','habitacao']},
  {k:'escola',cat:'educacao',rx:/certificado de habilitacoes|diploma|matricula escolar|universidade|escola|certificado de formacao/,t:['documento de educação','education document'],f:['educacao','escola','formacao']}
 ];
@@ -12858,15 +12861,25 @@ function avDocFacts(text,name){
   m=raw.toUpperCase().match(/\b([A-Z]{2}[-\s]\d{2}[-\s][A-Z]{2}|\d{2}[-\s][A-Z]{2}[-\s]\d{2}|\d{2}[-\s]\d{2}[-\s][A-Z]{2}|[A-Z]{2}[-\s]\d{2}[-\s]\d{2})\b/);if(m)f.plate=m[1].replace(/\s/g,'-');
   const nifs=new Set();lines.forEach(l=>{if(/nif|contribuinte|nipc|fiscal|vat|tax/i.test(aurNorm(l)))(l.match(/\b\d{9}\b/g)||[]).forEach(n=>{if(avNifOk(n))nifs.add(n);});});if(nifs.size)f.nifs=[...nifs];
   const ibans=new Set();(raw.toUpperCase().match(/\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]){11,30}\b/g)||[]).forEach(s=>{const c=s.replace(/\s+/g,'');if(avIbanOk(c))ibans.add(c);});if(ibans.size)f.ibans=[...ibans];
+  // recibo de vencimento: líquido e bruto; a apólice do seguro de acidentes de trabalho não é um seguro teu
+  if(f.kind==='trabalho'){
+    const amt=rx=>{for(let i=0;i<lines.length;i++)if(near(rx,i)){const src=/\d[.,]\d{2}/.test(lines[i])?lines[i]:(lines[i+1]||'');const all=[...src.matchAll(moneyRe)].map(m=>avMoney(m[1])).filter(v=>v!=null);if(all.length)return all[all.length-1];}return null;};
+    f.net=amt(/\b(liquido a receber|total liquido|valor liquido|liquido|net pay)\b/);
+    f.gross=amt(/\b(total iliquido|remuneracao bruta|total de abonos|total bruto|iliquido|gross pay)\b/);
+    if(f.net!=null)f.total=f.net;
+    if(!f.issueDate&&f.startDate)f.issueDate=f.startDate;
+    delete f.policy;delete f.plate;
+  }
   Object.keys(f).forEach(k=>{if(f[k]===''||f[k]==null)delete f[k];});
   return f;
 }
 
 /* ── ler documentos (um de cada vez, em segundo plano) ── */
 const AVDX={q:[],busy:false};
+const AV_FACTS_V=2;   // sobe quando a leitura dos dados melhora: os documentos já lidos são revistos ao abrir o cofre
 function avDocSetText(d,text,src){
   d.text=String(text||'').slice(0,DOC_TEXT_MAX);d.textSrc=src||'';d.textAt=Date.now();
-  d.facts=avDocFacts(d.text,d.file&&d.file.name);
+  d.facts=avDocFacts(d.text,d.file&&d.file.name);d.factsV=AV_FACTS_V;
   if(!d.expiry&&d.facts.expiry&&(d.facts.kind==='identidade'||d.cat==='pessoal'))d.expiry=d.facts.expiry;
 }
 function avDocIndexLater(ids,opts){(ids||[]).forEach(id=>{if(!AVDX.q.some(x=>x.id===id))AVDX.q.push({id,opts:opts||{}});});avDocIndexRun();}
@@ -12901,13 +12914,20 @@ async function avDocIndexRun(){
   };
 })();
 // ao abrir o cofre: lê em segundo plano os PDFs ainda por ler (as fotos só a pedido — o OCR é mais pesado)
-function avDocIndexPending(){try{if(!masterKey)return;avDocIndexLater(documents.filter(d=>d.file&&!d.textAt&&!/^image\//.test(d.file.type||'')).map(d=>d.id),{ocr:false});}catch(e){}}
+function avDocRefreshFacts(){
+  let n=0;
+  documents.forEach(d=>{if(d.text&&(d.factsV||1)<AV_FACTS_V){d.facts=avDocFacts(d.text,d.file&&d.file.name);d.factsV=AV_FACTS_V;n++;}});
+  if(n&&typeof markUnsaved==='function')markUnsaved();
+  return n;
+}
+function avDocIndexPending(){try{if(!masterKey)return;avDocRefreshFacts();avDocIndexLater(documents.filter(d=>d.file&&!d.textAt&&!/^image\//.test(d.file.type||'')).map(d=>d.id),{ocr:false});}catch(e){}}
 (function(){if(typeof doUnlock!=='function')return;const du=doUnlock;doUnlock=function(){const r=du.apply(this,arguments);setTimeout(avDocIndexPending,4000);return r;};})();
 
 /* ── depois de guardar pela Aurora: resumo do que leu + ações sugeridas ── */
 function avFactsLine(f){
   const p=[];if(f.entity)p.push('<b>'+aurEsc(f.entity)+'</b>');
-  if(f.total!=null)p.push(aurL('total ','total ')+'<b>'+aurMoney(f.total)+'</b>');
+  if(f.kind==='trabalho'&&f.net!=null){p.push(aurL('líquido ','net ')+'<b>'+aurMoney(f.net)+'</b>');if(f.gross!=null)p.push(aurL('bruto ','gross ')+aurMoney(f.gross));}
+  else if(f.total!=null)p.push(aurL('total ','total ')+'<b>'+aurMoney(f.total)+'</b>');
   if(f.issueDate)p.push(aurL('emitido a ','issued ')+aurDate(f.issueDate));
   if(f.dueDate)p.push(aurL('pagar até ','due ')+aurDate(f.dueDate));
   if(f.policy)p.push(aurL('apólice ','policy ')+'<b>'+aurEsc(f.policy)+'</b>');
@@ -12925,7 +12945,9 @@ function avDocSuggest(d){
     const a={id:'a'+Date.now().toString(36),kind:'warranty',name:d.title,store:f.entity||'',price:String(f.total),buyDate:f.issueDate||new Date().toISOString().slice(0,10),years:'3',attachments:[{id:'x'+Date.now().toString(36),name:d.file.name,type:d.file.type,size:d.file.size,data:d.file.data}]};
     assets.push(a);markUnsaved();try{renderAll();}catch(e){}
     aurSay(aurL('✓ Garantia criada: <b>'+aurEsc(a.name)+'</b> até '+aurDate(avAddYears(a.buyDate,3))+'. Confirma o nome do produto.','✓ Warranty created: <b>'+aurEsc(a.name)+'</b> until '+aurDate(avAddYears(a.buyDate,3))+'. Check the product name.'),[{label:aurL('Abrir','Open'),fn:()=>{aurClose();switchTab('warranty');setTimeout(()=>{try{openAssetModal('warranty',a.id);}catch(e){}},200);}}]);}});
-  const veh=(f.kind==='seguro'||f.policy)&&f.endDate?avDocVehicleFor(f):null;
+  // só um seguro automóvel vai para o carro (não o de acidentes de trabalho, saúde, casa…)
+  const auto=f.kind==='seguro'&&(f.plate||/\b(automovel|auto|viatura|veiculo|matricula|carro|motociclo)\b/.test(aurNorm(d.text||'')));
+  const veh=auto&&f.endDate?avDocVehicleFor(f):null;
   if(veh&&veh.insurance!==f.endDate)chips.push({label:aurL('🚗 Seguro do '+veh.name+' até '+aurDate(f.endDate),'🚗 '+veh.name+' insurance until '+aurDate(f.endDate)),fn:()=>{veh.insurance=f.endDate;if(f.plate&&!veh.plate)veh.plate=f.plate;markUnsaved();try{renderAll();}catch(e){}aurSay(aurL('✓ Pus o fim do seguro do <b>'+aurEsc(veh.name)+'</b> a '+aurDate(f.endDate)+' — aviso-te antes.','✓ Set the <b>'+aurEsc(veh.name)+'</b> insurance end to '+aurDate(f.endDate)+' — I’ll remind you.'));}});
   const mine=avDocOwnerIbans(),newIban=(f.ibans||[]).find(i=>!mine.has(i));
   if(newIban&&f.kind==='banco')chips.push({label:aurL('💾 Guardar este IBAN nos meus dados','💾 Save this IBAN to my details'),fn:()=>{
@@ -13044,6 +13066,25 @@ function avDocPeriod(n){
   if(mj>=0){const Y=mj>t.getMonth()?y-1:y,last=new Date(Y,mj+1,0).getDate();return {from:iso(Y,mj+1,1),to:iso(Y,mj+1,last),label:aurL('em '+AUR_MESES[mj].replace('marco','março'),'in '+AUR_MONTHS[mj])};}
   return null;
 }
+
+// «quanto recebi de ordenado em setembro», «qual o meu salário líquido»
+AUR_PRE.push(F=>{
+  const n=F.n;
+  if(!(/\b(ordenado|ordenados|salario|salarios|recebi|recebo|ganho|ganhei|salary|paycheck|payslip|net pay|recibos? de vencimento)\b/.test(n)||(/\bvencimentos?\b/.test(n)&&/\b(quanto|qual|how much)\b/.test(n)&&!/\bfaturas?\b/.test(n))))return AUR_PASS;
+  if(F.c.has('ADD')||F.c.has('DELETE'))return AUR_PASS;
+  const L=documents.filter(d=>d.facts&&d.facts.kind==='trabalho'&&d.facts.net!=null&&!d.archived);
+  if(!L.length)return aurSay(aurL('Ainda não li nenhum recibo de vencimento. Larga aqui o PDF (ou uma foto) do recibo e eu guardo o líquido e o bruto.','I haven’t read any payslip yet. Drop the PDF (or a photo) here and I’ll keep the net and gross pay.'));
+  const when=d=>d.facts.issueDate||d.facts.startDate||(d.createdAt?new Date(d.createdAt).toISOString().slice(0,10):'');
+  const R=avDocPeriod(n);
+  let S=L.slice().sort((a,b)=>when(b).localeCompare(when(a)));
+  const line=d=>'• '+aurEsc(when(d)?aurDate(when(d)):d.title)+' — '+aurL('líquido ','net ')+'<b>'+aurMoney(d.facts.net)+'</b>'+(d.facts.gross!=null?aurL(' (bruto ',' (gross ')+aurMoney(d.facts.gross)+')':'');
+  if(R){S=S.filter(d=>{const w=when(d);return w&&w>=R.from&&w<=R.to;});
+    if(!S.length)return aurSay(aurL('Não tenho recibos de vencimento '+R.label+'.','I have no payslips '+R.label+'.'));
+    const sum=S.reduce((s,d)=>s+d.facts.net,0);
+    return aurSay('💼 '+aurL('Ordenado ','Pay ')+aurEsc(R.label)+': <b>'+aurMoney(sum)+'</b>'+aurL(' líquido',' net')+(S.length>1?' ('+S.length+aurL(' recibos)',' payslips)'):'')+'\n'+S.slice(0,12).map(line).join('\n'));}
+  const d=S[0];
+  return aurSay('💼 '+aurL('Último recibo de vencimento','Latest payslip')+(when(d)?' ('+aurDate(when(d))+')':'')+': '+aurL('líquido ','net ')+'<b>'+aurMoney(d.facts.net)+'</b>'+(d.facts.gross!=null?aurL(' · bruto ',' · gross ')+aurMoney(d.facts.gross):'')+'.'+(S.length>1?'\n'+S.slice(1,4).map(line).join('\n'):''),[{label:aurL('Abrir recibo','Open payslip'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},F,true)}]);
+});
 
 /* ═══════════ AURORA · CONVERSA ═══════════
    Seguimentos («e do netflix?», «e em julho?»), pronomes («copia-a»), pedidos compostos
@@ -13824,3 +13865,169 @@ aurPre(F=>{
   }
   return AUR_PASS;
 });
+
+/* ═══════════ AURORA · DESFAZER, GASTOS, LIMPEZA, SUGESTÕES ═══════════ */
+
+/* ── «desfaz»: anula a última alteração feita pela Aurora ── */
+const AURU={stack:[],op:null,last:''};
+const AURU_COLS={
+  vault:[()=>vault,v=>{vault=v;}],notes:[()=>notes,v=>{notes=v;}],bankCards:[()=>bankCards,v=>{bankCards=v;}],storeCards:[()=>storeCards,v=>{storeCards=v;}],
+  documents:[()=>documents,v=>{documents=v;}],trash:[()=>trash,v=>{trash=v;}],totp:[()=>totp,v=>{totp=v;}],wifiNets:[()=>wifiNets,v=>{wifiNets=v;}],
+  assets:[()=>assets,v=>{assets=v;}],subscriptions:[()=>subscriptions,v=>{subscriptions=v;}],personalInfo:[()=>personalInfo,v=>{personalInfo=v;}],
+  vaultFolders:[()=>vaultFolders,v=>{vaultFolders=v;}],docFolders:[()=>docFolders,v=>{docFolders=v;}]};
+// cópia de cada objeto; os ficheiros (grandes e que a Aurora não altera) ficam por referência
+function auruClone(o){if(!o||typeof o!=='object')return o;const c={};for(const k of Object.keys(o)){const v=o[k];c[k]=(k==='file'||k==='attachments'||k==='data')?v:(v&&typeof v==='object'?JSON.parse(JSON.stringify(v)):v);}return c;}
+function auruSnap(label){const C={};for(const k of Object.keys(AURU_COLS)){try{const a=AURU_COLS[k][0]();if(Array.isArray(a))C[k]=a.map(auruClone);}catch(e){}}return {label,C};}
+function auruBegin(label){if(AURU.op)return false;AURU.op={label,snap:null,pushed:false};try{AURU.op.snap=auruSnap(label);}catch(e){AURU.op=null;return false;}return true;}
+function auruEnd(started){if(started)AURU.op=null;}
+function aurUndo(){
+  const s=AURU.stack.pop();
+  if(!s)return aurSay(aurL('Não há nada para desfazer. (Desfaço o que eu alterei aqui na conversa.)','Nothing to undo. (I undo what I changed here in the chat.)'));
+  for(const k of Object.keys(s.C)){try{AURU_COLS[k][1](s.C[k]);}catch(e){}}
+  if(typeof renderAll==='function')renderAll();if(typeof markUnsaved==='function')markUnsaved();
+  AUR.last=null;
+  return aurSay(aurL('↩️ Desfiz: «','↩️ Undone: “')+aurEsc(s.label)+aurL('».','”.')+(AURU.stack.length?'<span class="a-dim"> '+aurL('(posso desfazer mais '+AURU.stack.length+')','(I can undo '+AURU.stack.length+' more)')+'</span>':''));
+}
+(function(){
+  if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){if(AURU.op&&!AURU.op.pushed&&AURU.op.snap){AURU.stack.push(AURU.op.snap);if(AURU.stack.length>10)AURU.stack.shift();AURU.op.pushed=true;}return mu.apply(this,arguments);};}
+  const h=aurHandle;
+  aurHandle=function(raw){
+    const n=aurCanon(raw||'');
+    if(/^(desfaz|desfazer|desfaz isso|desfaz o que fizeste|desfaz a ultima( acao| alteracao)?|anula( isso)?|anular|volta atras|undo|undo that|undo it|revert( that)?)$/.test(n)){const dl=aurDetectLang(raw,new Set());if(dl)AUR.lang=dl;return aurUndo();}
+    const st=auruBegin(String(raw||'').trim().slice(0,80));if(st)AURU.last=AURU.op.label;
+    try{return h(raw);}finally{auruEnd(st);}
+  };
+  const act=aurAct;aurAct=function(i){const st=auruBegin(AURU.last||aurL('ação','action'));try{return act(i);}finally{auruEnd(st);}};
+  const yes=aurYes;aurYes=function(){const st=auruBegin(AURU.last||aurL('confirmação','confirmation'));try{return yes.apply(this,arguments);}finally{auruEnd(st);}};
+})();
+
+/* ── gastos: «quanto gastei este mês no total», «compara com o mês passado» ── */
+function aurMonthRange(off){const t=new Date(),a=new Date(t.getFullYear(),t.getMonth()+off,1),b=new Date(t.getFullYear(),t.getMonth()+off+1,0);const z=x=>String(x).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());return {from:iso(a),to:iso(b),m:a.getMonth(),y:a.getFullYear()};}
+function aurSpend(R){
+  const inR=d=>d&&d>=R.from&&d<=R.to,out={bills:0,subs:0,fuel:0,items:[]};
+  aurA(typeof documents!=='undefined'?documents:[]).forEach(d=>{const f=d.facts;if(!f||f.kind==='trabalho'||f.total==null||d.archived)return;if(!(f.kind==='fatura'||f.dueDate))return;const w=f.issueDate||(d.createdAt?new Date(d.createdAt).toISOString().slice(0,10):'');if(inR(w)){out.bills+=f.total;out.items.push({k:'bill',name:f.entity||d.title,v:f.total});}});
+  aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>{const a=+s.amount||0;let v=0;if(s.cycle==='yearly'){const d=s.renewDate?new Date(s.renewDate):null;if(d&&!isNaN(d)&&d.getMonth()===R.m)v=a;}else if(s.cycle==='weekly')v=a*52/12;else v=a;if(v){out.subs+=v;out.items.push({k:'sub',name:s.name,v});}});
+  aurA(typeof assets!=='undefined'?assets:[]).filter(a=>a.kind==='vehicle').forEach(a=>aurA(a.fuel).forEach(f=>{if(inR(String(f.date||'').slice(0,10))){const v=+f.euros||0;out.fuel+=v;out.items.push({k:'fuel',name:a.name,v});}}));
+  out.total=out.bills+out.subs+out.fuel;return out;
+}
+function aurMonthName(R){const m=AUR_MESES[R.m].replace('marco','março');return aurL(m,AUR_MONTHS[R.m]);}
+aurPre(F=>{
+  const n=F.n;
+  const spendQ=/\b(quanto (gastei|gasto|paguei|pago|despendi)|gastos|despesas|how much (did i|do i) (spend|pay)|spending|expenses|spent)\b/.test(n);
+  const cmp=/\b(compara\w*|compare|comparison|vs|versus|gastei mais|gastei menos|spent more|spent less)\b/.test(n)&&/\b(mes passado|mes anterior|last month|previous month)\b/.test(n);
+  if(!spendQ&&!cmp)return AUR_PASS;
+  if(!cmp&&(aurHas(F,'D_FUEL','D_SUBS')||/\b(faturas?|luz|agua|gas|internet|renda|combustivel|gasolina|subscric\w*)\b/.test(n)||F.cands.some(e=>e.score>=0.5)))return AUR_PASS;
+  if(!cmp&&!/\b(total|no total|ao todo|tudo|em tudo|overall|in total|all|este mes|neste mes|mes passado|this month|last month)\b/.test(n)&&!AUR_MESES.some(m=>new RegExp('\\b'+m+'\\b').test(n)))return AUR_PASS;
+  const mi=AUR_MESES.findIndex(m=>new RegExp('\\b'+m+'\\b').test(n)),now=new Date().getMonth();
+  const off=/\b(mes passado|mes anterior|last month|previous month)\b/.test(n)&&!cmp?-1:mi>=0?(mi<=now?mi-now:mi-now-12):0;
+  const R=aurMonthRange(off),S=aurSpend(R);
+  const row=(ic,lbl,v,p)=>'• '+ic+' '+lbl+': <b>'+aurMoney(v)+'</b>'+(p!=null?' <span class="a-dim">('+(v-p>=0?'+':'−')+aurMoney(Math.abs(v-p))+')</span>':'');
+  if(cmp){
+    const P=aurSpend(aurMonthRange(-1)),dt=S.total-P.total;
+    const pct=P.total?Math.round(Math.abs(dt)/P.total*100):null;
+    return aurSay('📊 '+aurL('<b>'+aurCap(aurMonthName(R))+'</b> vs <b>'+aurMonthName(aurMonthRange(-1))+'</b>:','<b>'+aurCap(aurMonthName(R))+'</b> vs <b>'+aurMonthName(aurMonthRange(-1))+'</b>:')+'\n'+
+      row('🧾',aurL('Faturas','Bills'),S.bills,P.bills)+'\n'+row('🔁',aurL('Subscrições','Subscriptions'),S.subs,P.subs)+'\n'+row('⛽',aurL('Combustível','Fuel'),S.fuel,P.fuel)+'\n'+
+      '<b>'+aurL('Total: ','Total: ')+aurMoney(S.total)+'</b> '+(dt===0?aurL('— igual ao mês passado.','— same as last month.'):(dt>0?aurL('— gastaste mais ','— you spent ')+aurMoney(dt)+(pct!=null?' (+'+pct+'%)':'')+aurL('.',' more.'):aurL('— poupaste ','— you saved ')+aurMoney(-dt)+(pct!=null?' (−'+pct+'%)':'')+'. 🎉')));
+  }
+  if(!S.total)return aurSay(aurL('Não tenho gastos registados em '+aurMonthName(R)+' (faturas lidas, subscrições e combustível).','I have no spending recorded in '+aurMonthName(R)+' (bills I read, subscriptions and fuel).'));
+  const top=S.items.slice().sort((a,b)=>b.v-a.v).slice(0,3).map(i=>aurEsc(i.name)+' '+aurMoney(i.v)).join(', ');
+  return aurSay('💶 '+aurL('Em <b>'+aurMonthName(R)+'</b> gastaste <b>'+aurMoney(S.total)+'</b>:','In <b>'+aurMonthName(R)+'</b> you spent <b>'+aurMoney(S.total)+'</b>:')+'\n'+row('🧾',aurL('Faturas','Bills'),S.bills)+'\n'+row('🔁',aurL('Subscrições','Subscriptions'),S.subs)+'\n'+row('⛽',aurL('Combustível','Fuel'),S.fuel)+(top?'\n<span class="a-dim">'+aurL('Maiores: ','Biggest: ')+top+'</span>':''),
+    off===0?[{label:aurL('Comparar com o mês passado','Compare with last month'),fn:()=>aurQuick(aurL('compara com o mês passado','compare with last month'))}]:[]);
+});
+
+/* ── «arruma o meu cofre»: limpeza guiada, um problema de cada vez ── */
+const AURL={q:[],i:0,fixed:0};
+function aurCleanIssues(){
+  const Q=[],today=new Date().toISOString().slice(0,10);
+  try{(typeof findDuplicateEntries==='function'?findDuplicateEntries():[]).forEach(g=>{const G=Array.isArray(g)?g:(g&&(g.entries||g.items))||[];if(G.length>1)Q.push({k:'dup',G});});}catch(e){}
+  aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived&&!v.pw&&!v.isWifi).forEach(v=>Q.push({k:'nopw',v}));
+  aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>!c.archived&&/^\d{2}\/\d{2}$/.test(c.expiry||'')).forEach(c=>{const[mm,aa]=c.expiry.split('/');if(new Date(2000+ +aa,+mm,0)<new Date())Q.push({k:'card',c});});
+  aurA(typeof documents!=='undefined'?documents:[]).filter(d=>!d.archived&&d.expiry&&d.expiry<today).forEach(d=>Q.push({k:'doc',d}));
+  aurA(typeof notes!=='undefined'?notes:[]).filter(x=>!x.archived&&!String(x.title||'').trim()&&!String(x.body||'').trim()).forEach(x=>Q.push({k:'note',x}));
+  const unread=aurA(typeof documents!=='undefined'?documents:[]).filter(d=>d.file&&!d.textAt&&/pdf|image/.test(d.file.type||''));if(unread.length)Q.push({k:'unread',n:unread.length});
+  if(typeof avWeakList==='function'&&avWeakList().length)Q.push({k:'weak',n:avWeakList().length});
+  return Q;
+}
+function aurCleanStart(){
+  AURL.q=aurCleanIssues();AURL.i=0;AURL.fixed=0;
+  if(!AURL.q.length)return aurSay(aurL('✨ O teu cofre está arrumado — não encontrei duplicados, entradas sem password, cartões ou documentos expirados, notas vazias nem passwords fracas.','✨ Your vault is tidy — no duplicates, empty entries, expired cards or documents, empty notes or weak passwords.'));
+  aurSay(aurL('🧹 Encontrei <b>'+AURL.q.length+'</b> '+(AURL.q.length===1?'coisa':'coisas')+' para arrumar. Vamos uma a uma — podes saltar ou parar quando quiseres.','🧹 I found <b>'+AURL.q.length+'</b> '+(AURL.q.length===1?'thing':'things')+' to tidy. One at a time — skip or stop whenever you like.'));
+  return aurCleanStep();
+}
+function aurCleanNext(fixed){if(fixed)AURL.fixed++;AURL.i++;return aurCleanStep();}
+function aurCleanStep(){
+  const it=AURL.q[AURL.i],tot=AURL.q.length;
+  if(!it)return aurSay(aurL('✅ Limpeza terminada — resolvi '+AURL.fixed+' de '+tot+'.','✅ Tidy-up done — fixed '+AURL.fixed+' of '+tot+'.')+(AURL.fixed?aurL(' (Diz «desfaz» se te arrependeres de alguma.)',' (Say “undo” if you regret one.)'):''));
+  const hd='🧹 <b>'+(AURL.i+1)+'/'+tot+'</b> · ',skip={label:aurL('Saltar','Skip'),fn:()=>aurCleanNext(false)},stop={label:aurL('Parar','Stop'),fn:()=>{AURL.q=[];return aurSay(aurL('Ok, parei a limpeza.','Ok, stopped tidying.'));}};
+  const done=(msg)=>{aurDirty();aurSay(msg);return aurCleanNext(true);};
+  switch(it.k){
+    case 'dup':{const G=it.G,keep=G.slice().sort((a,b)=>(b.pwUpdated||b.updatedAt||b.createdAt||0)-(a.pwUpdated||a.updatedAt||a.createdAt||0))[0];
+      return aurSay(hd+aurL('<b>'+aurEsc(keep.name)+'</b> está repetida '+G.length+' vezes (mesmo utilizador). Fico com a mais recente e mando as outras para a reciclagem?','<b>'+aurEsc(keep.name)+'</b> appears '+G.length+' times (same username). Keep the newest and move the others to the trash?'),
+        [{label:aurL('Sim, limpar','Yes, clean up'),fn:()=>{G.filter(e=>e!==keep).forEach(e=>{trash.unshift({type:'vault',data:e,deletedAt:Date.now()});vault=vault.filter(v=>v!==e);aurLog('delete',e.name,'🗑️');});return done(aurL('✓ Fiquei com uma só <b>'+aurEsc(keep.name)+'</b>.','✓ Kept a single <b>'+aurEsc(keep.name)+'</b>.'));}},skip,stop]);}
+    case 'nopw':{const v=it.v;return aurSay(hd+aurL('<b>'+aurEsc(v.name)+'</b> não tem password guardada.','<b>'+aurEsc(v.name)+'</b> has no password saved.'),
+        [{label:aurL('Gerar uma forte','Generate a strong one'),fn:()=>{v.pw=aurGenPw(20);v.pwUpdated=Date.now();return done(aurL('✓ Pus uma password forte em <b>'+aurEsc(v.name)+'</b> — muda-a também no site.','✓ Set a strong password on <b>'+aurEsc(v.name)+'</b> — change it on the site too.'));}},
+         {label:aurL('Apagar entrada','Delete entry'),fn:()=>{trash.unshift({type:'vault',data:v,deletedAt:Date.now()});vault=vault.filter(x=>x!==v);return done(aurL('🗑️ Apaguei <b>'+aurEsc(v.name)+'</b>.','🗑️ Deleted <b>'+aurEsc(v.name)+'</b>.'));}},skip,stop]);}
+    case 'card':{const c=it.c;return aurSay(hd+aurL('O cartão <b>'+aurEsc(c.name||c.bank)+'</b> expirou ('+aurEsc(c.expiry)+').','The <b>'+aurEsc(c.name||c.bank)+'</b> card expired ('+aurEsc(c.expiry)+').'),
+        [{label:aurL('Arquivar','Archive'),fn:()=>{c.archived=true;return done(aurL('📦 Arquivei o cartão <b>'+aurEsc(c.name||c.bank)+'</b>.','📦 Archived the <b>'+aurEsc(c.name||c.bank)+'</b> card.'));}},skip,stop]);}
+    case 'doc':{const d=it.d;return aurSay(hd+aurL('<b>'+aurEsc(d.title||d.name)+'</b> expirou a '+aurDate(d.expiry)+'.','<b>'+aurEsc(d.title||d.name)+'</b> expired on '+aurDate(d.expiry)+'.'),
+        [{label:aurL('Já renovei — atualizar','Renewed — update'),fn:()=>{AURL.i++;aurOpenEnt({type:'doc',obj:d,name:d.title},{c:new Set(['OPEN']),n:'',raw:''},true);return aurSay(aurL('Abri o documento — põe a nova validade (e a foto nova). Depois diz «continua a limpeza».','I opened the document — set the new expiry (and new photo). Then say “continue tidying”.'));}},
+         {label:aurL('Arquivar','Archive'),fn:()=>{d.archived=true;return done(aurL('📦 Arquivei <b>'+aurEsc(d.title||d.name)+'</b>.','📦 Archived <b>'+aurEsc(d.title||d.name)+'</b>.'));}},skip,stop]);}
+    case 'note':{const x=it.x;return aurSay(hd+aurL('Tens uma nota vazia.','You have an empty note.'),[{label:aurL('Apagar','Delete'),fn:()=>{trash.unshift({type:'note',data:x,deletedAt:Date.now()});notes=notes.filter(o=>o!==x);return done(aurL('🗑️ Apaguei a nota vazia.','🗑️ Deleted the empty note.'));}},skip,stop]);}
+    case 'unread':return aurSay(hd+aurL('Tens <b>'+it.n+'</b> '+(it.n===1?'documento que ainda não li':'documentos que ainda não li')+' — lendo-os consigo responder sobre eles e avisar-te de prazos.','You have <b>'+it.n+'</b> unread '+(it.n===1?'document':'documents')+' — once read I can answer about them and warn you of deadlines.'),
+        [{label:aurL('Lê agora','Read now'),fn:()=>{aurQuick(aurL('lê os meus documentos','read my documents'));return aurCleanNext(true);}},skip,stop]);
+    case 'weak':return aurSay(hd+aurL('Tens <b>'+it.n+'</b> '+(it.n===1?'password fraca ou repetida':'passwords fracas ou repetidas')+'. Queres revê-las agora, uma a uma?','You have <b>'+it.n+'</b> weak or reused '+(it.n===1?'password':'passwords')+'. Review them now, one by one?'),
+        [{label:aurL('Rever agora','Review now'),fn:()=>{AURL.i++;AURL.fixed++;if(typeof avCleanupStart==='function')avCleanupStart();return true;}},skip,stop]);
+  }
+  return aurCleanNext(false);
+}
+aurPre(F=>{
+  const n=F.n;
+  if(/\b(continua|continuar|segue|seguir|continue)\b.*\b(limpeza|arrumar|arrumacao|tidying|clean ?up)\b/.test(n)&&AURL.q.length)return aurCleanStep();
+  if(/^(?:(?:podes|consegues|vamos|quero)\s+)?(arruma|arrumar|organiza|organizar|limpa|limpar|faz uma limpeza|fazer uma limpeza|limpeza|arrumacao|tidy|tidy up|clean up|clean)\b.*\b(cofre|vault|tudo|everything|isto|app|passwords|contas)\b|^(limpeza|arrumacao|limpeza geral|faxina)( do cofre| geral)?$/.test(n)&&!/\b(reciclagem|lixo|lixeira|trash|bin|historico)\b/.test(n))return aurCleanStart();
+  return AUR_PASS;
+});
+
+/* ── sugestões enquanto escreves (com os nomes do teu cofre) ── */
+function aurSugPool(){
+  const en=aurAppLang()==='en',P=[];const add=(t,w)=>P.push({t,n:aurNorm(t),w:w||1});
+  (en?['what expires this month','what needs my attention','how much did I spend this month','compare with last month','tidy up my vault','any weak passwords','generate a strong password','what have you learned','undo','unpaid bills','status overview','2fa codes','my tax number','my iban']
+    :['o que expira este mês','o que devo tratar','quanto gastei este mês no total','compara com o mês passado','arruma o meu cofre','tenho passwords fracas','gera uma password forte','o que aprendeste','desfaz','faturas por pagar','ponto de situação','códigos 2fa','qual o meu nif','qual o meu iban']).forEach(t=>add(t,2));
+  aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived&&v.name).slice(0,300).forEach(v=>{add((en?'password for ':'password do ')+v.name,3);add((en?'copy the password for ':'copia a password do ')+v.name);add((en?'username for ':'utilizador do ')+v.name);});
+  if(!aurTotpLocked())aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>{const nm=t.name||t.issuer;if(nm)add((en?'code for ':'código do ')+nm,3);});
+  aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>!c.archived).forEach(c=>{const nm=c.name||c.bank;if(nm){add((en?'pin for card ':'pin do cartão ')+nm);add((en?'when does card ':'quando expira o cartão ')+nm+(en?' expire':''));}});
+  aurA(typeof documents!=='undefined'?documents:[]).filter(d=>!d.archived&&(d.title||d.name)).slice(0,200).forEach(d=>{add((en?'open ':'abre o ')+(d.title||d.name));if(d.expiry)add((en?'when does ':'quando expira o ')+(d.title||d.name)+(en?' expire':''),2);});
+  aurA(typeof notes!=='undefined'?notes:[]).filter(x=>x.title).forEach(x=>add((en?'read the note ':'lê a nota ')+x.title));
+  aurA(typeof wifiNets!=='undefined'?wifiNets:[]).forEach(w=>add((en?'wifi password for ':'password do wifi ')+(w.name||w.ssid)));
+  aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>add((en?'how much is ':'quanto pago de ')+s.name));
+  return P;
+}
+function aurSuggest(q){
+  const qn=aurNorm(q).replace(/[^\w\s-]/g,' ').trim();if(qn.length<2)return [];
+  const qw=qn.split(/\s+/);
+  const R=[];
+  for(const p of aurSugPool()){
+    if(p.n===qn)continue;
+    const words=p.n.split(/\s+/);
+    if(!qw.every(w=>words.some(x=>x.startsWith(w))))continue;
+    R.push({t:p.t,s:(p.n.startsWith(qn)?10:0)+p.w-p.n.length/100});
+  }
+  return R.sort((a,b)=>b.s-a.s).slice(0,4).map(r=>r.t);
+}
+function aurSugRender(){
+  const inp=document.getElementById('aurora-input'),box0=document.querySelector('#aurora-panel .aurora-in');if(!inp||!box0)return;
+  let box=document.getElementById('aurora-sugg');
+  if(!box){box=document.createElement('div');box.id='aurora-sugg';box.setAttribute('role','listbox');box.setAttribute('aria-label',aurAppLang()==='en'?'Suggestions':'Sugestões');box0.parentNode.insertBefore(box,box0);
+    box.addEventListener('click',e=>{const b=e.target.closest('button[data-q]');if(!b)return;inp.value=b.dataset.q;box.innerHTML='';box.hidden=true;auroraSend();});}
+  const L=(typeof masterKey!=='undefined'&&masterKey)?aurSuggest(inp.value):[];
+  box.hidden=!L.length;
+  box.innerHTML=L.map(t=>'<button type="button" role="option" class="a-sug" data-q="'+aurEsc(t)+'">'+aurEsc(t)+'</button>').join('');
+}
+if(typeof document!=='undefined'){
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='aurora-input')aurSugRender();});
+  document.addEventListener('keydown',e=>{
+    if(!e.target||e.target.id!=='aurora-input')return;
+    const box=document.getElementById('aurora-sugg');
+    if(e.key==='Tab'&&box&&!box.hidden&&box.firstChild){e.preventDefault();e.target.value=box.firstChild.dataset.q+' ';aurSugRender();}
+    else if(e.key==='Enter'||e.key==='Escape'){if(box){box.innerHTML='';box.hidden=true;}}
+  },true);
+}

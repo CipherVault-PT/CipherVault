@@ -472,6 +472,7 @@ function aurHelp(){
   '⚙️ <b>Actions</b>: "save", "sync", "back up", "export to pdf", "open digital legacy", "lock"\n'+
   '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
   '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
+  '💶 <b>Spending & tidying</b>: "how much did I spend this month", "compare with last month", "tidy up my vault", "undo"\n'+
   '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank"\n'+
   '💬 <b>Conversation</b>: "and for netflix?", "and in july?", "copy it", "show gmail and then copy the password", "the second one", "again"',aurQuickChips());
   return aurSay('✨ <b>O que eu sei fazer — em todo o cofre</b>\n'+
@@ -490,6 +491,7 @@ function aurHelp(){
   '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"\n'+
   '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
   '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
+  '💶 <b>Gastos e arrumação</b>: "quanto gastei este mês no total", "compara com o mês passado", "arruma o meu cofre", "desfaz", "quanto recebi de ordenado"\n'+
   '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco"\n'+
   '💬 <b>Conversa</b>: "e do netflix?", "e em julho?", "copia-a", "mostra o gmail e depois copia a password", "o segundo", "repete"\n'+
   '🌍 Também percebo inglês — respondo na língua em que me escreves.',aurQuickChips());

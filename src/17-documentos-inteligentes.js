@@ -64,15 +64,25 @@ function avDocFacts(text,name){
   m=raw.toUpperCase().match(/\b([A-Z]{2}[-\s]\d{2}[-\s][A-Z]{2}|\d{2}[-\s][A-Z]{2}[-\s]\d{2}|\d{2}[-\s]\d{2}[-\s][A-Z]{2}|[A-Z]{2}[-\s]\d{2}[-\s]\d{2})\b/);if(m)f.plate=m[1].replace(/\s/g,'-');
   const nifs=new Set();lines.forEach(l=>{if(/nif|contribuinte|nipc|fiscal|vat|tax/i.test(aurNorm(l)))(l.match(/\b\d{9}\b/g)||[]).forEach(n=>{if(avNifOk(n))nifs.add(n);});});if(nifs.size)f.nifs=[...nifs];
   const ibans=new Set();(raw.toUpperCase().match(/\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]){11,30}\b/g)||[]).forEach(s=>{const c=s.replace(/\s+/g,'');if(avIbanOk(c))ibans.add(c);});if(ibans.size)f.ibans=[...ibans];
+  // recibo de vencimento: líquido e bruto; a apólice do seguro de acidentes de trabalho não é um seguro teu
+  if(f.kind==='trabalho'){
+    const amt=rx=>{for(let i=0;i<lines.length;i++)if(near(rx,i)){const src=/\d[.,]\d{2}/.test(lines[i])?lines[i]:(lines[i+1]||'');const all=[...src.matchAll(moneyRe)].map(m=>avMoney(m[1])).filter(v=>v!=null);if(all.length)return all[all.length-1];}return null;};
+    f.net=amt(/\b(liquido a receber|total liquido|valor liquido|liquido|net pay)\b/);
+    f.gross=amt(/\b(total iliquido|remuneracao bruta|total de abonos|total bruto|iliquido|gross pay)\b/);
+    if(f.net!=null)f.total=f.net;
+    if(!f.issueDate&&f.startDate)f.issueDate=f.startDate;
+    delete f.policy;delete f.plate;
+  }
   Object.keys(f).forEach(k=>{if(f[k]===''||f[k]==null)delete f[k];});
   return f;
 }
 
 /* ── ler documentos (um de cada vez, em segundo plano) ── */
 const AVDX={q:[],busy:false};
+const AV_FACTS_V=2;   // sobe quando a leitura dos dados melhora: os documentos já lidos são revistos ao abrir o cofre
 function avDocSetText(d,text,src){
   d.text=String(text||'').slice(0,DOC_TEXT_MAX);d.textSrc=src||'';d.textAt=Date.now();
-  d.facts=avDocFacts(d.text,d.file&&d.file.name);
+  d.facts=avDocFacts(d.text,d.file&&d.file.name);d.factsV=AV_FACTS_V;
   if(!d.expiry&&d.facts.expiry&&(d.facts.kind==='identidade'||d.cat==='pessoal'))d.expiry=d.facts.expiry;
 }
 function avDocIndexLater(ids,opts){(ids||[]).forEach(id=>{if(!AVDX.q.some(x=>x.id===id))AVDX.q.push({id,opts:opts||{}});});avDocIndexRun();}
@@ -107,13 +117,20 @@ async function avDocIndexRun(){
   };
 })();
 // ao abrir o cofre: lê em segundo plano os PDFs ainda por ler (as fotos só a pedido — o OCR é mais pesado)
-function avDocIndexPending(){try{if(!masterKey)return;avDocIndexLater(documents.filter(d=>d.file&&!d.textAt&&!/^image\//.test(d.file.type||'')).map(d=>d.id),{ocr:false});}catch(e){}}
+function avDocRefreshFacts(){
+  let n=0;
+  documents.forEach(d=>{if(d.text&&(d.factsV||1)<AV_FACTS_V){d.facts=avDocFacts(d.text,d.file&&d.file.name);d.factsV=AV_FACTS_V;n++;}});
+  if(n&&typeof markUnsaved==='function')markUnsaved();
+  return n;
+}
+function avDocIndexPending(){try{if(!masterKey)return;avDocRefreshFacts();avDocIndexLater(documents.filter(d=>d.file&&!d.textAt&&!/^image\//.test(d.file.type||'')).map(d=>d.id),{ocr:false});}catch(e){}}
 (function(){if(typeof doUnlock!=='function')return;const du=doUnlock;doUnlock=function(){const r=du.apply(this,arguments);setTimeout(avDocIndexPending,4000);return r;};})();
 
 /* ── depois de guardar pela Aurora: resumo do que leu + ações sugeridas ── */
 function avFactsLine(f){
   const p=[];if(f.entity)p.push('<b>'+aurEsc(f.entity)+'</b>');
-  if(f.total!=null)p.push(aurL('total ','total ')+'<b>'+aurMoney(f.total)+'</b>');
+  if(f.kind==='trabalho'&&f.net!=null){p.push(aurL('líquido ','net ')+'<b>'+aurMoney(f.net)+'</b>');if(f.gross!=null)p.push(aurL('bruto ','gross ')+aurMoney(f.gross));}
+  else if(f.total!=null)p.push(aurL('total ','total ')+'<b>'+aurMoney(f.total)+'</b>');
   if(f.issueDate)p.push(aurL('emitido a ','issued ')+aurDate(f.issueDate));
   if(f.dueDate)p.push(aurL('pagar até ','due ')+aurDate(f.dueDate));
   if(f.policy)p.push(aurL('apólice ','policy ')+'<b>'+aurEsc(f.policy)+'</b>');
@@ -131,7 +148,9 @@ function avDocSuggest(d){
     const a={id:'a'+Date.now().toString(36),kind:'warranty',name:d.title,store:f.entity||'',price:String(f.total),buyDate:f.issueDate||new Date().toISOString().slice(0,10),years:'3',attachments:[{id:'x'+Date.now().toString(36),name:d.file.name,type:d.file.type,size:d.file.size,data:d.file.data}]};
     assets.push(a);markUnsaved();try{renderAll();}catch(e){}
     aurSay(aurL('✓ Garantia criada: <b>'+aurEsc(a.name)+'</b> até '+aurDate(avAddYears(a.buyDate,3))+'. Confirma o nome do produto.','✓ Warranty created: <b>'+aurEsc(a.name)+'</b> until '+aurDate(avAddYears(a.buyDate,3))+'. Check the product name.'),[{label:aurL('Abrir','Open'),fn:()=>{aurClose();switchTab('warranty');setTimeout(()=>{try{openAssetModal('warranty',a.id);}catch(e){}},200);}}]);}});
-  const veh=(f.kind==='seguro'||f.policy)&&f.endDate?avDocVehicleFor(f):null;
+  // só um seguro automóvel vai para o carro (não o de acidentes de trabalho, saúde, casa…)
+  const auto=f.kind==='seguro'&&(f.plate||/\b(automovel|auto|viatura|veiculo|matricula|carro|motociclo)\b/.test(aurNorm(d.text||'')));
+  const veh=auto&&f.endDate?avDocVehicleFor(f):null;
   if(veh&&veh.insurance!==f.endDate)chips.push({label:aurL('🚗 Seguro do '+veh.name+' até '+aurDate(f.endDate),'🚗 '+veh.name+' insurance until '+aurDate(f.endDate)),fn:()=>{veh.insurance=f.endDate;if(f.plate&&!veh.plate)veh.plate=f.plate;markUnsaved();try{renderAll();}catch(e){}aurSay(aurL('✓ Pus o fim do seguro do <b>'+aurEsc(veh.name)+'</b> a '+aurDate(f.endDate)+' — aviso-te antes.','✓ Set the <b>'+aurEsc(veh.name)+'</b> insurance end to '+aurDate(f.endDate)+' — I’ll remind you.'));}});
   const mine=avDocOwnerIbans(),newIban=(f.ibans||[]).find(i=>!mine.has(i));
   if(newIban&&f.kind==='banco')chips.push({label:aurL('💾 Guardar este IBAN nos meus dados','💾 Save this IBAN to my details'),fn:()=>{
@@ -250,3 +269,22 @@ function avDocPeriod(n){
   if(mj>=0){const Y=mj>t.getMonth()?y-1:y,last=new Date(Y,mj+1,0).getDate();return {from:iso(Y,mj+1,1),to:iso(Y,mj+1,last),label:aurL('em '+AUR_MESES[mj].replace('marco','março'),'in '+AUR_MONTHS[mj])};}
   return null;
 }
+
+// «quanto recebi de ordenado em setembro», «qual o meu salário líquido»
+AUR_PRE.push(F=>{
+  const n=F.n;
+  if(!(/\b(ordenado|ordenados|salario|salarios|recebi|recebo|ganho|ganhei|salary|paycheck|payslip|net pay|recibos? de vencimento)\b/.test(n)||(/\bvencimentos?\b/.test(n)&&/\b(quanto|qual|how much)\b/.test(n)&&!/\bfaturas?\b/.test(n))))return AUR_PASS;
+  if(F.c.has('ADD')||F.c.has('DELETE'))return AUR_PASS;
+  const L=documents.filter(d=>d.facts&&d.facts.kind==='trabalho'&&d.facts.net!=null&&!d.archived);
+  if(!L.length)return aurSay(aurL('Ainda não li nenhum recibo de vencimento. Larga aqui o PDF (ou uma foto) do recibo e eu guardo o líquido e o bruto.','I haven’t read any payslip yet. Drop the PDF (or a photo) here and I’ll keep the net and gross pay.'));
+  const when=d=>d.facts.issueDate||d.facts.startDate||(d.createdAt?new Date(d.createdAt).toISOString().slice(0,10):'');
+  const R=avDocPeriod(n);
+  let S=L.slice().sort((a,b)=>when(b).localeCompare(when(a)));
+  const line=d=>'• '+aurEsc(when(d)?aurDate(when(d)):d.title)+' — '+aurL('líquido ','net ')+'<b>'+aurMoney(d.facts.net)+'</b>'+(d.facts.gross!=null?aurL(' (bruto ',' (gross ')+aurMoney(d.facts.gross)+')':'');
+  if(R){S=S.filter(d=>{const w=when(d);return w&&w>=R.from&&w<=R.to;});
+    if(!S.length)return aurSay(aurL('Não tenho recibos de vencimento '+R.label+'.','I have no payslips '+R.label+'.'));
+    const sum=S.reduce((s,d)=>s+d.facts.net,0);
+    return aurSay('💼 '+aurL('Ordenado ','Pay ')+aurEsc(R.label)+': <b>'+aurMoney(sum)+'</b>'+aurL(' líquido',' net')+(S.length>1?' ('+S.length+aurL(' recibos)',' payslips)'):'')+'\n'+S.slice(0,12).map(line).join('\n'));}
+  const d=S[0];
+  return aurSay('💼 '+aurL('Último recibo de vencimento','Latest payslip')+(when(d)?' ('+aurDate(when(d))+')':'')+': '+aurL('líquido ','net ')+'<b>'+aurMoney(d.facts.net)+'</b>'+(d.facts.gross!=null?aurL(' · bruto ',' · gross ')+aurMoney(d.facts.gross):'')+'.'+(S.length>1?'\n'+S.slice(1,4).map(line).join('\n'):''),[{label:aurL('Abrir recibo','Open payslip'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},F,true)}]);
+});
