@@ -82,7 +82,8 @@ test.describe('Ecrã de entrada', () => {
 // Cofre memorizado neste dispositivo (browsers sem acesso direto a ficheiros, como o Chrome no Android)
 test.describe('Ecrã de entrada com cofre memorizado', () => {
   const remembered = async (page, extra = '') => {
-    await page.addInitScript(() => { delete window.showOpenFilePicker; });
+    // sem a cópia de segurança automática do Safari (descarrega um ficheiro 2,5 s depois de abrir e apanhava o reload)
+    await page.addInitScript(() => { delete window.showOpenFilePicker; localStorage.setItem('av_bk_freq', 'off'); });
     await openApp(page);
     await page.evaluate(new Function(`return (async () => { startNewVault(); document.getElementById('new-pw1').value = document.getElementById('new-pw2').value = 'rightpass';
       await submitNewVault(); await saveFile({ auto: true }); ${extra} })()`));
