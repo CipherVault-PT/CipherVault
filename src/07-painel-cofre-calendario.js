@@ -616,7 +616,7 @@ function gsRun(){
   ));
   const noteMatches=notes.filter(n=>(n.title||'').toLowerCase().includes(q)||(n.body||'').toLowerCase().includes(q));
   const cardMatches=bankCards.filter(c=>(c.bank||'').toLowerCase().includes(q)||(c.holder||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q));
-  const docMatches=documents.filter(d=>(d.title||'').toLowerCase().includes(q)||(d.desc||'').toLowerCase().includes(q)||(d.cat||'').toLowerCase().includes(q));
+  const docMatches=documents.filter(d=>(d.title||'').toLowerCase().includes(q)||(d.desc||'').toLowerCase().includes(q)||(d.cat||'').toLowerCase().includes(q)||(d.text&&aurNorm(d.text).includes(aurNorm(q))));
   const total=vaultMatches.length+noteMatches.length+cardMatches.length+docMatches.length;
   resultsEl.style.display='block';
   if(!total){resultsEl.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>${t('globalSearchEmpty')} "<strong>${esc(q)}</strong>"</p></div>`;return;}
