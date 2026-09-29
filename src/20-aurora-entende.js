@@ -285,7 +285,7 @@ aurPre('tudo.sobre',310,F=>{
   const folders=aurA(typeof docFolders!=='undefined'?docFolders:[]);
   aurA(typeof documents!=='undefined'?documents:[]).forEach(d=>{
     const fo=folders.find(f=>f.id===d.folderId);
-    if(hit([d.title,d.desc,d.text,d.facts&&d.facts.entity,d.facts&&d.facts.plate,fo&&fo.name,car&&d.cat==='carro'?'carro':''].filter(Boolean).join(' ')))push({type:'doc',obj:d,name:d.title||d.name});});
+    if(hit(aurDocText(d))||hit([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate,fo&&fo.name,car&&d.cat==='carro'?'carro':''].filter(Boolean).join(' ')))push({type:'doc',obj:d,name:d.title||d.name});});
   if(!out.length)return aurSay(aurL('Não encontrei nada sobre «','I found nothing about «')+aurEsc(terms.join(' '))+'».');
   const L=out.slice(0,12);
   return aurSay(aurL('🔎 Tudo o que tens sobre <b>','🔎 Everything about <b>')+aurEsc(terms[0])+'</b> ('+out.length+'):\n'+L.map(x=>'• '+aurEsc(aurEntLabel(x.e))).join('\n'),L.map(x=>({label:x.e.name,fn:()=>aurOpenEnt(x.e,F,true)})));

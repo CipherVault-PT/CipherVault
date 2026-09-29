@@ -120,30 +120,43 @@ aurPre('limpeza',460,F=>{
 });
 
 /* ── sugestões enquanto escreves (com os nomes do teu cofre) ── */
+let AUR_SUGP=null;
 function aurSugPool(){
+  const key=aurAppLang()+'|'+aurTotpLocked();
+  if(AUR_SUGP&&AUR_SUGP.key===key&&aurDataSame(AUR_SUGP))return AUR_SUGP.P;
+  const P=aurSugPoolBuild();AUR_SUGP=Object.assign(aurDataStamp(),{key,P});return P;
+}
+function aurSugPoolBuild(){
   const en=aurAppLang()==='en',P=[];const add=(t,w)=>P.push({t,n:aurNorm(t),w:w||1});
   (en?['what expires this month','what needs my attention','how much did I spend this month','compare with last month','tidy up my vault','any weak passwords','generate a strong password','what have you learned','what didn\'t you understand','undo','unpaid bills','status overview','2fa codes','my tax number','my iban']
     :['o que expira este mês','o que devo tratar','quanto gastei este mês no total','compara com o mês passado','arruma o meu cofre','tenho passwords fracas','gera uma password forte','o que aprendeste','o que não percebeste','desfaz','faturas por pagar','ponto de situação','códigos 2fa','qual o meu nif','qual o meu iban']).forEach(t=>add(t,2));
   aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived&&v.name).slice(0,300).forEach(v=>{add((en?'password for ':'password do ')+v.name,3);add((en?'copy the password for ':'copia a password do ')+v.name);add((en?'username for ':'utilizador do ')+v.name);});
   if(!aurTotpLocked())aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>{const nm=t.name||t.issuer;if(nm)add((en?'code for ':'código do ')+nm,3);});
   aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>!c.archived).forEach(c=>{const nm=c.name||c.bank;if(nm){add((en?'pin for card ':'pin do cartão ')+nm);add((en?'when does card ':'quando expira o cartão ')+nm+(en?' expire':''));}});
-  aurA(typeof documents!=='undefined'?documents:[]).filter(d=>!d.archived&&(d.title||d.name)).slice(0,200).forEach(d=>{add((en?'open ':'abre o ')+(d.title||d.name));if(d.expiry)add((en?'when does ':'quando expira o ')+(d.title||d.name)+(en?' expire':''),2);});
+  aurA(typeof documents!=='undefined'?documents:[]).filter(d=>!d.archived&&(d.title||d.name)).slice(0,200).forEach(d=>{add((en?'open ':'abre o ')+(d.title||d.name));if(d.text&&d.text.length>260)add((en?'summarise ':'resume o ')+(d.title||d.name));if(d.expiry)add((en?'when does ':'quando expira o ')+(d.title||d.name)+(en?' expire':''),2);});
   aurA(typeof notes!=='undefined'?notes:[]).filter(x=>x.title).forEach(x=>add((en?'read the note ':'lê a nota ')+x.title));
   aurA(typeof wifiNets!=='undefined'?wifiNets:[]).forEach(w=>add((en?'wifi password for ':'password do wifi ')+(w.name||w.ssid)));
   aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>add((en?'how much is ':'quanto pago de ')+s.name));
   return P;
 }
+function aurSugMatch(n,qw){const words=n.split(/\s+/);return qw.every(w=>words.some(x=>x.startsWith(w)));}
+function aurSugQuery(q){return aurNorm(q).replace(/[^\w\s-]/g,' ').trim();}
 function aurSuggest(q){
-  const qn=aurNorm(q).replace(/[^\w\s-]/g,' ').trim();if(qn.length<2)return [];
+  const qn=aurSugQuery(q);if(qn.length<2)return [];
   const qw=qn.split(/\s+/);
   const R=[];
   for(const p of aurSugPool()){
-    if(p.n===qn)continue;
-    const words=p.n.split(/\s+/);
-    if(!qw.every(w=>words.some(x=>x.startsWith(w))))continue;
+    if(p.n===qn||!aurSugMatch(p.n,qw))continue;
     R.push({t:p.t,s:(p.n.startsWith(qn)?10:0)+p.w-p.n.length/100});
   }
   return R.sort((a,b)=>b.s-a.s).slice(0,4).map(r=>r.t);
+}
+// enquanto a lista nova não chega, tira já as sugestões que deixaram de corresponder ao que está escrito
+function aurSugPrune(q){
+  const box=document.getElementById('aurora-sugg');if(!box||box.hidden)return;
+  const qn=aurSugQuery(q),qw=qn.split(/\s+/);
+  box.querySelectorAll('button[data-q]').forEach(b=>{const n=aurNorm(b.dataset.q);if(qn.length<2||n===qn||!aurSugMatch(n,qw))b.remove();});
+  if(!box.firstChild)box.hidden=true;
 }
 function aurSugRender(){
   const inp=document.getElementById('aurora-input'),box0=document.querySelector('#aurora-panel .aurora-in');if(!inp||!box0)return;
@@ -155,9 +168,12 @@ function aurSugRender(){
   box.innerHTML=L.map(t=>'<button type="button" role="option" class="a-sug" data-q="'+aurEsc(t)+'">'+aurEsc(t)+'</button>').join('');
 }
 if(typeof document!=='undefined'){
-  document.addEventListener('input',e=>{if(e.target&&e.target.id==='aurora-input')aurSugRender();});
+  // espera por uma pausa na escrita (não refaz as sugestões a cada tecla)
+  let _sugT=null;
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='aurora-input'){clearTimeout(_sugT);_sugT=setTimeout(()=>{_sugT=null;aurSugRender();},90);aurSugPrune(e.target.value);}});
   document.addEventListener('keydown',e=>{
     if(!e.target||e.target.id!=='aurora-input')return;
+    if(e.key==='Tab'&&_sugT){clearTimeout(_sugT);_sugT=null;aurSugRender();}   // Tab logo a seguir a escrever: calcula já
     const box=document.getElementById('aurora-sugg');
     if(e.key==='Tab'&&box&&!box.hidden&&box.firstChild){e.preventDefault();e.target.value=box.firstChild.dataset.q+' ';aurSugRender();}
     else if(e.key==='Enter'||e.key==='Escape'){if(box){box.innerHTML='';box.hidden=true;}}

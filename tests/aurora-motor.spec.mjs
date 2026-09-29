@@ -323,4 +323,17 @@ test.describe('Motor da Aurora', () => {
     }, ROUTES);
     expect(wrong).toEqual([]);
   });
+
+  test('o índice do cofre é guardado e só é refeito quando os dados mudam', async ({ page }) => {
+    const r = await page.evaluate(() => {
+      const a = aurIndex(); aurFrame('qual a password do gmail'); aurQuick('qual o meu nif');
+      const same = aurIndex() === a;
+      vault.push({ id: 'z', name: 'Zeta Novo', pw: 'x' });
+      const grew = aurIndex() !== a && aurIndex().some(e => e.name === 'Zeta Novo');
+      const b = aurIndex(); vault.find(v => v.id === 'z').name = 'Zeta Renomeado'; markUnsaved();
+      const renamed = aurIndex() !== b && aurIndex().some(e => e.name === 'Zeta Renomeado');
+      return { same, grew, renamed };
+    });
+    expect(r).toEqual({ same: true, grew: true, renamed: true });
+  });
 });

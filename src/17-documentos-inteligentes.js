@@ -149,7 +149,7 @@ function avDocSuggest(d){
     assets.push(a);markUnsaved();try{renderAll();}catch(e){}
     aurSay(aurL('✓ Garantia criada: <b>'+aurEsc(a.name)+'</b> até '+aurDate(avAddYears(a.buyDate,3))+'. Confirma o nome do produto.','✓ Warranty created: <b>'+aurEsc(a.name)+'</b> until '+aurDate(avAddYears(a.buyDate,3))+'. Check the product name.'),[{label:aurL('Abrir','Open'),fn:()=>{aurClose();switchTab('warranty');setTimeout(()=>{try{openAssetModal('warranty',a.id);}catch(e){}},200);}}]);}});
   // só um seguro automóvel vai para o carro (não o de acidentes de trabalho, saúde, casa…)
-  const auto=f.kind==='seguro'&&(f.plate||/\b(automovel|auto|viatura|veiculo|matricula|carro|motociclo)\b/.test(aurNorm(d.text||'')));
+  const auto=f.kind==='seguro'&&(f.plate||/\b(automovel|auto|viatura|veiculo|matricula|carro|motociclo)\b/.test(aurDocText(d)));
   const veh=auto&&f.endDate?avDocVehicleFor(f):null;
   if(veh&&veh.insurance!==f.endDate)chips.push({label:aurL('🚗 Seguro do '+veh.name+' até '+aurDate(f.endDate),'🚗 '+veh.name+' insurance until '+aurDate(f.endDate)),fn:()=>{veh.insurance=f.endDate;if(f.plate&&!veh.plate)veh.plate=f.plate;markUnsaved();try{renderAll();}catch(e){}aurSay(aurL('✓ Pus o fim do seguro do <b>'+aurEsc(veh.name)+'</b> a '+aurDate(f.endDate)+' — aviso-te antes.','✓ Set the <b>'+aurEsc(veh.name)+'</b> insurance end to '+aurDate(f.endDate)+' — I’ll remind you.'));}});
   const mine=avDocOwnerIbans(),newIban=(f.ibans||[]).find(i=>!mine.has(i));
@@ -184,7 +184,7 @@ function avDocPick(F,list){
   // documentos que falam das palavras do pedido (entidade, título, pasta, texto)
   const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_MONEY|NUM|D_EXPIRY)$/.test(x))&&!/^(fatura|faturas|factura|recibo|recibos|apolice|policy|invoice|bill|ultima|ultimo|last|numero|paguei|pago|pagar|vence|valor|total|quanto|foi|custou|conta|contas|tenho|qual|quais|sobre|seguro|seguros|gastei|gasto|gastos|gasta|gastar|pagas|paga|paguei|mes|ano|anos|meses|este|esta|deste|desta|neste|passado|ultimos|ultimas|por|pagar|foi|foram)$/.test(t));
   if(!terms.length)return {terms,list};
-  const hay=d=>aurNorm([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate,d.text].filter(Boolean).join(' '));
+  const hay=d=>aurNorm([d.title,d.desc,d.facts&&d.facts.entity,d.facts&&d.facts.plate].filter(Boolean).join(' '))+' '+aurDocText(d);
   const hit=list.filter(d=>{const h=hay(d);return terms.some(t=>(AV_DOC_SYN[t]||[t]).some(x=>h.includes(x)));});
   return {terms,list:hit.length?hit:[]};
 }
@@ -201,7 +201,7 @@ function aurDocFacts(F){
   const withFact=all.filter(d=>d.facts&&(q[0]==='policy'?d.facts.policy:q[0]==='due'?d.facts.dueDate:d.facts.total!=null));
   const car=/\b(carro|automovel|veiculo|viatura|car|vehicle)\b/.test(n);
   let {list}=avDocPick(F,withFact);
-  if(!list.length&&car&&q[0]==='policy')list=withFact.filter(d=>d.facts.plate||d.facts.kind==='seguro'||/auto|carro|automovel|viatura/.test(aurNorm(d.text||'')));
+  if(!list.length&&car&&q[0]==='policy')list=withFact.filter(d=>d.facts.plate||d.facts.kind==='seguro'||/auto|carro|automovel|viatura/.test(aurDocText(d)));
   if(!list.length&&!avDocPick(F,withFact).terms.length)list=withFact;
   if(!withFact.length)return aurSay(aurL('Ainda não encontrei esse dado em nenhum documento. Se tens documentos por ler, diz «lê os meus documentos».','I haven’t found that in any document yet. If some aren’t read yet, say “read my documents”.'));
   if(!list.length)return aurSay(aurL('Não encontrei nenhum documento com esse dado sobre isso.','I found no document with that about it.'));
@@ -239,7 +239,7 @@ function aurDocSearch(F){
   }
   if(!terms||!terms.length)return AUR_PASS;
   const flat=s=>aurNorm(s).replace(/\s+/g,'');
-  const hits=avDocsWithText().filter(d=>{const h=aurNorm([d.title,d.desc,d.text].filter(Boolean).join(' '));const hf=h.replace(/\s+/g,'');return terms.some(t=>h.includes(t)||(/^\w{9,}$/.test(t.replace(/\s/g,''))&&hf.includes(flat(t))));});
+  const hits=avDocsWithText().filter(d=>{const h=aurNorm([d.title,d.desc].filter(Boolean).join(' '))+' '+aurDocText(d);const hf=h.replace(/\s+/g,'');return terms.some(t=>h.includes(t)||(/^\w{9,}$/.test(t.replace(/\s/g,''))&&hf.includes(flat(t))));});
   const label=aurEsc(q?q[1]:terms.length>1?terms[0]+'…':terms[0]);
   if(!hits.length){const unread=avDocsWithText().filter(d=>d.file&&!d.textAt).length;return aurSay(aurL('Não encontrei «'+label+'» em nenhum documento.','I didn’t find «'+label+'» in any document.')+(unread?aurL(' ('+unread+' ainda por ler — diz «lê os meus documentos».)',' ('+unread+' not read yet — say “read my documents”.)'):''));}
   return aurSay('🔎 '+aurL('«'+label+'» aparece em <b>'+hits.length+'</b> '+(hits.length===1?'documento':'documentos')+':','«'+label+'» appears in <b>'+hits.length+'</b> '+(hits.length===1?'document':'documents')+':')+'\n'+hits.slice(0,6).map(d=>'• <b>'+aurEsc(d.title)+'</b>'+(d.text?' — <span class="a-dim">'+avSnippet(d.text,terms.map(t=>aurNorm(t)))+'</span>':'')).join('\n'),
@@ -287,4 +287,60 @@ aurIntent('docs.ordenado',100,F=>{
     return aurSay('💼 '+aurL('Ordenado ','Pay ')+aurEsc(R.label)+': <b>'+aurMoney(sum)+'</b>'+aurL(' líquido',' net')+(S.length>1?' ('+S.length+aurL(' recibos)',' payslips)'):'')+'\n'+S.slice(0,12).map(line).join('\n'));}
   const d=S[0];
   return aurSay('💼 '+aurL('Último recibo de vencimento','Latest payslip')+(when(d)?' ('+aurDate(when(d))+')':'')+': '+aurL('líquido ','net ')+'<b>'+aurMoney(d.facts.net)+'</b>'+(d.facts.gross!=null?aurL(' · bruto ',' · gross ')+aurMoney(d.facts.gross):'')+'.'+(S.length>1?'\n'+S.slice(1,4).map(line).join('\n'):''),[{label:aurL('Abrir recibo','Open payslip'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},F,true)}]);
+});
+
+/* ── «resume o contrato da MEO»: resumo tirado do próprio documento (frases dele, nada inventado) ── */
+const AV_SUM_ATT=/\b(rescis\w*|denunci\w*|fideliza\w*|penaliza\w*|multa\w*|renova\w* automatic\w*|automatica\w* renova\w*|pre[- ]?aviso|aviso previo|cancelamento|franquia\w*|exclus\w*|juros|mora|indemniza\w*|cobertura\w*|periodo experimental|obrigatori\w*|devoluc\w*|incumprimento|caucao)\b/;
+function avDocSentences(t){
+  return String(t||'').split(/\n+|(?<=[.!?;])\s+(?=[A-ZÀ-Ú0-9«"])/).map(s=>s.replace(/\s+/g,' ').trim()).filter(s=>s.length>=12&&s.length<=320);
+}
+function avDocSummary(d){
+  const title=aurEsc(d.title||d.name||aurL('documento','document'));
+  const text=String(d.text||'').trim();
+  if(!text){
+    const chips=d.file?[{label:aurL('Lê agora','Read it now'),fn:async()=>{aurSay(aurL('📖 A ler <b>','📖 Reading <b>')+title+'</b>…');try{const r=await avDocExtractText(d.file,{ocr:true});avDocSetText(d,r.text,r.src);if(typeof markUnsaved==='function')markUnsaved();}catch(e){}return d.text?avDocSummary(d):aurSay(aurL('Não consegui ler texto neste documento.','I couldn’t read any text in this document.'));}}]:[];
+    return aurSay(aurL('Ainda não li <b>'+title+'</b>, por isso não o consigo resumir.','I haven’t read <b>'+title+'</b> yet, so I can’t summarise it.'),chips);
+  }
+  const S=avDocSentences(text),cut=s=>aurEsc(s.length>150?s.slice(0,147)+'…':s),used=new Set(),out=['📄 <b>'+aurL('Resumo de ','Summary of ')+title+'</b>'];
+  if(d.facts&&Object.keys(d.facts).length){const fl=avFactsLine(d.facts);if(fl)out.push(fl);}
+  if(text.length<260){out.push(aurEsc(text));return aurSay(out.join('\n'),[{label:aurL('Abrir','Open'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},{c:new Set(['OPEN']),n:'',raw:''},true)}]);}
+  // datas (por ordem) com o contexto de cada uma
+  const dates=[];S.forEach(s=>avDatesIn(s).forEach(iso=>{if(!dates.some(x=>x.iso===iso))dates.push({iso,s});}));
+  dates.sort((a,b)=>a.iso.localeCompare(b.iso));
+  if(dates.length){out.push('\n📅 <b>'+aurL('Datas','Dates')+'</b>');dates.slice(0,5).forEach(x=>{used.add(x.s);out.push('• '+aurDate(x.iso)+' <span class="a-dim">('+aurRel(x.iso)+')</span> — '+cut(x.s));});}
+  // valores
+  const money=S.filter(s=>/\d[\d.\s]*,\d{2}\s*(€|eur)|€\s*\d|\d+[.,]\d{2}\s*euros?/i.test(s)).slice(0,4);
+  if(money.length){out.push('\n💶 <b>'+aurL('Valores','Amounts')+'</b>');money.forEach(s=>{used.add(s);out.push((AV_SUM_ATT.test(aurNorm(s))?'• ⚠️ ':'• ')+cut(s));});}
+  // pontos de atenção (cláusulas que costumam custar dinheiro ou prazos)
+  const att=S.filter(s=>AV_SUM_ATT.test(aurNorm(s))&&!used.has(s)).slice(0,5);
+  if(att.length){out.push('\n⚠️ <b>'+aurL('Pontos de atenção','Watch out for')+'</b>');att.forEach(s=>{used.add(s);out.push('• '+cut(s));});}
+  // o essencial: as frases com as palavras mais repetidas no documento (e as do início pesam mais)
+  const words=s=>aurNorm(s).split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!AUR_STOP.has(w));
+  const tf={};S.forEach(s=>words(s).forEach(w=>{tf[w]=(tf[w]||0)+1;}));
+  const top=S.map((s,i)=>({s,i,sc:words(s).reduce((a,w)=>a+(tf[w]>1?tf[w]:0),0)/Math.sqrt(words(s).length+1)+(i<3?1.5:0)}))
+    .filter(x=>!used.has(x.s)).sort((a,b)=>b.sc-a.sc).slice(0,3).sort((a,b)=>a.i-b.i);
+  if(top.length){out.push('\n📝 <b>'+aurL('O essencial','Key points')+'</b>');top.forEach(x=>out.push('• '+cut(x.s)));}
+  return aurSay(out.join('\n'),[{label:aurL('Abrir documento','Open document'),fn:()=>aurOpenEnt({type:'doc',obj:d,name:d.title},{c:new Set(['OPEN']),n:'',raw:''},true)}]);
+}
+aurIntent('docs.resumo',90,F=>{
+  const n=F.n;
+  if(!/\b(resume|resumir|resumes|resumo|resumido|sumario|sintese|summari[sz]e|summary|pontos (importantes|principais)|principais pontos|o essencial|o mais importante|key points|tl dr)\b/.test(n)&&!/^(o que diz|explica me|explica|what does)\b.*\b(documento|contrato|fatura|apolice|recibo|escritura|carta|document|contract|policy)\b/.test(n))return AUR_PASS;
+  if(F.cands.some(e=>e.type==='note'&&e.score>=0.5))return AUR_PASS;
+  const docWord=/\b(documento|documentos|contrato|contratos|fatura|faturas|apolice|recibo|escritura|carta|regulamento|condicoes|pdf|document|contract|policy|invoice|terms)\b/.test(n);
+  const named=F.cands.filter(e=>e.type==='doc'&&e.score>=0.5).map(e=>e.obj);
+  if(!named.length&&!docWord&&!(AUR.last&&AUR.last.type==='doc'))return AUR_PASS;   // «resume o meu cofre» é outra coisa
+  if(named.length===1)return avDocSummary(named[0]);
+  const all=avDocsWithText();
+  let L=named.length?named:[];
+  if(!L.length){const {terms,list}=avDocPick(F,all.filter(d=>d.text));
+    const real=terms.filter(t=>!/^(resume|resumir|resumo|documento|contrato|fatura|apolice|recibo|pdf|meu|minha|summary|summarize|document|contract|essencial|importante|pontos|principais)$/.test(t));
+    L=real.length?list:[];}
+  if(!L.length&&AUR.last&&AUR.last.type==='doc')L=[AUR.last.obj];
+  if(!L.length){
+    const kind=(n.match(/\b(contrato|fatura|apolice|recibo|escritura)\b/)||[])[1];
+    if(kind)L=all.filter(d=>d.text&&aurNorm(d.title+' '+(d.facts&&d.facts.kind||'')+' '+aurDocText(d).slice(0,400)).includes(kind));
+  }
+  if(!L.length)return aurSay(aurL('Qual documento queres que resuma? Diz, por exemplo, «resume o contrato da MEO».','Which document should I summarise? Say e.g. “summarise the MEO contract”.'));
+  if(L.length===1)return avDocSummary(L[0]);
+  return aurChoose(L.slice(0,8).map(d=>({type:'doc',obj:d,name:d.title||d.name,toks:[]})),F,aurL('Qual destes queres que resuma?','Which one should I summarise?'),e=>avDocSummary(e.obj));
 });

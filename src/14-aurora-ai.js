@@ -274,7 +274,24 @@ function aurReason(raw){
 
 /* ── índice de entidades de TODO o cofre ── */
 function aurSig(n){return n.split(' ').map(t=>t.replace(/^[.\-]+|[.\-]+$/g,'')).filter(t=>t&&!AUR_STOP.has(t));}
+// O índice do cofre só é refeito quando os dados mudam (antes era refeito várias vezes em cada pedido)
+let AUR_DATA_VER=0,AUR_IDX=null;
+function aurDataRefs(){const g=n=>{try{return aurGlobal(n)||null;}catch(e){return null;}};return [g('vault'),g('documents'),g('bankCards'),g('storeCards'),g('totp'),g('wifiNets'),g('notes'),g('assets'),g('subscriptions'),typeof personalInfo!=='undefined'?personalInfo:null];}
+function aurDataSame(C){if(!C||C.ver!==AUR_DATA_VER)return false;const R=aurDataRefs();return R.every((a,i)=>a===C.refs[i]&&(a?a.length:-1)===C.lens[i]);}
+function aurDataStamp(){const R=aurDataRefs();return {ver:AUR_DATA_VER,refs:R,lens:R.map(a=>a?a.length:-1)};}
+// texto dos documentos já normalizado, guardado só em memória (e refeito se o texto mudar)
+const AUR_TXT=new WeakMap();
+function aurDocText(d,canon){
+  if(!d||!d.text)return '';
+  let c=AUR_TXT.get(d);if(!c||c.src!==d.text){c={src:d.text};AUR_TXT.set(d,c);}
+  const k=canon?'c':'n';if(c[k]==null)c[k]=canon?aurCanon(d.text):aurNorm(d.text);
+  return c[k];
+}
 function aurIndex(){
+  if(aurDataSame(AUR_IDX))return AUR_IDX.E;
+  const E=aurIndexBuild();AUR_IDX=Object.assign(aurDataStamp(),{E});return E;
+}
+function aurIndexBuild(){
   const E=[];
   const add=(type,obj,name,extra,more)=>{if(!name)return;const nn=aurCanon(name);const toks=aurSig(nn);if(!toks.length)return;let alias=[];Object.keys(AUR_ALIAS).forEach(k=>{if(nn.indexOf(k)>=0)alias=alias.concat(AUR_ALIAS[k]);});if(more)alias=alias.concat(more);E.push({type,obj,name:String(name).trim(),norm:nn,toks,alias,extra:aurNorm(extra||''),archived:!!(obj&&obj.archived)});};
   try{aurA(typeof vault!=='undefined'?vault:[]).forEach(v=>add('vault',v,v.name,[v.user,v.url].join(' ')));}catch(e){}
@@ -469,6 +486,8 @@ function aurCore(raw){
 [['docs.lerTodos',aurDocReadAll],['docs.procurar',aurDocSearch],['docs.dados',aurDocFacts],['cartao.segredo',aurCardSecret],['seguranca.fuga',aurBreach],
  ['seguranca.mesmaPw',aurSamePw],['seguranca.antigas',aurOld],['veiculo.datas',aurVehicleDate],['conta.categoria',aurCatAccount],['docs.sobre',aurDocsAbout]]
   .forEach(([name,fn],i)=>aurIntent(name,500+i*10,F=>fn(F)));
+// qualquer alteração aos dados (gravar, redesenhar) invalida o índice guardado
+['markUnsaved','renderAll'].forEach(nm=>{const f=typeof window!=='undefined'&&window[nm];if(typeof f!=='function')return;window[nm]=function(){AUR_DATA_VER++;return f.apply(this,arguments);};});
 // no motor base, a primeira função de resposta chamada diz o caminho (ex.: core:aurExpiry)
 ['aur2fa','aurExpiry','aurSummary','aurAudit','aurGenerate','aurChangePw','aurChangeUser','aurRename','aurInfoSet','aurSchedule','aurTheme','aurPriv','aurLang',
  'aurEmptyTrash','aurRestore','aurArchive','aurDelete','aurAdd','aurCopyCmd','aurInfo','aurExport','aurSettings','aurList','aurEmails','aurFuel','aurSubs','aurCount','aurCal','aurWifi','aurOpenEnt','aurChoose','aurGoTab','aurSmall']
@@ -495,7 +514,7 @@ function aurHelp(){
   '🗑️ <b>Archive/Trash</b>: "archive hotmail", "restore paypal", "empty the trash"\n'+
   '🎨 <b>Appearance</b>: "apply the ocean theme", "light themes", "turn on privacy mode", "switch to portuguese"\n'+
   '⚙️ <b>Actions</b>: "save", "sync", "back up", "export to pdf", "open digital legacy", "lock"\n'+
-  '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
+  '📑 <b>Your documents</b>: "summarise the meo contract", "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
   '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
   '💶 <b>Spending & tidying</b>: "how much did I spend this month", "compare with last month", "tidy up my vault", "undo"\n'+
   '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank", "that\'s wrong", "what didn\'t you understand?"\n'+
@@ -514,7 +533,7 @@ function aurHelp(){
   '🗑️ <b>Arquivo/Reciclagem</b>: "arquiva o hotmail", "recupera o paypal", "esvazia a reciclagem"\n'+
   '🎨 <b>Aspeto</b>: "aplica o tema oceano", "temas claros", "ativa o modo privado", "muda para inglês"\n'+
   '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"\n'+
-  '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
+  '📑 <b>Os teus documentos</b>: "resume o contrato da meo", "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
   '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
   '💶 <b>Gastos e arrumação</b>: "quanto gastei este mês no total", "compara com o mês passado", "arruma o meu cofre", "desfaz", "quanto recebi de ordenado"\n'+
   '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco", "não era isso", "o que não percebeste?"\n'+
@@ -1344,7 +1363,7 @@ function aurDocsAbout(F){
   const skipC=x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_PDF|D_CSV|D_EXPIRY|D_AUDIT|D_SUMMARY|D_MONEY|D_CAL|NUM)$/.test(x);
   const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(skipC)&&!/^(tenho|sobre|about|have|any)$/.test(t));if(!terms.length)return AUR_PASS;
   const folders=aurA(typeof docFolders!=='undefined'?docFolders:[]);
-  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name,d.facts&&d.facts.entity,d.text].filter(Boolean).join(' '))+' ';
+  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name,d.facts&&d.facts.entity].filter(Boolean).join(' '))+' '+aurDocText(d,true)+' ';
   const D=aurA(typeof documents!=='undefined'?documents:[]).filter(d=>d&&!d.archived);
   const hit=D.filter(d=>{const h=hay(d);return terms.some(t=>h.includes(' '+t)||h.includes(t+' '));});
   const q=aurEsc(terms.join(' '));
