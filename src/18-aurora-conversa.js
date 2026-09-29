@@ -93,15 +93,15 @@ function aurcInherit(s){
 }
 // divide «faz X e depois Y» / «faz X e faz Y» em passos
 function aurcSplit(raw){
-  const parts=raw.split(/\s*(?:;|,?\s+(?:e depois|e a seguir|e em seguida|depois disso|depois|and then|then|after that)\s+)\s*/i).filter(s=>s.trim());
+  const parts=raw.split(/\s*(?:;|,?\s+(?:e depois|e a seguir|e em seguida|depois disso|and then|after that)\s+)\s*/i).filter(s=>s.trim());
   const out=[];
   parts.forEach(p=>{
-    // « e » só separa quando a parte seguinte começa por um verbo de ação
-    const bits=p.split(/\s+(?:e|and)\s+/i);let cur=bits[0];
-    for(let i=1;i<bits.length;i++){
+    // « e », «depois», «then» só separam quando a parte seguinte começa por um verbo de ação
+    const bits=p.split(/(,?\s+(?:e|and|depois|then)\s+)/i);let cur=bits[0];
+    for(let i=2;i<bits.length;i+=2){
       const w=aurNorm(bits[i].split(/\s+/)[0]).replace(/-(o|a|os|as|lo|la|los|las|me|lhe)$/,'');
       const act=(AUR_VOCAB[w]||[]).some(x=>AUR_ACTIONS.has(x)&&x!=='GET'&&x!=='WHEN'&&x!=='HOWMUCH');
-      if(act&&aurFrame(cur).hasAction){out.push(cur);cur=bits[i];}else cur+=' e '+bits[i];
+      if(act&&aurFrame(cur).hasAction){out.push(cur);cur=bits[i];}else cur+=bits[i-1]+bits[i];
     }
     out.push(cur);
   });

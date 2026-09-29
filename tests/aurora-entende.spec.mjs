@@ -50,7 +50,7 @@ const CASES = [
   ['quando expira o cartao da revolut', /Revolut[\s\S]*válido até 03\/27/],
   ['que cartoes tenho', /Tens 2 cartões[\s\S]*CGD Visa[\s\S]*Revolut/],
   ['qual o cvv do visa', /CVV do cartão CGD/],
-  ['tenho cartão do lidl?', /não tens Lidl guardado/],
+  ['tenho cartão do lidl?', /não tens cartão Lidl guardado/],
   // documentos e faturas
   ['onde está o meu cartao de cidadao', /Abri o documento Cartão de Cidadão/],
   ['mostra os documentos pessoais', /Documentos pessoais \(2\)/],
@@ -93,6 +93,17 @@ const CASES = [
   ['codigos de autenticacao', /códigos 2FA/],
   ['abre a aba das garantias', /Garantias/],
   ['lembra-me amanhã de ligar ao banco', /Vou agendar[\s\S]*Ligar ao banco/],
+  // 4.ª ronda: Wi-Fi, notas, contas, sites, definições
+  ['qual o nome da rede de casa', /chama-se MEO-1234/],
+  ['lê-me a nota do jantar', /bacalhau com natas/],
+  ['quantas contas de banco tenho', /2 contas[\s\S]*Santander, Revolut/],
+  ['qual o site do santander', /santander\.pt/],
+  ['que sites tenho guardados', /Sites guardados/],
+  ['o gmail é favorito?', /não está nos favoritos/],
+  ['qual a versão da app', /Aurora Vault v\d/],
+  ['ativa o bloqueio automático', /bloqueio automático[\s\S]*Segurança/],
+  ['quanto tempo falta para o código do github mudar', /GitHub[\s\S]*válido/],
+  ['tenho 2fa no gmail?', /não tens código 2FA do Gmail/],
 ];
 
 test.describe('Aurora percebe o dia a dia', () => {
@@ -150,11 +161,13 @@ test.describe('Aurora percebe o dia a dia', () => {
   test('frases perigosas não criam nem apagam nada', async ({ page }) => {
     const before = await page.evaluate(() => vault.length);
     const r = await page.evaluate(async () => {
-      for (const q of ['tenho a password do instagram guardada?', 'como adiciono uma password', 'cria uma password com 12 letras', 'põe o gmail nos favoritos', 'n me lembro da password do facebook']) {
+      vault.find(v => v.id === 's').archived = true;
+      for (const q of ['tenho a password do instagram guardada?', 'como adiciono uma password', 'cria uma password com 12 letras', 'põe o gmail nos favoritos', 'n me lembro da password do facebook',
+        'o gmail é favorito?', 'bloqueia depois de 5 minutos', 'tira o santander do arquivo']) {
         AUR.pending = null; aurQuick(q); await new Promise(r => setTimeout(r, 30));
       }
-      return { n: vault.length, pending: !!AUR.pending, dates: assets.filter(a => a.kind === 'dates').length };
+      return { n: vault.length, pending: !!AUR.pending, dates: assets.filter(a => a.kind === 'dates').length, unlocked: !!masterKey, trash: trash.length, santander: !vault.find(v => v.id === 's').archived };
     });
-    expect(r).toEqual({ n: before, pending: false, dates: 1 });
+    expect(r).toEqual({ n: before, pending: false, dates: 1, unlocked: true, trash: 0, santander: true });
   });
 });

@@ -55,7 +55,8 @@ const AUR_PHR=[
  [/\brecycl(e|ing) bin\b/g,' reciclagem '],
  [/\bgo to\b|\btake me to\b/g,' abre '],
 ];
-function aurCanon(s){let n=' '+aurNorm(s).replace(/[?!,;:()"“”«»\[\]{}’']/g,' ').replace(/\s+/g,' ')+' ';AUR_PHR.forEach(p=>{n=n.replace(p[0],p[1]);});return n.replace(/\s+/g,' ').trim();}
+// junta os espaços a cada passo: as regras seguintes contam com um só espaço entre palavras
+function aurCanon(s){let n=' '+aurNorm(s).replace(/[?!,;:()"“”«»\[\]{}’']/g,' ').replace(/\s+/g,' ')+' ';AUR_PHR.forEach(p=>{n=n.replace(p[0],p[1]).replace(/\s{2,}/g,' ');});return n.replace(/\s+/g,' ').trim();}
 
 const AUR_STOP=new Set(('o a os as um uma uns umas de do da dos das no na nos nas ao aos e ou que me te se por para pra pro com em meu minha meus minhas teu tua seu sua este esta estes estas isto esse essa isso aquele aquela ai ali aqui la eu tu ele ela voce lhe qual quais quero queria preciso favor pf pff tenho tens ha sao era ola oi ok entao so mais ja ate tambem como onde quando quanto quantos quantas agora sobre pelo pela pelos pelas num numa dum duma sem mim etc tudo todo toda todos todas completo completa inteira cada '
  +'the an of to for in on at my your me i is are was were be been it its this that these those with and or please pls can could would should you do does did have has had get got from by as about any some what whats which s there here now just also want need show tell give mine im up all').split(' '));
@@ -471,6 +472,7 @@ function aurHelp(){
   '⚙️ <b>Actions</b>: "save", "sync", "back up", "export to pdf", "open digital legacy", "lock"\n'+
   '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
   '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
+  '🧠 <b>I learn from you</b>: "call work the intranet", "no, I meant revolut", "what have you learned?", "forget bank"\n'+
   '💬 <b>Conversation</b>: "and for netflix?", "and in july?", "copy it", "show gmail and then copy the password", "the second one", "again"',aurQuickChips());
   return aurSay('✨ <b>O que eu sei fazer — em todo o cofre</b>\n'+
   '🔑 <b>Passwords</b>: "abre o gmail", "qual a password da revolut", "copia a password do paypal", "muda a password do gmail", "adiciona a netflix com user x e pass y", "gera uma password forte / fácil de decorar"\n'+
@@ -488,6 +490,7 @@ function aurHelp(){
   '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"\n'+
   '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
   '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
+  '🧠 <b>Aprendo contigo</b>: "chama trabalho à intranet", "não, eu queria a revolut", "o que aprendeste?", "esquece banco"\n'+
   '💬 <b>Conversa</b>: "e do netflix?", "e em julho?", "copia-a", "mostra o gmail e depois copia a password", "o segundo", "repete"\n'+
   '🌍 Também percebo inglês — respondo na língua em que me escreves.',aurQuickChips());
 }
@@ -1362,7 +1365,7 @@ function aurCardSecret(F){
   };
   const pick=named.length?named.map(e=>e.obj):C.length===1?C:null;
   if(pick&&pick.length===1)return show(pick[0]);
-  return aurSay(aurL('De que cartão?','Which card?'),(pick||C).slice(0,8).map(c=>({label:c.bank||c.name||'•••• '+String(c.number||'').slice(-4),fn:()=>show(c)})));
+  return aurSay(aurL('De que cartão?','Which card?'),(pick||C).slice(0,8).map(c=>({label:c.bank||c.name||'•••• '+String(c.number||'').slice(-4),fn:()=>{if(typeof aurMemPick==='function')aurMemPick(F,{type:'bank',obj:c,name:c.name||c.bank});return show(c);}})));
 }
 
 // «quais sites usam a mesma password que o gmail»
