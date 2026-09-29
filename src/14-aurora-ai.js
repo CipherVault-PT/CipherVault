@@ -469,6 +469,7 @@ function aurHelp(){
   '🎨 <b>Appearance</b>: "apply the ocean theme", "light themes", "turn on privacy mode", "switch to portuguese"\n'+
   '⚙️ <b>Actions</b>: "save", "sync", "back up", "export to pdf", "open digital legacy", "lock"\n'+
   '📑 <b>Your documents</b>: "how much was the last edp bill", "search «clause» in documents", "read my documents"\n'+
+  '📌 <b>Alerts</b>: "what needs my attention", "alerts" — I also warn you on my own (bills due, bills that went up, expiry dates, reused passwords)\n'+
   '💬 <b>Conversation</b>: "and for netflix?", "and in july?", "copy it", "show gmail and then copy the password", "the second one", "again"',aurQuickChips());
   return aurSay('✨ <b>O que eu sei fazer — em todo o cofre</b>\n'+
   '🔑 <b>Passwords</b>: "abre o gmail", "qual a password da revolut", "copia a password do paypal", "muda a password do gmail", "adiciona a netflix com user x e pass y", "gera uma password forte / fácil de decorar"\n'+
@@ -485,6 +486,7 @@ function aurHelp(){
   '🎨 <b>Aspeto</b>: "aplica o tema oceano", "temas claros", "ativa o modo privado", "muda para inglês"\n'+
   '⚙️ <b>Ações</b>: "grava", "sincroniza", "faz backup", "exporta para pdf", "abre a herança digital", "bloqueia"\n'+
   '📑 <b>Os teus documentos</b>: "quanto paguei na última fatura da edp", "procura «cláusula» nos documentos", "lê os meus documentos"\n'+
+  '📌 <b>Avisos</b>: "o que devo tratar", "avisos" — também aviso sozinha (faturas a vencer, contas que subiram, validades, passwords repetidas)\n'+
   '💬 <b>Conversa</b>: "e do netflix?", "e em julho?", "copia-a", "mostra o gmail e depois copia a password", "o segundo", "repete"\n'+
   '🌍 Também percebo inglês — respondo na língua em que me escreves.',aurQuickChips());
 }

@@ -2110,3 +2110,5 @@ html.av-vt-scrub::view-transition-old(*),html.av-vt-scrub::view-transition-new(*
 html.av-still *,html.av-still *::before,html.av-still *::after,html.av-still body::before,html.av-still body::after{animation-play-state:paused!important}
 /* Aba 2FA: cartões fora do ecrã não são desenhados nem recalculados (o relógio atualiza-os a cada segundo) */
 #totp-grid .totp-card{content-visibility:auto;contain-intrinsic-size:auto 190px}
+/* Aurora: contador de avisos */
+#aurora-fab[data-n]::after{content:attr(data-n);position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e05270;color:#fff;font:700 11px/20px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--panel)}
