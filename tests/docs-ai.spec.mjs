@@ -19,6 +19,8 @@ const EDP = ['EDP Comercial - Fatura de Eletricidade', 'Fatura n. FT 2026/118832
   'NIF: 123456789', 'Periodo de fidelizacao de 24 meses', 'Subtotal 36,75 EUR', 'Total a pagar: 45,20 EUR', 'IBAN PT50 0002 0123 1234 5678 9015 4'];
 const EDP2 = ['EDP Comercial - Fatura de Eletricidade', 'Data de emissao: 03/08/2026', 'Total a pagar: 52,10 EUR'];
 const SEGURO = ['Fidelidade - Seguro Automovel', 'Apolice n. AU-55667788', 'Matricula: 12-AB-34', 'Periodo: de 01/10/2026 a 30/09/2027', 'Premio anual 312,40 EUR'];
+const RECIBO = ['Recibo de Vencimento', 'Empresa XPTO Lda', 'Periodo: de 01/09/2026 a 30/09/2026', 'Vencimento base 1.500,00', 'Total iliquido 1.500,00',
+  'Seguro de Acidentes de Trabalho: Fidelidade Apolice n. AT-99887766', 'Seguranca Social 165,00', 'IRS 180,00', 'Liquido a receber 1.155,00'];
 const WORTEN = ['Worten - Fatura Recibo', 'Televisor Samsung 55', 'Data da fatura: 15/06/2026', 'Total a pagar: 599,99 EUR'];
 
 test.describe('Aurora lê documentos', () => {
@@ -77,6 +79,26 @@ test.describe('Aurora lê documentos', () => {
     await page.locator('#aurora-msgs .a-btn', { hasText: 'Seguro do Golf' }).click();
     expect(await page.evaluate(() => assets.find(a => a.id === 'v').insurance)).toBe('2027-09-30');
     expect(await ask(page, 'qual o número da apólice do seguro do carro')).toMatch(/AU-55667788/);
+  });
+
+  test('recibo de vencimento: não é um seguro do carro; lê o líquido e o bruto', async ({ page }) => {
+    const d = await upload(page, 'recibo-setembro.pdf', PDF(RECIBO));
+    expect(d.facts).toMatchObject({ kind: 'trabalho', net: 1155, gross: 1500 });
+    expect(d.facts.policy).toBeUndefined();
+    const chat = await page.locator('#aurora-msgs').innerText();
+    expect(chat).toMatch(/líquido[\s\S]*1\.?155,00/);
+    expect(chat).not.toMatch(/Seguro do Golf/);
+    expect(await ask(page, 'quanto recebi de ordenado em setembro')).toMatch(/Ordenado em setembro[\s\S]*1\.?155,00/);
+    expect(await ask(page, 'qual o meu salário')).toMatch(/Último recibo[\s\S]*1\.?155,00[\s\S]*bruto/);
+  });
+
+  test('documentos lidos com a versão antiga são revistos ao abrir o cofre', async ({ page }) => {
+    const r = await page.evaluate(lines => {
+      documents.push({ id: 'old', title: 'Recibo antigo', cat: 'pessoal', text: lines.join('\n'), textAt: 1, facts: { kind: 'seguro', policy: 'AT-99887766', endDate: '2026-09-30' } });
+      const n = avDocRefreshFacts(), d = documents.find(x => x.id === 'old');
+      return { n, kind: d.facts.kind, policy: d.facts.policy, again: avDocRefreshFacts() };
+    }, RECIBO);
+    expect(r).toEqual({ n: 1, kind: 'trabalho', policy: undefined, again: 0 });
   });
 
   test('fatura de compra → cria a garantia com loja, preço e data', async ({ page }) => {

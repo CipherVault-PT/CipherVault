@@ -2112,3 +2112,9 @@ html.av-still *,html.av-still *::before,html.av-still *::after,html.av-still bod
 #totp-grid .totp-card{content-visibility:auto;contain-intrinsic-size:auto 190px}
 /* Aurora: contador de avisos */
 #aurora-fab[data-n]::after{content:attr(data-n);position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e05270;color:#fff;font:700 11px/20px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--panel)}
+/* Aurora: sugestões enquanto escreves */
+#aurora-sugg{display:flex;gap:6px;overflow-x:auto;padding:6px 12px 0;scrollbar-width:none}
+#aurora-sugg[hidden]{display:none}
+#aurora-sugg::-webkit-scrollbar{display:none}
+#aurora-sugg .a-sug{flex:0 0 auto;max-width:78%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid rgba(94,242,201,.35);background:rgba(94,242,201,.08);color:var(--text);border-radius:999px;padding:5px 11px;font:500 12.5px/1.2 system-ui,-apple-system,sans-serif;cursor:pointer}
+#aurora-sugg .a-sug:hover,#aurora-sugg .a-sug:focus-visible{background:rgba(94,242,201,.2);outline:none}
