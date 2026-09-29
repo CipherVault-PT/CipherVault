@@ -491,10 +491,10 @@ function avTourOffer(){
 }
 const AV_TOUR_RX=/\b(tutorial|apresentacao|visita guiada|tour|guia rapido)\b|como funciona (a app|isto|o cofre|a aplicacao)|mostra[- ]?me como (funciona|se usa)|ensina[- ]?me|show me around|how does (this|the app|it) work/;
 (function(){
-  if(typeof aurHandle==='function'){const ah=aurHandle;aurHandle=function(raw){
+  aurStage('ficheiros-tutorial',50,(raw,next)=>{
     if(typeof avFileHandleText==='function'&&avFileHandleText(raw))return true;
     if(AV_TOUR_RX.test(aurNorm(raw||''))){const dl=aurDetectLang(raw);if(dl)AUR.lang=dl;aurSay(aurL('Vamos a isso! ✨','Let’s go! ✨'));setTimeout(avTourStart,500);return true;}
-    return ah.apply(this,arguments);};}
+    return next(raw);});
   if(typeof aurHelp==='function'){const hp=aurHelp;aurHelp=function(){const r=hp.apply(this,arguments);aurSay(aurL('🎓 Queres uma apresentação guiada? Escreve «tutorial». 📎 Para guardar ficheiros, usa o clipe ou arrasta-os para aqui.','🎓 Want a guided tour? Type “tutorial”. 📎 To store files, use the paperclip or drag them here.'),[{label:aurL('Ver a apresentação','Start the tour'),fn:()=>avTourStart()}]);return r;};}
 })();
 
@@ -1018,17 +1018,16 @@ function avCleanupSave(){
 
 /* ── ligação à Aurora: alcunhas, resumo semanal, limpeza, calendário ── */
 (function(){
-  if(typeof aurHandle!=='function')return;const ah=aurHandle;
-  aurHandle=function(raw){
-    if(typeof AVF!=='undefined'&&AVF.q&&AVF.q.awaiting)return ah.call(this,raw); // ficheiro à espera de destino: nomes de pastas ficam tal e qual
+  aurStage('alcunhas',40,(raw,ah)=>{
+    if(typeof AVF!=='undefined'&&AVF.q&&AVF.q.awaiting)return ah(raw); // ficheiro à espera de destino: nomes de pastas ficam tal e qual
     if(raw&&avAliasHandle(raw))return true;
     const n=aurNorm(raw||'').replace(/[?!.]+$/,'').trim();
     const setL=()=>{const dl=aurDetectLang(raw);if(dl)AUR.lang=dl;};
     if(/^(resumo (da|desta) semana|a minha semana|como (esta|vai) a minha semana|weekly summary|my week|week summary)$/.test(n)){setL();avWeekSummary();return true;}
     if(/^(limpeza( das passwords)?|limpa(r)? (as )?passwords( fracas)?|rev(er|e) (as )?passwords( fracas)?|melhora(r)? (as )?(minhas )?passwords|passwords fracas|fix (my )?weak passwords|clean ?up (my )?passwords|weak passwords)$/.test(n)){setL();avCleanupStart();return true;}
     if(/\b(envia|enviar|exporta|exportar|mete|meter|poe|por|junta|juntar|adiciona|adicionar)\b.*\b(renovacoes|datas|validades|lembretes|avisos)\b.*\bcalendario\b|\b(export|send|add)\b.*\b(renewals|dates|reminders)\b.*\bcalendar\b/.test(n)){setL();aurSay(aurL('📲 A preparar as datas para o teu calendário…','📲 Preparing the dates for your calendar…'));avExportICS();return true;}
-    return ah.call(this,avApplyAliases(raw));
-  };
+    return ah(avApplyAliases(raw));
+  });
 })();
 
 

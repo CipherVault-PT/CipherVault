@@ -13,7 +13,8 @@ aurV('D_2FA','autenticacao autenticador');
 aurV('ADD','digitaliza digitalizar scan scanear fotografa fotografar anota anotar aponta apontar');
 aurV('GET','entro');
 
-function aurPre(fn){AUR_PRE.push(F=>{try{return fn(F);}catch(e){return AUR_PASS;}});}
+// cada pedido do dia a dia é uma intenção com nome e prioridade (ver o motor em src/14-aurora-ai.js)
+function aurPre(name,prio,fn){aurIntent(name,prio,fn,true);}
 const aurHas=(F,...k)=>k.some(x=>F.c.has(x));
 function aurDateTxt(v){const d=/^\d{4}-\d\d-\d\d/.test(String(v))?new Date(String(v).slice(0,10)+'T00:00:00'):new Date(v);return isNaN(d)?String(v):aurDate(d);}
 
@@ -25,7 +26,7 @@ const AUR_TALK=[
   [/^(nao percebi|nao entendi|nao sei|estou perdido|estou perdida|nao sei o que fazer|i m lost|i don t understand|i dont understand)$/,()=>aurL('Sem problema! Diz-me por palavras tuas o que precisas — por exemplo «qual a password do gmail», «o que expira este mês» ou «quanto paguei de luz». Ou escolhe:','No problem! Tell me in your own words — e.g. “what’s my gmail password”, “what expires this month”. Or pick one:'),true],
   [/^(adeus|ate logo|ate ja|tchau|xau|bye|goodbye|see you)$/,()=>aurL('Até já! ✨','See you! ✨')],
 ];
-aurPre(F=>{
+aurPre('conversa.social',200,F=>{
   const n=F.n.replace(/\s*aurora$/,'');
   for(const [re,msg,chips] of AUR_TALK)if(re.test(n)){AUR.lang=/\b(how|who|what|you|are|i|m|lost|bye|goodbye|see|love|great|job|understand|dont|don|t|s|going|your|name)\b/.test(n)?'en':'pt';return aurSay(msg(),chips?aurQuickChips():[]);}
   return AUR_PASS;
@@ -49,7 +50,7 @@ const AUR_HOWTO=[
   [/\b(password|passwords|conta|contas|acesso|acessos|entrada)\b/,()=>aurL('🔑 Toca em ＋ (canto superior) → Password, ou diz-me, por exemplo: «adiciona a netflix com user eu@mail.pt e password …» — se não disseres a password, gero uma forte.','🔑 Tap ＋ (top corner) → Password, or tell me e.g. “add netflix with user me@mail.com and password …” — if you don’t give one, I generate a strong password.'),()=>[{label:aurL('Adicionar agora','Add now'),fn:()=>{if(typeof openModal==='function'){aurClose();openModal();}}}]],
 ];
 const AUR_SAFE=/\b(cofre|dados|app|aplicacao|isto|vault|data)\b.*\b(seguros?|seguras?|protegid\w*|encriptad\w*|safe|secure)\b|\b(onde ficam|onde estao|onde sao guardad\w*|quem (ve|pode ver|tem acesso)|where (is|are) my (data|passwords)|who can see)\b|\b(e seguro|is it safe|is this safe)\b/;
-aurPre(F=>{
+aurPre('ajuda.comoFazer',210,F=>{
   const n=F.n;
   if(AUR_SAFE.test(n)&&!F.cands.some(e=>e.score>=0.5)){
     const sc=typeof calcSecurityScore==='function'?calcSecurityScore():null;
@@ -63,14 +64,15 @@ aurPre(F=>{
 });
 
 /* ── passwords: gerar, «são seguras?», «a mesma password» ── */
-aurPre(F=>{
+aurPre('password.gerarAuditar',220,F=>{
   const n=F.n;
   if(!/\bpassword\b/.test(n))return AUR_PASS;
   const hasEnt=F.cands.some(e=>e.type==='vault'&&e.score>=0.5);
   if(/\b(mesma|iguais|igual|repetid\w*|duplicad\w*|same)\b/.test(n)&&!hasEnt)return aurAudit(Object.assign({},F,{n:n+' repetidas'}));
   if(/\bpasswords?\b.*\b(sao|estao|are)\b.*\b(seguras|fortes|boas|safe|secure|strong|good)\b|\b(seguranca|estado) das (minhas )?passwords\b/.test(n))return aurAudit(F);
   // «preciso de uma password nova», «cria uma password com 12 letras», «inventa uma password»
-  if(!hasEnt&&!/\s(para|pra|no|na|for|to)\s+\S/.test(n.replace(/\bcom \d+.*$/,''))&&/\b(cria|criar|gera|gerar|faz|fazer|inventa|inventar|arranja|arranjar|preciso|quero|da|dame|make|create|need|want|give)\b[^.]{0,20}\bpassword\b(\s+(nova|novas|forte|segura|aleatoria|new|strong|random))?\b/.test(n)&&!/@/.test(F.raw)){
+  const wantNew=/\b(cria|criar|gera|gerar|faz|fazer|inventa|inventar|arranja|arranjar|make|create)\b[^.]{0,20}\bpassword\b/.test(n)||/\b(preciso|quero|da|dame|need|want|give)\b[^.]{0,20}\b(uma|a|an)\b[^.]{0,12}\bpassword\b|\bpassword\s+(nova|novas|new)\b/.test(n);
+  if(!hasEnt&&wantNew&&!aurHas(F,'D_WIFI')&&!F.cands.some(e=>e.score>=0.5)&&!/\s(para|pra|no|na|do|da|de|dos|das|for|to|of)\s+(?!decorar)\S/.test(n.slice(n.indexOf('password')).replace(/\bcom \d+.*$/,''))&&!/@/.test(F.raw)){
     const len=+((n.match(/\b(\d{1,2})\s*(letras|caracteres|carateres|digitos|chars?|characters|letters)?\b/)||[])[1]||0);
     const mem=/\b(decorar|memoravel|facil|faceis|memorable|easy)\b/.test(n);
     return aurHandle((mem?aurL('gera uma password fácil de decorar','generate a memorable password'):aurL('gera uma password forte','generate a strong password'))+(len?aurL(' com '+len+' caracteres',' with '+len+' characters'):''));
@@ -79,7 +81,7 @@ aurPre(F=>{
 });
 
 /* ── «tenho X guardado?» ── */
-aurPre(F=>{
+aurPre('tenho.guardado',230,F=>{
   const n=F.n;
   if(!/^(tenho|ja tenho|tens|ha|existe|do i have|have i got|is there)\b/.test(n)||aurHas(F,'ADD','DELETE','CHANGE','SCHEDULE','D_EXPIRY'))return AUR_PASS;
   const kinds=[['vault',/\b(password|conta|acesso|login|account)\b/],['store',/\bcartao loja\b|\bcartao (do|da|de) (lidl|continente|pingo|auchan|intermarche|minipreco|ikea|fnac|worten|decathlon|sephora|primark)\b/],['bank',/\bcartao bancario\b/],['doc',/\b(documento|document|escritura|contrato|fatura|apolice)\b/],['totp',/\b2fa\b/],['wifi',/\bwifi\b/],['note',/\bnota\b/]];
@@ -99,7 +101,7 @@ aurPre(F=>{
 });
 
 /* ── cartões: validade de um cartão; lista de cartões ── */
-aurPre(F=>{
+aurPre('cartao.validadeLista',240,F=>{
   const n=F.n;
   const C=aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>c&&!c.archived);
   if(!C.length)return AUR_PASS;
@@ -117,7 +119,7 @@ aurPre(F=>{
 });
 
 /* ── documentos: «onde está o meu cartão de cidadão», «documentos pessoais» ── */
-aurPre(F=>{
+aurPre('docs.pessoais',250,F=>{
   const n=F.n,D=aurA(typeof documents!=='undefined'?documents:[]);
   const fd=F.fields.find(f=>['cc','carta','passaporte'].includes(f.k));
   if(fd&&/\b(onde|abre|mostra|ve|ver|show|open|where|foto|digitalizado)\b/.test(n)&&!aurHas(F,'ADD','CHANGE','D_EXPIRY')){
@@ -133,7 +135,7 @@ aurPre(F=>{
 });
 
 /* ── faturas: «faturas deste mês», «que faturas tenho por pagar» ── */
-aurPre(F=>{
+aurPre('faturas.lista',260,F=>{
   const n=F.n;
   const BW=/\b(faturas|fatura|recibos|bills|invoices)\b|\bcontas (da|de|do) (luz|agua|gas|internet|net|telemovel|casa)\b/;
   if(!BW.test(n)||aurHas(F,'ADD','DELETE'))return AUR_PASS;
@@ -157,7 +159,7 @@ aurPre(F=>{
 });
 
 /* ── notas rápidas: «cria uma nota a dizer…», «anota: …» ── */
-aurPre(F=>{
+aurPre('notas.rapida',270,F=>{
   const raw=F.raw;
   const m=raw.match(/^(?:por favor\s+)?(?:cria|criar|escreve|escrever|faz|fazer|adiciona|adicionar|toma|tomar|guarda|guardar|nova|new|write|add|make|create|take)?\s*(?:uma|a|an)?\s*(?:nota|note)\s*(?:a dizer|que diz|com o texto|com|a lembrar|sobre|saying|that says|with|about)?\s*[:\-–]?\s+(.{2,})$/i)||raw.match(/^(?:anota|anotar|aponta|apontar|note down|jot down)\s*[:\-–]?\s+(.{2,})$/i);
   if(!m||typeof notes==='undefined')return AUR_PASS;
@@ -171,7 +173,7 @@ aurPre(F=>{
 });
 
 /* ── dados pessoais: aniversário, email de uma pessoa ── */
-aurPre(F=>{
+aurPre('info.anosEmail',280,F=>{
   const n=F.n;
   if(/\b(quando faco anos|o meu aniversario|quando e o meu aniversario|quando nasci|que idade tenho|quantos anos tenho|my birthday|how old am i)\b/.test(n)){
     const p=aurOwner();const f=p&&aurA(p.fields).find(x=>/nascimento|birth/i.test(aurNorm(x.label||'')));
@@ -193,7 +195,7 @@ aurPre(F=>{
 });
 
 /* ── subscrições: cancelar, adicionar numa frase, a mais cara ── */
-aurPre(F=>{
+aurPre('subs.acoes',290,F=>{
   const n=F.n,S=aurA(typeof subscriptions!=='undefined'?subscriptions:[]);
   const sub=F.cands.find(e=>e.type==='sub'&&e.score>=0.5);
   if(sub&&/\b(cancela|cancelar|cancelei|anula|anular|deixei de pagar|ja nao pago|remove|tira|cancel|unsubscribe)\b/.test(n)){
@@ -221,7 +223,7 @@ aurPre(F=>{
 });
 
 /* ── bens: garantia (onde/quando/quanto), chave da licença, aniversários, abastecimento ── */
-aurPre(F=>{
+aurPre('bens.detalhes',300,F=>{
   const n=F.n,A=aurA(typeof assets!=='undefined'?assets:[]);
   const a=(F.cands.find(e=>e.type==='asset'&&e.score>=0.5)||{}).obj;
   if(a&&a.kind==='warranty'){
@@ -264,7 +266,7 @@ Object.assign(AUR_ALIAS,{passaporte:['passport'],escritura:['deed'],fatura:['bil
 aurV('CHANGE','renomeia renomear');
 
 // «tudo sobre o carro», «tudo o que tenho do golf»
-aurPre(F=>{
+aurPre('tudo.sobre',310,F=>{
   const n=F.n;
   if(!/\b(tudo|everything|all)\b.*\b(sobre|relacionad\w*|ligad\w*|do|da|de|about|on|for|related)\b/.test(n)||aurHas(F,'DELETE','ARCHIVE','EXPORT','COPY','RESTORE','EMPTY'))return AUR_PASS;
   const generic=/^(tudo|mostra|mostrar|tenho|sobre|relacionado|relacionada|ligado|ligada|everything|all|about|related|show|have|que|o|a)$/;
@@ -290,7 +292,7 @@ aurPre(F=>{
 });
 
 // favoritos, duplicar, mover para pasta
-aurPre(F=>{
+aurPre('conta.favDupPasta',320,F=>{
   const n=F.n;
   const v=(F.cands.find(e=>e.type==='vault'&&e.score>=0.5)||{}).obj;
   if(!v)return AUR_PASS;
@@ -314,20 +316,20 @@ aurPre(F=>{
     return aurSay(aurL('A pasta <b>'+aurEsc(aurCap(name))+'</b> ainda não existe. Crio-a e ponho lá <b>'+aurEsc(v.name)+'</b>?','There’s no <b>'+aurEsc(aurCap(name))+'</b> folder yet. Create it and move <b>'+aurEsc(v.name)+'</b> there?'),aurConfirmChips());
   }
   // «a netflix cobra quanto?» quando a Netflix não está nas subscrições
-  if(/\b(cobra|cobram|custa|custam|pago|pagas|charge|charges|cost|costs)\b/.test(n)&&(aurHas(F,'HOWMUCH','D_MONEY')||/\bquanto\b/.test(n))&&!F.cands.some(e=>e.type==='sub'&&e.score>=0.5))
+  if(/\b(cobra|cobram|custa|custam|pago|pagas|charge|charges|cost|costs)\b/.test(n)&&(aurHas(F,'HOWMUCH','D_MONEY')||/\bquanto\b/.test(n))&&!F.cands.some(e=>e.type==='sub'&&e.score>=0.5)&&F.cands.some(e=>e.obj===v&&e.toks.some(t=>F.Qset.has(t))))
     return aurSay(aurL('<b>'+aurEsc(v.name)+'</b> não está nas tuas subscrições, por isso não sei quanto pagas.','<b>'+aurEsc(v.name)+'</b> isn’t in your subscriptions, so I don’t know what you pay.'),[{label:aurL('Adicionar subscrição','Add subscription'),fn:()=>aurSay(aurL('Diz-me: «adiciona a subscrição '+v.name+' por 9,99 por mês»','Say: “add subscription '+v.name+' for 9.99 a month”'))}]);
   return AUR_PASS;
 });
 
 // «abre a aba das garantias», «vai ao separador dos cartões»
-aurPre(F=>{
+aurPre('abas',330,F=>{
   if(!/\b(aba|abas|separador|seccao|pagina|ecra|tab|section|page|screen)\b/.test(F.n)||aurHas(F,'ADD','DELETE'))return AUR_PASS;
   const tab=aurDomainTab(F.c);
   return tab?aurGoTab(tab):AUR_PASS;
 });
 
 // histórico: «o que mudei hoje», «qual foi a última password que mudei»
-aurPre(F=>{
+aurPre('historico',340,F=>{
   const n=F.n;
   if(/\b(ultima|ultimas|last)\b.*\bpassword\b.*\b(mudei|mudaste|alterei|trocei|troquei|changed|updated)\b|\bpassword\b.*\b(mudada|alterada|changed)\b.*\b(recente|ultima|last)\b/.test(n)){
     const V=aurA(typeof vault!=='undefined'?vault:[]).filter(v=>v.pwUpdated).sort((a,b)=>b.pwUpdated-a.pwUpdated);
@@ -346,7 +348,7 @@ aurPre(F=>{
 });
 
 // «quanto gastei da última vez» (combustível)
-aurPre(F=>{
+aurPre('combustivel.ultimo',350,F=>{
   if(!aurHas(F,'D_FUEL')||!/\b(ultima vez|ultimo abastecimento|ultima|last time|last refuel)\b/.test(F.n))return AUR_PASS;
   const V=aurA(typeof assets!=='undefined'?assets:[]).filter(a=>a.kind==='vehicle'&&aurA(a.fuel).length);
   if(!V.length)return AUR_PASS;
@@ -363,7 +365,7 @@ AUR_PHR.push(
   [/\bbloqueio\s+automatico\b|\bbloqueio\s+auto\b/g,' autobloqueio ']
 );
 const aurVEnt2=v=>({type:'vault',obj:v,name:v.name,toks:aurSig(aurCanon(v.name||''))});
-aurPre(F=>{
+aurPre('diversos',360,F=>{
   const n=F.n,V=aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived);
   const ent=F.cands.find(e=>e.score>=0.5);
   const v=(F.cands.find(e=>e.type==='vault'&&e.score>=0.5)||{}).obj;
@@ -424,7 +426,7 @@ aurPre(F=>{
     return aurSay('🌐 '+aurL('Sites guardados','Saved sites')+' ('+L.length+'):\n'+L.slice(0,15).map(x=>'• <b>'+aurEsc(x.name)+'</b> — '+aurEsc(x.url)).join('\n'));
   }
   // «quantas contas de banco tenho», «qual a conta mais recente»
-  if(aurHas(F,'COUNT')&&!v){
+  if(aurHas(F,'COUNT')&&!v&&!aurHas(F,'D_WIFI')&&/\b(conta|contas|acesso|acessos|password|passwords|login|logins|account|accounts)\b/.test(n)){
     const key=typeof aurCatOf==='function'?aurCatOf(n):null;
     if(key){const L=V.filter(x=>x.cat===key);return aurSay(aurL('Tens <b>'+L.length+'</b> '+(L.length===1?'conta':'contas')+' nessa categoria'+(L.length?': ':'.'),'You have <b>'+L.length+'</b> '+(L.length===1?'account':'accounts')+' in that category'+(L.length?': ':'.'))+L.map(x=>aurEsc(x.name)).join(', '));}
   }

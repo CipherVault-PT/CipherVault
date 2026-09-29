@@ -271,7 +271,7 @@ function avDocPeriod(n){
 }
 
 // «quanto recebi de ordenado em setembro», «qual o meu salário líquido»
-AUR_PRE.push(F=>{
+aurIntent('docs.ordenado',100,F=>{
   const n=F.n;
   if(!(/\b(ordenado|ordenados|salario|salarios|recebi|recebo|ganho|ganhei|salary|paycheck|payslip|net pay|recibos? de vencimento)\b/.test(n)||(/\bvencimentos?\b/.test(n)&&/\b(quanto|qual|how much)\b/.test(n)&&!/\bfaturas?\b/.test(n))))return AUR_PASS;
   if(F.c.has('ADD')||F.c.has('DELETE'))return AUR_PASS;

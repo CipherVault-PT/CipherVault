@@ -70,4 +70,27 @@ test.describe('Aurora aprende contigo', () => {
     expect(await say(page, 'esquece tudo o que aprendeste')).toMatch(/Esqueci tudo/);
     expect(await say(page, 'o que aprendeste')).toMatch(/Ainda não aprendi nada/);
   });
+
+  test('frases não percebidas: guardadas com dados tapados, «não era isso», lista e limpar', async ({ page }) => {
+    await say(page, 'zorglub flabergast');
+    await say(page, 'blip Abc123xyz9 para 123456789 e eu@mail.pt');
+    await say(page, 'adiciona uma conta');
+    expect(await page.evaluate(() => !!AUR.pending)).toBe(true);
+    await page.evaluate(async () => { aurQuick('zorglub'); await new Promise(r => setTimeout(r, 40)); });   // resposta a uma pergunta da Aurora: não conta
+    await say(page, 'qual a password do gmail');
+    expect(await say(page, 'não era isso')).toMatch(/anotei «qual a password do gmail»/);
+    const r = await say(page, 'o que não percebeste?');
+    expect(r).toMatch(/Frases que não percebi \(3\)/);
+    expect(r).toMatch(/qual a password do gmail[\s\S]*zorglub flabergast/);
+    expect(r).toMatch(/blip «…» para «nº» e «email»/);
+    expect(r).not.toMatch(/Abc123xyz9|123456789|eu@mail\.pt/);
+    const saved = await page.evaluate(async () => {
+      await saveFile({ auto: true });
+      const json = pendingVaultText, dec = await decrypt(masterKey, JSON.parse(json).payload);
+      return { plain: json.includes('flabergast'), inside: JSON.stringify(dec).includes('flabergast') };
+    });
+    expect(saved).toEqual({ plain: false, inside: true });
+    await page.locator('#aurora-msgs .aurora-msg', { hasText: 'Frases que não percebi' }).last().locator('.a-btn', { hasText: 'Limpar lista' }).click();
+    expect(await say(page, 'o que não percebeste')).toMatch(/Não tenho frases por perceber/);
+  });
 });

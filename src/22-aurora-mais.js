@@ -23,13 +23,12 @@ function aurUndo(){
 }
 (function(){
   if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){if(AURU.op&&!AURU.op.pushed&&AURU.op.snap){AURU.stack.push(AURU.op.snap);if(AURU.stack.length>10)AURU.stack.shift();AURU.op.pushed=true;}return mu.apply(this,arguments);};}
-  const h=aurHandle;
-  aurHandle=function(raw){
+  aurStage('desfazer',10,(raw,h)=>{
     const n=aurCanon(raw||'');
     if(/^(desfaz|desfazer|desfaz isso|desfaz o que fizeste|desfaz a ultima( acao| alteracao)?|anula( isso)?|anular|volta atras|undo|undo that|undo it|revert( that)?)$/.test(n)){const dl=aurDetectLang(raw,new Set());if(dl)AUR.lang=dl;return aurUndo();}
     const st=auruBegin(String(raw||'').trim().slice(0,80));if(st)AURU.last=AURU.op.label;
     try{return h(raw);}finally{auruEnd(st);}
-  };
+  });
   const act=aurAct;aurAct=function(i){const st=auruBegin(AURU.last||aurL('ação','action'));try{return act(i);}finally{auruEnd(st);}};
   const yes=aurYes;aurYes=function(){const st=auruBegin(AURU.last||aurL('confirmação','confirmation'));try{return yes.apply(this,arguments);}finally{auruEnd(st);}};
 })();
@@ -44,7 +43,7 @@ function aurSpend(R){
   out.total=out.bills+out.subs+out.fuel;return out;
 }
 function aurMonthName(R){const m=AUR_MESES[R.m].replace('marco','março');return aurL(m,AUR_MONTHS[R.m]);}
-aurPre(F=>{
+aurPre('gastos',450,F=>{
   const n=F.n;
   const spendQ=/\b(quanto (gastei|gasto|paguei|pago|despendi)|gastos|despesas|how much (did i|do i) (spend|pay)|spending|expenses|spent)\b/.test(n);
   const cmp=/\b(compara\w*|compare|comparison|vs|versus|gastei mais|gastei menos|spent more|spent less)\b/.test(n)&&/\b(mes passado|mes anterior|last month|previous month)\b/.test(n);
@@ -113,7 +112,7 @@ function aurCleanStep(){
   }
   return aurCleanNext(false);
 }
-aurPre(F=>{
+aurPre('limpeza',460,F=>{
   const n=F.n;
   if(/\b(continua|continuar|segue|seguir|continue)\b.*\b(limpeza|arrumar|arrumacao|tidying|clean ?up)\b/.test(n)&&AURL.q.length)return aurCleanStep();
   if(/^(?:(?:podes|consegues|vamos|quero)\s+)?(arruma|arrumar|organiza|organizar|limpa|limpar|faz uma limpeza|fazer uma limpeza|limpeza|arrumacao|tidy|tidy up|clean up|clean)\b.*\b(cofre|vault|tudo|everything|isto|app|passwords|contas)\b|^(limpeza|arrumacao|limpeza geral|faxina)( do cofre| geral)?$/.test(n)&&!/\b(reciclagem|lixo|lixeira|trash|bin|historico)\b/.test(n))return aurCleanStart();
@@ -123,8 +122,8 @@ aurPre(F=>{
 /* ── sugestões enquanto escreves (com os nomes do teu cofre) ── */
 function aurSugPool(){
   const en=aurAppLang()==='en',P=[];const add=(t,w)=>P.push({t,n:aurNorm(t),w:w||1});
-  (en?['what expires this month','what needs my attention','how much did I spend this month','compare with last month','tidy up my vault','any weak passwords','generate a strong password','what have you learned','undo','unpaid bills','status overview','2fa codes','my tax number','my iban']
-    :['o que expira este mês','o que devo tratar','quanto gastei este mês no total','compara com o mês passado','arruma o meu cofre','tenho passwords fracas','gera uma password forte','o que aprendeste','desfaz','faturas por pagar','ponto de situação','códigos 2fa','qual o meu nif','qual o meu iban']).forEach(t=>add(t,2));
+  (en?['what expires this month','what needs my attention','how much did I spend this month','compare with last month','tidy up my vault','any weak passwords','generate a strong password','what have you learned','what didn\'t you understand','undo','unpaid bills','status overview','2fa codes','my tax number','my iban']
+    :['o que expira este mês','o que devo tratar','quanto gastei este mês no total','compara com o mês passado','arruma o meu cofre','tenho passwords fracas','gera uma password forte','o que aprendeste','o que não percebeste','desfaz','faturas por pagar','ponto de situação','códigos 2fa','qual o meu nif','qual o meu iban']).forEach(t=>add(t,2));
   aurA(typeof vault!=='undefined'?vault:[]).filter(v=>!v.archived&&v.name).slice(0,300).forEach(v=>{add((en?'password for ':'password do ')+v.name,3);add((en?'copy the password for ':'copia a password do ')+v.name);add((en?'username for ':'utilizador do ')+v.name);});
   if(!aurTotpLocked())aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>{const nm=t.name||t.issuer;if(nm)add((en?'code for ':'código do ')+nm,3);});
   aurA(typeof bankCards!=='undefined'?bankCards:[]).filter(c=>!c.archived).forEach(c=>{const nm=c.name||c.bank;if(nm){add((en?'pin for card ':'pin do cartão ')+nm);add((en?'when does card ':'quando expira o cartão ')+nm+(en?' expire':''));}});

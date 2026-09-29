@@ -27,7 +27,7 @@ export default defineConfig({
     ...(process.env.CI || process.env.PW_WEBKIT ? [{
       name: 'iphone', use: { ...devices['iPhone 14'] },
       testMatch: ['smoke.spec.mjs', 'layout.spec.mjs', 'crypto.spec.mjs', 'pin.spec.mjs', 'lock-ui.spec.mjs', 'vault-ui.spec.mjs',
-        'ui-modals.spec.mjs', 'tabs-ui.spec.mjs', 'data-safety.spec.mjs', 'regressions.spec.mjs', 'a11y.spec.mjs', 'aurora.spec.mjs', 'aurora-conversa.spec.mjs', 'aurora-avisos.spec.mjs', 'aurora-entende.spec.mjs', 'aurora-memoria.spec.mjs', 'aurora-mais.spec.mjs'],
+        'ui-modals.spec.mjs', 'tabs-ui.spec.mjs', 'data-safety.spec.mjs', 'regressions.spec.mjs', 'a11y.spec.mjs', 'aurora.spec.mjs', 'aurora-conversa.spec.mjs', 'aurora-avisos.spec.mjs', 'aurora-entende.spec.mjs', 'aurora-memoria.spec.mjs', 'aurora-mais.spec.mjs', 'aurora-motor.spec.mjs'],
     }] : []),
   ],
 });

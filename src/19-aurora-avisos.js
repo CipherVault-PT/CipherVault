@@ -70,12 +70,11 @@ function auriBadge(){
 
 (function(){
   // pedidos: «avisos», «o que devo tratar», «o que há de novo», «what needs my attention»
-  const h=aurHandle;
-  aurHandle=function(raw){
+  aurStage('avisos',20,(raw,h)=>{
     const n=aurCanon(raw||'');
     if(!AUR.pending&&/^(?:(?:tens|ha|tenho|mostra|mostra me|quais|any|show|show me|my)\s+)*(?:(?:os|as|algum|alguns|alguma|algumas|meus|minhas)\s+)?(avisos?|alertas?|notificacoes|pendentes|novidades|alerts?|notifications)\??$|\bo que (?:devo|tenho de|tenho que|preciso de) tratar\b|\bo que ha de novo\b|^(?:ha |tenho |existe )?(?:alguma coisa|algo) (?:urgente|importante|pendente)$|\bwhat needs my attention\b|\bwhat s new\b|\banything (?:urgent|important)\b/.test(n)){const dl=aurDetectLang(raw,new Set());if(dl)AUR.lang=dl;return aurInsightsSay();}
     return h(raw);
-  };
+  });
   // saudação: junta os avisos mais importantes
   const g=aurGreet;
   aurGreet=function(){g();try{const L=aurInsights();if(!L.length)return;const top=L.slice(0,3);
