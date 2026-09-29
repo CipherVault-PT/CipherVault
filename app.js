@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.20';
+const APP_VERSION='10.21';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2732,8 +2732,8 @@ function renderDashboard(){
       };
       actList.innerHTML=activityLog.slice(0,8).map(a=>`
         <div class="activity-item">
-          <span class="activity-icon">${a.icon||'📝'}</span>
-          <div class="activity-text"><strong>${actionLabels[a.action]||a.action}</strong> ${esc(a.name)}</div>
+          <span class="activity-icon">${esc(a.icon||'📝')}</span>
+          <div class="activity-text"><strong>${esc(actionLabels[a.action]||a.action)}</strong> ${esc(a.name)}</div>
           <span class="activity-time">${timeAgo(a.ts)}</span>
         </div>`).join('');
     }
@@ -13334,9 +13334,17 @@ function aurcRun(steps,base,first=true){
 /* ═══════════ AURORA · AVISOS ═══════════
    A Aurora olha pelo cofre sozinha (no dispositivo) e avisa: faturas a vencer, contas que subiram,
    validades, renovações, passwords repetidas/fracas e documentos por ler. */
+// «Lembra-me amanhã» / «Ignorar»: os ids têm nomes (ex.: «ev:doc:Cartão de Cidadão:…»), por isso ficam dentro do cofre (encriptados)
+// e não no browser; o que estava no browser (versões antigas) passa para o cofre uma vez e sai de lá
 const AURI_KEY='av_aur_snooze';
-function auriSnoozed(){try{const o=JSON.parse(localStorage.getItem(AURI_KEY)||'{}'),now=Date.now();Object.keys(o).forEach(k=>{if(o[k]<now)delete o[k];});return o;}catch(e){return {};}}
-function auriSnooze(id,days){try{const o=auriSnoozed();o[id]=Date.now()+days*864e5;localStorage.setItem(AURI_KEY,JSON.stringify(o));}catch(e){}auriBadge();}
+function auriStore(){
+  if(typeof payloadExtras==='undefined')return {};
+  const m=payloadExtras.aurMem=payloadExtras.aurMem||{};
+  if(!m.snooze){m.snooze={};try{const old=JSON.parse(localStorage.getItem(AURI_KEY)||'{}');if(old&&Object.keys(old).length){Object.assign(m.snooze,old);if(typeof markUnsaved==='function')markUnsaved();}localStorage.removeItem(AURI_KEY);}catch(e){}}
+  return m.snooze;
+}
+function auriSnoozed(){const o=auriStore(),now=Date.now();Object.keys(o).forEach(k=>{if(o[k]<now)delete o[k];});return o;}
+function auriSnooze(id,days){const o=auriSnoozed();o[id]=Date.now()+days*864e5;if(typeof markUnsaved==='function')markUnsaved();auriBadge();}
 function auriDays(d){const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-aurToday())/864e5);}
 function auriIso(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
 function auriWhen(n){return n<0?aurL('há '+(-n)+(n===-1?' dia':' dias'),(-n)+(n===-1?' day':' days')+' ago'):n===0?aurL('hoje','today'):n===1?aurL('amanhã','tomorrow'):aurL('em '+n+' dias','in '+n+' days');}
@@ -13535,7 +13543,7 @@ aurPre('cartao.validadeLista',240,F=>{
     return aurSay('💳 '+aurL('Cartão <b>','<b>')+aurEsc(c.name||c.bank)+aurL('</b>: válido até <b>','</b> card: valid until <b>')+c.expiry+'</b> ('+aurRel(d)+').');
   }
   if(/^(que|quais|quantos|mostra|lista|os meus|as minhas|what|which|list|show)\b/.test(n)&&/\bcartoes\b|\bcards\b|\bcartao bancario\b/.test(n)&&!named.length&&!/\bloja\b/.test(n)&&!aurHas(F,'D_EXPIRY')){
-    return aurSay(aurL('💳 Tens <b>'+C.length+'</b> '+(C.length===1?'cartão':'cartões')+':','💳 You have <b>'+C.length+'</b> '+(C.length===1?'card':'cards')+':')+'\n'+C.map(c=>'• <b>'+aurEsc(c.name||c.bank)+'</b> ···· '+aurEsc(String(c.number||'').slice(-4))+(c.expiry?' · '+c.expiry:'')).join('\n'),C.slice(0,6).map(c=>({label:c.name||c.bank,fn:()=>aurOpenEnt({type:'bank',obj:c,name:c.name||c.bank},F,true)})));
+    return aurSay(aurL('💳 Tens <b>'+C.length+'</b> '+(C.length===1?'cartão':'cartões')+':','💳 You have <b>'+C.length+'</b> '+(C.length===1?'card':'cards')+':')+'\n'+C.map(c=>'• <b>'+aurEsc(c.name||c.bank)+'</b> ···· '+aurEsc(String(c.number||'').slice(-4))+(c.expiry?' · '+aurEsc(c.expiry):'')).join('\n'),C.slice(0,6).map(c=>({label:c.name||c.bank,fn:()=>aurOpenEnt({type:'bank',obj:c,name:c.name||c.bank},F,true)})));
   }
   return AUR_PASS;
 });
@@ -13764,7 +13772,7 @@ aurPre('historico',340,F=>{
     const R=(today?L.filter(a=>a.ts>=t0):L).slice(0,10);
     if(!R.length)return aurSay(today?aurL('Hoje ainda não mudaste nada.','You haven’t changed anything today.'):aurL('Ainda não há atividade registada.','No activity yet.'));
     const verb={add:aurL('adicionaste','added'),edit:aurL('editaste','edited'),delete:aurL('apagaste','deleted'),archive:aurL('arquivaste','archived'),restore:aurL('recuperaste','restored')};
-    return aurSay('🕘 '+(today?aurL('Hoje:','Today:'):aurL('Últimas alterações:','Recent changes:'))+'\n'+R.map(a=>'• '+(a.icon||'📝')+' '+(verb[a.action]||a.action)+' <b>'+aurEsc(a.name)+'</b> <span class="a-dim">'+(typeof timeAgo==='function'?timeAgo(a.ts):'')+'</span>').join('\n'));
+    return aurSay('🕘 '+(today?aurL('Hoje:','Today:'):aurL('Últimas alterações:','Recent changes:'))+'\n'+R.map(a=>'• '+aurEsc(a.icon||'📝')+' '+aurEsc(verb[a.action]||a.action)+' <b>'+aurEsc(a.name)+'</b> <span class="a-dim">'+(typeof timeAgo==='function'?timeAgo(a.ts):'')+'</span>').join('\n'));
   }
   return AUR_PASS;
 });
@@ -13970,7 +13978,8 @@ const AURM={depth:0,lastQ:'',prevQ:''};
 const AUR_MISS=new Set(['vague','find:none','find:near','suggest']);
 function aurMaskSecrets(t){
   return String(t||'').replace(/\bPT\s?\d{2}(?:\s?\d){19,23}\b/gi,'«IBAN»').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,'«email»')
-    .replace(/\b\d{5,}\b/g,'«nº»').replace(/(?=\S*\d)(?=\S*[A-Za-z])[^\s«»]{6,}/g,'«…»').slice(0,160);
+    .replace(/\b(password|passwords|pass|senha|senhas|pin|cvv|codigo|código|chave|key|palavra-passe)\b([^:=]*?)(?:\s(?:para|pra|é|to|is)\s+|\s*[:=]\s*)(\S+)/gi,(m,a,b,c)=>m.slice(0,m.length-c.length)+'«…»')
+    .replace(/\b\d{5,}\b/g,'«nº»').replace(/(?=\S*\d)(?=\S*[A-Za-z])[^\s«»]{6,}/g,'«…»').replace(/(?=\S*[!#$%&*+=?@^_~|\\])[^\s«»]{5,}/g,'«…»').slice(0,160);
 }
 function aurMissLog(q,why){
   q=aurMaskSecrets(q).trim();if(!q)return;
@@ -14183,3 +14192,20 @@ if(typeof document!=='undefined'){
     else if(e.key==='Enter'||e.key==='Escape'){if(box){box.innerHTML='';box.hidden=true;}}
   },true);
 }
+
+/* ── ao bloquear (ou trocar de cofre): a Aurora esquece tudo o que tinha em memória e na página ── */
+function aurWipe(){
+  try{const m=document.getElementById('aurora-msgs');if(m){m.innerHTML='';delete m.dataset.greeted;}
+    const s=document.getElementById('aurora-sugg');if(s){s.innerHTML='';s.hidden=true;}
+    const i=document.getElementById('aurora-input');if(i)i.value='';}catch(e){}
+  AUR.pending=null;AUR.last=null;AUR.resume=null;AUR.acts=[];AUR.hist=[];AUR.hIdx=-1;AUR.trace='';
+  if(typeof AURC!=='undefined'){AURC.ctx=null;AURC.chips=null;}
+  AURU.stack=[];AURU.op=null;AURU.last='';
+  AUR_IDX=null;AUR_SUGP=null;
+  if(typeof AURM!=='undefined'){AURM.lastQ='';AURM.prevQ='';}
+  AURL.q=[];
+  if(typeof AVF!=='undefined')AVF.q=null;
+  if(typeof AVDX!=='undefined')AVDX.q=[];
+  if(typeof AVC!=='undefined'){AVC.q=[];AVC.newPw=null;AVC.undo=null;}
+}
+(function(){if(typeof resetVaultState!=='function')return;const r=resetVaultState;resetVaultState=function(){const x=r.apply(this,arguments);aurWipe();return x;};})();

@@ -2,9 +2,17 @@
 /* ═══════════ AURORA · AVISOS ═══════════
    A Aurora olha pelo cofre sozinha (no dispositivo) e avisa: faturas a vencer, contas que subiram,
    validades, renovações, passwords repetidas/fracas e documentos por ler. */
+// «Lembra-me amanhã» / «Ignorar»: os ids têm nomes (ex.: «ev:doc:Cartão de Cidadão:…»), por isso ficam dentro do cofre (encriptados)
+// e não no browser; o que estava no browser (versões antigas) passa para o cofre uma vez e sai de lá
 const AURI_KEY='av_aur_snooze';
-function auriSnoozed(){try{const o=JSON.parse(localStorage.getItem(AURI_KEY)||'{}'),now=Date.now();Object.keys(o).forEach(k=>{if(o[k]<now)delete o[k];});return o;}catch(e){return {};}}
-function auriSnooze(id,days){try{const o=auriSnoozed();o[id]=Date.now()+days*864e5;localStorage.setItem(AURI_KEY,JSON.stringify(o));}catch(e){}auriBadge();}
+function auriStore(){
+  if(typeof payloadExtras==='undefined')return {};
+  const m=payloadExtras.aurMem=payloadExtras.aurMem||{};
+  if(!m.snooze){m.snooze={};try{const old=JSON.parse(localStorage.getItem(AURI_KEY)||'{}');if(old&&Object.keys(old).length){Object.assign(m.snooze,old);if(typeof markUnsaved==='function')markUnsaved();}localStorage.removeItem(AURI_KEY);}catch(e){}}
+  return m.snooze;
+}
+function auriSnoozed(){const o=auriStore(),now=Date.now();Object.keys(o).forEach(k=>{if(o[k]<now)delete o[k];});return o;}
+function auriSnooze(id,days){const o=auriSnoozed();o[id]=Date.now()+days*864e5;if(typeof markUnsaved==='function')markUnsaved();auriBadge();}
 function auriDays(d){const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-aurToday())/864e5);}
 function auriIso(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
 function auriWhen(n){return n<0?aurL('há '+(-n)+(n===-1?' dia':' dias'),(-n)+(n===-1?' day':' days')+' ago'):n===0?aurL('hoje','today'):n===1?aurL('amanhã','tomorrow'):aurL('em '+n+' dias','in '+n+' days');}

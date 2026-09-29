@@ -109,7 +109,8 @@ const AURM={depth:0,lastQ:'',prevQ:''};
 const AUR_MISS=new Set(['vague','find:none','find:near','suggest']);
 function aurMaskSecrets(t){
   return String(t||'').replace(/\bPT\s?\d{2}(?:\s?\d){19,23}\b/gi,'«IBAN»').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,'«email»')
-    .replace(/\b\d{5,}\b/g,'«nº»').replace(/(?=\S*\d)(?=\S*[A-Za-z])[^\s«»]{6,}/g,'«…»').slice(0,160);
+    .replace(/\b(password|passwords|pass|senha|senhas|pin|cvv|codigo|código|chave|key|palavra-passe)\b([^:=]*?)(?:\s(?:para|pra|é|to|is)\s+|\s*[:=]\s*)(\S+)/gi,(m,a,b,c)=>m.slice(0,m.length-c.length)+'«…»')
+    .replace(/\b\d{5,}\b/g,'«nº»').replace(/(?=\S*\d)(?=\S*[A-Za-z])[^\s«»]{6,}/g,'«…»').replace(/(?=\S*[!#$%&*+=?@^_~|\\])[^\s«»]{5,}/g,'«…»').slice(0,160);
 }
 function aurMissLog(q,why){
   q=aurMaskSecrets(q).trim();if(!q)return;
