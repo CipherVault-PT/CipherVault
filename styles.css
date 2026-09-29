@@ -1894,10 +1894,18 @@ body.av-simple #grp-btn-bens,body.av-simple #grp-btn-archive,body.av-simple #tab
 .av-cc-cp{flex-shrink:0;width:32px;height:32px;border-radius:9px;border:none;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .av-cc-cp:hover{background:rgba(255,255,255,.26)}
 .av-cc-pin{cursor:pointer;border-bottom:1px dashed rgba(255,255,255,.4)}
-.av-cc-reveal{align-self:center;display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:24px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font:600 .78rem system-ui,-apple-system,sans-serif;cursor:pointer;transition:border-color .15s,background .15s}
+.bank-card-wrap.av-cc{background:none;border:none;box-shadow:none;padding:0;gap:12px}
+.av-cc-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 2px}
+.av-cc-acts{display:flex;gap:8px}
+.av-cc-ib{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s,border-color .15s,background .15s,transform .1s}
+.av-cc-ib:hover{color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.08)}
+.av-cc-ib.danger:hover{color:var(--red);border-color:rgba(224,82,82,.45);background:rgba(224,82,82,.1)}
+.av-cc-ib:active,.av-cc-reveal:active{transform:scale(.94)}
+.av-cc-notes{font-size:.68rem;color:var(--text-muted);line-height:1.5;padding:0 4px;margin-top:-6px}
+.av-cc-reveal{display:flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font:600 .78rem system-ui,-apple-system,sans-serif;cursor:pointer;transition:border-color .15s,background .15s,transform .1s}
 .av-cc-reveal:hover{border-color:rgba(var(--accent-rgb),.6);background:rgba(var(--accent-rgb),.08)}
 .av-cc-reveal svg{color:var(--accent-ink)}
-.av-cc-timer{text-align:center;font-size:.64rem;color:var(--text-muted);min-height:1.1em;margin-top:-4px}
+.av-cc-timer{text-align:left;padding:0 6px;font-size:.64rem;color:var(--text-muted);margin-top:-6px}.av-cc-timer:empty{display:none}
 @media(prefers-reduced-motion:reduce){.av-cc-card{transition:none}}
 /* confirmação de identidade */
 #av-auth{position:fixed;inset:0;z-index:420;display:none;align-items:center;justify-content:center;background:rgba(3,6,12,.62)}
