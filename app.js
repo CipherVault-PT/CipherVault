@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.21';
+const APP_VERSION='10.22';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -12048,7 +12048,7 @@ renderBankCards=function(){
   const en=avEn(),activeCards=bankCards.filter(cd=>!cd.archived);
   if(!activeCards.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><p>'+t('cardEmpty')+'</p></div>';try{avEnhanceEmpty();}catch(e){}return;}
   const TL=t('cardTypeLabels')||{};
-  const btn=(fn,svg,lbl,cls)=>'<button class="card-btn'+(cls?' '+cls:'')+'" '+avActAttrs(fn)+'>'+svg+' '+lbl+'</button>';
+  const ib=(fn,svg,lbl,cls)=>'<button class="av-cc-ib'+(cls?' '+cls:'')+'" '+avActAttrs(fn)+' title="'+lbl+'" aria-label="'+lbl+'"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+svg+'</svg></button>';
   grid.innerHTML=activeCards.map(card=>{
     const d=String(card.number||'').replace(/\D/g,''),last4=d.slice(-4)||'••••',col=card.color||'#1a3a6b';
     return '<div class="bank-card-wrap av-cc" id="cc-'+card.id+'">'
@@ -12059,13 +12059,15 @@ renderBankCards=function(){
      +'<div class="av-cc-num">•••• •••• •••• '+esc(last4)+'</div><div class="av-cc-holder">'+esc(card.holder||'')+'</div>'+avCardNetHTML(d)
      +'</div><div class="av-cc-face av-cc-back" id="cc-back-'+card.id+'" style="background:linear-gradient(135deg,'+col+','+col+'cc)"></div>'
      +'</div></div>'
+     +'<div class="av-cc-bar">'
      +'<button class="av-cc-reveal" id="cc-btn-'+card.id+'" data-act="avCardReveal" data-arg="'+esc(card.id)+'">'+AV_EYE+'<span>'+(en?'Show details':'Mostrar dados')+'</span></button>'
+     +'<div class="av-cc-acts">'
+     +ib("openCardModal('"+card.id+"')",'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',en?'Edit':'Editar')
+     +ib("archiveCard('"+card.id+"')",'<rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/>',en?'Archive':'Arquivar')
+     +ib("deleteCard('"+card.id+"')",'<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',en?'Delete':'Apagar','danger')
+     +'</div></div>'
      +'<div class="av-cc-timer" id="cc-timer-'+card.id+'"></div>'
-     +'<div class="bank-card-actions">'
-     +btn("openCardModal('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',en?'Edit':'Editar')
-     +btn("archiveCard('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg>',en?'Archive':'Arquivar')
-     +btn("deleteCard('"+card.id+"')",'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',en?'Delete':'Apagar','danger')
-     +'</div>'+(card.notes?'<div style="font-size:.62rem;color:var(--text-muted);padding:4px 2px;line-height:1.5">'+esc(card.notes)+'</div>':'')+'</div>';
+     +(card.notes?'<div class="av-cc-notes">'+esc(card.notes)+'</div>':'')+'</div>';
   }).join('');
 };
 function avCardBackHTML(c){
