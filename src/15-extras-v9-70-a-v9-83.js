@@ -555,7 +555,9 @@ async function avFilesReceive(list){
   const read=await Promise.all(ok.map(f=>new Promise(res=>{const r=new FileReader();r.onload=()=>res({name:f.name,type:f.type||'',size:f.size,data:r.result});r.onerror=()=>res(null);r.readAsDataURL(f);})));
   const fl=read.filter(Boolean);
   let text='';
-  for(const f of fl){if(/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)){try{text+=await Promise.race([avPdfText(f.data),new Promise((_,rj)=>setTimeout(()=>rj(new Error('t')),12000))]);}catch(e){}}}
+  // lê cada ficheiro (PDF e fotos, no dispositivo): o texto fica guardado com o documento para a Aurora responder depois
+  if(fl.some(f=>/^image\//.test(f.type))&&typing)typing.innerHTML='<span class="a-dim">'+aurL('A ler… (as fotos demoram uns segundos)','Reading… (photos take a few seconds)')+'</span>';
+  for(const f of fl.slice(0,5)){try{const r=typeof avDocExtractText==='function'?await avDocExtractText(f):{text:''};f.text=r.text||'';f.src=r.src||'';text+=f.text+'\n';}catch(e){f.text=null;}}
   if(typing&&typing.remove)typing.remove();
   const nt=aurNorm(fl.map(f=>f.name.replace(/[_\-.]+/g,' ')).join(' ')+' '+text);
   const kind=AVF_KINDS.find(k=>k.rx.test(nt))||null;
@@ -571,7 +573,7 @@ function avFileAsk(){
   chips.push({label:'📁 '+aurL('Documentos (sem pasta)','Documents (no folder)'),fn:()=>avFilePlan({dest:{type:'doc',path:[]}})});
   chips.push({label:'➕ '+aurL('Nova pasta…','New folder…'),fn:()=>{AVF.q.ask='folder';aurSay(aurL('Como se chama a pasta? Podes pôr subpastas: «Casa/Seguros».','What’s the folder called? You can nest: “Home/Insurance”.'));}});
   if(typeof assets!=='undefined'&&assets.length)chips.push({label:'🏠 '+aurL('Anexar a um bem…','Attach to an asset…'),fn:()=>aurSay(aurL('A qual?','Which one?'),assets.slice(0,10).map(a=>({label:avAssetLabelFull(a),fn:()=>avFilePlan({dest:{type:'asset',id:a.id}})})))});
-  if(!q.expiry&&q.files.length===1&&/^image\//.test(q.files[0].type))chips.push({label:'🔍 '+aurL('Ler validade da foto','Read expiry from photo'),fn:()=>avFileOcr()});
+  if(!q.expiry&&q.files.length===1&&/^image\//.test(q.files[0].type)&&!q.files[0].text)chips.push({label:'🔍 '+aurL('Ler validade da foto','Read expiry from photo'),fn:()=>avFileOcr()});
   chips.push({label:aurL('Cancelar','Cancel'),fn:()=>{AVF.q=null;aurSay(aurL('Ok, não guardei nada.','Ok, nothing was saved.'));}});
   const what=q.kind?aurL(' Parece '+(n>1?'ser ':'uma ')+'<b>'+q.kind.t[0]+'</b>.',' Looks like '+(n>1?'':'a ')+'<b>'+q.kind.t[1]+'</b>.'):'';
   const exp=q.expiry?aurL('\n⏳ Encontrei a validade <b>','\n⏳ I found the expiry <b>')+aurDate(q.expiry)+'</b>.':'';
@@ -638,7 +640,7 @@ function avFileSave(){
   if(plan.dest.type==='doc'){
     let parent=null;
     for(const seg of plan.dest.path){let f=docFolders.find(x=>(x.parentId||null)===parent&&aurNorm(x.name)===aurNorm(seg));if(!f){f={id:'f'+nid(),name:seg,icon:'📁',parentId:parent};docFolders.push(f);}parent=f.id;}
-    const made=q.files.map(f=>{const d={id:nid(),title:(n===1&&plan.name)?plan.name:(f.name.replace(/\.[^.]+$/,'')||f.name),cat:(q.kind&&q.kind.cat)||'outro',date:'',expiry:n===1?(plan.expiry||''):'',desc:'',folderId:parent,file:{name:f.name,size:f.size,type:f.type,data:f.data},createdAt:Date.now()};documents.push(d);return d;});
+    const made=q.files.map(f=>{const d={id:nid(),title:(n===1&&plan.name)?plan.name:(f.name.replace(/\.[^.]+$/,'')||f.name),cat:(q.kind&&q.kind.cat)||'outro',date:'',expiry:n===1?(plan.expiry||''):'',desc:'',folderId:parent,file:{name:f.name,size:f.size,type:f.type,data:f.data},createdAt:Date.now()};documents.push(d);if(f.text!=null&&typeof avDocSetText==='function')avDocSetText(d,f.text,f.src);return d;});AVF.made=made.map(d=>d.id);
     where=aurL('Documentos','Documents')+(plan.dest.path.length?' › '+plan.dest.path.join(' › '):'');
     openFn=()=>{switchTab('docs');currentFolderId=parent;try{renderDocs();}catch(e){}setTimeout(()=>{try{openDocModal(made[0].id);}catch(e){}},200);};
   }else if(plan.dest.type==='asset'){
@@ -655,6 +657,7 @@ function avFileSave(){
   try{logActivity('add',q.files.map(f=>f.name).join(', '),'📎');}catch(e){}
   markUnsaved();try{renderAll();}catch(e){}
   aurSay('✓ '+aurL(n>1?'Guardei '+n+' ficheiros em <b>':'Guardado em <b>',n>1?'Stored '+n+' files in <b>':'Stored in <b>')+esc(where)+'</b>.',[{label:aurL('Abrir','Open'),fn:()=>{aurClose();openFn&&openFn();}}]);
+  if(AVF.made&&typeof avDocAfterSave==='function'){const ids=AVF.made;AVF.made=null;avDocAfterSave(ids);}
 }
 (function(){
   function wire(){

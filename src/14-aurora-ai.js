@@ -397,7 +397,7 @@ function aurHandle(raw){
   if(c.has('HELP'))return aurHelp();
   if((c.has('HELLO')||c.has('THANKS'))&&![...c].some(x=>AUR_ACTIONS.has(x)||x.indexOf('D_')===0)&&!F.confident)return aurSmall(F);
   if(c.has('CLOSE')&&!F.hasDomain){aurSay(aurL('Até já! ✨','See you soon! ✨'));aurClose(true);return true;}
-  for(const h of [aurCardSecret,aurBreach,aurSamePw,aurOld,aurVehicleDate,aurCatAccount,aurDocsAbout]){const r=h(F);if(r!==AUR_PASS)return r;}
+  for(const h of [aurDocReadAll,aurDocSearch,aurDocFacts,aurCardSecret,aurBreach,aurSamePw,aurOld,aurVehicleDate,aurCatAccount,aurDocsAbout]){const r=h(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_MASTER'))return aurSettings('seguranca',aurL('A palavra-passe mestra, o PIN, a biometria e o auto-bloqueio mudam-se em Definições → Segurança — por segurança não os altero pela conversa. Abri-te lá.','The master password, PIN, biometrics and auto-lock are changed in Settings → Security — for safety I don’t change them through chat. I opened it for you.'));
   if(c.has('D_2FA')||c.has('D_2FAW')){const r=aur2fa(F);if(r!==AUR_PASS)return r;}
   if(c.has('D_EXPIRY')&&!(c.has('SCHEDULE')&&F.date)&&!(c.has('D_PW')&&!/expir|caduc|venc|validade|valid/.test(F.n)))return aurExpiry(F);
@@ -1306,14 +1306,16 @@ function aurDocsAbout(F){
   const skipC=x=>AUR_ACTIONS.has(x)||/^(D_DOC|MINE|ALL|D_FILE|D_PDF|D_CSV|D_EXPIRY|D_AUDIT|D_SUMMARY|D_MONEY|D_CAL|NUM)$/.test(x);
   const terms=F.Q.filter(t=>t.length>=3&&!(AUR_VOCAB[t]||[]).some(skipC)&&!/^(tenho|sobre|about|have|any)$/.test(t));if(!terms.length)return AUR_PASS;
   const folders=aurA(typeof docFolders!=='undefined'?docFolders:[]);
-  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name].filter(Boolean).join(' '))+' ';
+  const hay=d=>' '+aurCanon([d.title,d.desc,d.cat,typeof getDocCatLabel==='function'?getDocCatLabel(d.cat):'',(folders.find(f=>f.id===d.folderId)||{}).name,d.file&&d.file.name,d.facts&&d.facts.entity,d.text].filter(Boolean).join(' '))+' ';
   const D=aurA(typeof documents!=='undefined'?documents:[]).filter(d=>d&&!d.archived);
   const hit=D.filter(d=>{const h=hay(d);return terms.some(t=>h.includes(' '+t)||h.includes(t+' '));});
   const q=aurEsc(terms.join(' '));
   if(!hit.length)return aurSay(aurL('Não encontrei documentos sobre «'+q+'».','I found no documents about «'+q+'».'),[{label:aurL('Ver documentos','See documents'),fn:()=>aurGoTab('docs')}]);
   const ents=hit.map(d=>({type:'doc',obj:d,name:d.title||d.name||'',score:1}));
-  if(ents.length===1)return aurOpenEnt(ents[0],F,true);
-  return aurChoose(ents,F,aurL('📄 Tens '+ents.length+' documentos sobre «'+q+'»:','📄 You have '+ents.length+' documents about «'+q+'»:'));
+  if(ents.length===1&&!(hit[0].text&&!aurNorm(hit[0].title||'').includes(terms[0])))return aurOpenEnt(ents[0],F,true);
+  // com o texto lido: mostra onde aparece
+  return aurSay(aurL('📄 '+(ents.length===1?'1 documento':ents.length+' documentos')+' sobre «'+q+'»:','📄 '+ents.length+(ents.length===1?' document':' documents')+' about «'+q+'»:')+'\n'+hit.slice(0,6).map(d=>{const sn=d.text&&typeof avSnippet==='function'?avSnippet(d.text,terms):'';return '• <b>'+aurEsc(d.title||'')+'</b>'+(sn?' — <span class="a-dim">'+sn+'</span>':'');}).join('\n'),
+    ents.slice(0,6).map(e=>({label:e.name,fn:()=>aurOpenEnt(e,F,true)})));
 }
 
 // «quando é a inspeção do golf», «quando acaba o seguro do carro»
