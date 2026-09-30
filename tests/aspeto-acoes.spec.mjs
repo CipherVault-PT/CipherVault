@@ -60,3 +60,31 @@ test.describe('Aspeto: ações dos cartões', () => {
     await expect(page.locator('#vehicle-content [data-act="openAssetModal"][data-arg2="v1"]')).toBeVisible();
   });
 });
+
+test.describe('Aspeto: topo e privacidade', () => {
+  test.beforeEach(async ({ page }) => { await openApp(page); await createVault(page); });
+
+  test('tocar em «AURORA VAULT» volta ao painel', async ({ page }) => {
+    await page.evaluate(() => switchTab('warranty'));
+    await page.locator('.topbar-logo').click();
+    await expect(page.locator('#tab-dashboard')).toHaveClass(/active/);
+  });
+
+  test('ao mudar de app, os botões flutuantes também desaparecem; puxar para baixo não recarrega', async ({ page }) => {
+    await expect(page.locator('#aurora-fab')).toBeAttached();
+    const r = await page.evaluate(() => {
+      document.body.classList.add('bg-blur');
+      const s = id => getComputedStyle(document.getElementById(id));
+      return { ai: s('aurora-fab').opacity, add: s('av-fab-add').opacity, pull: getComputedStyle(document.documentElement).overscrollBehaviorY };
+    });
+    expect(r).toEqual({ ai: '0', add: '0', pull: 'none' });
+  });
+
+  test('«Verificar fugas de passwords» cabe no botão com letra maior (Android com texto aumentado)', async ({ page }) => {
+    await page.setViewportSize({ width: 450, height: 900 });
+    await page.evaluate(() => { document.documentElement.style.fontSize = '125%'; switchTab('vault'); });
+    const cta = page.locator('.vsb-breach .breach-cta').last();
+    await expect(cta).toBeVisible();
+    expect(await cta.evaluate(b => b.scrollWidth - b.clientWidth)).toBeLessThanOrEqual(1);
+  });
+});
