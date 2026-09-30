@@ -568,7 +568,10 @@ const SERVICE_ICONS={
 };
 // Chaves curtas (x, cgd, bpi, bcp) só contam como palavra inteira — «Xpto» não é o X/Twitter.
 // As expressões são compiladas uma vez (antes, a cada entrada de cada render).
-function wordKeyMatcher(key){return key.length<=3?new RegExp('(^|[^a-z0-9])'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)','i'):key;}
+function wordKeyMatcher(key){const q=key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  if(key.length<=3)return new RegExp('(^|[^a-z0-9])'+q+'([^a-z0-9]|$)','i');
+  // domínios curtos («x.com») não podem apanhar o fim de outro («netflix.com»)
+  return /^[a-z0-9]{1,3}\./.test(key)?new RegExp('(^|[^a-z0-9])'+q,'i'):key;}
 function keyMatches(m,hay){return typeof m==='string'?hay.includes(m):m.test(hay);}
 let _svcMatchers=null;
 function getServiceIcon(name){

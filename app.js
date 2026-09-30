@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.22';
+const APP_VERSION='10.23';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -2922,7 +2922,10 @@ const SERVICE_ICONS={
 };
 // Chaves curtas (x, cgd, bpi, bcp) só contam como palavra inteira — «Xpto» não é o X/Twitter.
 // As expressões são compiladas uma vez (antes, a cada entrada de cada render).
-function wordKeyMatcher(key){return key.length<=3?new RegExp('(^|[^a-z0-9])'+key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)','i'):key;}
+function wordKeyMatcher(key){const q=key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  if(key.length<=3)return new RegExp('(^|[^a-z0-9])'+q+'([^a-z0-9]|$)','i');
+  // domínios curtos («x.com») não podem apanhar o fim de outro («netflix.com»)
+  return /^[a-z0-9]{1,3}\./.test(key)?new RegExp('(^|[^a-z0-9])'+q,'i'):key;}
 function keyMatches(m,hay){return typeof m==='string'?hay.includes(m):m.test(hay);}
 let _svcMatchers=null;
 function getServiceIcon(name){
@@ -5430,7 +5433,9 @@ function getFileIcon(name){
   const ext=name.split('.').pop().toLowerCase();
   return FILE_ICONS[ext]||FILE_ICONS.default;
 }
+function docFileBytes(f){if(!f)return NaN;const n=+f.size;if(Number.isFinite(n)&&n>=0)return n;const d=String(f.data||''),i=d.indexOf(',');return i<0?NaN:Math.round((d.length-i-1)*3/4);}
 function formatFileSize(bytes){
+  bytes=+bytes;if(!Number.isFinite(bytes)||bytes<0)return '';
   if(bytes<1024)return bytes+'B';
   if(bytes<1024*1024)return (bytes/1024).toFixed(1)+'KB';
   return (bytes/(1024*1024)).toFixed(1)+'MB';
@@ -5553,7 +5558,7 @@ function previewDoc(id){
   const ext=(name.split('.').pop()||'').toLowerCase();
   const type=d.file.type||'';
   document.getElementById('docview-title').textContent=d.title||name;
-  document.getElementById('docview-sub').textContent=`${name} · ${formatFileSize(d.file.size)}`;
+  document.getElementById('docview-sub').textContent=[name,formatFileSize(docFileBytes(d.file))].filter(Boolean).join(' · ');
   document.getElementById('docview-dl-txt').textContent=en?'Download':'Transferir';
   const body=document.getElementById('docview-body');
   const isImg=type.startsWith('image/')||['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext);
@@ -5828,7 +5833,7 @@ function renderDocs(){
       </div>
       <div class="doc-card-meta">
         ${doc.date?`<span>📅 ${esc(doc.date)}</span>`:''}
-        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:`<span style="color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file':'Sem ficheiro'}</span>`}
+        ${doc.file?`<span>📎 ${esc(doc.file.name)}${(z=>z?` (${z})`:'')(formatFileSize(docFileBytes(doc.file)))}</span>`:`<span style="color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file':'Sem ficheiro'}</span>`}
         ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
       </div>
       <div class="card-actions">
@@ -9049,7 +9054,7 @@ function openDocPreview(id){
     const badge=expStatus?`<span class="doc-expiry-badge ${expStatus.cls}" style="font-size:.72rem;padding:4px 10px;margin-left:10px">⏰ ${expStatus.label}</span>`:'';
     html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Expiry':'Validade'}</span><div class="read-field-value" style="display:flex;align-items:center">${esc(doc.expiry)}${badge}</div></div>`;
   }
-  if(doc.file)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'File':'Ficheiro'}</span><div class="read-field-value" style="font-size:.85rem">${fileIcon} ${esc(doc.file.name)} <span style="color:var(--text-muted);font-size:.75rem">(${formatFileSize(doc.file.size)})</span></div></div>`;
+  if(doc.file)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'File':'Ficheiro'}</span><div class="read-field-value" style="font-size:.85rem">${fileIcon} ${esc(doc.file.name)} <span style="color:var(--text-muted);font-size:.75rem">(${formatFileSize(docFileBytes(doc.file))})</span></div></div>`;
   else html+=`<div class="read-field"><div style="font-size:.78rem;color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file attached':'Sem ficheiro anexado'}</div></div>`;
   content.innerHTML=html;
   const actions=document.getElementById('read-actions');
@@ -14211,3 +14216,80 @@ function aurWipe(){
   if(typeof AVC!=='undefined'){AVC.q=[];AVC.newPw=null;AVC.undo=null;}
 }
 (function(){if(typeof resetVaultState!=='function')return;const r=resetVaultState;resetVaultState=function(){const x=r.apply(this,arguments);aurWipe();return x;};})();
+
+/* ══ v10.23 — ações dos cartões numa só linha: a principal com texto, as outras só com ícone e as menos usadas no menu «⋯» ══ */
+const AVX={menu:null,btn:null,home:null,raf:0};
+const AVX_EXTRA=/^(toggleReviewed$|openMoveModal$|archive|delete|remove|move)/i;
+const AVX_SVG={toggleReviewed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>',openMoveModal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5m-2.5-2.5L12 16l2.5-2.5"/></svg>'};
+const AVX_EMOJI=/^\s*([\p{Extended_Pictographic}️‍⃣]+)/u;
+const AVX_DOTS='<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+function avxPrep(b){
+  const svg=b.querySelector('svg'),txt=b.textContent||'',em=txt.match(AVX_EMOJI);
+  const lbl=txt.replace(AVX_EMOJI,'').trim();
+  if(!lbl)return false;
+  const ic=document.createElement('span');ic.className='cbx-i';
+  if(svg){svg.removeAttribute('width');svg.removeAttribute('height');ic.appendChild(svg);}else if(AVX_SVG[b.dataset.act])ic.innerHTML=AVX_SVG[b.dataset.act];else if(em)ic.textContent=em[1];
+  const l=document.createElement('span');l.className='cbx-l';l.textContent=lbl;
+  b.textContent='';if(ic.childNodes.length)b.appendChild(ic);b.appendChild(l);
+  if(!b.getAttribute('aria-label'))b.setAttribute('aria-label',lbl);
+  if(/delete|remove/i.test(b.dataset.act||''))b.classList.add('danger');
+  return !!ic.childNodes.length;
+}
+function avxEnhance(box){
+  box.dataset.avx='1';
+  const bs=[...box.children].filter(e=>e.matches('button.card-btn')&&e.style.display!=='none');
+  if(bs.length<2)return;
+  const icon=new Map(bs.map(b=>[b,avxPrep(b)]));
+  const main=bs.find(b=>!AVX_EXTRA.test(b.dataset.act||''))||bs[0];
+  const rest=bs.filter(b=>b!==main);
+  const extra=bs.length>4?rest.filter(b=>AVX_EXTRA.test(b.dataset.act||'')):[];
+  box.classList.add('cbx');box.prepend(main);main.classList.add('cbx-main');
+  rest.filter(b=>!extra.includes(b)).forEach(b=>{if(icon.get(b)){b.classList.add('cbx-ico');if(!b.title)b.title=b.getAttribute('aria-label');}box.appendChild(b);});
+  if(extra.length<2){extra.forEach(b=>{if(icon.get(b)){b.classList.add('cbx-ico');if(!b.title)b.title=b.getAttribute('aria-label');}box.appendChild(b);});return;}
+  const en=currentLang==='en',more=document.createElement('button'),menu=document.createElement('div');
+  more.type='button';more.className='card-btn cbx-ico cbx-more';more.dataset.act='avxMore';more.setAttribute('data-this','');
+  more.setAttribute('aria-label',en?'More actions':'Mais ações');more.title=more.getAttribute('aria-label');
+  more.setAttribute('aria-haspopup','menu');more.setAttribute('aria-expanded','false');more.innerHTML='<span class="cbx-i">'+AVX_DOTS+'</span>';
+  menu.className='cbx-menu';menu.hidden=true;menu.setAttribute('role','menu');
+  extra.forEach(b=>{b.setAttribute('role','menuitem');menu.appendChild(b);});
+  box.append(more,menu);
+}
+function avxScan(){AVX.raf=0;document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance);if(AVX.btn&&!AVX.btn.isConnected)avxClose();}
+function avxMore(btn){
+  const was=AVX.btn;if(AVX.menu)avxClose();if(was===btn)return;
+  const menu=btn.nextElementSibling;if(!menu||!menu.classList.contains('cbx-menu'))return;
+  AVX.menu=menu;AVX.btn=btn;AVX.home=btn.parentElement;
+  document.body.appendChild(menu);menu.hidden=false;btn.setAttribute('aria-expanded','true');
+  avxPlace();
+  const f=menu.querySelector('button');if(f)f.focus({preventScroll:true});
+}
+// acompanha o botão quando a página se mexe; só fecha se o botão sair do ecrã
+function avxPlace(){
+  const m=AVX.menu,b=AVX.btn;if(!m||!b)return;
+  const r=b.getBoundingClientRect(),mw=m.offsetWidth,mh=m.offsetHeight,vw=document.documentElement.clientWidth,vh=window.innerHeight;
+  if(r.bottom<0||r.top>vh){avxClose();return;}
+  let top=r.bottom+6;if(top+mh>vh-8)top=Math.max(8,r.top-mh-6);
+  m.style.left=Math.max(8,Math.min(vw-mw-8,r.right-mw))+'px';m.style.top=top+'px';
+}
+function avxClose(focus){
+  const m=AVX.menu,b=AVX.btn;if(!m)return;
+  m.hidden=true;if(AVX.home&&AVX.home.isConnected)AVX.home.appendChild(m);else m.remove();
+  if(b){b.setAttribute('aria-expanded','false');if(focus&&b.isConnected)b.focus({preventScroll:true});}
+  AVX.menu=AVX.btn=AVX.home=null;
+}
+(function(){
+  if(typeof document==='undefined')return;
+  const go=()=>{if(!AVX.raf)AVX.raf=requestAnimationFrame(avxScan);};
+  new MutationObserver(go).observe(document.documentElement,{childList:true,subtree:true});go();
+  document.addEventListener('click',e=>{if(AVX.menu&&!(AVX.btn&&AVX.btn.contains(e.target)))avxClose();});
+  document.addEventListener('keydown',e=>{
+    if(!AVX.menu)return;
+    if(e.key==='Escape'){e.stopPropagation();avxClose(true);return;}
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      const it=[...AVX.menu.querySelectorAll('button')],i=it.indexOf(document.activeElement);
+      it[(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length].focus();e.preventDefault();
+    }
+  },true);
+  window.addEventListener('scroll',()=>avxPlace(),true);
+  window.addEventListener('resize',()=>avxClose());
+})();
