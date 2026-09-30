@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.25';
+const APP_VERSION='10.26';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -8210,10 +8210,13 @@ function openLegacyModal(){
     :'Recomendado desligado: guarda a folha e a palavra-passe em sítios separados. Quem encontrar só a folha não abre nada.';
   {const nRec=totp.filter(x=>x&&x.recovery).length,locked=typeof aurTotpLocked==='function'&&aurTotpLocked();
    const box=document.getElementById('legacy-recbox'),w=document.getElementById('legacy-recwarn');
-   document.getElementById('legacy-rec-row').style.display=(nRec||locked)?'flex':'none';w.style.display=(nRec||locked)?'':'none';
-   box.checked=false;box.disabled=locked;
+   const show=nRec||locked||totp.length>0;
+   document.getElementById('legacy-rec-row').style.display=show?'flex':'none';w.style.display=show?'':'none';
+   box.checked=false;box.disabled=locked||!nRec;
    document.getElementById('legacy-recbox-lbl').textContent=en?'Include the 2FA recovery codes'+(nRec?' ('+nRec+')':''):'Incluir os códigos de recuperação da 2FA'+(nRec?' ('+nRec+')':'');
    w.textContent=locked?(en?'The 2FA tab is locked — unlock it first to include the codes.':'O separador 2FA está trancado — desbloqueia-o primeiro para incluir os códigos.')
+     :!nRec?(en?(totp.length===1?'Your 2FA account has no recovery codes saved.':'None of your '+totp.length+' 2FA accounts has recovery codes saved.')+' They are the emergency codes each service gives when you turn on 2FA — add them in 2FA → Edit → Recovery codes.'
+       :(totp.length===1?'A tua conta 2FA não tem códigos de recuperação guardados.':'Nenhuma das tuas '+totp.length+' contas 2FA tem códigos de recuperação guardados.')+' São os códigos de emergência que cada serviço dá quando ativas a 2FA — adiciona-os em 2FA → Editar → Códigos de recuperação.')
      :(en?'They let someone into those accounts without your phone. Only print them if the sheet will be kept safe.':'Permitem entrar nessas contas sem o teu telemóvel. Só os incluas se a folha ficar bem guardada.');}
   document.getElementById('legacy-gen-btn').textContent=en?'Generate sheet':'Gerar folha';
   document.getElementById('legacy-cancel-btn').textContent=en?'Cancel':'Cancelar';

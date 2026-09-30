@@ -101,4 +101,11 @@ test.describe('Folha de herança: códigos de recuperação e cópia no Drive', 
     await expect(page.locator('#legacy-recbox')).toBeDisabled();
     await expect(page.locator('#legacy-recwarn')).toContainText('trancado');
   });
+
+  test('contas 2FA sem códigos guardados: a opção explica em vez de desaparecer', async ({ page }) => {
+    await page.evaluate(() => { closeLegacyModal(); totp.forEach(t => delete t.recovery); openLegacyModal(); });
+    await expect(page.locator('#legacy-rec-row')).toBeVisible();
+    await expect(page.locator('#legacy-recbox')).toBeDisabled();
+    await expect(page.locator('#legacy-recwarn')).toContainText('A tua conta 2FA não tem códigos de recuperação');
+  });
 });
