@@ -549,9 +549,9 @@ function openLegacyModal(){
   document.getElementById('legacy-msg').placeholder=en
     ?'Anything you want them to read: practical notes, what matters most, or simply a few words.'
     :'O que quiseres que leiam: notas práticas, o que é mais importante, ou apenas algumas palavras.';
-  document.getElementById('legacy-pwbox-lbl').textContent=en
-    ?'Include a space to write the master password on this sheet'
-    :'Incluir espaço para escrever a palavra-passe nesta folha';
+  document.getElementById('legacy-pwbox-lbl').textContent=totpRecWrap
+    ?(en?'Include a space to write the master password and the 2FA recovery code on this sheet':'Incluir espaço para escrever a palavra-passe e o código de recuperação 2FA nesta folha')
+    :(en?'Include a space to write the master password on this sheet':'Incluir espaço para escrever a palavra-passe nesta folha');
   document.getElementById('legacy-pwwarn').textContent=en
     ?'Recommended off: keep the sheet and the password in separate places. Whoever finds the sheet alone can open nothing.'
     :'Recomendado desligado: guarda a folha e a palavra-passe em sítios separados. Quem encontrar só a folha não abre nada.';
@@ -581,6 +581,7 @@ function generateLegacyDoc(){
   const recBox=document.getElementById('legacy-recbox'),withRec=!!(recBox&&recBox.checked&&!recBox.disabled);
   const recs=withRec?totp.filter(x=>x&&x.recovery).map(x=>({name:x.issuer||x.name||'—',acc:x.account||'',codes:String(x.recovery)})):[];
   const drv=typeof driveOn==='function'&&driveOn()?{hint:dCfg('hint')}:null;
+  const t2prot=!!totpRecWrap;
   if(!presentationMode&&(msg!==legacyNote||owner!==legacyOwner)){
     legacyNote=msg;legacyOwner=owner;markUnsaved();
   }
@@ -628,6 +629,10 @@ function generateLegacyDoc(){
     s8:'A message from me',
     s9:'Copies of this sheet',
     p9:'Who has a copy, and where the vault backups are:',
+    t2T:'The 2FA tab has its own lock',
+    t2P:'The 6-digit codes kept in the vault are in a separate, locked <b>2FA</b> tab. On any new phone or computer it opens only with the <b>2FA recovery code</b> — it is <b>not</b> the master password. Open the vault, go to the 2FA tab and choose <b>“Recovery code”</b>.',
+    t2On:'Write the 2FA recovery code here by hand:',
+    t2Off:'The 2FA recovery code is <b>not written on this sheet</b> — it is kept together with the master password.',
     recT:'Recovery codes (two-step verification)',
     recP:'If a 6-digit code cannot be obtained, each account below accepts one of these codes instead. Each code usually works only once.',
     drv:'There is always an up-to-date copy on <b>Google Drive</b>, file <b>ciphervault.vault</b>',
@@ -667,6 +672,10 @@ function generateLegacyDoc(){
     s8:'Uma mensagem minha',
     s9:'Cópias desta folha',
     p9:'Quem tem cópia, e onde estão as cópias de segurança do cofre:',
+    t2T:'O separador 2FA tem um fecho próprio',
+    t2P:'Os códigos de 6 dígitos guardados no cofre estão num separador <b>2FA</b> trancado à parte. Num telemóvel ou computador novo, só abre com o <b>código de recuperação 2FA</b> — <b>não</b> é a palavra-passe mestra. Abre o cofre, vai ao separador 2FA e escolhe <b>«Código de recuperação»</b>.',
+    t2On:'Escreve aqui à mão o código de recuperação 2FA:',
+    t2Off:'O código de recuperação 2FA <b>não está escrito nesta folha</b> — está guardado junto da palavra-passe mestra.',
     recT:'Códigos de recuperação (verificação em dois passos)',
     recP:'Se não for possível obter o código de 6 dígitos, cada conta abaixo aceita em vez disso um destes códigos. Normalmente cada código só serve uma vez.',
     drv:'Há sempre uma cópia atualizada no <b>Google Drive</b>, ficheiro <b>ciphervault.vault</b>',
@@ -742,6 +751,7 @@ function generateLegacyDoc(){
   <p class="note">${L.note}</p>
 
   <h2>${L.s5}</h2><div class="alert">${L.p5}</div>
+  ${t2prot?`<h2>${L.t2T}</h2><p>${L.t2P}</p>${withPwBox?`<p>${L.t2On}</p><div class="pwbox"></div>`:`<div class="pwnote">${L.t2Off}</div>`}`:''}
   ${recs.length?`<h2>${L.recT}</h2><p>${L.recP}</p><table class="rec">${recs.map(r=>`<tr><td><b>${esc(r.name)}</b>${r.acc?`<br><span class="acc">${esc(r.acc)}</span>`:''}</td><td class="codes">${esc(r.codes)}</td></tr>`).join('')}</table>`:''}
 
   <h2>${L.s6}</h2>

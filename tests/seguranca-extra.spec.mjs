@@ -108,4 +108,20 @@ test.describe('Folha de herança: códigos de recuperação e cópia no Drive', 
     await expect(page.locator('#legacy-recbox')).toBeDisabled();
     await expect(page.locator('#legacy-recwarn')).toContainText('A tua conta 2FA não tem códigos de recuperação');
   });
+
+  test('separador 2FA protegido: a folha explica o código de recuperação 2FA (e dá espaço para o escrever)', async ({ page }) => {
+    await page.evaluate(() => { closeLegacyModal(); totpRecWrap = {}; totpUnlocked = true; openLegacyModal(); });
+    await expect(page.locator('#legacy-pwbox-lbl')).toContainText('código de recuperação 2FA');
+    let txt = await sheet(page);
+    expect(txt).toContain('O separador 2FA tem um fecho próprio');
+    expect(txt).toContain('não está escrito nesta folha');
+    await page.evaluate(() => openLegacyModal());
+    await page.locator('#legacy-pwbox').check();
+    txt = await sheet(page);
+    expect(txt).toContain('Escreve aqui à mão o código de recuperação 2FA');
+  });
+
+  test('sem proteção no separador 2FA: a secção não aparece', async ({ page }) => {
+    expect(await sheet(page)).not.toContain('fecho próprio');
+  });
 });
