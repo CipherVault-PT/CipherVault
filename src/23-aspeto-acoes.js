@@ -42,10 +42,16 @@ function avxMore(btn){
   const menu=btn.nextElementSibling;if(!menu||!menu.classList.contains('cbx-menu'))return;
   AVX.menu=menu;AVX.btn=btn;AVX.home=btn.parentElement;
   document.body.appendChild(menu);menu.hidden=false;btn.setAttribute('aria-expanded','true');
-  const r=btn.getBoundingClientRect(),mw=menu.offsetWidth,mh=menu.offsetHeight,vw=document.documentElement.clientWidth,vh=window.innerHeight;
-  let top=r.bottom+6;if(top+mh>vh-8)top=Math.max(8,r.top-mh-6);
-  menu.style.left=Math.max(8,Math.min(vw-mw-8,r.right-mw))+'px';menu.style.top=top+'px';
+  avxPlace();
   const f=menu.querySelector('button');if(f)f.focus({preventScroll:true});
+}
+// acompanha o botão quando a página se mexe; só fecha se o botão sair do ecrã
+function avxPlace(){
+  const m=AVX.menu,b=AVX.btn;if(!m||!b)return;
+  const r=b.getBoundingClientRect(),mw=m.offsetWidth,mh=m.offsetHeight,vw=document.documentElement.clientWidth,vh=window.innerHeight;
+  if(r.bottom<0||r.top>vh){avxClose();return;}
+  let top=r.bottom+6;if(top+mh>vh-8)top=Math.max(8,r.top-mh-6);
+  m.style.left=Math.max(8,Math.min(vw-mw-8,r.right-mw))+'px';m.style.top=top+'px';
 }
 function avxClose(focus){
   const m=AVX.menu,b=AVX.btn;if(!m)return;
@@ -66,6 +72,6 @@ function avxClose(focus){
       it[(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length].focus();e.preventDefault();
     }
   },true);
-  window.addEventListener('scroll',()=>avxClose(),true);
+  window.addEventListener('scroll',()=>avxPlace(),true);
   window.addEventListener('resize',()=>avxClose());
 })();

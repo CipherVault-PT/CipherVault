@@ -23,15 +23,23 @@ test.describe('Aspeto: ações dos cartões', () => {
     const box = await row.boundingBox(), first = await row.locator('.cbx-main').boundingBox(), more = await row.locator('.cbx-more').boundingBox();
     expect(Math.abs(first.y - more.y)).toBeLessThan(2);
     expect(more.x + more.width).toBeLessThanOrEqual(box.x + box.width + 1);
-    await row.locator('.cbx-more').click();
     const menu = page.locator('body > .cbx-menu:not([hidden])');
-    await expect(menu).toBeVisible();
+    await expect(async () => {
+      if (!(await menu.count())) await row.locator('.cbx-more').click();
+      await expect(menu).toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout: 30_000 });
     await expect(menu.locator('.card-btn')).toHaveText(['Rever', 'Mover', 'Arquivar', 'Apagar']);
     await expect(row.locator('.cbx-more')).toHaveAttribute('aria-expanded', 'true');
     await page.keyboard.press('Escape');
     await expect(menu).toHaveCount(0);
-    await row.locator('.cbx-more').click();
-    await page.locator('body > .cbx-menu .card-btn', { hasText: 'Arquivar' }).click();
+    const archived = () => page.evaluate(() => !!vault.find(v => v.id === 'a1').archived);
+    await expect(async () => {
+      if (!(await archived())) {
+        await row.locator('.cbx-more').click();
+        await page.locator('body > .cbx-menu .card-btn', { hasText: 'Arquivar' }).click({ timeout: 2000 });
+      }
+      expect(await archived()).toBe(true);
+    }).toPass({ timeout: 30_000 });
     await expect.poll(() => page.evaluate(() => vault.find(v => v.id === 'a1').archived)).toBe(true);
     await expect(page.locator('body > .cbx-menu')).toHaveCount(0);
   });

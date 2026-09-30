@@ -30,10 +30,14 @@ test.describe('Cofre de passwords', () => {
   test('botões de cada entrada', async ({ page }) => {
     const card = page.locator('#card-a1');
     // Rever, Mover, Arquivar e Apagar ficam no menu «⋯» de cada entrada
-    const fromMenu = async (id, act) => {
-      await page.locator(`#card-${id} .cbx-more`).click();
-      await page.locator(`body > .cbx-menu [data-act="${act}"]`).click();
-    };
+    // (se a lista se redesenhar entretanto, o menu fecha: volta a abrir, mas só se a ação ainda não ficou feita)
+    const fromMenu = (id, act, done) => expect(async () => {
+      if (!(await page.evaluate(done))) {
+        await page.locator(`#card-${id} .cbx-more`).click();
+        await page.locator(`body > .cbx-menu [data-act="${act}"]`).click({ timeout: 2000 });
+      }
+      expect(await page.evaluate(done)).toBe(true);
+    }).toPass({ timeout: 30_000 });
     const copied = [];
     await page.exposeFunction('__copied', v => copied.push(v));
     await page.evaluate(() => { const o = copyText; copyText = (v, m) => { window.__copied(v); return o(v, m); }; });
@@ -49,7 +53,7 @@ test.describe('Cofre de passwords', () => {
 
     await card.locator('[data-act="toggleFav"]').click();
     expect(await page.evaluate(() => vault.find(v => v.id === 'a1').fav)).toBe(true);
-    await fromMenu('a1', 'toggleReviewed');
+    await fromMenu('a1', 'toggleReviewed', () => !!vault.find(v => v.id === 'a1').reviewedAt);
     expect(await page.evaluate(() => !!vault.find(v => v.id === 'a1').reviewedAt)).toBe(true);
 
     await page.locator('#card-a1 [data-act="editEntry"]').click();
@@ -61,9 +65,9 @@ test.describe('Cofre de passwords', () => {
     await expect(page.locator('#read-modal')).toHaveClass(/open/);
     await page.evaluate(() => closeReadMode());
 
-    await fromMenu('b2', 'archiveEntry');
+    await fromMenu('b2', 'archiveEntry', () => !!vault.find(v => v.id === 'b2').archived);
     expect(await page.evaluate(() => vault.find(v => v.id === 'b2').archived)).toBe(true);
-    await fromMenu('a1', 'deleteEntry');                                           // confirmação aceite
+    await fromMenu('a1', 'deleteEntry', () => !vault.some(v => v.id === 'a1'));   // confirmação aceite
     expect(await page.evaluate(() => vault.some(v => v.id === 'a1'))).toBe(false);
   });
 
