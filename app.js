@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.24';
+const APP_VERSION='10.25';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -554,6 +554,7 @@ async function onPinInput(){
   const err=document.getElementById('pin-err');
   const res=await tryPin(pin);
   if(res.pw){err.textContent='';_pinUpgradeDue=res.len<PIN_LEN;submitOpenVault(res.pw,res.qk);return;}
+  if(!res.gone&&typeof avFailRecord==='function')avFailRecord('pin');
   if(res.blocked){
     err.textContent=en?'Too many attempts — PIN disabled.':'Demasiadas tentativas — PIN desativado.';
     setTimeout(refreshQuickUnlock,1600);return;
@@ -1274,9 +1275,10 @@ async function submitOpenVault(pwArg,qk){
   if(!quick&&pw.length<4){setLockError(t('lockMinChars'));return;}
   if(_openBusy)return;
   _openBusy=true;
-  let text,salt,iter,key,data;
+  let text,salt,iter,key,data,fromFile=false;
   try{
-    text=((quick||!pendingVaultFile)&&pendingVaultText)?pendingVaultText:await pendingVaultFile.text();
+    fromFile=!((quick||!pendingVaultFile)&&pendingVaultText);
+    text=fromFile?await pendingVaultFile.text():pendingVaultText;
     const container=JSON.parse(text);
     salt=new Uint8Array(container.salt);iter=containerIter(container);
     // Chave guardada no PIN/biometria para este mesmo salt → sem PBKDF2
@@ -1316,6 +1318,7 @@ async function submitOpenVault(pwArg,qk){
     if(_pinUpgradeDue){_pinUpgradeDue=false;setTimeout(()=>{if(masterKey&&!presentationMode)openPinSetup('upgrade');},1600);}
     setTimeout(()=>{try{renderNotifBtn();checkNotifs();}catch(e){}},2500);
     applyPendingGo();
+    if(fromFile)vaultLinkOpenedFile(text).catch(()=>{});
     setTimeout(()=>{try{driveCheckOnOpen();}catch(e){}},500);
   }catch(e){
     console.error('open vault:',e);
@@ -1403,6 +1406,7 @@ async function newVault(){submitNewVault();}
 function loadFile(){startOpenVault();}
 async function onFileChosen(e){onFileSelected(e);}
 function handleFailedAttempt(){
+  if(typeof avFailRecord==='function')avFailRecord('pw');
   failedAttempts++;const rem=MAX_ATTEMPTS-failedAttempts;
   if(failedAttempts>=MAX_ATTEMPTS){lockedOut=true;setLockError(t('lockErrTooMany'));document.getElementById('attempts-warn').textContent=t('lockErrReload');document.getElementById('master-pw').disabled=true;return;}
   setLockError(t('lockErr'));document.getElementById('attempts-warn').textContent=`⚠️ ${rem} ${t('lockErrRemaining')}`;
@@ -4470,6 +4474,20 @@ function driveOn(){return dCfg('on')==='1'&&!!dCfg('cid');}
 // ── cópia local (dentro da app, sempre atualizada) ──
 async function localVaultSave(json,pending){
   try{await idbSet('av_local',{json,at:Date.now(),pending:!!pending});}catch(e){}
+  try{await localVaultLink(json);}catch(e){}
+}
+// a cópia interna fica associada ao ficheiro do cofre (nome + sal): só assim pode substituí-lo ao desbloquear
+function vaultSaltOf(json){try{const c=JSON.parse(json);return c&&c.salt?String(c.salt):'';}catch(e){return '';}}
+// cofre aberto pelo ficheiro: se a cópia interna é do mesmo cofre, fica associada (nunca a substitui — pode ser mais recente)
+async function vaultLinkOpenedFile(text){
+  if(typeof vaultFileHandle==='undefined'||!vaultFileHandle)return;
+  const loc=await localVaultGet();
+  if(!loc||!loc.json){await localVaultSave(text,false);return;}
+  if(vaultSaltOf(loc.json)===vaultSaltOf(text))await localVaultLink(loc.json);
+}
+async function localVaultLink(json){
+  const salt=vaultSaltOf(json);
+  if(typeof vaultFileHandle!=='undefined'&&vaultFileHandle&&salt)await idbSet('av_local_link',{name:vaultFileHandle.name,salt});
 }
 async function localVaultGet(){try{return await idbGet('av_local');}catch(e){return null;}}
 
@@ -8190,6 +8208,13 @@ function openLegacyModal(){
   document.getElementById('legacy-pwwarn').textContent=en
     ?'Recommended off: keep the sheet and the password in separate places. Whoever finds the sheet alone can open nothing.'
     :'Recomendado desligado: guarda a folha e a palavra-passe em sítios separados. Quem encontrar só a folha não abre nada.';
+  {const nRec=totp.filter(x=>x&&x.recovery).length,locked=typeof aurTotpLocked==='function'&&aurTotpLocked();
+   const box=document.getElementById('legacy-recbox'),w=document.getElementById('legacy-recwarn');
+   document.getElementById('legacy-rec-row').style.display=(nRec||locked)?'flex':'none';w.style.display=(nRec||locked)?'':'none';
+   box.checked=false;box.disabled=locked;
+   document.getElementById('legacy-recbox-lbl').textContent=en?'Include the 2FA recovery codes'+(nRec?' ('+nRec+')':''):'Incluir os códigos de recuperação da 2FA'+(nRec?' ('+nRec+')':'');
+   w.textContent=locked?(en?'The 2FA tab is locked — unlock it first to include the codes.':'O separador 2FA está trancado — desbloqueia-o primeiro para incluir os códigos.')
+     :(en?'They let someone into those accounts without your phone. Only print them if the sheet will be kept safe.':'Permitem entrar nessas contas sem o teu telemóvel. Só os incluas se a folha ficar bem guardada.');}
   document.getElementById('legacy-gen-btn').textContent=en?'Generate sheet':'Gerar folha';
   document.getElementById('legacy-cancel-btn').textContent=en?'Cancel':'Cancelar';
   document.getElementById('legacy-msg').value=presentationMode?'':(legacyNote||'');
@@ -8203,6 +8228,9 @@ function generateLegacyDoc(){
   const msg=document.getElementById('legacy-msg').value.trim();
   const owner=document.getElementById('legacy-owner').value.trim();
   const withPwBox=document.getElementById('legacy-pwbox').checked;
+  const recBox=document.getElementById('legacy-recbox'),withRec=!!(recBox&&recBox.checked&&!recBox.disabled);
+  const recs=withRec?totp.filter(x=>x&&x.recovery).map(x=>({name:x.issuer||x.name||'—',acc:x.account||'',codes:String(x.recovery)})):[];
+  const drv=typeof driveOn==='function'&&driveOn()?{hint:dCfg('hint')}:null;
   if(!presentationMode&&(msg!==legacyNote||owner!==legacyOwner)){
     legacyNote=msg;legacyOwner=owner;markUnsaved();
   }
@@ -8250,6 +8278,10 @@ function generateLegacyDoc(){
     s8:'A message from me',
     s9:'Copies of this sheet',
     p9:'Who has a copy, and where the vault backups are:',
+    recT:'Recovery codes (two-step verification)',
+    recP:'If a 6-digit code cannot be obtained, each account below accepts one of these codes instead. Each code usually works only once.',
+    drv:'There is always an up-to-date copy on <b>Google Drive</b>, file <b>ciphervault.vault</b>',
+    drvAcc:' in the account ',
     warn:'⚠️ Without the master password there is no recovery. Nobody — not even the people who built the app — can open this file. Keep the sheet somewhere safe and dry.',
     gen:'Generated on',
     stale:'If the master password was changed after this date, this sheet is out of date — ask for a new one.',
@@ -8285,6 +8317,10 @@ function generateLegacyDoc(){
     s8:'Uma mensagem minha',
     s9:'Cópias desta folha',
     p9:'Quem tem cópia, e onde estão as cópias de segurança do cofre:',
+    recT:'Códigos de recuperação (verificação em dois passos)',
+    recP:'Se não for possível obter o código de 6 dígitos, cada conta abaixo aceita em vez disso um destes códigos. Normalmente cada código só serve uma vez.',
+    drv:'Há sempre uma cópia atualizada no <b>Google Drive</b>, ficheiro <b>ciphervault.vault</b>',
+    drvAcc:' na conta ',
     warn:'⚠️ Sem a palavra-passe mestra não há recuperação possível. Ninguém — nem quem criou a app — consegue abrir este ficheiro. Guarda a folha em sítio seguro e seco.',
     gen:'Gerada a',
     stale:'Se a palavra-passe mestra foi alterada depois desta data, esta folha está desatualizada — pede uma nova.',
@@ -8319,6 +8355,10 @@ function generateLegacyDoc(){
  .pwbox{border:2px dashed #111;padding:15px;margin-top:8px;min-height:56px}
  .pwnote{border:1px solid #bbb;padding:11px 14px;margin-top:8px;background:#fafaf8;font-size:11pt}
  .msg{border:1px solid #bbb;border-left:4px solid #666;padding:12px 15px;margin-top:8px;white-space:pre-wrap;font-size:11.5pt;background:#fdfdfb}
+ .rec{width:100%;border-collapse:collapse;margin-top:8px;font-size:10.5pt}
+ .rec td{border:1px solid #bbb;padding:8px 10px;vertical-align:top}
+ .rec .acc{color:#555;font-size:9.5pt}
+ .rec .codes{font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-all;width:60%}
  .warn{background:#fff4f4;border:2px solid #c00;padding:11px 14px;margin-top:18px;font-size:10.5pt;font-weight:bold;color:#900}
  .ft{margin-top:20px;border-top:1px solid #bbb;padding-top:8px;font-size:9.5pt;color:#666}
  .pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui,sans-serif;font-size:13px;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
@@ -8337,7 +8377,7 @@ function generateLegacyDoc(){
 
   ${invHtml?`<h2>${L.s2}</h2>${invHtml}`:''}
 
-  <h2>${L.s3}</h2><p>${L.p3}</p>${line(3)}
+  <h2>${L.s3}</h2>${drv?`<p class="note">☁️ ${L.drv}${drv.hint?L.drvAcc+'<b>'+esc(drv.hint)+'</b>':''}.</p>`:''}<p>${L.p3}</p>${line(3)}
 
   <h2>${L.s4}</h2><p>${L.p4}</p>
   <ol>
@@ -8352,6 +8392,7 @@ function generateLegacyDoc(){
   <p class="note">${L.note}</p>
 
   <h2>${L.s5}</h2><div class="alert">${L.p5}</div>
+  ${recs.length?`<h2>${L.recT}</h2><p>${L.recP}</p><table class="rec">${recs.map(r=>`<tr><td><b>${esc(r.name)}</b>${r.acc?`<br><span class="acc">${esc(r.acc)}</span>`:''}</td><td class="codes">${esc(r.codes)}</td></tr>`).join('')}</table>`:''}
 
   <h2>${L.s6}</h2>
   <ol><li>${L.o1}</li><li>${L.o2}</li><li>${L.o3}</li><li>${L.o4}</li><li>${L.o5}</li></ol>
@@ -9158,7 +9199,23 @@ async function lockDirectInit(){
   let granted=false;
   try{granted=(await hd.queryPermission({mode:'readwrite'}))==='granted';}catch(e){}
   if(granted){try{const f=await hd.getFile();pendingVaultFile=f;showFileMeta(f);}catch(e){granted=false;}}
+  if(!granted&&await lockUseSyncedCopy(hd))return true;
   await refreshQuickUnlock(granted);
+  return true;
+}
+/* Com o Drive ligado, desbloqueia pela cópia encriptada interna (sempre atualizada ao gravar) em vez do ficheiro:
+   o Chrome no Android não guarda a autorização do ficheiro, e assim não pergunta nada. Depois de entrar, o Drive
+   sincroniza como sempre; o ficheiro só é pedido quando se grava à mão. */
+async function lockUseSyncedCopy(hd){
+  if(typeof driveOn!=='function'||!driveOn())return false;
+  let loc=null,link=null;
+  try{loc=await localVaultGet();link=await idbGet('av_local_link');}catch(e){}
+  if(!loc||!loc.json||!link||link.name!==hd.name||!link.salt||vaultSaltOf(loc.json)!==link.salt)return false;
+  if(pendingVaultFile||pendingVaultText)return false;
+  pendingVaultText=loc.json;
+  const en=currentLang==='en',fn=document.getElementById('l-file-name');
+  if(fn)fn.textContent='☁️ '+hd.name+' · '+(en?'synced with Drive':'sincronizado com o Drive');
+  await refreshQuickUnlock(true);
   return true;
 }
 function lockEnsureFile(){
@@ -14292,4 +14349,82 @@ function avxClose(focus){
   },true);
   window.addEventListener('scroll',()=>avxPlace(),true);
   window.addEventListener('resize',()=>avxClose());
+})();
+
+/* ══ v10.25 — aviso de tentativas falhadas ao entrar e verificação da cópia no Drive ══ */
+const AVFAIL={key:'av_fails',mine:[]};
+function avFailsGet(){try{const a=JSON.parse(localStorage.getItem(AVFAIL.key)||'[]');return Array.isArray(a)?a.filter(f=>f&&typeof f.t==='number'):[];}catch(e){return [];}}
+// só conta no ecrã de entrada; guarda apenas a hora e o tipo (nada de sensível)
+function avFailRecord(kind){
+  if(masterKey)return;
+  const t=Date.now();AVFAIL.mine.push(t);
+  try{const a=avFailsGet();a.push({t,k:kind});localStorage.setItem(AVFAIL.key,JSON.stringify(a.slice(-50)));}catch(e){}
+}
+function avWhen(t){
+  const en=avEn(),d=new Date(t),now=new Date(),z=n=>String(n).padStart(2,'0'),hm=z(d.getHours())+':'+z(d.getMinutes());
+  const day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime(),diff=Math.round((day(now)-day(d))/864e5);
+  if(diff===0)return (en?'today at ':'hoje às ')+hm;
+  if(diff===1)return (en?'yesterday at ':'ontem às ')+hm;
+  return d.toLocaleDateString(en?'en-GB':'pt-PT',{day:'numeric',month:'short'})+(en?' at ':' às ')+hm;
+}
+// ao entrar: as tentativas desta sessão que acabaram de acontecer (enganos meus) não contam
+function avFailsReport(){
+  if(!masterKey||presentationMode)return null;
+  const now=Date.now(),all=avFailsGet();
+  try{localStorage.removeItem(AVFAIL.key);}catch(e){}
+  const others=all.filter(f=>!(AVFAIL.mine.includes(f.t)&&now-f.t<5*60e3));
+  AVFAIL.mine=[];
+  if(!others.length)return null;
+  const en=avEn(),n=others.length,last=Math.max(...others.map(f=>f.t));
+  const html='⚠️ '+(en?'<b>'+n+' wrong attempt'+(n>1?'s':'')+'</b> to get in since you last opened the vault (last one '+avWhen(last)+'). If it wasn’t you, change the master password.'
+    :'<b>'+n+' tentativa'+(n>1?'s':'')+' errada'+(n>1?'s':'')+'</b> para entrar desde a última vez (a última '+avWhen(last)+'). Se não foste tu, muda a palavra-passe mestra.');
+  avNudge(html,[{label:en?'Change password':'Mudar palavra-passe',fn:()=>{try{openChangePwModal();}catch(e){}}}],30000);
+  return {n,last};
+}
+
+/* A cópia no Drive abre mesmo? De 7 em 7 dias, depois de entrar, descarrega-a e desencripta-a em memória com a
+   palavra-passe atual. Nada é gravado; só avisa se não abrir. Falhas de rede não contam (tenta noutra altura). */
+const AVB={every:7*864e5,busy:false};
+function avBackupState(){try{return JSON.parse(localStorage.getItem('av_bkcheck')||'null');}catch(e){return null;}}
+async function avBackupCheck(force){
+  if(AVB.busy||!masterKey||presentationMode||typeof driveOn!=='function'||!driveOn()||!dCfg('fid'))return null;
+  const st=avBackupState();
+  if(!force&&st&&Date.now()-st.at<AVB.every)return null;
+  let text;
+  AVB.busy=true;
+  try{text=await driveDownload(!!force);}catch(e){AVB.busy=false;return null;}
+  let ok=false;
+  try{
+    const c=JSON.parse(text),salt=new Uint8Array(c.salt),iter=containerIter(c);
+    const same=window._salt&&b64e(salt)===b64e(window._salt)&&iter===window._iter;
+    await decrypt(same?masterKey:await deriveKey(masterPwRaw,salt,iter),c.payload);
+    ok=true;
+  }catch(e){}
+  AVB.busy=false;
+  if(!masterKey)return null;
+  try{localStorage.setItem('av_bkcheck',JSON.stringify({at:Date.now(),ok}));}catch(e){}
+  try{renderDriveSettings();}catch(e){}
+  if(!ok){
+    const en=avEn();
+    avNudge('⚠️ '+(en?'<b>The copy on Google Drive does not open</b> with your current master password — it may be damaged or saved with another password. Save the vault to send a fresh copy.'
+      :'<b>A cópia no Google Drive não abre</b> com a tua palavra-passe atual — pode estar danificada ou ter sido gravada com outra palavra-passe. Grava o cofre para enviar uma cópia nova.'),
+      [{label:en?'Save now':'Gravar agora',fn:()=>{try{saveFile();}catch(e){}}}],30000);
+  }
+  return ok;
+}
+function avBackupLine(){
+  const st=avBackupState();if(!st)return '';
+  const en=avEn(),days=Math.floor((Date.now()-st.at)/864e5);
+  const ago=days<1?(en?'today':'hoje'):days===1?(en?'yesterday':'ontem'):(en?days+' days ago':'há '+days+' dias');
+  return st.ok?(en?'✅ Drive copy checked '+ago+' — it opens with your password.':'✅ Cópia do Drive verificada '+ago+' — abre com a tua palavra-passe.')
+    :(en?'⚠️ Drive copy checked '+ago+' — it did NOT open.':'⚠️ Cópia do Drive verificada '+ago+' — NÃO abriu.');
+}
+(function(){
+  if(typeof doUnlock==='function'){const d=doUnlock;doUnlock=function(){const r=d.apply(this,arguments);
+    setTimeout(()=>{try{avFailsReport();}catch(e){}},2200);
+    setTimeout(()=>{try{avBackupCheck(false);}catch(e){}},25000);
+    return r;};}
+  if(typeof renderDriveSettings==='function'){const r=renderDriveSettings;renderDriveSettings=function(){const x=r.apply(this,arguments);
+    try{const box=document.getElementById('drive-state'),l=avBackupLine();if(box&&l&&driveOn())box.textContent+='\n'+l;}catch(e){}
+    return x;};}
 })();

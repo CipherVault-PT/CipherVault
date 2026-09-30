@@ -555,6 +555,13 @@ function openLegacyModal(){
   document.getElementById('legacy-pwwarn').textContent=en
     ?'Recommended off: keep the sheet and the password in separate places. Whoever finds the sheet alone can open nothing.'
     :'Recomendado desligado: guarda a folha e a palavra-passe em sítios separados. Quem encontrar só a folha não abre nada.';
+  {const nRec=totp.filter(x=>x&&x.recovery).length,locked=typeof aurTotpLocked==='function'&&aurTotpLocked();
+   const box=document.getElementById('legacy-recbox'),w=document.getElementById('legacy-recwarn');
+   document.getElementById('legacy-rec-row').style.display=(nRec||locked)?'flex':'none';w.style.display=(nRec||locked)?'':'none';
+   box.checked=false;box.disabled=locked;
+   document.getElementById('legacy-recbox-lbl').textContent=en?'Include the 2FA recovery codes'+(nRec?' ('+nRec+')':''):'Incluir os códigos de recuperação da 2FA'+(nRec?' ('+nRec+')':'');
+   w.textContent=locked?(en?'The 2FA tab is locked — unlock it first to include the codes.':'O separador 2FA está trancado — desbloqueia-o primeiro para incluir os códigos.')
+     :(en?'They let someone into those accounts without your phone. Only print them if the sheet will be kept safe.':'Permitem entrar nessas contas sem o teu telemóvel. Só os incluas se a folha ficar bem guardada.');}
   document.getElementById('legacy-gen-btn').textContent=en?'Generate sheet':'Gerar folha';
   document.getElementById('legacy-cancel-btn').textContent=en?'Cancel':'Cancelar';
   document.getElementById('legacy-msg').value=presentationMode?'':(legacyNote||'');
@@ -568,6 +575,9 @@ function generateLegacyDoc(){
   const msg=document.getElementById('legacy-msg').value.trim();
   const owner=document.getElementById('legacy-owner').value.trim();
   const withPwBox=document.getElementById('legacy-pwbox').checked;
+  const recBox=document.getElementById('legacy-recbox'),withRec=!!(recBox&&recBox.checked&&!recBox.disabled);
+  const recs=withRec?totp.filter(x=>x&&x.recovery).map(x=>({name:x.issuer||x.name||'—',acc:x.account||'',codes:String(x.recovery)})):[];
+  const drv=typeof driveOn==='function'&&driveOn()?{hint:dCfg('hint')}:null;
   if(!presentationMode&&(msg!==legacyNote||owner!==legacyOwner)){
     legacyNote=msg;legacyOwner=owner;markUnsaved();
   }
@@ -615,6 +625,10 @@ function generateLegacyDoc(){
     s8:'A message from me',
     s9:'Copies of this sheet',
     p9:'Who has a copy, and where the vault backups are:',
+    recT:'Recovery codes (two-step verification)',
+    recP:'If a 6-digit code cannot be obtained, each account below accepts one of these codes instead. Each code usually works only once.',
+    drv:'There is always an up-to-date copy on <b>Google Drive</b>, file <b>ciphervault.vault</b>',
+    drvAcc:' in the account ',
     warn:'⚠️ Without the master password there is no recovery. Nobody — not even the people who built the app — can open this file. Keep the sheet somewhere safe and dry.',
     gen:'Generated on',
     stale:'If the master password was changed after this date, this sheet is out of date — ask for a new one.',
@@ -650,6 +664,10 @@ function generateLegacyDoc(){
     s8:'Uma mensagem minha',
     s9:'Cópias desta folha',
     p9:'Quem tem cópia, e onde estão as cópias de segurança do cofre:',
+    recT:'Códigos de recuperação (verificação em dois passos)',
+    recP:'Se não for possível obter o código de 6 dígitos, cada conta abaixo aceita em vez disso um destes códigos. Normalmente cada código só serve uma vez.',
+    drv:'Há sempre uma cópia atualizada no <b>Google Drive</b>, ficheiro <b>ciphervault.vault</b>',
+    drvAcc:' na conta ',
     warn:'⚠️ Sem a palavra-passe mestra não há recuperação possível. Ninguém — nem quem criou a app — consegue abrir este ficheiro. Guarda a folha em sítio seguro e seco.',
     gen:'Gerada a',
     stale:'Se a palavra-passe mestra foi alterada depois desta data, esta folha está desatualizada — pede uma nova.',
@@ -684,6 +702,10 @@ function generateLegacyDoc(){
  .pwbox{border:2px dashed #111;padding:15px;margin-top:8px;min-height:56px}
  .pwnote{border:1px solid #bbb;padding:11px 14px;margin-top:8px;background:#fafaf8;font-size:11pt}
  .msg{border:1px solid #bbb;border-left:4px solid #666;padding:12px 15px;margin-top:8px;white-space:pre-wrap;font-size:11.5pt;background:#fdfdfb}
+ .rec{width:100%;border-collapse:collapse;margin-top:8px;font-size:10.5pt}
+ .rec td{border:1px solid #bbb;padding:8px 10px;vertical-align:top}
+ .rec .acc{color:#555;font-size:9.5pt}
+ .rec .codes{font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-all;width:60%}
  .warn{background:#fff4f4;border:2px solid #c00;padding:11px 14px;margin-top:18px;font-size:10.5pt;font-weight:bold;color:#900}
  .ft{margin-top:20px;border-top:1px solid #bbb;padding-top:8px;font-size:9.5pt;color:#666}
  .pbtn{position:fixed;top:14px;right:14px;padding:11px 20px;font-family:system-ui,sans-serif;font-size:13px;background:#111;color:#fff;border:0;border-radius:5px;cursor:pointer}
@@ -702,7 +724,7 @@ function generateLegacyDoc(){
 
   ${invHtml?`<h2>${L.s2}</h2>${invHtml}`:''}
 
-  <h2>${L.s3}</h2><p>${L.p3}</p>${line(3)}
+  <h2>${L.s3}</h2>${drv?`<p class="note">☁️ ${L.drv}${drv.hint?L.drvAcc+'<b>'+esc(drv.hint)+'</b>':''}.</p>`:''}<p>${L.p3}</p>${line(3)}
 
   <h2>${L.s4}</h2><p>${L.p4}</p>
   <ol>
@@ -717,6 +739,7 @@ function generateLegacyDoc(){
   <p class="note">${L.note}</p>
 
   <h2>${L.s5}</h2><div class="alert">${L.p5}</div>
+  ${recs.length?`<h2>${L.recT}</h2><p>${L.recP}</p><table class="rec">${recs.map(r=>`<tr><td><b>${esc(r.name)}</b>${r.acc?`<br><span class="acc">${esc(r.acc)}</span>`:''}</td><td class="codes">${esc(r.codes)}</td></tr>`).join('')}</table>`:''}
 
   <h2>${L.s6}</h2>
   <ol><li>${L.o1}</li><li>${L.o2}</li><li>${L.o3}</li><li>${L.o4}</li><li>${L.o5}</li></ol>

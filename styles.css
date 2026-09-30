@@ -2176,3 +2176,4 @@ html,body{overscroll-behavior-y:none}
 @media(max-width:720px){
   .vsb-breach .breach-cta{white-space:normal;text-align:center;line-height:1.35;letter-spacing:1px;min-width:0;overflow-wrap:anywhere}
 }
+#drive-state{white-space:pre-line}

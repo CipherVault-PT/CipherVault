@@ -211,7 +211,23 @@ async function lockDirectInit(){
   let granted=false;
   try{granted=(await hd.queryPermission({mode:'readwrite'}))==='granted';}catch(e){}
   if(granted){try{const f=await hd.getFile();pendingVaultFile=f;showFileMeta(f);}catch(e){granted=false;}}
+  if(!granted&&await lockUseSyncedCopy(hd))return true;
   await refreshQuickUnlock(granted);
+  return true;
+}
+/* Com o Drive ligado, desbloqueia pela cópia encriptada interna (sempre atualizada ao gravar) em vez do ficheiro:
+   o Chrome no Android não guarda a autorização do ficheiro, e assim não pergunta nada. Depois de entrar, o Drive
+   sincroniza como sempre; o ficheiro só é pedido quando se grava à mão. */
+async function lockUseSyncedCopy(hd){
+  if(typeof driveOn!=='function'||!driveOn())return false;
+  let loc=null,link=null;
+  try{loc=await localVaultGet();link=await idbGet('av_local_link');}catch(e){}
+  if(!loc||!loc.json||!link||link.name!==hd.name||!link.salt||vaultSaltOf(loc.json)!==link.salt)return false;
+  if(pendingVaultFile||pendingVaultText)return false;
+  pendingVaultText=loc.json;
+  const en=currentLang==='en',fn=document.getElementById('l-file-name');
+  if(fn)fn.textContent='☁️ '+hd.name+' · '+(en?'synced with Drive':'sincronizado com o Drive');
+  await refreshQuickUnlock(true);
   return true;
 }
 function lockEnsureFile(){

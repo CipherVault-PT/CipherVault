@@ -354,6 +354,7 @@ async function onPinInput(){
   const err=document.getElementById('pin-err');
   const res=await tryPin(pin);
   if(res.pw){err.textContent='';_pinUpgradeDue=res.len<PIN_LEN;submitOpenVault(res.pw,res.qk);return;}
+  if(!res.gone&&typeof avFailRecord==='function')avFailRecord('pin');
   if(res.blocked){
     err.textContent=en?'Too many attempts — PIN disabled.':'Demasiadas tentativas — PIN desativado.';
     setTimeout(refreshQuickUnlock,1600);return;
