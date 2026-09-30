@@ -43,7 +43,7 @@ test.describe('Separadores e painel', () => {
         cards: `#tab-cards [data-act="openCardModal"]${noArg}`, store: `#tab-store [data-act="openStoreModal"]${noArg}`, totp: '#totp-add-btn', info: `#tab-info [data-act="addPerson"]${noArg}` };
       for (const t of ['vault', 'notes', 'docs', 'cards', 'store', 'totp', 'info', 'warranty', 'license', 'vehicle', 'dates']) {
         switchTab(t); await new Promise(r => setTimeout(r, 80));
-        document.querySelectorAll(sel[t] || `[data-act="openAssetModal"][data-arg="${t}"]`)
+        document.querySelectorAll(sel[t] || `[data-act="openAssetModal"][data-arg="${t}"]:not([data-arg2])`)
           .forEach(b => { if (b.offsetParent !== null && !b.classList.contains('av-empty-cta')) out.push(t); });
       }
       return out;

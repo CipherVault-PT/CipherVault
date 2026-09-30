@@ -207,7 +207,9 @@ function getFileIcon(name){
   const ext=name.split('.').pop().toLowerCase();
   return FILE_ICONS[ext]||FILE_ICONS.default;
 }
+function docFileBytes(f){if(!f)return NaN;const n=+f.size;if(Number.isFinite(n)&&n>=0)return n;const d=String(f.data||''),i=d.indexOf(',');return i<0?NaN:Math.round((d.length-i-1)*3/4);}
 function formatFileSize(bytes){
+  bytes=+bytes;if(!Number.isFinite(bytes)||bytes<0)return '';
   if(bytes<1024)return bytes+'B';
   if(bytes<1024*1024)return (bytes/1024).toFixed(1)+'KB';
   return (bytes/(1024*1024)).toFixed(1)+'MB';
@@ -330,7 +332,7 @@ function previewDoc(id){
   const ext=(name.split('.').pop()||'').toLowerCase();
   const type=d.file.type||'';
   document.getElementById('docview-title').textContent=d.title||name;
-  document.getElementById('docview-sub').textContent=`${name} · ${formatFileSize(d.file.size)}`;
+  document.getElementById('docview-sub').textContent=[name,formatFileSize(docFileBytes(d.file))].filter(Boolean).join(' · ');
   document.getElementById('docview-dl-txt').textContent=en?'Download':'Transferir';
   const body=document.getElementById('docview-body');
   const isImg=type.startsWith('image/')||['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext);
@@ -605,7 +607,7 @@ function renderDocs(){
       </div>
       <div class="doc-card-meta">
         ${doc.date?`<span>📅 ${esc(doc.date)}</span>`:''}
-        ${doc.file?`<span>📎 ${esc(doc.file.name)} (${formatFileSize(doc.file.size)})</span>`:`<span style="color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file':'Sem ficheiro'}</span>`}
+        ${doc.file?`<span>📎 ${esc(doc.file.name)}${(z=>z?` (${z})`:'')(formatFileSize(docFileBytes(doc.file)))}</span>`:`<span style="color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file':'Sem ficheiro'}</span>`}
         ${expStatus?`<span class="doc-expiry-badge ${expStatus.cls}">⏰ ${expStatus.label}</span>`:''}
       </div>
       <div class="card-actions">

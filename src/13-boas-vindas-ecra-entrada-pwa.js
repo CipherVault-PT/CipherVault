@@ -107,7 +107,7 @@ function openDocPreview(id){
     const badge=expStatus?`<span class="doc-expiry-badge ${expStatus.cls}" style="font-size:.72rem;padding:4px 10px;margin-left:10px">⏰ ${expStatus.label}</span>`:'';
     html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'Expiry':'Validade'}</span><div class="read-field-value" style="display:flex;align-items:center">${esc(doc.expiry)}${badge}</div></div>`;
   }
-  if(doc.file)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'File':'Ficheiro'}</span><div class="read-field-value" style="font-size:.85rem">${fileIcon} ${esc(doc.file.name)} <span style="color:var(--text-muted);font-size:.75rem">(${formatFileSize(doc.file.size)})</span></div></div>`;
+  if(doc.file)html+=`<div class="read-field"><span class="read-field-label">${currentLang==='en'?'File':'Ficheiro'}</span><div class="read-field-value" style="font-size:.85rem">${fileIcon} ${esc(doc.file.name)} <span style="color:var(--text-muted);font-size:.75rem">(${formatFileSize(docFileBytes(doc.file))})</span></div></div>`;
   else html+=`<div class="read-field"><div style="font-size:.78rem;color:var(--text-muted);font-style:italic">${currentLang==='en'?'No file attached':'Sem ficheiro anexado'}</div></div>`;
   content.innerHTML=html;
   const actions=document.getElementById('read-actions');
