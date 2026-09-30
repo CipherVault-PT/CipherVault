@@ -68,9 +68,10 @@ async function submitOpenVault(pwArg,qk){
   if(!quick&&pw.length<4){setLockError(t('lockMinChars'));return;}
   if(_openBusy)return;
   _openBusy=true;
-  let text,salt,iter,key,data;
+  let text,salt,iter,key,data,fromFile=false;
   try{
-    text=((quick||!pendingVaultFile)&&pendingVaultText)?pendingVaultText:await pendingVaultFile.text();
+    fromFile=!((quick||!pendingVaultFile)&&pendingVaultText);
+    text=fromFile?await pendingVaultFile.text():pendingVaultText;
     const container=JSON.parse(text);
     salt=new Uint8Array(container.salt);iter=containerIter(container);
     // Chave guardada no PIN/biometria para este mesmo salt → sem PBKDF2
@@ -110,6 +111,7 @@ async function submitOpenVault(pwArg,qk){
     if(_pinUpgradeDue){_pinUpgradeDue=false;setTimeout(()=>{if(masterKey&&!presentationMode)openPinSetup('upgrade');},1600);}
     setTimeout(()=>{try{renderNotifBtn();checkNotifs();}catch(e){}},2500);
     applyPendingGo();
+    if(fromFile)vaultLinkOpenedFile(text).catch(()=>{});
     setTimeout(()=>{try{driveCheckOnOpen();}catch(e){}},500);
   }catch(e){
     console.error('open vault:',e);
@@ -197,6 +199,7 @@ async function newVault(){submitNewVault();}
 function loadFile(){startOpenVault();}
 async function onFileChosen(e){onFileSelected(e);}
 function handleFailedAttempt(){
+  if(typeof avFailRecord==='function')avFailRecord('pw');
   failedAttempts++;const rem=MAX_ATTEMPTS-failedAttempts;
   if(failedAttempts>=MAX_ATTEMPTS){lockedOut=true;setLockError(t('lockErrTooMany'));document.getElementById('attempts-warn').textContent=t('lockErrReload');document.getElementById('master-pw').disabled=true;return;}
   setLockError(t('lockErr'));document.getElementById('attempts-warn').textContent=`⚠️ ${rem} ${t('lockErrRemaining')}`;

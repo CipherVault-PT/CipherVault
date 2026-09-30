@@ -303,6 +303,20 @@ function driveOn(){return dCfg('on')==='1'&&!!dCfg('cid');}
 // ── cópia local (dentro da app, sempre atualizada) ──
 async function localVaultSave(json,pending){
   try{await idbSet('av_local',{json,at:Date.now(),pending:!!pending});}catch(e){}
+  try{await localVaultLink(json);}catch(e){}
+}
+// a cópia interna fica associada ao ficheiro do cofre (nome + sal): só assim pode substituí-lo ao desbloquear
+function vaultSaltOf(json){try{const c=JSON.parse(json);return c&&c.salt?String(c.salt):'';}catch(e){return '';}}
+// cofre aberto pelo ficheiro: se a cópia interna é do mesmo cofre, fica associada (nunca a substitui — pode ser mais recente)
+async function vaultLinkOpenedFile(text){
+  if(typeof vaultFileHandle==='undefined'||!vaultFileHandle)return;
+  const loc=await localVaultGet();
+  if(!loc||!loc.json){await localVaultSave(text,false);return;}
+  if(vaultSaltOf(loc.json)===vaultSaltOf(text))await localVaultLink(loc.json);
+}
+async function localVaultLink(json){
+  const salt=vaultSaltOf(json);
+  if(typeof vaultFileHandle!=='undefined'&&vaultFileHandle&&salt)await idbSet('av_local_link',{name:vaultFileHandle.name,salt});
 }
 async function localVaultGet(){try{return await idbGet('av_local');}catch(e){return null;}}
 
