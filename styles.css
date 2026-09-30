@@ -2165,3 +2165,14 @@ html.av-still *,html.av-still *::before,html.av-still *::after,html.av-still bod
   .notes-editor:has(>#notes-empty:not([style*="none"])){flex:0 0 auto}
   #notes-empty{padding:26px 0;font-size:.7rem;letter-spacing:1px}
 }
+/* ao mudar de app: os botões flutuantes, a Aurora e os avisos também ficam desfocados */
+body.bg-blur>*:not(#app):not(.modal-overlay){filter:blur(16px);transition:filter .12s}
+body.bg-blur #aurora-fab,body.bg-blur #av-fab-add{opacity:0}
+/* puxar para baixo não recarrega a app */
+html,body{overscroll-behavior-y:none}
+/* logótipo do topo leva ao painel */
+.topbar-logo[data-act]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* «Verificar fugas de passwords» nunca sai do botão, mesmo com letra maior no telemóvel */
+@media(max-width:720px){
+  .vsb-breach .breach-cta{white-space:normal;text-align:center;line-height:1.35;letter-spacing:1px;min-width:0;overflow-wrap:anywhere}
+}
