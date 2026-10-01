@@ -17,7 +17,7 @@ test('percorrer a app inteira sem erros', async ({ page }) => {
     wifiNets.push({ id: 'w1', name: 'Casa', ssid: 'Casa5G', pw: 'x', sec: 'WPA' });
     markUnsaved();
     for (const tab of ['dashboard', 'vault', 'totp', 'cards', 'store', 'docs', 'notes', 'info', 'warranty', 'license', 'vehicle', 'dates', 'archive', 'trash']) await step('tab ' + tab, () => switchTab(tab));
-    await step('definições', () => { openSettings(); ['aspeto', 'seguranca', 'dados', 'heranca', 'sobre'].forEach(switchSettingsTab); closeSettings(); });
+    await step('definições', () => { openSettings(); ['geral', 'aspeto', 'seguranca', 'dados', 'heranca', 'sobre'].forEach(switchSettingsTab); closeSettings(); });
     await step('calendário', () => { openCalendar(); calShiftMonth(1); calShiftMonth(-1); closeCalendar(); });
     await step('auditoria', () => { openHealthCheck(); closeHealthCheck(); });
     await step('leitura', () => { openReadMode('x1'); closeReadMode(); });

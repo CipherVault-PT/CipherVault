@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.26';
+const APP_VERSION='10.27';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1812,17 +1812,19 @@ async function exportCSV(){
 // ══ SETTINGS ══
 let currentSettingsTab='aspeto';
 function switchSettingsTab(tab){
+  const alias={heranca:'seguranca'};const want=tab;tab=alias[tab]||tab;
   currentSettingsTab=tab;
   document.querySelectorAll('.settings-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.stab===tab));
   document.querySelectorAll('.settings-pane').forEach(p=>p.classList.toggle('active',p.dataset.spane===tab));
   // Scroll para o topo do modal ao trocar de aba
   const modal=document.querySelector('#settings-overlay .modal');
   if(modal)modal.scrollTop=0;
+  if(want==='heranca'){const h=document.getElementById('s-heranca-title');if(h&&modal)setTimeout(()=>h.scrollIntoView({block:'start'}),60);}
 }
 function openSettings(){
   try{setTimeout(()=>renderDriveSettings(),60);}catch(e){}
   applySettingsLang();
-  switchSettingsTab('aspeto');
+  switchSettingsTab('geral');
   renderBgPicker();
   const ni=document.getElementById('s-name-input');if(ni)ni.value=vaultName||'';
   settingsActiveTheme=currentTheme;
@@ -1835,16 +1837,13 @@ function openSettings(){
   renderVaultInfo();
   renderCatManager();
   const lh=document.getElementById('s-lockhide');if(lh)lh.checked=lockHideOn;
-  const pp=getPwaPrefs();
-  const pn=document.getElementById('pwa-name');if(pn)pn.value=pp.name;
-  const pe=document.getElementById('pwa-emoji');if(pe)pe.value=pp.emoji||'';
   document.getElementById('settings-overlay').classList.add('open');
 }
 function closeSettings(){document.getElementById('settings-overlay').classList.remove('open');}
 function applySettingsLang(){
   const s=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
   s('settings-title',t('settingsTitle'));
-  s('s-colors-title',currentLang==='en'?'Customise Colors':'Personalizar Cores');
+  s('s-colors-title',currentLang==='en'?'🖌️ Custom colours':'🖌️ Cores personalizadas');
   s('s-bg-label',currentLang==='en'?'Background':'Cor de Fundo');
   s('s-accent-label',currentLang==='en'?'Highlight Color':'Cor de Destaque');
   s('s-text-label',currentLang==='en'?'Text Color':'Cor do Texto');
@@ -1852,15 +1851,12 @@ function applySettingsLang(){
   s('s-light-label',currentLang==='en'?'Light':'Claro');
   s('s-reset-btn',currentLang==='en'?'↺ Reset to defaults':'↺ Repor cores padrão');
   s('s-vaultinfo-title',currentLang==='en'?'📊 Vault Info':'📊 Info do Cofre');
-  s('s-pwa-title',currentLang==='en'?'📲 Installed App':'📲 App Instalada');
-  const pwn=document.getElementById('pwa-note');if(pwn)pwn.textContent=currentLang==='en'?'The icon uses your current colors. Reinstall the app to apply the new icon/name.':'O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.';
   s('s-lockhide-lbl',currentLang==='en'?'Lock when minimised / switching apps':'Bloquear ao minimizar / mudar de app');
   const en_s=currentLang==='en';
   // Nav das abas
-  s('snav-aspeto',en_s?'Appearance':'Aspeto');
+  s('snav-geral',en_s?'General':'Geral');s('snav-aspeto',en_s?'Appearance':'Aspeto');
   s('snav-seguranca',en_s?'Security':'Segurança');
   s('snav-dados',en_s?'Data':'Dados');
-  s('snav-heranca',en_s?'Legacy':'Herança');
   s('snav-sobre',en_s?'About':'Sobre');
   // Aba Dados
   s('s-csv-title',en_s?'📄 Import / Export':'📄 Importar / Exportar');
@@ -1868,7 +1864,7 @@ function applySettingsLang(){
   s('s-csv-import-txt',en_s?'⬆️ Import CSV':'⬆️ Importar CSV');
   s('s-csv-export-txt',en_s?'⬇️ Export CSV':'⬇️ Exportar CSV');
   s('s-pdf-export-txt',en_s?'📄 Export PDF':'📄 Exportar PDF');
-  s('s-timeout-title',en_s?'⏱️ Auto-lock':'⏱️ Auto-bloqueio');
+  s('s-timeout-title',en_s?'⏱️ Automatic lock':'⏱️ Bloqueio automático');
   // Aba Segurança
   s('s-changepw-title',en_s?'🔑 Master password':'🔑 Palavra-passe mestra');
   const cpd=document.getElementById('s-changepw-desc');if(cpd)cpd.textContent=en_s?'Change the password that protects the whole vault.':'Muda a palavra-passe que protege todo o cofre.';
@@ -1962,8 +1958,7 @@ function applySettingsLang(){
   const trh=document.getElementById('tf-recovery-hint');if(trh)trh.textContent=currentLang==='en'?'Many services give backup codes in case you lose your phone. Store them here, inside the protected 2FA vault.':'Muitos serviços dão códigos de emergência para o caso de perderes o telemóvel. Guarda-os aqui, dentro do cofre 2FA protegido.';
   const ffl=document.getElementById('f-fields-lbl');if(ffl)ffl.innerHTML=(currentLang==='en'?'Extra fields':'Campos extra')+' <span style="font-size:.5rem;color:var(--text-muted)">('+(currentLang==='en'?'optional':'opcional')+')</span>';
   const ffa=document.getElementById('f-fields-add');if(ffa)ffa.textContent=(currentLang==='en'?'＋ Add field':'＋ Adicionar campo');
-  s('s-cats-title',currentLang==='en'?'🎨 Custom Categories':'🎨 Categorias Personalizadas');
-  s('s-timeout-title',t('sTimeout'));
+  s('s-cats-title',currentLang==='en'?'🗂️ Categories':'🗂️ Categorias');
   s('s-close-btn',t('sClose'));
   s('to-0',t('toNever'));
 }
@@ -2640,7 +2635,7 @@ function renderDashboard(){
   setT('cal-leg-card','Validade cartão','Card expiry');
   setT('cal-leg-holiday','Feriado','Holiday');
   setT('cal-ics-txt','Adicionar ao calendário do telemóvel','Add to phone calendar');
-  setT('s-themes-title','🎨 Temas Predefinidos','🎨 Preset Themes');
+  setT('s-themes-title','🎨 Tema','🎨 Theme');
   setT('dcard-favs-title','Favoritos','Favourites');
   setT('dcard-cats-title','Entradas por categoria','Entries by category');
   setT('dcard-oldest-title','Passwords mais antigas','Oldest passwords');
@@ -2764,7 +2759,7 @@ function renderSidebar(){
   el.innerHTML=sideCats.map(({key,icon,label})=>{
     const count=key==='all'?active.length:(catCount[key]||0);
     return `<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" data-act="selectCat" data-arg="${esc(key)}"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
-  }).join('');
+  }).join('')+`<div class="cat-item cat-manage" role="button" tabindex="0" data-act="openCatManager" data-enter="openCatManager"><span>＋</span><span>${currentLang==='en'?'Categories':'Categorias'}</span></div>`;
   // Tags sidebar
   const tagsEl=document.getElementById('sidebar-tags');
   document.getElementById('sb-tags-title').textContent=t('sbTags');
@@ -7483,7 +7478,7 @@ function addCustomCat(){
   }
   customCats.push({key:'c'+Date.now().toString(36),name,icon,color});
   document.getElementById('catmgr-name').value='';
-  document.getElementById('catmgr-icon').value='';
+  if(typeof pickCatIcon==='function')pickCatIcon('📁');else document.getElementById('catmgr-icon').value='📁';
   logActivity('add',name,'🎨');
   renderCatManager();populateCatSelect();renderSidebar();renderCards();renderDashboard();
   toast(currentLang==='en'?'Category created! ✓':'Categoria criada! ✓');
@@ -7652,8 +7647,9 @@ function addFieldRow(){entryFields.push({k:'',v:''});renderFieldRows();
 function removeFieldRow(i){entryFields.splice(i,1);renderFieldRows();}
 
 // ══ PWA PERSONALIZADA ══
+// O ícone e o nome da app são sempre os oficiais (escudo AV); a antiga personalização por emoji foi retirada
 function getPwaPrefs(){
-  try{const p=JSON.parse(localStorage.getItem('cv_pwa')||'null');if(p&&p.name)return p;}catch(e){}
+  try{localStorage.removeItem('cv_pwa');}catch(e){}
   return{name:'Aurora Vault',emoji:''};
 }
 function buildManifest(){
@@ -7686,13 +7682,6 @@ function buildManifest(){
     link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
     if(old&&old.startsWith('blob:'))setTimeout(()=>URL.revokeObjectURL(old),5000);
   }
-}
-function savePwaPrefs(){
-  const name=(document.getElementById('pwa-name').value.trim()||'Aurora Vault').slice(0,24);
-  const emoji=document.getElementById('pwa-emoji').value.trim().slice(0,4);
-  try{localStorage.setItem('cv_pwa',JSON.stringify({name,emoji}));}catch(e){}
-  buildManifest();
-  toast(currentLang==='en'?'Saved! Reinstall the app to update the icon.':'Guardado! Reinstala a app para atualizar o ícone.');
 }
 
 // ══ PARTILHA POR QR ENCRIPTADO ══
@@ -14362,6 +14351,48 @@ function avxClose(focus){
   },true);
   window.addEventListener('scroll',()=>avxPlace(),true);
   window.addEventListener('resize',()=>avxClose());
+})();
+
+/* ══ v10.27 — categorias do cofre: geridas a partir do próprio Cofre, com ícone escolhido num toque ══ */
+function openCatManager(){
+  const en=avEn(),s=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
+  s('s-cats-title',en?'🗂️ Categories':'🗂️ Categorias');
+  s('cats-intro',en?'Create your own categories to organise the vault. Pick an icon, a name and a colour.':'Cria as tuas categorias para organizar o cofre. Escolhe um ícone, um nome e uma cor.');
+  s('cats-close-btn',en?'Close':'Fechar');
+  pickCatIcon(document.getElementById('catmgr-icon')?.value||'📁');
+  renderCatManager();
+  document.getElementById('cats-overlay').classList.add('open');
+  setTimeout(()=>{const n=document.getElementById('catmgr-name');if(n&&!('ontouchstart' in window))n.focus();},80);
+}
+function closeCatManager(){document.getElementById('cats-overlay').classList.remove('open');}
+function pickCatIcon(icon){
+  const inp=document.getElementById('catmgr-icon');if(inp)inp.value=icon||'📁';
+  document.querySelectorAll('#catmgr-icons .catmgr-ic').forEach(b=>{const on=b.dataset.arg===inp.value;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});
+}
+
+/* ══ v10.27 — definições mais simples ══ */
+function avSetAutosave(on){if(autoSaveOn()!==!!on)avToggleAutosave();else avRenderSettings();}
+// Google Drive: só aparecem os botões que fazem sentido no estado atual
+function avDriveTidy(){
+  const cid=(dCfg('cid')||'').trim(),fid=dCfg('fid'),official=typeof avBuiltinOk==='function'&&avBuiltinOk();
+  const show=(id,on)=>{const e=document.getElementById(id);if(e)e.style.display=on?'':'none';};
+  const guide=document.querySelector('#drive-quick .dq-guide');
+  const adv=!official||!!(guide&&guide.open)||(!!cid&&cid!==(typeof AV_BUILTIN_CID!=='undefined'?AV_BUILTIN_CID:''));
+  ['s-drive-cid-lbl','drive-cid','drive-save-cid-btn'].forEach(id=>show(id,adv));
+  show('drive-upload-btn',!fid&&!!cid&&!(official&&cid===AV_BUILTIN_CID&&document.getElementById('dq-go')));
+  show('drive-link-btn',!fid);
+  show('drive-toggle-btn',!!fid);
+  show('drive-hist-btn',!!fid);
+  show('drive-forget-btn',!!(cid||fid));
+  if(guide&&!guide._avx){guide._avx=1;guide.addEventListener('toggle',avDriveTidy);}
+}
+(function(){
+  if(typeof avDriveQuickRender==='function'){const r=avDriveQuickRender;avDriveQuickRender=function(){const x=r.apply(this,arguments);try{avDriveTidy();}catch(e){}return x;};}
+  if(typeof renderDriveSettings==='function'){const r=renderDriveSettings;renderDriveSettings=function(){const x=r.apply(this,arguments);try{avDriveTidy();}catch(e){}return x;};}
+  if(typeof avRenderSettings==='function'){const r=avRenderSettings;avRenderSettings=function(){const x=r.apply(this,arguments);
+    try{const en=avEn(),on=autoSaveOn(),a=document.getElementById('s-autosave-on'),b=document.getElementById('s-autosave-off');
+      if(a){a.textContent=en?'On':'Ligada';a.classList.toggle('on',on);}if(b){b.textContent=en?'Off':'Desligada';b.classList.toggle('on',!on);}}catch(e){}
+    return x;};}
 })();
 
 /* ══ v10.25 — aviso de tentativas falhadas ao entrar e verificação da cópia no Drive ══ */

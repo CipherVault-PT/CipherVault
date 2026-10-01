@@ -1,6 +1,7 @@
 // ══ PWA PERSONALIZADA ══
+// O ícone e o nome da app são sempre os oficiais (escudo AV); a antiga personalização por emoji foi retirada
 function getPwaPrefs(){
-  try{const p=JSON.parse(localStorage.getItem('cv_pwa')||'null');if(p&&p.name)return p;}catch(e){}
+  try{localStorage.removeItem('cv_pwa');}catch(e){}
   return{name:'Aurora Vault',emoji:''};
 }
 function buildManifest(){
@@ -33,13 +34,6 @@ function buildManifest(){
     link.setAttribute('href',URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})));
     if(old&&old.startsWith('blob:'))setTimeout(()=>URL.revokeObjectURL(old),5000);
   }
-}
-function savePwaPrefs(){
-  const name=(document.getElementById('pwa-name').value.trim()||'Aurora Vault').slice(0,24);
-  const emoji=document.getElementById('pwa-emoji').value.trim().slice(0,4);
-  try{localStorage.setItem('cv_pwa',JSON.stringify({name,emoji}));}catch(e){}
-  buildManifest();
-  toast(currentLang==='en'?'Saved! Reinstall the app to update the icon.':'Guardado! Reinstala a app para atualizar o ícone.');
 }
 
 // ══ PARTILHA POR QR ENCRIPTADO ══

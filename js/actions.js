@@ -23,7 +23,7 @@
    Os valores vão em atributos escapados, nunca dentro de código. Quando todo o HTML deixar de ter onclick,
    a política de segurança (CSP) pode proibir código dentro do HTML. */
 const AV_ACTS=new Set(`
-addCustomCat avxMore addFieldRow addFuel addPerson applyColor archiveCurrentNote archiveEntry avAddMain avAddMenu
+addCustomCat avxMore openCatManager closeCatManager pickCatIcon avSetAutosave addFieldRow addFuel addPerson applyColor archiveCurrentNote archiveEntry avAddMain avAddMenu
 avCopyHistPw avCopyPw avGaFile avGaOpen avGoSite avOcrDoc avSaveClick avScanStore avSetBgLock avSetBkFreq avSetMode
 avSetNudges avSetSwStyle avSetThemeAuto avTabsPanel avToggleAutosave backToFileStep backToInitial calShiftMonth
 changeMasterPw checkBreaches checkNewPwMatch clearDocFile clearSnapshotsConfirm close2faManager close2faSetup
@@ -44,7 +44,7 @@ openCalendar openCardModal openChangePwModal openDocModal openFolderModal openHe
 openLoginModal openModal openMoveModal openPinSetup openPwGen openQrScanner openReadMode openSelectiveExport
 openSettings openSnapshotModal openStoreModal openSyncHistory openTotpModal openVaultFolder openWifiQR pickVaultFile
 positionBreachTip printRecoveryCode promptInstall renderCards renderPwStrength resetColors resetWifiForm saveAsset
-saveCard saveDoc saveDriveCid saveEntry saveFile saveFolder saveInfo saveNote savePwaPrefs saveStoreCard saveSub
+saveCard saveDoc saveDriveCid saveEntry saveFile saveFolder saveInfo saveNote saveStoreCard saveSub
 saveTotp saveVaultName saveWifiNet scanQrFromFile selectCardColor selectCat selectTag setDocSort setDocValidityFilter
 setLang setLegacyLang setPinDuration setPwGenMode setTimeout2 setUnlockMode setView startNewVault startOpenVault
 submitNewVault submitOpenVault switchGroup switchSettingsTab switchTab tbToggleMore tbToggleSearch toggleDashCard
