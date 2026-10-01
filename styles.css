@@ -2177,3 +2177,27 @@ html,body{overscroll-behavior-y:none}
   .vsb-breach .breach-cta{white-space:normal;text-align:center;line-height:1.35;letter-spacing:1px;min-width:0;overflow-wrap:anywhere}
 }
 #drive-state{white-space:pre-line}
+
+/* ══ v10.27 — definições simplificadas + categorias no Cofre ══ */
+.s-adv>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:0}
+.s-adv>summary::-webkit-details-marker{display:none}
+.s-adv>summary::after{content:'▾';font-size:.8rem;color:var(--text-muted);transition:transform .2s}
+.s-adv[open]>summary{margin-bottom:14px}
+.s-adv[open]>summary::after{transform:rotate(180deg)}
+.catmgr-icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin:4px 0 12px}
+.catmgr-ic{height:40px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:1.15rem;cursor:pointer;transition:border-color .15s,background .15s,transform .1s}
+.catmgr-ic:hover{border-color:rgba(var(--accent-rgb),.5)}
+.catmgr-ic.on{border-color:var(--accent);background:rgba(var(--accent-rgb),.14);box-shadow:0 0 0 1px var(--accent) inset}
+.catmgr-ic:active{transform:scale(.92)}
+#cats-overlay .catmgr-add{display:flex;gap:8px;align-items:center}
+#cats-overlay #catmgr-color{width:44px;height:40px;padding:2px;border-radius:10px;border:1px solid var(--border);background:none;flex-shrink:0}
+.cat-item.cat-manage{opacity:.75;border:1px dashed var(--border)}
+.cat-item.cat-manage:hover{opacity:1;border-color:rgba(var(--accent-rgb),.5)}
+/* separadores das definições: os 5 sempre visíveis no telemóvel (ícone por cima do nome) */
+@media(max-width:520px){
+  .settings-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:0;overflow:visible}
+  .settings-nav-btn{flex-direction:column;gap:3px;padding:9px 2px 8px;font-size:.5rem;letter-spacing:.3px;min-width:0}
+  .settings-nav-btn span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+#drive-forget-btn{border-color:transparent;background:none;color:var(--text-muted);font-size:.58rem}
+#drive-forget-btn:hover{color:var(--red)}

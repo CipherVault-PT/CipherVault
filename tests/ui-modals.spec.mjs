@@ -28,7 +28,7 @@ test.describe('Janelas, definições e menus', () => {
         .forEach(el => [...el.attributes].filter(a => /^on/i.test(a.name)).forEach(a => out.add((el.closest('[id]') || {}).id + ' ' + a.name)));
       const close = () => document.querySelectorAll('.modal-overlay.open,#read-modal.open').forEach(o => o.classList.remove('open'));
       const steps = [
-        async () => { openSettings(); for (const t of ['aspeto', 'seguranca', 'dados', 'heranca', 'sobre']) { switchSettingsTab(t); await sleep(60); scan(); } },
+        async () => { openSettings(); for (const t of ['geral', 'aspeto', 'seguranca', 'dados', 'heranca', 'sobre']) { switchSettingsTab(t); await sleep(60); scan(); } },
         () => openModal(), () => openModal('a1'), () => openPwGen(), () => openChangePwModal(), () => openFolderModal(null, 'vault'),
         () => openMoveModal('a1', 'vault'), () => openReadMode('a1'), () => openCardModal(), () => openDocModal(), () => openTotpModal(),
         () => openHealthCheck(), () => openCalendar(), () => openSelectiveExport(), () => openSnapshotModal(), () => openLegacyModal(),
@@ -49,6 +49,7 @@ test.describe('Janelas, definições e menus', () => {
     await page.locator('#settings-overlay [data-act="applyThemePreset"]').nth(1).click();
     await page.locator('#settings-overlay [data-act="setBackground"][data-arg="stars"]').click();
     expect(await page.evaluate(() => currentBg)).toBe('stars');
+    await page.locator('#s-colors-title').click();   // cores personalizadas estão recolhidas
     await page.locator('#settings-overlay [data-act="pickPresetColor"]').first().click();
     await page.locator('#settings-overlay').click({ position: { x: 5, y: 5 } });
     await expect(page.locator('#settings-overlay')).not.toHaveClass(/open/);

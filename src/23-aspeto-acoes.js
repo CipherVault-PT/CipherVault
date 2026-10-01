@@ -75,3 +75,45 @@ function avxClose(focus){
   window.addEventListener('scroll',()=>avxPlace(),true);
   window.addEventListener('resize',()=>avxClose());
 })();
+
+/* ══ v10.27 — categorias do cofre: geridas a partir do próprio Cofre, com ícone escolhido num toque ══ */
+function openCatManager(){
+  const en=avEn(),s=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
+  s('s-cats-title',en?'🗂️ Categories':'🗂️ Categorias');
+  s('cats-intro',en?'Create your own categories to organise the vault. Pick an icon, a name and a colour.':'Cria as tuas categorias para organizar o cofre. Escolhe um ícone, um nome e uma cor.');
+  s('cats-close-btn',en?'Close':'Fechar');
+  pickCatIcon(document.getElementById('catmgr-icon')?.value||'📁');
+  renderCatManager();
+  document.getElementById('cats-overlay').classList.add('open');
+  setTimeout(()=>{const n=document.getElementById('catmgr-name');if(n&&!('ontouchstart' in window))n.focus();},80);
+}
+function closeCatManager(){document.getElementById('cats-overlay').classList.remove('open');}
+function pickCatIcon(icon){
+  const inp=document.getElementById('catmgr-icon');if(inp)inp.value=icon||'📁';
+  document.querySelectorAll('#catmgr-icons .catmgr-ic').forEach(b=>{const on=b.dataset.arg===inp.value;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});
+}
+
+/* ══ v10.27 — definições mais simples ══ */
+function avSetAutosave(on){if(autoSaveOn()!==!!on)avToggleAutosave();else avRenderSettings();}
+// Google Drive: só aparecem os botões que fazem sentido no estado atual
+function avDriveTidy(){
+  const cid=(dCfg('cid')||'').trim(),fid=dCfg('fid'),official=typeof avBuiltinOk==='function'&&avBuiltinOk();
+  const show=(id,on)=>{const e=document.getElementById(id);if(e)e.style.display=on?'':'none';};
+  const guide=document.querySelector('#drive-quick .dq-guide');
+  const adv=!official||!!(guide&&guide.open)||(!!cid&&cid!==(typeof AV_BUILTIN_CID!=='undefined'?AV_BUILTIN_CID:''));
+  ['s-drive-cid-lbl','drive-cid','drive-save-cid-btn'].forEach(id=>show(id,adv));
+  show('drive-upload-btn',!fid&&!!cid&&!(official&&cid===AV_BUILTIN_CID&&document.getElementById('dq-go')));
+  show('drive-link-btn',!fid);
+  show('drive-toggle-btn',!!fid);
+  show('drive-hist-btn',!!fid);
+  show('drive-forget-btn',!!(cid||fid));
+  if(guide&&!guide._avx){guide._avx=1;guide.addEventListener('toggle',avDriveTidy);}
+}
+(function(){
+  if(typeof avDriveQuickRender==='function'){const r=avDriveQuickRender;avDriveQuickRender=function(){const x=r.apply(this,arguments);try{avDriveTidy();}catch(e){}return x;};}
+  if(typeof renderDriveSettings==='function'){const r=renderDriveSettings;renderDriveSettings=function(){const x=r.apply(this,arguments);try{avDriveTidy();}catch(e){}return x;};}
+  if(typeof avRenderSettings==='function'){const r=avRenderSettings;avRenderSettings=function(){const x=r.apply(this,arguments);
+    try{const en=avEn(),on=autoSaveOn(),a=document.getElementById('s-autosave-on'),b=document.getElementById('s-autosave-off');
+      if(a){a.textContent=en?'On':'Ligada';a.classList.toggle('on',on);}if(b){b.textContent=en?'Off':'Desligada';b.classList.toggle('on',!on);}}catch(e){}
+    return x;};}
+})();

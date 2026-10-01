@@ -18,9 +18,9 @@
 <link rel="manifest" id="pwa-manifest">
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/playfair-display-latin-400-normal.woff2" crossorigin>
-<meta name="app-version" content="10.26">
-<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.26' -->
-<link rel="stylesheet" href="styles.css?v=10.26">
+<meta name="app-version" content="10.27">
+<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.27' -->
+<link rel="stylesheet" href="styles.css?v=10.27">
 <!-- A foto nítida do fundo só é pedida depois da app (aparece primeiro a versão desfocada): assim a app fica pronta mais cedo -->
 </head>
 <body>
@@ -380,7 +380,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.26</span>
+      <span>Aurora Vault © 2026 · v10.27</span>
     </div>
   </div>
 </div>
@@ -793,7 +793,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent-ink)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.26</span>
+      <span>Aurora Vault © 2026 · v10.27</span>
     </div>
   </div>
   </div>
@@ -973,24 +973,16 @@
 
     <!-- NAV DAS ABAS -->
     <div class="settings-nav" id="settings-nav">
-      <button class="settings-nav-btn active" data-stab="aspeto" data-act="switchSettingsTab" data-arg="aspeto">🎨 <span id="snav-aspeto">Aspeto</span></button>
+      <button class="settings-nav-btn active" data-stab="geral" data-act="switchSettingsTab" data-arg="geral">👤 <span id="snav-geral">Geral</span></button>
+      <button class="settings-nav-btn" data-stab="aspeto" data-act="switchSettingsTab" data-arg="aspeto">🎨 <span id="snav-aspeto">Aspeto</span></button>
       <button class="settings-nav-btn" data-stab="seguranca" data-act="switchSettingsTab" data-arg="seguranca">🔒 <span id="snav-seguranca">Segurança</span></button>
-      <button class="settings-nav-btn" data-stab="dados" data-act="switchSettingsTab" data-arg="dados">📄 <span id="snav-dados">Dados</span></button>
-      <button class="settings-nav-btn" data-stab="heranca" data-act="switchSettingsTab" data-arg="heranca">📜 <span id="snav-heranca">Herança</span></button>
+      <button class="settings-nav-btn" data-stab="dados" data-act="switchSettingsTab" data-arg="dados">☁️ <span id="snav-dados">Dados</span></button>
       <button class="settings-nav-btn" data-stab="sobre" data-act="switchSettingsTab" data-arg="sobre">ℹ️ <span id="snav-sobre">Sobre</span></button>
     </div>
 
-    <!-- ═══ ABA ASPETO ═══ -->
-    <div class="settings-pane active" data-spane="aspeto">
+    <!-- ═══ ABA GERAL ═══ -->
+    <div class="settings-pane active" data-spane="geral">
 
-    <!-- FUNDO ANIMADO -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-bg-title">🌌 Fundo Animado</div>
-      <div id="s-bg-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px">Escolhe o ambiente visual da tua app. Cada um é leve e adapta-se às tuas cores.</div>
-      <div class="bg-picker" id="bg-picker"></div>
-    </div>
-
-    <!-- NOME -->
     <div class="settings-section">
       <div class="settings-title" id="s-name-title">👤 O teu nome</div>
       <div id="s-name-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Usado para te saudar no ecrã inicial. Guardado só no teu cofre.</div>
@@ -1000,17 +992,40 @@
       </div>
     </div>
 
-    <!-- TEMAS PREDEFINIDOS -->
     <div class="settings-section">
-      <div class="settings-title" id="s-themes-title">🎨 Temas Predefinidos</div>
+      <div class="settings-title" id="s-use-title">🧭 Utilização</div>
+      <div class="av-set-row"><div><b id="s-autosave-lbl">Gravação automática</b><small id="s-autosave-desc">Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.</small></div><div class="av-seg"><button id="s-autosave-on" data-act="avSetAutosave" data-args='[true]'>Ligada</button><button id="s-autosave-off" data-act="avSetAutosave" data-args='[false]'>Desligada</button></div></div>
+      <div class="av-set-row" id="s-bk-row" style="display:none"><div><b id="s-bk-lbl">Cópia automática para as Transferências</b><small id="s-bk-desc">Este browser guarda o cofre na app. Por segurança, é feita uma cópia encriptada nas Transferências, só quando há alterações.</small></div><div class="av-seg"><button id="s-bk-weekly" data-act="avSetBkFreq" data-arg="weekly">Semanal</button><button id="s-bk-daily" data-act="avSetBkFreq" data-arg="daily">Diária</button><button id="s-bk-off" data-act="avSetBkFreq" data-arg="off">Desligada</button></div></div>
+      <div class="av-set-row"><div><b id="s-nudge-lbl">Sugestões da Aurora</b><small id="s-nudge-desc">Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).</small></div><div class="av-seg"><button id="s-nudge-on" data-act="avSetNudges" data-args='[true]'>Ligadas</button><button id="s-nudge-off" data-act="avSetNudges" data-args='[false]'>Desligadas</button></div></div>
+      <div class="av-set-row"><div><b id="s-mode-lbl">Modo da app</b><small id="s-mode-desc">Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).</small></div><div class="av-seg"><button id="s-mode-simple" data-act="avSetMode" data-arg="simple">Simples</button><button id="s-mode-full" data-act="avSetMode" data-arg="full">Completo</button></div></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-notif-title">🔔 Avisos de validades</div>
+      <div id="s-notif-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Recebe um aviso quando um documento, cartão ou subscrição está prestes a expirar ou renovar (30, 7 e 2 dias antes).</div>
+      <button class="btn btn-ghost" style="width:100%;padding:11px" data-act="toggleNotifs">🔔 <span id="s-notif-btn-txt">Avisos</span>: <span id="notif-state">Desligadas</span></button>
+    </div>
+
+    </div><!-- /pane geral -->
+
+    <!-- ═══ ABA ASPETO ═══ -->
+    <div class="settings-pane" data-spane="aspeto">
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-themes-title">🎨 Tema</div>
       <div class="theme-grid" id="theme-grid" style="margin-bottom:14px"></div>
       <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small><small id="s-sw-rm"></small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" data-act="avSetSwStyle" data-arg="parallax">Parallax</button><button id="s-sw-stack" data-act="avSetSwStyle" data-arg="stack">Cartões em pilha</button><button id="s-sw-reveal" data-act="avSetSwStyle" data-arg="reveal">Revelação Aurora</button><button id="s-sw-fade" data-act="avSetSwStyle" data-arg="fade">Deslize suave</button><button id="s-sw-off" data-act="avSetSwStyle" data-arg="off">Desligado</button></div></div>
       <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" data-act="avSetThemeAuto" data-args='[true]'>Ligado</button><button id="s-auto-off" data-act="avSetThemeAuto" data-args='[false]'>Desligado</button></div></div>
     </div>
 
-    <!-- COLOR PICKERS -->
     <div class="settings-section">
-      <div class="settings-title" id="s-colors-title">Personalizar Cores</div>
+      <div class="settings-title" id="s-bg-title">🌌 Fundo Animado</div>
+      <div id="s-bg-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px">Escolhe o ambiente visual da tua app. Cada um é leve e adapta-se às tuas cores.</div>
+      <div class="bg-picker" id="bg-picker"></div>
+    </div>
+
+    <div class="settings-section">
+      <details class="s-adv" id="s-colors-adv"><summary class="settings-title" id="s-colors-title">🖌️ Cores personalizadas</summary>
       <div class="color-picker-wrap">
 
         <div class="color-row">
@@ -1044,81 +1059,20 @@
 
         <button class="btn btn-ghost" id="s-reset-btn" style="margin-top:4px;font-size:.65rem" data-act="resetColors">↺ Repor cores padrão</button>
       </div>
+    </details>
     </div>
 
-    </div><!-- /pane aspeto (parte 1) -->
-
-    <!-- ═══ ABA DADOS ═══ -->
-    <div class="settings-pane" data-spane="dados">
-
-    <!-- IMPORTAR / EXPORTAR CSV + PDF -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-csv-title">📄 Importar / Exportar</div>
-      <div id="s-csv-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Importa ou exporta as tuas entradas em CSV, ou gera um PDF do cofre.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn btn-ghost" style="padding:11px" data-click="csv-input-app"><span id="s-csv-import-txt">⬆️ Importar CSV</span></button>
-        <button class="btn btn-ghost" style="padding:11px" data-act="exportCSV"><span id="s-csv-export-txt">⬇️ Exportar CSV</span></button>
-        <button class="btn btn-ghost" style="padding:11px;grid-column:1/-1" data-act="exportPDF"><span id="s-pdf-export-txt">📄 Exportar PDF</span></button>
-      </div>
-    </div>
-
-    <!-- EXPORTAÇÃO SELETIVA -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-export-title">📤 Partilhar entradas selecionadas</div>
-      <div id="export-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
-      <button class="btn btn-ghost" id="export-open-btn" style="width:100%;padding:11px" data-act="openSelectiveExport">📤 <span id="export-open-txt">Escolher e exportar</span></button>
-    </div>
-
-    <!-- SNAPSHOTS -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-snap-title">💾 Cópias de Segurança</div>
-      <div id="snap-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
-      <button class="btn btn-ghost" id="snap-open-btn" style="width:100%;padding:11px" data-act="openSnapshotModal">⏳ <span id="snap-open-txt">Ver e restaurar cópias</span></button>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-title" id="s-notif-title">🔔 Avisos de validades</div>
-      <div id="s-notif-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Recebe um aviso quando um documento, cartão ou subscrição está prestes a expirar ou renovar (30, 7 e 2 dias antes).</div>
-      <button class="btn btn-ghost" style="width:100%;padding:11px" data-act="toggleNotifs">🔔 <span id="s-notif-btn-txt">Avisos</span>: <span id="notif-state">Desligadas</span></button>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-title" id="s-use-title">🧭 Utilização</div>
-      <div class="av-set-row"><div><b id="s-autosave-lbl">Gravação automática</b><small id="s-autosave-desc">Grava sozinha depois de cada alteração — no ficheiro (se já tiver autorização) e no Drive.</small></div><button class="btn btn-ghost" id="s-autosave-btn" data-act="avToggleAutosave">Ligada</button></div>
-      <div class="av-set-row" id="s-bk-row" style="display:none"><div><b id="s-bk-lbl">Cópia automática para as Transferências</b><small id="s-bk-desc">Este browser guarda o cofre na app. Por segurança, é feita uma cópia encriptada nas Transferências, só quando há alterações.</small></div><div class="av-seg"><button id="s-bk-weekly" data-act="avSetBkFreq" data-arg="weekly">Semanal</button><button id="s-bk-daily" data-act="avSetBkFreq" data-arg="daily">Diária</button><button id="s-bk-off" data-act="avSetBkFreq" data-arg="off">Desligada</button></div></div>
-      <div class="av-set-row"><div><b id="s-nudge-lbl">Sugestões da Aurora</b><small id="s-nudge-desc">Pequenas sugestões depois de gravares (ex.: guardar o código 2FA, ler a validade de uma foto).</small></div><div class="av-seg"><button id="s-nudge-on" data-act="avSetNudges" data-args='[true]'>Ligadas</button><button id="s-nudge-off" data-act="avSetNudges" data-args='[false]'>Desligadas</button></div></div>
-      <div class="av-set-row"><div><b id="s-mode-lbl">Modo da app</b><small id="s-mode-desc">Simples: só o essencial. Completo: todas as funções (bens, arquivo, relatórios…).</small></div><div class="av-seg"><button id="s-mode-simple" data-act="avSetMode" data-arg="simple">Simples</button><button id="s-mode-full" data-act="avSetMode" data-arg="full">Completo</button></div></div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title" id="s-drive-title">☁️ Sincronizar com a Google Drive</div>
-      <div id="s-drive-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Mantém o mesmo cofre no computador e no telemóvel. O que vai para a Drive é o ficheiro já encriptado — a Google nunca vê o conteúdo. Sem rede, a app usa a cópia guardada por dentro e envia as alterações quando voltares a ter ligação.</div>
-      <div class="form-group">
-        <div id="drive-quick"></div>
-        <label id="s-drive-cid-lbl">Credencial da Google (Client ID)</label>
-        <input type="text" id="drive-cid" placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com" style="font-size:.66rem">
-      </div>
-      <button class="btn btn-ghost" id="drive-save-cid-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="saveDriveCid">Guardar credencial</button>
-      <button class="btn btn-gold" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveFirstUpload">☁️ Enviar o cofre atual para o Drive</button>
-      <button class="btn btn-ghost" id="drive-link-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveOpenLinkPicker">🔗 Usar um ficheiro já existente na Drive</button>
-      <button class="btn btn-ghost" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveToggle">Ligar sincronização</button>
-      <button class="btn btn-ghost" id="drive-hist-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="openSyncHistory">🕘 Histórico de versões no Drive</button>
-      <button class="btn btn-ghost" id="drive-forget-btn" style="width:100%;padding:10px" data-act="driveForget">Desligar e esquecer</button>
-      <div id="drive-state" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:11px"></div>
-    </div>
-
-    </div><!-- /pane dados -->
+    </div><!-- /pane aspeto -->
 
     <!-- ═══ ABA SEGURANÇA ═══ -->
     <div class="settings-pane" data-spane="seguranca">
 
-    <!-- ALTERAR PALAVRA-PASSE -->
     <div class="settings-section">
       <div class="settings-title" id="s-changepw-title">🔑 Palavra-passe mestra</div>
       <div id="s-changepw-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Muda a palavra-passe que protege todo o cofre.</div>
       <button class="btn btn-ghost" style="width:100%;padding:11px" data-act="openChangePwModal"><span id="s-changepw-btn-txt">🔑 Alterar palavra-passe</span></button>
     </div>
 
-    <!-- QUICK UNLOCK -->
     <div class="settings-section">
       <div class="settings-title" id="s-quick-title">🔓 Desbloqueio Rápido</div>
       <div id="quick-status" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
@@ -1133,9 +1087,8 @@
       <div id="quick-note" style="font-size:.62rem;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
     </div>
 
-    <!-- AUTO-LOCK -->
     <div class="settings-section">
-      <div class="settings-title" id="s-timeout-title">⏱️ Auto-bloqueio</div>
+      <div class="settings-title" id="s-timeout-title">⏱️ Bloqueio automático</div>
       <div style="font-size:.72rem;color:var(--text);margin-bottom:8px"><span id="s-lockhide-lbl">Ao sair da app (segundo plano), bloquear:</span></div>
       <div class="timeout-btns" style="margin-bottom:6px">
         <button class="timeout-btn" id="bg-0" data-act="avSetBgLock" data-args='[0]'>Logo</button>
@@ -1154,60 +1107,97 @@
         <button class="timeout-btn" id="to-0" data-act="setTimeout2" data-args='[0]'>∞ Nunca</button>
       </div>
     </div>
-    </div><!-- /pane seguranca -->
 
-    <!-- ═══ ABA ASPETO (parte 2: personalização) ═══ -->
-    <div class="settings-pane" data-spane="aspeto">
-
-    <!-- CUSTOM CATEGORIES -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-cats-title">🎨 Categorias Personalizadas</div>
-      <div id="catmgr-list"></div>
-      <div class="catmgr-add">
-        <input id="catmgr-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:.95rem;padding:9px 4px;border-radius:2px;outline:none">
-        <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
-        <input type="color" id="catmgr-color" aria-label="Cor da categoria" value="#4c8caf">
-        <button class="btn btn-gold" id="catmgr-add-btn" style="flex:0 0 auto;padding:10px 16px" data-act="addCustomCat">＋</button>
-      </div>
-    </div>
-
-    <!-- PWA CUSTOM -->
-    <div class="settings-section">
-      <div class="settings-title" id="s-pwa-title">📲 App Instalada</div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input id="pwa-emoji" maxlength="4" placeholder="🔒" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:9px 4px;border-radius:2px;outline:none">
-        <input id="pwa-name" maxlength="24" placeholder="Aurora Vault" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
-        <button class="btn btn-gold" id="pwa-apply-btn" style="flex:0 0 auto;padding:10px 16px" data-act="savePwaPrefs">✓</button>
-      </div>
-      <div id="pwa-note" style="font-size:.62rem;color:var(--text-muted);margin-top:8px;line-height:1.6">O ícone usa as tuas cores atuais. Reinstala a app para aplicar o novo ícone/nome.</div>
-    </div>
-    </div><!-- /pane aspeto parte 2 -->
-
-    <!-- ═══ ABA HERANÇA ═══ -->
-    <div class="settings-pane" data-spane="heranca">
     <div class="settings-section">
       <div class="settings-title" id="s-heranca-title">📜 Herança Digital</div>
       <div id="s-heranca-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px">Um documento para a tua família aceder às tuas contas e ao que é importante, caso te aconteça alguma coisa. Preenche os dados e gera um PDF para guardar em segurança.</div>
-      <button class="btn btn-gold" style="width:100%;padding:12px" data-act="openLegacyModal"><span id="s-heranca-btn-txt">📜 Abrir Herança Digital</span></button>
+      <button class="btn btn-ghost" style="width:100%;padding:12px" data-act="openLegacyModal"><span id="s-heranca-btn-txt">📜 Abrir Herança Digital</span></button>
     </div>
-    </div><!-- /pane heranca -->
+
+    </div><!-- /pane seguranca -->
+
+    <!-- ═══ ABA DADOS ═══ -->
+    <div class="settings-pane" data-spane="dados">
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-drive-title">☁️ Sincronizar com a Google Drive</div>
+      <div id="s-drive-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Mantém o mesmo cofre no computador e no telemóvel. O que vai para a Drive é o ficheiro já encriptado — a Google nunca vê o conteúdo. Sem rede, a app usa a cópia guardada por dentro e envia as alterações quando voltares a ter ligação.</div>
+      <div class="form-group">
+        <div id="drive-quick"></div>
+        <label id="s-drive-cid-lbl">Credencial da Google (Client ID)</label>
+        <input type="text" id="drive-cid" placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com" style="font-size:.66rem">
+      </div>
+      <button class="btn btn-ghost" id="drive-save-cid-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="saveDriveCid">Guardar credencial</button>
+      <button class="btn btn-gold" id="drive-upload-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveFirstUpload">☁️ Enviar o cofre atual para o Drive</button>
+      <button class="btn btn-ghost" id="drive-link-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveOpenLinkPicker">🔗 Usar um ficheiro já existente na Drive</button>
+      <button class="btn btn-ghost" id="drive-toggle-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="driveToggle">Ligar sincronização</button>
+      <button class="btn btn-ghost" id="drive-hist-btn" style="width:100%;padding:10px;margin-bottom:7px" data-act="openSyncHistory">🕘 Histórico de versões no Drive</button>
+      <button class="btn btn-ghost" id="drive-forget-btn" style="width:100%;padding:10px" data-act="driveForget">Desligar e esquecer</button>
+      <div id="drive-state" style="font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-top:11px"></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-snap-title">💾 Cópias de Segurança</div>
+      <div id="snap-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
+      <button class="btn btn-ghost" id="snap-open-btn" style="width:100%;padding:11px" data-act="openSnapshotModal">⏳ <span id="snap-open-txt">Ver e restaurar cópias</span></button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-csv-title">📄 Importar / Exportar</div>
+      <div id="s-csv-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Importa ou exporta as tuas entradas em CSV, ou gera um PDF do cofre.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-ghost" style="padding:11px" data-click="csv-input-app"><span id="s-csv-import-txt">⬆️ Importar CSV</span></button>
+        <button class="btn btn-ghost" style="padding:11px" data-act="exportCSV"><span id="s-csv-export-txt">⬇️ Exportar CSV</span></button>
+        <button class="btn btn-ghost" style="padding:11px;grid-column:1/-1" data-act="exportPDF"><span id="s-pdf-export-txt">📄 Exportar PDF</span></button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title" id="s-export-title">📤 Partilhar entradas selecionadas</div>
+      <div id="export-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px"></div>
+      <button class="btn btn-ghost" id="export-open-btn" style="width:100%;padding:11px" data-act="openSelectiveExport">📤 <span id="export-open-txt">Escolher e exportar</span></button>
+    </div>
+
+    </div><!-- /pane dados -->
 
     <!-- ═══ ABA SOBRE ═══ -->
     <div class="settings-pane" data-spane="sobre">
+
     <div class="settings-section">
       <div class="settings-title" id="s-diag-title">🩺 Diagnóstico</div>
       <div id="av-diag" style="font-size:.7rem;line-height:1.95;color:var(--text-muted)"></div>
     </div>
-    <!-- VAULT INFO -->
+
     <div class="settings-section">
       <div class="settings-title" id="s-vaultinfo-title">📊 Info do Cofre</div>
       <div class="vinfo-grid" id="vault-info-grid"></div>
     </div>
+
     </div><!-- /pane sobre -->
 
     <div class="modal-actions">
       <button class="btn btn-gold" id="s-close-btn" data-act="closeSettings">Fechar</button>
     </div>
+  </div>
+</div>
+
+<!-- CATEGORIAS DO COFRE -->
+<div class="modal-overlay" id="cats-overlay" data-act="closeCatManager" data-self>
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title" id="s-cats-title">🗂️ Categorias</div>
+    <div id="cats-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Cria as tuas categorias para organizar o cofre. Escolhe um ícone, um nome e uma cor.</div>
+    <div>
+      
+      <div id="catmgr-list"></div>
+      <div class="catmgr-icons" id="catmgr-icons" role="radiogroup" aria-label="Ícone da categoria"><button type="button" class="catmgr-ic on" role="radio" aria-checked="true" data-act="pickCatIcon" data-arg="📁" data-this>📁</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="💼" data-this>💼</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🏠" data-this>🏠</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🏦" data-this>🏦</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="💳" data-this>💳</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🛒" data-this>🛒</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎮" data-this>🎮</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎵" data-this>🎵</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎬" data-this>🎬</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="📷" data-this>📷</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="✈️" data-this>✈️</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🚗" data-this>🚗</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🏥" data-this>🏥</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎓" data-this>🎓</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="💡" data-this>💡</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🔧" data-this>🔧</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🐾" data-this>🐾</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="⭐" data-this>⭐</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="❤️" data-this>❤️</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🔒" data-this>🔒</button></div>
+      <div class="catmgr-add">
+        <input type="hidden" id="catmgr-icon" value="📁">
+        <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
+        <input type="color" id="catmgr-color" aria-label="Cor da categoria" value="#4c8caf">
+        <button class="btn btn-gold" id="catmgr-add-btn" style="flex:0 0 auto;padding:10px 16px" data-act="addCustomCat">＋</button>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-gold" id="cats-close-btn" data-act="closeCatManager">Fechar</button></div>
   </div>
 </div>
 
@@ -1914,8 +1904,8 @@
 <input type="file" id="av-ga-file" accept="image/*" style="display:none" data-change="avGaFile" data-ev>
 <input type="file" id="csv-input-app" aria-label="Importar ficheiro CSV" tabindex="-1" accept=".csv" style="position:fixed;top:-999px;left:-999px;opacity:0;width:1px;height:1px">
 <div class="toast" id="toast"></div>
-<script src="js/actions.js?v=10.26"></script>
-<script src="js/crypto.js?v=10.26"></script>
-<script src="app.js?v=10.26"></script>
+<script src="js/actions.js?v=10.27"></script>
+<script src="js/crypto.js?v=10.27"></script>
+<script src="app.js?v=10.27"></script>
 </body>
 </html>

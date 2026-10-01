@@ -282,7 +282,7 @@ function renderDashboard(){
   setT('cal-leg-card','Validade cartão','Card expiry');
   setT('cal-leg-holiday','Feriado','Holiday');
   setT('cal-ics-txt','Adicionar ao calendário do telemóvel','Add to phone calendar');
-  setT('s-themes-title','🎨 Temas Predefinidos','🎨 Preset Themes');
+  setT('s-themes-title','🎨 Tema','🎨 Theme');
   setT('dcard-favs-title','Favoritos','Favourites');
   setT('dcard-cats-title','Entradas por categoria','Entries by category');
   setT('dcard-oldest-title','Passwords mais antigas','Oldest passwords');
@@ -406,7 +406,7 @@ function renderSidebar(){
   el.innerHTML=sideCats.map(({key,icon,label})=>{
     const count=key==='all'?active.length:(catCount[key]||0);
     return `<div class="cat-item ${currentCat===key&&!currentTag?'active':''}" data-act="selectCat" data-arg="${esc(key)}"><span>${icon}</span><span>${esc(label)}</span><span class="cat-count">${count}</span></div>`;
-  }).join('');
+  }).join('')+`<div class="cat-item cat-manage" role="button" tabindex="0" data-act="openCatManager" data-enter="openCatManager"><span>＋</span><span>${currentLang==='en'?'Categories':'Categorias'}</span></div>`;
   // Tags sidebar
   const tagsEl=document.getElementById('sidebar-tags');
   document.getElementById('sb-tags-title').textContent=t('sbTags');

@@ -1022,7 +1022,7 @@ function addCustomCat(){
   }
   customCats.push({key:'c'+Date.now().toString(36),name,icon,color});
   document.getElementById('catmgr-name').value='';
-  document.getElementById('catmgr-icon').value='';
+  if(typeof pickCatIcon==='function')pickCatIcon('📁');else document.getElementById('catmgr-icon').value='📁';
   logActivity('add',name,'🎨');
   renderCatManager();populateCatSelect();renderSidebar();renderCards();renderDashboard();
   toast(currentLang==='en'?'Category created! ✓':'Categoria criada! ✓');

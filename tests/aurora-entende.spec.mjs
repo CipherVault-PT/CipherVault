@@ -12,8 +12,8 @@ const SEED = () => {
   documents.push({ id: 'd', title: 'Cartão de Cidadão', cat: 'pessoal', expiry: iso(20) }, { id: 'd2', title: 'Escritura da casa', cat: 'casa' },
     { id: 'd4', title: 'Passaporte', cat: 'pessoal', expiry: iso(-5) },
     // dados escritos à mão (não saem do texto): marcados como já lidos na versão atual para não serem recalculados
-    { id: 'e1', title: 'Fatura EDP agosto', cat: 'casa', text: 'EDP Comercial Fatura Total a pagar 52,10 EUR', facts: { kind: 'fatura', entity: 'EDP', total: 52.1, issueDate: iso(-30), dueDate: iso(3) }, textAt: 1, factsV: AV_FACTS_V },
-    { id: 'e2', title: 'Fatura MEO', cat: 'casa', text: 'MEO fatura internet fibra total 39,99', facts: { kind: 'fatura', entity: 'MEO', total: 39.99, issueDate: iso(-2) }, textAt: 1, factsV: AV_FACTS_V });
+    { id: 'e1', title: 'Fatura EDP agosto', cat: 'casa', text: 'EDP Comercial Fatura Total a pagar 52,10 EUR', facts: { kind: 'fatura', entity: 'EDP', total: 52.1, issueDate: iso(-40), dueDate: iso(3) }, textAt: 1, factsV: AV_FACTS_V },
+    { id: 'e2', title: 'Fatura MEO', cat: 'casa', text: 'MEO fatura internet fibra total 39,99', facts: { kind: 'fatura', entity: 'MEO', total: 39.99, issueDate: iso(0) }, textAt: 1, factsV: AV_FACTS_V });
   bankCards.push({ id: 'b', bank: 'CGD', name: 'CGD Visa', number: '4111111111111111', expiry: '12/28', pin: '4321', cvv: '987' }, { id: 'b2', bank: 'Revolut', number: '5555555555554444', expiry: '03/27', pin: '1111', cvv: '123' });
   storeCards.push({ id: 'sc', name: 'Continente', number: '2600000012345' });
   notes.push({ id: 'no', title: 'Ideias para o jantar', body: 'bacalhau com natas' });
