@@ -518,6 +518,7 @@ async function avPdfText(dataUrl){
   return out.slice(0,8000);
 }
 async function avOcrText(dataUrl){
+  if(location.protocol==='file:')return ''; // aberta a partir de ficheiros (pen): o browser não deixa correr o OCR
   const w=await avOcrWorker();
   try{const r=await w.recognize(dataUrl);return (r&&r.data&&r.data.text)||'';}finally{try{await w.terminate();}catch(e){}}
 }

@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.27';
+const APP_VERSION='10.28';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1873,6 +1873,8 @@ function applySettingsLang(){
   s('s-heranca-title',en_s?'📜 Digital Legacy':'📜 Herança Digital');
   const hd=document.getElementById('s-heranca-desc');if(hd)hd.textContent=en_s?'A document for your family to access your accounts and what matters, should something happen to you. Fill in the details and generate a PDF to keep safe.':'Um documento para a tua família aceder às tuas contas e ao que é importante, caso te aconteça alguma coisa. Preenche os dados e gera um PDF para guardar em segurança.';
   s('s-heranca-btn-txt',en_s?'📜 Open Digital Legacy':'📜 Abrir Herança Digital');
+  s('s-pen-btn-txt',en_s?'Download the app for a USB stick':'Descarregar a app para uma pen');
+  s('s-pen-desc',en_s?'To keep with the papers: a folder with the app and an encrypted copy of the vault, which opens on a computer with no internet.':'Para guardar com os papéis: uma pasta com a app e uma cópia encriptada do cofre, que abre num computador sem internet.');
   s('s-bg-title',en_s?'🌌 Animated Background':'🌌 Fundo Animado');
   const bgd=document.getElementById('s-bg-desc');if(bgd)bgd.textContent=en_s?"Choose your app's visual ambiance. Each one is lightweight and adapts to your colours.":'Escolhe o ambiente visual da tua app. Cada um é leve e adapta-se às tuas cores.';
   const pgd=document.getElementById('pgm-desc');if(pgd)pgd.textContent=en_s?'Easy-to-remember words, separated with a number. Strong and memorable.':'Palavras fáceis de decorar, separadas e com número. Fortes e memoráveis.';
@@ -8256,7 +8258,7 @@ function generateLegacyDoc(){
     st2:'Tap <b>“Open Vault”</b>.',
     st3:'Choose the <b>.vault</b> file.',
     st4:'Type the master password and confirm.',
-    note:'No internet is needed after the page has loaded once, and nothing is ever uploaded anywhere.',
+    note:'No internet is needed after the page has loaded once, and nothing is ever uploaded anywhere. If this address no longer works, look for a USB stick labelled «Aurora Vault»: on a computer, open the file <b>ABRIR-AQUI.html</b> inside it.',
     s5:'5. IMPORTANT — 6-digit codes (two-step verification)',
     p5:'Many accounts ask for a <b>6-digit code</b> after the password. Those codes may be in three different places:<br><br>&bull; <b>Inside this vault</b>, in the <b>2FA</b> tab — copy the number shown next to the account. It changes every 30 seconds, which is normal.<br>&bull; In a <b>phone app</b>, such as Google Authenticator or Microsoft Authenticator.<br>&bull; By <b>SMS</b>, sent to my mobile number.<br><br>If an account asks for a code and it is not in the vault, look in those apps on my phone.<br><br><b>Do not cancel my phone number or SIM card until everything is sorted out</b> — without it you lose access to every account that sends codes by SMS.',
     s6:'6. Suggested order',
@@ -8299,7 +8301,7 @@ function generateLegacyDoc(){
     st2:'Clicar em <b>“Abrir Cofre”</b>.',
     st3:'Escolher o ficheiro <b>.vault</b>.',
     st4:'Escrever a palavra-passe mestra e confirmar.',
-    note:'Não é preciso internet depois de a página abrir uma vez, e nada é enviado para lado nenhum.',
+    note:'Não é preciso internet depois de a página abrir uma vez, e nada é enviado para lado nenhum. Se este endereço deixar de funcionar, procura uma pen «Aurora Vault»: num computador, abre o ficheiro <b>ABRIR-AQUI.html</b> que está lá dentro.',
     s5:'5. IMPORTANTE — códigos de 6 dígitos (verificação em dois passos)',
     p5:'Muitas contas pedem um <b>código de 6 dígitos</b> depois da palavra-passe. Esses códigos podem estar em três sítios diferentes:<br><br>&bull; <b>Dentro deste cofre</b>, no separador <b>2FA</b> — copia o número que aparece ao lado da conta. Muda a cada 30 segundos, o que é normal.<br>&bull; Numa <b>app do telemóvel</b>, como o Google Authenticator ou o Microsoft Authenticator.<br>&bull; Por <b>SMS</b>, enviado para o meu número de telemóvel.<br><br>Se uma conta pedir código e ele não estiver no cofre, procura nessas apps do meu telemóvel.<br><br><b>Não canceles o meu número de telemóvel nem o cartão SIM antes de teres tudo resolvido</b> — sem ele perdes o acesso a todas as contas que enviam código por SMS.',
     s6:'6. Ordem sugerida',
@@ -11582,6 +11584,7 @@ async function avPdfText(dataUrl){
   return out.slice(0,8000);
 }
 async function avOcrText(dataUrl){
+  if(location.protocol==='file:')return ''; // aberta a partir de ficheiros (pen): o browser não deixa correr o OCR
   const w=await avOcrWorker();
   try{const r=await w.recognize(dataUrl);return (r&&r.data&&r.data.text)||'';}finally{try{await w.terminate();}catch(e){}}
 }
@@ -14472,3 +14475,110 @@ function avBackupLine(){
     try{const box=document.getElementById('drive-state'),l=avBackupLine();if(box&&l&&driveOn())box.textContent+='\n'+l;}catch(e){}
     return x;};}
 })();
+
+/* ══ v10.28 — kit para a pen: a app (versão atual), uma cópia encriptada do cofre e um LEIA-ME, num ZIP feito aqui ══
+   Funciona num computador, sem internet e sem servidor: abre-se «ABRIR-AQUI.html». As fontes vão embutidas no CSS (o
+   browser não as carrega de ficheiros locais); o OCR das fotos fica de fora (não funciona a partir de ficheiros). */
+const AV_PEN_FILES=['app.js','styles.css','js/actions.js','js/crypto.js','vendor/jsqr.js',
+  'vendor/pdfjs-3.11.174/pdf.min.js','vendor/pdfjs-3.11.174/pdf.worker.min.js','vendor/pdfjs-3.11.174/LICENSE',
+  'img/aurora-l.webp','img/aurora-p.webp','img/av-icon-v1.svg','img/av-icon-v1-32.png','img/av-icon-v1-192.png',
+  'img/av-icon-v1-512.png','img/av-icon-v1-apple-180.png','img/av-icon-v1-maskable-512.png'];
+const AV_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function avCrc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=AV_CRC[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+// ZIP sem compressão (as imagens e bibliotecas já vêm comprimidas): basta para qualquer computador o abrir
+function avZip(entries){
+  const enc=new TextEncoder(),parts=[],central=[];let off=0;
+  const d=new Date(),time=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),date=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  for(const e of entries){
+    const name=enc.encode(e.name),data=e.data instanceof Uint8Array?e.data:enc.encode(e.data),crc=avCrc32(data);
+    const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);
+    h.setUint16(10,time,true);h.setUint16(12,date,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);
+    h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),name,data);
+    const c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);
+    c.setUint16(12,time,true);c.setUint16(14,date,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);
+    c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+    central.push(new Uint8Array(c.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  const size=central.reduce((s,x)=>s+x.length,0),end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);end.setUint16(8,entries.length,true);end.setUint16(10,entries.length,true);end.setUint32(12,size,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});
+}
+function avB64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+async function avPenFetch(path,asText){
+  const r=await fetch(path,{cache:'no-cache'});if(!r.ok)throw new Error(path);
+  return asText?r.text():new Uint8Array(await r.arrayBuffer());
+}
+function avPenReadme(en,withVault){
+  const d=new Date().toLocaleDateString(en?'en-GB':'pt-PT',{year:'numeric',month:'long',day:'numeric'});
+  return en?`AURORA VAULT — KIT FOR A USB STICK
+Made on ${d}
+
+HOW TO OPEN (on a computer, no internet needed)
+1. Copy this whole folder to the computer (or open it straight from the stick).
+2. Double-click «ABRIR-AQUI.html» — it opens in the web browser (Chrome or Edge work best).
+3. Choose «Open Vault» and pick the file «ciphervault.vault»${withVault?' that is in this folder':''}.
+4. Type the master password.
+
+GOOD TO KNOW
+- Everything is encrypted (AES-256). Without the master password nobody can open the vault.
+${withVault?`- The copy of the vault in this folder is from ${d}. The most recent copy is on Google Drive (file «ciphervault.vault»), if it is in use.
+`:'- This kit has no copy of the vault: put «ciphervault.vault» next to this file.\n'}- The 6-digit codes (2FA) are in the 2FA tab, which has its own lock: on a new computer it opens with the 2FA recovery code.
+- From the stick, reading text from photos (OCR) and Google Drive sync are not available. Everything else works.
+- Online version (when available): ${location.origin+location.pathname}
+`:`AURORA VAULT — KIT PARA PEN
+Feito a ${d}
+
+COMO ABRIR (num computador, não precisa de internet)
+1. Copia esta pasta inteira para o computador (ou abre diretamente da pen).
+2. Faz duplo clique em «ABRIR-AQUI.html» — abre no browser (o Chrome ou o Edge funcionam melhor).
+3. Escolhe «Abrir Cofre» e seleciona o ficheiro «ciphervault.vault»${withVault?', que está nesta pasta':''}.
+4. Escreve a palavra-passe mestra.
+
+BOM SABER
+- Está tudo encriptado (AES-256). Sem a palavra-passe mestra ninguém consegue abrir o cofre.
+${withVault?`- A cópia do cofre nesta pasta é de ${d}. A cópia mais recente está no Google Drive (ficheiro «ciphervault.vault»), se estiver a ser usado.
+`:'- Este kit não tem cópia do cofre: põe o «ciphervault.vault» ao lado deste ficheiro.\n'}- Os códigos de 6 dígitos (2FA) estão no separador 2FA, que tem um fecho próprio: num computador novo abre com o código de recuperação 2FA.
+- A partir da pen não estão disponíveis a leitura de texto em fotos (OCR) nem a sincronização com o Google Drive. Tudo o resto funciona.
+- Versão online (enquanto existir): ${location.origin+location.pathname}
+`;
+}
+async function avPenBuild(withVault){
+  const en=avEn(),out=[];
+  let html=(await avPenFetch('index.html',true)).replace(/<link rel="preload" as="font"[^>]*>\s*/g,'');
+  out.push({name:'ABRIR-AQUI.html',data:html});
+  for(const f of AV_PEN_FILES){
+    if(f==='styles.css'){
+      let css=await avPenFetch(f,true);
+      const fonts=[...new Set([...css.matchAll(/url\((vendor\/fonts\/[\w.-]+\.woff2)\)/g)].map(m=>m[1]))];
+      for(const u of fonts){const b=await avPenFetch(u);css=css.split('url('+u+')').join('url(data:font/woff2;base64,'+avB64(b)+')');}
+      out.push({name:f,data:css});
+    }else out.push({name:f,data:await avPenFetch(f)});
+  }
+  let vaultIn=false;
+  if(withVault){
+    try{if(typeof hasUnsaved!=='undefined'&&hasUnsaved)await saveFile({auto:true});}catch(e){}
+    let json='';try{const l=await localVaultGet();json=(l&&l.json)||'';}catch(e){}
+    if(!json&&typeof pendingVaultText==='string')json=pendingVaultText;
+    if(json){out.push({name:'ciphervault.vault',data:json});vaultIn=true;}
+  }
+  out.push({name:en?'READ-ME.txt':'LEIA-ME.txt',data:avPenReadme(en,vaultIn).replace(/\n/g,'\r\n')});
+  return {blob:avZip(out.map(e=>({name:'Aurora Vault/'+e.name,data:e.data}))),vaultIn};
+}
+async function avPenDownload(){
+  const en=avEn();
+  if(location.protocol==='file:'){toast(en?'Open the online app to make a new kit.':'Abre a app online para fazer um kit novo.');return;}
+  const btn=document.getElementById('s-pen-btn');if(btn)btn.disabled=true;
+  toast(en?'Preparing the kit…':'A preparar o kit…');
+  try{
+    const {blob,vaultIn}=await avPenBuild(!!masterKey);
+    const d=new Date(),z=n=>String(n).padStart(2,'0');
+    downloadBlob(blob,'aurora-vault-pen-'+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'.zip');
+    toast(vaultIn?(en?'📦 Kit ready: app + encrypted copy of the vault. Unzip it onto the stick.':'📦 Kit pronto: app + cópia encriptada do cofre. Descomprime-o para a pen.')
+      :(en?'📦 Kit ready (app only). Unzip it onto the stick.':'📦 Kit pronto (só a app). Descomprime-o para a pen.'));
+  }catch(e){toast(en?'Could not make the kit — check the connection and try again.':'Não foi possível fazer o kit — verifica a ligação e tenta outra vez.');}
+  if(btn)btn.disabled=false;
+}
