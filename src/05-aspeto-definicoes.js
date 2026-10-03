@@ -366,6 +366,8 @@ function applySettingsLang(){
   s('s-heranca-title',en_s?'📜 Digital Legacy':'📜 Herança Digital');
   const hd=document.getElementById('s-heranca-desc');if(hd)hd.textContent=en_s?'A document for your family to access your accounts and what matters, should something happen to you. Fill in the details and generate a PDF to keep safe.':'Um documento para a tua família aceder às tuas contas e ao que é importante, caso te aconteça alguma coisa. Preenche os dados e gera um PDF para guardar em segurança.';
   s('s-heranca-btn-txt',en_s?'📜 Open Digital Legacy':'📜 Abrir Herança Digital');
+  s('s-pen-btn-txt',en_s?'Download the app for a USB stick':'Descarregar a app para uma pen');
+  s('s-pen-desc',en_s?'To keep with the papers: a folder with the app and an encrypted copy of the vault, which opens on a computer with no internet.':'Para guardar com os papéis: uma pasta com a app e uma cópia encriptada do cofre, que abre num computador sem internet.');
   s('s-bg-title',en_s?'🌌 Animated Background':'🌌 Fundo Animado');
   const bgd=document.getElementById('s-bg-desc');if(bgd)bgd.textContent=en_s?"Choose your app's visual ambiance. Each one is lightweight and adapts to your colours.":'Escolhe o ambiente visual da tua app. Cada um é leve e adapta-se às tuas cores.';
   const pgd=document.getElementById('pgm-desc');if(pgd)pgd.textContent=en_s?'Easy-to-remember words, separated with a number. Strong and memorable.':'Palavras fáceis de decorar, separadas e com número. Fortes e memoráveis.';
