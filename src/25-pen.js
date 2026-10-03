@@ -1,8 +1,8 @@
 
 /* ══ v10.28 — kit para a pen: a app (versão atual), uma cópia encriptada do cofre e um LEIA-ME, num ZIP feito aqui ══
-   Funciona num computador, sem internet e sem servidor: abre-se «ABRIR-AQUI.html». As fontes vão embutidas no CSS (o
-   browser não as carrega de ficheiros locais); o OCR das fotos fica de fora (não funciona a partir de ficheiros). */
-const AV_PEN_FILES=['app.js','styles.css','js/actions.js','js/crypto.js','vendor/jsqr.js',
+   Funciona num computador, sem internet e sem servidor: abre-se «ABRIR-AQUI.html», que leva o estilo, o código, as fontes e
+   o fundo dentro dele. O resto (PDF, QR, ícones) fica ao lado; o OCR das fotos fica de fora (não funciona a partir de ficheiros). */
+const AV_PEN_FILES=['vendor/jsqr.js',
   'vendor/pdfjs-3.11.174/pdf.min.js','vendor/pdfjs-3.11.174/pdf.worker.min.js','vendor/pdfjs-3.11.174/LICENSE',
   'img/aurora-l.webp','img/aurora-p.webp','img/av-icon-v1.svg','img/av-icon-v1-32.png','img/av-icon-v1-192.png',
   'img/av-icon-v1-512.png','img/av-icon-v1-apple-180.png','img/av-icon-v1-maskable-512.png'];
@@ -41,7 +41,7 @@ function avPenReadme(en,withVault){
 Made on ${d}
 
 HOW TO OPEN (on a computer, no internet needed)
-1. Copy this whole folder to the computer (or open it straight from the stick).
+1. If this is still a ZIP file: right-click it → «Extract All…» and keep the «Aurora Vault» folder (on the stick or on the computer).
 2. Double-click «ABRIR-AQUI.html» — it opens in the web browser (Chrome or Edge work best).
 3. Choose «Open Vault» and pick the file «ciphervault.vault»${withVault?' that is in this folder':''}.
 4. Type the master password.
@@ -56,7 +56,7 @@ ${withVault?`- The copy of the vault in this folder is from ${d}. The most recen
 Feito a ${d}
 
 COMO ABRIR (num computador, não precisa de internet)
-1. Copia esta pasta inteira para o computador (ou abre diretamente da pen).
+1. Se isto ainda for um ficheiro ZIP: botão direito → «Extrair Tudo…» e guarda a pasta «Aurora Vault» (na pen ou no computador).
 2. Faz duplo clique em «ABRIR-AQUI.html» — abre no browser (o Chrome ou o Edge funcionam melhor).
 3. Escolhe «Abrir Cofre» e seleciona o ficheiro «ciphervault.vault»${withVault?', que está nesta pasta':''}.
 4. Escreve a palavra-passe mestra.
@@ -69,18 +69,29 @@ ${withVault?`- A cópia do cofre nesta pasta é de ${d}. A cópia mais recente e
 - Versão online (enquanto existir): ${location.origin+location.pathname}
 `;
 }
-async function avPenBuild(withVault){
-  const en=avEn(),out=[];
+async function avSha256(txt){return avB64(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt))));}
+// «ABRIR-AQUI.html» leva tudo dentro (estilo, código, fontes, fundo): funciona mesmo aberto diretamente de dentro do ZIP,
+// que no Windows só extrai esse ficheiro para uma pasta temporária
+async function avPenHtml(){
   let html=(await avPenFetch('index.html',true)).replace(/<link rel="preload" as="font"[^>]*>\s*/g,'');
-  out.push({name:'ABRIR-AQUI.html',data:html});
-  for(const f of AV_PEN_FILES){
-    if(f==='styles.css'){
-      let css=await avPenFetch(f,true);
-      const fonts=[...new Set([...css.matchAll(/url\((vendor\/fonts\/[\w.-]+\.woff2)\)/g)].map(m=>m[1]))];
-      for(const u of fonts){const b=await avPenFetch(u);css=css.split('url('+u+')').join('url(data:font/woff2;base64,'+avB64(b)+')');}
-      out.push({name:f,data:css});
-    }else out.push({name:f,data:await avPenFetch(f)});
+  let css=await avPenFetch('styles.css',true);
+  const fonts=[...new Set([...css.matchAll(/url\((vendor\/fonts\/[\w.-]+\.woff2)\)/g)].map(m=>m[1]))];
+  for(const u of fonts){const b=await avPenFetch(u);css=css.split('url('+u+')').join('url(data:font/woff2;base64,'+avB64(b)+')');}
+  html=html.replace(/<link rel="stylesheet" href="styles\.css[^"]*">/,()=>'<style>'+css.replace(/<\/style/gi,'<\\/style')+'</style>');
+  const imgs={};for(const f of ['img/aurora-l.webp','img/aurora-p.webp'])imgs[f]='data:image/webp;base64,'+avB64(await avPenFetch(f));
+  for(const f of ['img/av-icon-v1.svg','img/av-icon-v1-32.png']){const b=await avPenFetch(f);html=html.split('"'+f+'"').join('"data:'+(f.endsWith('.svg')?'image/svg+xml':'image/png')+';base64,'+avB64(b)+'"');}
+  const hashes=[];
+  for(const m of [...html.matchAll(/<script src="([\w/.-]+\.js)\?v=[^"]*"><\/script>/g)]){
+    let js=(await avPenFetch(m[1],true)).replace(/<\/script/gi,'<\\/script');
+    if(m[1]==='app.js')for(const [f,d] of Object.entries(imgs))js=js.split("'"+f+"'").join("'"+d+"'");
+    hashes.push("'sha256-"+await avSha256(js)+"'");
+    html=html.replace(m[0],()=>'<script>'+js+'</script>');
   }
+  return html.replace("script-src 'self'","script-src 'self' "+hashes.join(' '));
+}
+async function avPenBuild(withVault){
+  const en=avEn(),out=[{name:'ABRIR-AQUI.html',data:await avPenHtml()}];
+  for(const f of AV_PEN_FILES)out.push({name:f,data:await avPenFetch(f)});
   let vaultIn=false;
   if(withVault){
     try{if(typeof hasUnsaved!=='undefined'&&hasUnsaved)await saveFile({auto:true});}catch(e){}
@@ -100,8 +111,8 @@ async function avPenDownload(){
     const {blob,vaultIn}=await avPenBuild(!!masterKey);
     const d=new Date(),z=n=>String(n).padStart(2,'0');
     downloadBlob(blob,'aurora-vault-pen-'+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'.zip');
-    toast(vaultIn?(en?'📦 Kit ready: app + encrypted copy of the vault. Unzip it onto the stick.':'📦 Kit pronto: app + cópia encriptada do cofre. Descomprime-o para a pen.')
-      :(en?'📦 Kit ready (app only). Unzip it onto the stick.':'📦 Kit pronto (só a app). Descomprime-o para a pen.'));
+    toast(vaultIn?(en?'📦 Kit ready: app + encrypted copy of the vault. Extract the ZIP onto the stick (right-click → Extract All).':'📦 Kit pronto: app + cópia encriptada do cofre. Extrai o ZIP para a pen (botão direito → Extrair Tudo).')
+      :(en?'📦 Kit ready (app only). Extract the ZIP onto the stick (right-click → Extract All).':'📦 Kit pronto (só a app). Extrai o ZIP para a pen (botão direito → Extrair Tudo).'));
   }catch(e){toast(en?'Could not make the kit — check the connection and try again.':'Não foi possível fazer o kit — verifica a ligação e tenta outra vez.');}
   if(btn)btn.disabled=false;
 }

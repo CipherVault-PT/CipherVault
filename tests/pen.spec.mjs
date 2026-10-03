@@ -31,27 +31,34 @@ test('kit para a pen: descarrega, abre a partir dos ficheiros sem internet e o c
   expect(dl.suggestedFilename()).toMatch(/^aurora-vault-pen-\d{4}-\d{2}-\d{2}\.zip$/);
   const files = unzipStored(readFileSync(await dl.path()));
   const names = Object.keys(files);
-  for (const f of ['ABRIR-AQUI.html', 'app.js', 'styles.css', 'js/crypto.js', 'ciphervault.vault', 'LEIA-ME.txt']) expect(names).toContain('Aurora Vault/' + f);
+  for (const f of ['ABRIR-AQUI.html', 'ciphervault.vault', 'LEIA-ME.txt', 'vendor/pdfjs-3.11.174/pdf.min.js']) expect(names).toContain('Aurora Vault/' + f);
   expect(names.some(n => n.includes('tesseract'))).toBe(false);
-  expect(files['Aurora Vault/styles.css'].toString()).not.toMatch(/url\(vendor\/fonts/);
+  const html = files['Aurora Vault/ABRIR-AQUI.html'].toString();
+  expect(html).not.toMatch(/<script src="(app|js\/)|href="styles\.css|url\(vendor\/fonts/);
 
   const dir = mkdtempSync(join(tmpdir(), 'av-pen-'));
   for (const [n, d] of Object.entries(files)) { const f = join(dir, n); mkdirSync(dirname(f), { recursive: true }); writeFileSync(f, d); }
-  const ctx = await browser.newContext({ offline: true });
-  const pen = await ctx.newPage();
-  const errs = [];
-  pen.on('pageerror', e => errs.push(e.message));
-  pen.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-  await pen.goto(pathToFileURL(join(dir, 'Aurora Vault', 'ABRIR-AQUI.html')).href);
-  await pen.waitForFunction(() => typeof submitOpenVault === 'function');
+  // só o «ABRIR-AQUI.html», sozinho: é o que o Windows faz quando se abre o ficheiro diretamente de dentro do ZIP
+  const alone = mkdtempSync(join(tmpdir(), 'av-pen-so-'));
+  writeFileSync(join(alone, 'ABRIR-AQUI.html'), files['Aurora Vault/ABRIR-AQUI.html']);
   const vaultText = files['Aurora Vault/ciphervault.vault'].toString();
-  const r = await pen.evaluate(async t => {
-    await document.fonts.ready;
-    startOpenVault(); pendingVaultText = t; document.getElementById('master-pw').value = 'test-pass-1'; await submitOpenVault();
-    await new Promise(r => setTimeout(r, 1200));
-    return { open: !!masterKey, gmail: vault.find(v => v.name === 'Gmail')?.pw, font: document.fonts.check('16px "JetBrains Mono"') };
-  }, vaultText);
-  expect(r).toEqual({ open: true, gmail: 'Segredo#1', font: true });
-  expect(errs.filter(e => !/service ?worker|serviceWorker/i.test(e))).toEqual([]);
-  await ctx.close();
+  for (const file of [join(dir, 'Aurora Vault', 'ABRIR-AQUI.html'), join(alone, 'ABRIR-AQUI.html')]) {
+    const ctx = await browser.newContext({ offline: true });
+    const pen = await ctx.newPage();
+    const errs = [];
+    pen.on('pageerror', e => errs.push(e.message));
+    pen.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+    await pen.goto(pathToFileURL(file).href);
+    await pen.waitForFunction(() => typeof submitOpenVault === 'function');
+    const r = await pen.evaluate(async t => {
+      await document.fonts.ready;
+      const styled = getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)';
+      startOpenVault(); pendingVaultText = t; document.getElementById('master-pw').value = 'test-pass-1'; await submitOpenVault();
+      await new Promise(r => setTimeout(r, 1200));
+      return { styled, open: !!masterKey, gmail: vault.find(v => v.name === 'Gmail')?.pw, font: document.fonts.check('16px "JetBrains Mono"') };
+    }, vaultText);
+    expect(r, file).toEqual({ styled: true, open: true, gmail: 'Segredo#1', font: true });
+    expect(errs.filter(e => !/service ?worker|serviceWorker/i.test(e)), file).toEqual([]);
+    await ctx.close();
+  }
 });
