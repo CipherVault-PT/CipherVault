@@ -14481,7 +14481,7 @@ function avBackupLine(){
    o fundo dentro dele. O resto (PDF, QR, ícones) fica ao lado; o OCR das fotos fica de fora (não funciona a partir de ficheiros). */
 const AV_PEN_FILES=['vendor/jsqr.js',
   'vendor/pdfjs-3.11.174/pdf.min.js','vendor/pdfjs-3.11.174/pdf.worker.min.js','vendor/pdfjs-3.11.174/LICENSE',
-  'img/aurora-l.webp','img/aurora-p.webp','img/av-icon-v1.svg','img/av-icon-v1-32.png','img/av-icon-v1-192.png',
+  'img/av-icon-v1.svg','img/av-icon-v1-32.png','img/av-icon-v1-192.png',
   'img/av-icon-v1-512.png','img/av-icon-v1-apple-180.png','img/av-icon-v1-maskable-512.png'];
 const AV_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
 function avCrc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=AV_CRC[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
