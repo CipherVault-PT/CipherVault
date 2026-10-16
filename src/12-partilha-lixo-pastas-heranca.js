@@ -205,13 +205,20 @@ function handleScannedQr(raw){
       :'Esse QR não é um código 2FA (otpauth). Tenta outro ou cancela.';
     return false;
   }
+  closeQrScanner();
+  // a janela do código pode ter sido fechada entretanto (tocar fora, «voltar»): abre-a de novo para os campos se verem
+  const ov=document.getElementById('totp-overlay');
+  if(ov&&!ov.classList.contains('open')){
+    if(totpRecWrap&&!totpUnlocked){toast(en?'Unlock the 2FA vault first, then read the QR again.':'Desbloqueia primeiro o cofre 2FA e volta a ler o QR.');return true;}
+    openTotpModal();
+  }
   const nameEl=document.getElementById('tf-name');
   const accEl=document.getElementById('tf-account');
   if(nameEl&&!nameEl.value.trim())nameEl.value=parsed.name;
   if(accEl&&!accEl.value.trim())accEl.value=parsed.account;
   document.getElementById('tf-secret').value=parsed.secret;
-  closeQrScanner();
-  toast(en?'QR read! Fields filled ✓':'QR lido! Campos preenchidos ✓');
+  totpQrParams=parsed;
+  toast(en?'QR read ✓ — check the fields and tap Save':'QR lido ✓ — confirma os campos e toca em Guardar');
   return true;
 }
 function closeQrScanner(){

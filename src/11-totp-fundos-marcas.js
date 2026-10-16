@@ -50,7 +50,11 @@ function parseOtpauth(str){
   }catch(e){return null;}
 }
 let editingTotpId=null;
+// o que veio no último QR lido (dígitos, algoritmo, período): o campo «Segredo» só mostra a chave
+let totpQrParams=null;
+const totpB32Norm=s=>String(s||'').toUpperCase().replace(/[\s\-=]/g,'');
 function openTotpModal(id=null){
+  totpQrParams=null;
   setTimeout(()=>{const r=document.getElementById('tf-recovery');if(r){const e=id?totp.find(x=>x.id===id):null;r.value=e&&e.recovery?e.recovery:'';}},0);
   editingTotpId=id;
   const isEdit=!!id;
@@ -82,10 +86,11 @@ function openTotpModal(id=null){
 }
 function closeTotpModal(){const o=document.getElementById('totp-overlay');if(o)o.classList.remove('open');editingTotpId=null;}
 function saveTotp(){
+  if(totpRecWrap&&!totpUnlocked){toast(currentLang==='en'?'Unlock the 2FA vault first.':'Desbloqueia primeiro o cofre 2FA.');return;}
   let name=document.getElementById('tf-name').value.trim();
   let account=document.getElementById('tf-account').value.trim();
   let secret=document.getElementById('tf-secret').value.trim();
-  const parsed=parseOtpauth(secret);
+  const parsed=parseOtpauth(secret)||(totpQrParams&&totpB32Norm(totpQrParams.secret)===totpB32Norm(secret)?totpQrParams:null);
   const prev=editingTotpId?totp.find(x=>x.id===editingTotpId):null;
   let type='totp',algorithm='SHA1',digits=6,period=30,counter=null;
   // A editar sem colar um link otpauth novo: mantém os parâmetros do código (antes voltavam a 6 dígitos/SHA-1/30 s

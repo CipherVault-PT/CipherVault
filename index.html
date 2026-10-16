@@ -18,9 +18,9 @@
 <link rel="manifest" id="pwa-manifest">
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="vendor/fonts/playfair-display-latin-400-normal.woff2" crossorigin>
-<meta name="app-version" content="10.28">
-<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.28' -->
-<link rel="stylesheet" href="styles.css?v=10.28">
+<meta name="app-version" content="10.29">
+<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.29' -->
+<link rel="stylesheet" href="styles.css?v=10.29">
 <!-- A foto nítida do fundo só é pedida depois da app (aparece primeiro a versão desfocada): assim a app fica pronta mais cedo -->
 </head>
 <body>
@@ -380,7 +380,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.28</span>
+      <span>Aurora Vault © 2026 · v10.29</span>
     </div>
   </div>
 </div>
@@ -793,7 +793,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent-ink)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.28</span>
+      <span>Aurora Vault © 2026 · v10.29</span>
     </div>
   </div>
   </div>
@@ -1285,7 +1285,7 @@
       <div class="qrscan-frame"></div>
     </div>
     <div id="qrscan-status" style="font-size:.72rem;color:var(--text-muted);margin-top:12px;min-height:18px;line-height:1.6">A iniciar câmara...</div>
-    <div class="modal-actions" style="margin-top:14px;flex-direction:column;gap:8px">
+    <div class="modal-actions col" style="margin-top:14px">
       <button class="btn btn-ghost" id="qrscan-file-btn" style="width:100%" data-click="qrscan-file">🖼️ Ler de uma imagem</button>
       <input type="file" id="qrscan-file" accept="image/*" style="display:none" data-change="scanQrFromFile" data-ev>
       <button class="btn btn-gold" id="qrscan-cancel-btn" style="width:100%" data-act="closeQrScanner">Cancelar</button>
@@ -1558,7 +1558,7 @@
       <div id="export-pw-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6"></div>
     </div>
     <div id="export-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
-    <div class="modal-actions" style="flex-direction:column;gap:8px">
+    <div class="modal-actions col">
       <button class="btn btn-gold" id="export-do-btn" style="width:100%" data-act="doSelectiveExport">📤 Exportar (<span id="export-count">0</span>)</button>
       <button class="btn btn-ghost" id="export-close-btn" style="width:100%" data-act="closeSelectiveExport">Fechar</button>
     </div>
@@ -1583,7 +1583,7 @@
     <div class="modal-title" id="snap-title">💾 Cópias de Segurança</div>
     <div id="snap-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
     <div id="snap-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
-    <div class="modal-actions" style="flex-direction:column;gap:8px">
+    <div class="modal-actions col">
       <button class="btn btn-ghost" id="snap-clear-btn" style="width:100%;color:var(--red);border-color:var(--red)" data-act="clearSnapshotsConfirm">🗑️ <span id="snap-clear-txt">Apagar todas as cópias</span></button>
       <button class="btn btn-ghost" id="snap-close-btn" style="width:100%" data-act="closeSnapshotModal">Fechar</button>
     </div>
@@ -1906,8 +1906,8 @@
 <input type="file" id="av-ga-file" accept="image/*" style="display:none" data-change="avGaFile" data-ev>
 <input type="file" id="csv-input-app" aria-label="Importar ficheiro CSV" tabindex="-1" accept=".csv" style="position:fixed;top:-999px;left:-999px;opacity:0;width:1px;height:1px">
 <div class="toast" id="toast"></div>
-<script src="js/actions.js?v=10.28"></script>
-<script src="js/crypto.js?v=10.28"></script>
-<script src="app.js?v=10.28"></script>
+<script src="js/actions.js?v=10.29"></script>
+<script src="js/crypto.js?v=10.29"></script>
+<script src="app.js?v=10.29"></script>
 </body>
 </html>
