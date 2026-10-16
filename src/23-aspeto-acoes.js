@@ -117,3 +117,18 @@ function avDriveTidy(){
       if(a){a.textContent=en?'On':'Ligada';a.classList.toggle('on',on);}if(b){b.textContent=en?'Off':'Desligada';b.classList.toggle('on',!on);}}catch(e){}
     return x;};}
 })();
+
+/* ══ v10.29 — uma janela aberta a partir de outra fica por cima dela (antes valia a ordem no HTML: o leitor de QR
+   abria escondido por trás de «Novo código 2FA») ══ */
+(function(){
+  if(typeof document==='undefined'||typeof MutationObserver==='undefined')return;
+  const z=o=>parseInt(getComputedStyle(o).zIndex,10)||0;
+  new MutationObserver(ms=>{for(const m of ms){
+    const o=m.target;if(!o.classList||!o.classList.contains('modal-overlay'))continue;
+    const was=/(^|\s)open(\s|$)/.test(m.oldValue||''),now=o.classList.contains('open');
+    if(was===now)continue;
+    o.style.zIndex='';if(!now)continue;
+    const top=Math.max(0,...[...document.querySelectorAll('.modal-overlay.open')].filter(x=>x!==o).map(z));
+    if(top>=z(o))o.style.zIndex=String(top+1);
+  }}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
+})();

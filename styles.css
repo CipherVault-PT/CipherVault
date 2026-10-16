@@ -424,6 +424,7 @@ body.bg-blur #app,body.bg-blur .modal-overlay{filter:blur(16px);transition:filte
 .pw-gen-row input{flex:1;}
 .pw-gen-btn{background:rgba(var(--accent-rgb),.1);border:1px solid var(--accent-dim);color:var(--accent-ink);font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;padding:0 12px;border-radius:2px;cursor:pointer;white-space:nowrap;transition:background .15s;}
 .pw-gen-btn:hover{background:rgba(var(--accent-rgb),.2);}
+#tf-scan-btn{align-items:center;justify-content:center;gap:6px;}
 .pw-strength-wrap{margin-top:6px;}
 .pw-strength-bar-bg{height:3px;background:var(--border);border-radius:3px;overflow:hidden;}
 .pw-strength-bar{height:100%;border-radius:3px;transition:width .3s,background .3s;width:0%;}
@@ -432,6 +433,8 @@ body.bg-blur #app,body.bg-blur .modal-overlay{filter:blur(16px);transition:filte
 .dup-warn.show{display:block;}
 .modal-actions{display:flex;gap:9px;margin-top:20px;}
 .modal-actions>.btn{flex:1 1 0;}
+.modal-actions.col{flex-direction:column;gap:8px;}
+.modal-actions.col>.btn{flex:none;}
 .note-actions>.btn{flex:0 1 auto;}
 .note-actions>.btn:first-child{flex:1 1 auto;}
 

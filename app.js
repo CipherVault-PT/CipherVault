@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='10.28';
+const APP_VERSION='10.29';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -6508,7 +6508,11 @@ function parseOtpauth(str){
   }catch(e){return null;}
 }
 let editingTotpId=null;
+// o que veio no último QR lido (dígitos, algoritmo, período): o campo «Segredo» só mostra a chave
+let totpQrParams=null;
+const totpB32Norm=s=>String(s||'').toUpperCase().replace(/[\s\-=]/g,'');
 function openTotpModal(id=null){
+  totpQrParams=null;
   setTimeout(()=>{const r=document.getElementById('tf-recovery');if(r){const e=id?totp.find(x=>x.id===id):null;r.value=e&&e.recovery?e.recovery:'';}},0);
   editingTotpId=id;
   const isEdit=!!id;
@@ -6540,10 +6544,11 @@ function openTotpModal(id=null){
 }
 function closeTotpModal(){const o=document.getElementById('totp-overlay');if(o)o.classList.remove('open');editingTotpId=null;}
 function saveTotp(){
+  if(totpRecWrap&&!totpUnlocked){toast(currentLang==='en'?'Unlock the 2FA vault first.':'Desbloqueia primeiro o cofre 2FA.');return;}
   let name=document.getElementById('tf-name').value.trim();
   let account=document.getElementById('tf-account').value.trim();
   let secret=document.getElementById('tf-secret').value.trim();
-  const parsed=parseOtpauth(secret);
+  const parsed=parseOtpauth(secret)||(totpQrParams&&totpB32Norm(totpQrParams.secret)===totpB32Norm(secret)?totpQrParams:null);
   const prev=editingTotpId?totp.find(x=>x.id===editingTotpId):null;
   let type='totp',algorithm='SHA1',digits=6,period=30,counter=null;
   // A editar sem colar um link otpauth novo: mantém os parâmetros do código (antes voltavam a 6 dígitos/SHA-1/30 s
@@ -7855,13 +7860,20 @@ function handleScannedQr(raw){
       :'Esse QR não é um código 2FA (otpauth). Tenta outro ou cancela.';
     return false;
   }
+  closeQrScanner();
+  // a janela do código pode ter sido fechada entretanto (tocar fora, «voltar»): abre-a de novo para os campos se verem
+  const ov=document.getElementById('totp-overlay');
+  if(ov&&!ov.classList.contains('open')){
+    if(totpRecWrap&&!totpUnlocked){toast(en?'Unlock the 2FA vault first, then read the QR again.':'Desbloqueia primeiro o cofre 2FA e volta a ler o QR.');return true;}
+    openTotpModal();
+  }
   const nameEl=document.getElementById('tf-name');
   const accEl=document.getElementById('tf-account');
   if(nameEl&&!nameEl.value.trim())nameEl.value=parsed.name;
   if(accEl&&!accEl.value.trim())accEl.value=parsed.account;
   document.getElementById('tf-secret').value=parsed.secret;
-  closeQrScanner();
-  toast(en?'QR read! Fields filled ✓':'QR lido! Campos preenchidos ✓');
+  totpQrParams=parsed;
+  toast(en?'QR read ✓ — check the fields and tap Save':'QR lido ✓ — confirma os campos e toca em Guardar');
   return true;
 }
 function closeQrScanner(){
@@ -14396,6 +14408,21 @@ function avDriveTidy(){
     try{const en=avEn(),on=autoSaveOn(),a=document.getElementById('s-autosave-on'),b=document.getElementById('s-autosave-off');
       if(a){a.textContent=en?'On':'Ligada';a.classList.toggle('on',on);}if(b){b.textContent=en?'Off':'Desligada';b.classList.toggle('on',!on);}}catch(e){}
     return x;};}
+})();
+
+/* ══ v10.29 — uma janela aberta a partir de outra fica por cima dela (antes valia a ordem no HTML: o leitor de QR
+   abria escondido por trás de «Novo código 2FA») ══ */
+(function(){
+  if(typeof document==='undefined'||typeof MutationObserver==='undefined')return;
+  const z=o=>parseInt(getComputedStyle(o).zIndex,10)||0;
+  new MutationObserver(ms=>{for(const m of ms){
+    const o=m.target;if(!o.classList||!o.classList.contains('modal-overlay'))continue;
+    const was=/(^|\s)open(\s|$)/.test(m.oldValue||''),now=o.classList.contains('open');
+    if(was===now)continue;
+    o.style.zIndex='';if(!now)continue;
+    const top=Math.max(0,...[...document.querySelectorAll('.modal-overlay.open')].filter(x=>x!==o).map(z));
+    if(top>=z(o))o.style.zIndex=String(top+1);
+  }}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
 })();
 
 /* ══ v10.25 — aviso de tentativas falhadas ao entrar e verificação da cópia no Drive ══ */
