@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 // O fundo animado é o que mais gasta bateria: estes limites impedem que volte a correr sem necessidade.
 test.describe('Fundo animado', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('av_skin', 'classico')); // o fundo animado só existe no estilo Clássico
     await openApp(page);
     await createVault(page);
   });

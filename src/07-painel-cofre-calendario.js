@@ -89,7 +89,7 @@ function openHealthCheck(){
   }else if(!issues.length){
     body=`<div class="hc-perfect">
       <div style="font-size:2.6rem">🎉</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--green);margin:8px 0">${en?'All good!':'Está tudo bem!'}</div>
+      <div style="font-family:var(--f-display);font-size:1.2rem;color:var(--green);margin:8px 0">${en?'All good!':'Está tudo bem!'}</div>
       <div style="font-size:.76rem;color:var(--text-muted);line-height:1.7">${en?'No weak, reused or old passwords found. Keep it up!':'Sem palavras-passe fracas, repetidas ou antigas. Continua assim!'}</div>
     </div>`;
   }else{

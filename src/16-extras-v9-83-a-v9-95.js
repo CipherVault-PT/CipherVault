@@ -153,7 +153,9 @@ function avSwBlocked(t){
   }
   return false;
 }
-function avSwTopY(){const tb=document.getElementById('grp-btn-dashboard').parentElement,sb=document.getElementById('subtabs');let y=tb.getBoundingClientRect().bottom;if(sb&&getComputedStyle(sb).display!=='none')y=Math.max(y,sb.getBoundingClientRect().bottom);return Math.max(0,Math.round(y));}
+function avSwTopY(){const tb=document.getElementById('grp-btn-dashboard').parentElement,sb=document.getElementById('subtabs');let y=tb.getBoundingClientRect().bottom;
+  if(!tb.getBoundingClientRect().height)y=(document.querySelector('.topbar')||tb).getBoundingClientRect().bottom; /* estilos novos: as abas estão na barra de baixo */
+  if(sb&&getComputedStyle(sb).display!=='none')y=Math.max(y,sb.getBoundingClientRect().bottom);return Math.max(0,Math.round(y));}
 function avSwStart(dir){
   const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;if(i<0||j<0||j>=gs.length)return false;
   const tg=gs[j],leaf=lastLeafOf[tg]||TAB_GROUPS[tg][0];
@@ -161,7 +163,7 @@ function avSwStart(dir){
   try{if(leaf==='trash')renderTrash();if(leaf==='totp')renderTotp();if(leaf==='info')renderInfo();if(leaf==='store')renderStoreCards();if(['warranty','license','vehicle','dates'].includes(leaf))renderAssets(leaf);}catch(e){}
   const sy=window.scrollY||0,tb=document.getElementById('grp-btn-dashboard').parentElement,tbR=tb.getBoundingClientRect(),tbTop0=tbR.top+sy,tbBot0=tbR.bottom+sy;
   const tpB=Math.max(0,Math.round((document.querySelector('.topbar')||tb).getBoundingClientRect().bottom)),scrolled=sy>1;
-  const topMain=scrolled?tpB:Math.max(0,Math.round(tbR.bottom));
+  const topMain=scrolled||!tbR.height?tpB:Math.max(0,Math.round(tbR.bottom));
   Object.assign(AV_SW,{on:true,dir,tg,leaf,out,inn,top:topMain,reduce:!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),outEls:[out],inEls:[inn],clones:[],raf:0});
   if(AV_SW.reduce)return true;
   // a aurora animada pausa durante o gesto (liberta o telemóvel para a animação)

@@ -6,7 +6,7 @@ function getPwaPrefs(){
 }
 function buildManifest(){
   const prefs=getPwaPrefs();
-  const tc=themeColors[currentTheme]||themeColors.dark;
+  const tc=(typeof avSkinPal==='function'&&avSkinPal(currentTheme))||themeColors[currentTheme]||themeColors.dark;
   const bg=tc.bg||'#0d0f14';
   const encBg=encodeURIComponent(bg);
   const inner=`%3Ctext x='256' y='330' font-size='300' text-anchor='middle'%3E${encodeURIComponent(prefs.emoji||'')}%3C/text%3E`;

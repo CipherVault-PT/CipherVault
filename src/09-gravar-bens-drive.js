@@ -680,7 +680,7 @@ function syncModal(title,html,extra){
   let ov=document.getElementById('sync-modal');
   if(!ov){ov=document.createElement('div');ov.id='sync-modal';ov.className='modal-overlay';ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});document.body.appendChild(ov);}
   const en=currentLang==='en';
-  ov.innerHTML='<div class="modal" style="max-width:520px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:\'Playfair Display\',serif;font-size:1.15rem;color:var(--text)">'+title+'</div><button class="btn btn-ghost" style="padding:6px 12px" data-act="closeSyncModal">'+(en?'Close':'Fechar')+'</button></div><div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">'+html+'</div>'+(extra||'')+'</div>';
+  ov.innerHTML='<div class="modal" style="max-width:520px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-family:var(--f-display);font-size:1.15rem;color:var(--text)">'+title+'</div><button class="btn btn-ghost" style="padding:6px 12px" data-act="closeSyncModal">'+(en?'Close':'Fechar')+'</button></div><div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">'+html+'</div>'+(extra||'')+'</div>';
   ov.classList.add('open');
   return ov;
 }

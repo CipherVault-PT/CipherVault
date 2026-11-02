@@ -16,11 +16,12 @@
 <link rel="icon" href="img/av-icon-v1-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="img/av-icon-v1-apple-180.png">
 <link rel="manifest" id="pwa-manifest">
-<link rel="preload" as="font" type="font/woff2" href="vendor/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="vendor/fonts/playfair-display-latin-400-normal.woff2" crossorigin>
-<meta name="app-version" content="10.29">
-<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='10.29' -->
-<link rel="stylesheet" href="styles.css?v=10.29">
+<meta name="app-version" content="11.0">
+<!-- Compatibilidade: a app até à v9.96 procura este texto aqui para avisar que há versão nova — const APP_VERSION='11.0' -->
+<!-- Estilo escolhido (Ónix & Ouro, Nórdico ou Clássico): aplicado antes de a página se desenhar; também pede já as fontes dele -->
+<script src="js/skin-boot.js?v=11.0"></script>
+<link rel="stylesheet" href="styles.css?v=11.0">
+<link rel="stylesheet" href="skin.css?v=11.0">
 <!-- A foto nítida do fundo só é pedida depois da app (aparece primeiro a versão desfocada): assim a app fica pronta mais cedo -->
 </head>
 <body>
@@ -29,7 +30,7 @@
 <div id="drop-overlay">
   <div class="drop-box">
     <div style="font-size:3rem;line-height:1">📥</div>
-    <div id="drop-title" style="font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent-ink);margin-top:12px">Larga para adicionar</div>
+    <div id="drop-title" style="font-family:var(--f-body);font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent-ink);margin-top:12px">Larga para adicionar</div>
     <div id="drop-sub" style="font-size:.68rem;color:var(--text-muted);margin-top:6px"></div>
   </div>
 </div>
@@ -178,7 +179,7 @@
       <button id="l-continue-wrap" data-act="continueLastVault" style="display:none;width:100%;margin-bottom:12px;align-items:center;gap:10px;padding:13px 16px;border-radius:6px;border:1px solid var(--accent);background:linear-gradient(150deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.05)),var(--card);cursor:pointer;font-family:inherit;color:var(--text);transition:all .2s">
         <span style="font-size:1.2rem">▶️</span>
         <span style="flex:1;text-align:left;min-width:0">
-          <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent-ink)" id="l-continue-title">Continuar</span>
+          <span style="display:block;font-family:var(--f-body);font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent-ink)" id="l-continue-title">Continuar</span>
           <span style="display:block;font-size:.66rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="l-continue-name"></span>
         </span>
         <span data-act="forgetLastVault" data-ev title="Esquecer" style="padding:4px 8px;color:var(--text-muted);font-size:.8rem">✕</span>
@@ -380,7 +381,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong>Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.29</span>
+      <span>Aurora Vault © 2026 · v11.0</span>
     </div>
   </div>
 </div>
@@ -430,7 +431,7 @@
   <div id="global-search-results" style="display:none;padding:20px 24px;overflow-y:auto;flex:1"></div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="grp-btn-dashboard" data-act="switchGroup" data-arg="dashboard">📊 Dashboard</button>
+    <button class="tab-btn active" id="grp-btn-dashboard" data-act="switchGroup" data-arg="dashboard">📊 <span id="grp-dash-txt">Dashboard</span></button>
     <button class="tab-btn" id="grp-btn-cofre" data-act="switchGroup" data-arg="cofre">🔐 <span id="grp-cofre-txt">Cofre</span></button>
     <button class="tab-btn" id="grp-btn-cards" data-act="switchGroup" data-arg="cards">💳 <span id="grp-cards-txt">Cartões</span></button>
     <button class="tab-btn" id="grp-btn-docs" data-act="switchGroup" data-arg="docs">📁 <span id="grp-docs-txt">Documentos</span></button>
@@ -613,7 +614,7 @@
     <div class="content" style="width:100%;overflow-y:auto">
       <div class="content-header" style="margin-bottom:4px">
         <div class="content-title" id="cards-title">Cartões Bancários</div>
-        <button class="topbar-actions" style="font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;" data-act="openCardModal">＋ <span id="cards-add-txt">Adicionar cartão</span></button>
+        <button class="topbar-actions" style="font-family:var(--f-body);font-size:.56rem;letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;" data-act="openCardModal">＋ <span id="cards-add-txt">Adicionar cartão</span></button>
       </div>
       <div id="cards-grid-area" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px"></div>
     </div>
@@ -652,9 +653,9 @@
       <div class="content-header">
         <div class="content-title" id="docs-title">Documentos</div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-        <button id="docs-newfolder-btn" style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s" data-act="openFolderModal" data-hoverline>📁+ <span id="docs-newfolder-txt">Nova pasta</span></button>
+        <button id="docs-newfolder-btn" style="font-family:var(--f-body);font-size:.62rem;letter-spacing:1px;padding:9px 13px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s" data-act="openFolderModal" data-hoverline>📁+ <span id="docs-newfolder-txt">Nova pasta</span></button>
         <select class="sort-select" id="doc-sort" data-change="setDocSort" data-value aria-label="Ordenar"></select>
-        <button style="font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn" data-act="openDocModal">
+        <button style="font-family:var(--f-body);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border-radius:2px;border:1px solid var(--accent-dim);background:transparent;color:var(--accent-ink);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s" id="docs-add-btn" data-act="openDocModal">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="docs-add-txt">Adicionar documento</span>
         </button>
@@ -694,11 +695,11 @@
           <button class="btn btn-gold" id="t2-bio-btn" style="display:none;width:100%;max-width:300px;padding:14px;margin-top:18px" data-act="do2faBioUnlock">👆 <span id="t2-bio-txt">Abrir com biometria</span></button>
           <div id="t2-pin-wrap" style="display:none;margin-top:16px;width:100%;max-width:240px">
             <input type="password" id="t2-pin-input" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off"
-              style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:16px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none" data-input="on2faPinInput">
+              style="width:100%;text-align:center;font-size:1.6rem;letter-spacing:16px;padding:12px;font-family:var(--f-mono);background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none" data-input="on2faPinInput">
           </div>
           <div id="t2-rec-wrap" style="display:none;margin-top:16px;width:100%;max-width:360px">
             <input type="text" id="t2-rec-input" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false"
-              style="width:100%;text-align:center;font-size:.95rem;letter-spacing:2px;padding:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none;text-transform:uppercase" data-input="on2faRecInput" data-enter="do2faRecoveryUnlock">
+              style="width:100%;text-align:center;font-size:.95rem;letter-spacing:2px;padding:12px;font-family:var(--f-mono);background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);outline:none;text-transform:uppercase" data-input="on2faRecInput" data-enter="do2faRecoveryUnlock">
             <button class="btn btn-gold" id="t2-rec-btn" style="width:100%;margin-top:10px;padding:12px" data-act="do2faRecoveryUnlock">Abrir cofre 2FA</button>
           </div>
           <div id="t2-err" style="font-size:.7rem;color:var(--red);min-height:18px;margin-top:10px;text-align:center"></div>
@@ -793,7 +794,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <span>Made by <strong style="color:var(--accent-ink)">Carlos Silva</strong></span>
       <span style="color:var(--border)">·</span>
-      <span>Aurora Vault © 2026 · v10.29</span>
+      <span>Aurora Vault © 2026 · v11.0</span>
     </div>
   </div>
   </div>
@@ -951,7 +952,7 @@
     <div class="form-group">
       <label id="pwgen-result-lbl">Password Gerada</label>
       <div style="display:flex;gap:7px">
-        <input type="text" id="pwgen-result" readonly style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--accent-ink);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:9px 12px;border-radius:2px;outline:none;letter-spacing:1px">
+        <input type="text" id="pwgen-result" readonly style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--accent-ink);font-family:var(--f-mono);font-size:.78rem;padding:9px 12px;border-radius:2px;outline:none;letter-spacing:1px">
         <button class="pw-gen-btn" style="padding:0 12px" data-act="updatePwGen">⟳</button>
       </div>
       <div class="pw-strength-wrap" style="margin-top:6px">
@@ -1011,20 +1012,22 @@
     <!-- ═══ ABA ASPETO ═══ -->
     <div class="settings-pane" data-spane="aspeto">
 
+    <div class="settings-section sk-settings" id="sk-settings"></div>
+
     <div class="settings-section">
       <div class="settings-title" id="s-themes-title">🎨 Tema</div>
-      <div class="theme-grid" id="theme-grid" style="margin-bottom:14px"></div>
+      <div class="theme-grid sk-classic-only" id="theme-grid" style="margin-bottom:14px"></div>
       <div class="av-set-row" id="s-sw-row" style="margin-bottom:6px;flex-wrap:wrap"><div><b id="s-sw-lbl">Transições entre abas</b><small id="s-sw-desc">Ao deslizar o dedo para o lado, no telemóvel.</small><small id="s-sw-rm"></small></div><div class="av-seg" style="flex-wrap:wrap"><button id="s-sw-parallax" data-act="avSetSwStyle" data-arg="parallax">Parallax</button><button id="s-sw-stack" data-act="avSetSwStyle" data-arg="stack">Cartões em pilha</button><button id="s-sw-reveal" data-act="avSetSwStyle" data-arg="reveal">Revelação Aurora</button><button id="s-sw-fade" data-act="avSetSwStyle" data-arg="fade">Deslize suave</button><button id="s-sw-off" data-act="avSetSwStyle" data-arg="off">Desligado</button></div></div>
       <div class="av-set-row" id="s-auto-row" style="margin-bottom:10px"><div><b id="s-auto-lbl">Tema automático</b><small id="s-auto-desc">Segue o modo claro/escuro do telemóvel ou computador: usa o teu tema escuro à noite e o teu tema claro de dia.</small></div><div class="av-seg"><button id="s-auto-on" data-act="avSetThemeAuto" data-args='[true]'>Ligado</button><button id="s-auto-off" data-act="avSetThemeAuto" data-args='[false]'>Desligado</button></div></div>
     </div>
 
-    <div class="settings-section">
+    <div class="settings-section sk-classic-only">
       <div class="settings-title" id="s-bg-title">🌌 Fundo Animado</div>
       <div id="s-bg-desc" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px">Escolhe o ambiente visual da tua app. Cada um é leve e adapta-se às tuas cores.</div>
       <div class="bg-picker" id="bg-picker"></div>
     </div>
 
-    <div class="settings-section">
+    <div class="settings-section sk-classic-only">
       <details class="s-adv" id="s-colors-adv"><summary class="settings-title" id="s-colors-title">🖌️ Cores personalizadas</summary>
       <div class="color-picker-wrap">
 
@@ -1194,7 +1197,7 @@
       <div class="catmgr-icons" id="catmgr-icons" role="radiogroup" aria-label="Ícone da categoria"><button type="button" class="catmgr-ic on" role="radio" aria-checked="true" data-act="pickCatIcon" data-arg="📁" data-this>📁</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="💼" data-this>💼</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🏠" data-this>🏠</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🏦" data-this>🏦</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="💳" data-this>💳</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🛒" data-this>🛒</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎮" data-this>🎮</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎵" data-this>🎵</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎬" data-this>🎬</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="📷" data-this>📷</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="✈️" data-this>✈️</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🚗" data-this>🚗</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🏥" data-this>🏥</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🎓" data-this>🎓</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="💡" data-this>💡</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🔧" data-this>🔧</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🐾" data-this>🐾</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="⭐" data-this>⭐</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="❤️" data-this>❤️</button><button type="button" class="catmgr-ic" role="radio" aria-checked="false" data-act="pickCatIcon" data-arg="🔒" data-this>🔒</button></div>
       <div class="catmgr-add">
         <input type="hidden" id="catmgr-icon" value="📁">
-        <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
+        <input id="catmgr-name" placeholder="Nome da categoria" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--f-body);font-size:.8rem;padding:10px 12px;border-radius:2px;outline:none">
         <input type="color" id="catmgr-color" aria-label="Cor da categoria" value="#4c8caf">
         <button class="btn btn-gold" id="catmgr-add-btn" style="flex:0 0 auto;padding:10px 16px" data-act="addCustomCat">＋</button>
       </div>
@@ -1210,7 +1213,7 @@
     <div id="folder-parent-line" style="font-size:.66rem;color:var(--text-muted);margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
       <input id="folder-icon" maxlength="4" placeholder="📁" style="width:54px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:1rem;padding:10px 4px;border-radius:2px;outline:none">
-      <input id="folder-name" placeholder="Nome da pasta" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:11px 12px;border-radius:2px;outline:none" data-enter="saveFolder">
+      <input id="folder-name" placeholder="Nome da pasta" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--f-body);font-size:.85rem;padding:11px 12px;border-radius:2px;outline:none" data-enter="saveFolder">
     </div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="btn btn-gold" id="folder-save-btn" data-act="saveFolder">Criar</button>
@@ -1316,7 +1319,7 @@
     </div>
     <div class="form-group">
       <label id="tf-recovery-lbl">🔑 Códigos de recuperação <span style="font-size:.5rem;color:var(--text-muted)">(opcional)</span></label>
-      <textarea id="tf-recovery" rows="3" placeholder="Cola aqui os códigos de recuperação que o serviço te deu (um por linha)" style="font-family:'JetBrains Mono',monospace;font-size:.72rem"></textarea>
+      <textarea id="tf-recovery" rows="3" placeholder="Cola aqui os códigos de recuperação que o serviço te deu (um por linha)" style="font-family:var(--f-mono);font-size:.72rem"></textarea>
       <div id="tf-recovery-hint" style="font-size:.62rem;color:var(--text-muted);margin-top:6px;line-height:1.6">Muitos serviços dão códigos de emergência para o caso de perderes o telemóvel. Guarda-os aqui, dentro do cofre 2FA protegido.</div>
     </div>
     <div class="modal-actions">
@@ -1413,7 +1416,7 @@
     <div id="barcode-hint" style="font-size:.68rem;color:var(--text-muted);margin-bottom:18px"></div>
     <div class="barcode-frame">
       <div id="barcode-svg" style="width:100%;height:110px"></div>
-      <div id="barcode-number" style="font-family:'JetBrains Mono',monospace;font-size:1rem;letter-spacing:3px;color:#000;margin-top:10px"></div>
+      <div id="barcode-number" style="font-family:var(--f-mono);font-size:1rem;letter-spacing:3px;color:#000;margin-top:10px"></div>
     </div>
     <div class="modal-actions" style="margin-top:20px">
       <button class="btn btn-ghost" id="barcode-close" style="width:100%" data-act="closeBarcode">Fechar</button>
@@ -1597,11 +1600,11 @@
     <div id="t2setup-intro" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
     <div class="form-group">
       <label id="t2s-pin1-lbl">PIN do separador 2FA (6 dígitos)</label>
-      <input type="password" id="t2s-pin1" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace">
+      <input type="password" id="t2s-pin1" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:var(--f-mono)">
     </div>
     <div class="form-group">
       <label id="t2s-pin2-lbl">Confirmar PIN</label>
-      <input type="password" id="t2s-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" data-enter="confirm2faSetup">
+      <input type="password" id="t2s-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:var(--f-mono)" data-enter="confirm2faSetup">
     </div>
     <div id="t2s-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
     <div class="modal-actions">
@@ -1688,11 +1691,11 @@
     <div id="pinsetup-intro" style="font-size:.7rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></div>
     <div class="form-group" style="text-align:left">
       <label id="ps-pin1-lbl">PIN (6 dígitos)</label>
-      <input type="password" id="ps-pin1" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace">
+      <input type="password" id="ps-pin1" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:var(--f-mono)">
     </div>
     <div class="form-group" style="text-align:left">
       <label id="ps-pin2-lbl">Confirmar PIN</label>
-      <input type="password" id="ps-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:'JetBrains Mono',monospace" data-enter="confirmPinSetup">
+      <input type="password" id="ps-pin2" inputmode="numeric" maxlength="6" autocomplete="off" style="text-align:center;font-size:1.4rem;letter-spacing:14px;font-family:var(--f-mono)" data-enter="confirmPinSetup">
     </div>
     <div id="ps-err" style="font-size:.68rem;color:var(--red);min-height:16px;margin-bottom:6px"></div>
     <div class="modal-actions">
@@ -1906,8 +1909,8 @@
 <input type="file" id="av-ga-file" accept="image/*" style="display:none" data-change="avGaFile" data-ev>
 <input type="file" id="csv-input-app" aria-label="Importar ficheiro CSV" tabindex="-1" accept=".csv" style="position:fixed;top:-999px;left:-999px;opacity:0;width:1px;height:1px">
 <div class="toast" id="toast"></div>
-<script src="js/actions.js?v=10.29"></script>
-<script src="js/crypto.js?v=10.29"></script>
-<script src="app.js?v=10.29"></script>
+<script src="js/actions.js?v=11.0"></script>
+<script src="js/crypto.js?v=11.0"></script>
+<script src="app.js?v=11.0"></script>
 </body>
 </html>

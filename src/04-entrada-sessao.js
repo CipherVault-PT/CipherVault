@@ -209,20 +209,24 @@ function setLockError(msg){document.getElementById('lock-error').textContent=msg
 function doUnlock(){
   const lockScreen=document.getElementById('lock-screen');
   const app=document.getElementById('app');
-  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Dispara a animação de entrada com o escudo grande
+  const reduce=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.getAttribute('data-motion')==='desligado';
+  /* Estilos novos: abertura curta no estilo do ecrã de entrada (~0,5 s; nada com «Movimento: desligado»);
+     o Clássico mantém a porta do cofre com o escudo grande */
+  const skinNew=avSkin()!=='classico',still=reduce;
+  if(skinNew){lockScreen.classList.remove('sk-opening');if(!still){void lockScreen.offsetWidth;lockScreen.classList.add('sk-opening');}}
   const vdEarly=document.getElementById('vault-door');
-  if(vdEarly&&!reduce){vdEarly.classList.remove('show');void vdEarly.offsetWidth;vdEarly.classList.add('show');}
-  const unlockDelay=reduce?300:1000;
-  lockScreen.style.transition='opacity .4s ease';
+  if(!skinNew&&vdEarly&&!reduce){vdEarly.classList.remove('show');void vdEarly.offsetWidth;vdEarly.classList.add('show');}
+  const unlockDelay=skinNew?(still?60:470):(reduce?300:1000);
+  lockScreen.style.transition=skinNew?'opacity .18s ease':'opacity .4s ease';
   const unlockKey=masterKey;
   const stillOpen=()=>!!masterKey&&masterKey===unlockKey;
-  setTimeout(()=>{if(stillOpen())lockScreen.style.opacity='0';},reduce?0:150);
+  setTimeout(()=>{if(stillOpen())lockScreen.style.opacity='0';},skinNew?(still?0:300):(reduce?0:150));
   setTimeout(()=>{
-    if(!stillOpen()){lockScreen.style.opacity='1';lockScreen.style.transition='';const vd=document.getElementById('vault-door');if(vd)vd.classList.remove('show');return;}
+    if(!stillOpen()){lockScreen.style.opacity='1';lockScreen.style.transition='';lockScreen.classList.remove('sk-opening');const vd=document.getElementById('vault-door');if(vd)vd.classList.remove('show');return;}
     lockScreen.style.display='none';
     lockScreen.style.opacity='1';
     lockScreen.style.transition='';
+    lockScreen.classList.remove('sk-opening');
     // Make sure app is fully reset before showing
     app.style.display='';
     app.classList.remove('visible');
@@ -230,9 +234,9 @@ function doUnlock(){
     void app.offsetHeight;
     app.classList.add('visible');
     const vd=document.getElementById('vault-door');
-    if(vd&&!reduce){setTimeout(()=>vd.classList.remove('show'),700);}
+    if(vd&&!reduce&&!skinNew){setTimeout(()=>vd.classList.remove('show'),700);}
     const fl=document.getElementById('unlock-flash');
-    if(fl){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
+    if(fl&&!skinNew){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
     setTimeout(positionTabIndicator,80);
     document.getElementById('master-pw').value='';
     try{renderAll();}catch(e){console.warn('renderAll error:',e);}

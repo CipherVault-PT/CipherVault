@@ -331,8 +331,10 @@ function lockSwipeText(){
   const en=currentLang==='en',touch=!window.matchMedia||matchMedia('(pointer:coarse)').matches;
   const t=lockSwipeRetry?(touch?(en?'Swipe up to try again':'Desliza para cima para tentar outra vez'):(en?'Click or swipe up to try again':'Clica ou desliza para cima para tentar outra vez'))
     :touch?(en?'Swipe up to unlock':'Desliza para cima para desbloquear'):(en?'Click or swipe up to unlock':'Clica ou desliza para cima para desbloquear');
-  const el=document.getElementById('lk-swipe-txt');if(el)el.textContent=t;
-  const sw=document.getElementById('lk-swipe');if(sw)sw.setAttribute('aria-label',t);
+  const tk=avSkin()==='classico'?t:lockSwipeRetry?(touch?(en?'Tap to try again':'Toca para tentar outra vez'):(en?'Click to try again':'Clica para tentar outra vez'))
+    :touch?(en?'Tap to unlock with your fingerprint':'Toca para entrar com a impressão digital'):(en?'Click to unlock with biometrics':'Clica para entrar com a biometria');
+  const el=document.getElementById('lk-swipe-txt');if(el)el.textContent=tk;
+  const sw=document.getElementById('lk-swipe');if(sw)sw.setAttribute('aria-label',tk);
 }
 function lockSwipeApply(){
   const sw=document.getElementById('lk-swipe');if(!sw)return;
@@ -360,7 +362,8 @@ function lockSwipeGo(){
   const end=e=>{
     if(y0===null)return;
     const d=dy;y0=null;dy=0;sw.classList.remove('drag');
-    if(d<-60||(e.type==='pointerup'&&e.pointerType==='mouse'&&d>-6))return lockSwipeGo();
+    // estilos novos: um toque chega (o botão diz «Toca para entrar com a impressão digital»)
+    if(d<-60||(e.type==='pointerup'&&(e.pointerType==='mouse'||avSkin()!=='classico')&&d>-6))return lockSwipeGo();
     sw.style.removeProperty('--dy');
     if(e.type==='pointerup'){sw.classList.remove('nudge');void sw.offsetWidth;sw.classList.add('nudge');}
   };
@@ -419,6 +422,7 @@ function askyHi(k){
   return o;
 }
 function askyBg(){
+  if(avSkin()!=='classico')return; // os estilos novos não usam a fotografia (nem a descarregam)
   const el=document.getElementById('asky-img');if(!el)return;const k=askyPick();
   if(el.dataset.k===k)return;el.dataset.k=k;
   const o=askyHi(k);el.classList.toggle('sharp',o.ok);
@@ -536,17 +540,17 @@ function askyFrame(ts){
   if(ASKY.slow>30){ASKY.slow=0;if(ASKY.lv<ASKY.levels.length-1){ASKY.lv++;askySize(true);}else{ASKY.run=false;}}
 }
 function auroraSkyStart(){
-  if(typeof document==='undefined')return;
+  if(typeof document==='undefined'||avSkin()!=='classico')return; // só o Clássico tem o céu animado (WebGL)
   const ls=document.getElementById('lock-screen');if(!ls||ls.style.display==='none')return;
   askySize(false);askyBg();
   if(ASKY.gl===null)ASKY.gl=askyGL();
   try{if(typeof AuroraBG!=='undefined'&&AuroraBG.stop){AuroraBG.stop();ASKY.bgPaused=true;}}catch(e){}
   if(!ASKY.gl)return;
-  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){askyDraw();return;}
+  if((window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.getAttribute('data-motion')==='desligado'){askyDraw();return;}
   if(ASKY.run)return;
   ASKY.run=true;ASKY.last=0;ASKY.raf=requestAnimationFrame(askyFrame);
 }
-window.addEventListener('resize',()=>{askySize(false);if(ASKY.gl&&!ASKY.run)askyDraw();});
+window.addEventListener('resize',()=>{if(avSkin()!=='classico')return;askySize(false);if(ASKY.gl&&!ASKY.run)askyDraw();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)auroraSkyStart();});
 AV_IDLE.cbs.push(()=>{try{
   const ls=document.getElementById('lock-screen');
