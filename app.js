@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='11.0';
+const APP_VERSION='11.1';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1995,6 +1995,7 @@ function applySettingsLang(){
 // ══ INDICADOR DE TABS ══
 function positionTabIndicator(){
   const ind=document.getElementById('tab-indicator');if(!ind)return;
+  if(avSkin()!=='classico'&&getComputedStyle(ind).display==='none')return; // menu lateral / barra de baixo: não há o que medir
   const act=document.querySelector('.tab-btn.active');
   if(!act||!act.offsetWidth){ind.style.opacity='0';return;}
   ind.style.opacity='1';
@@ -10781,11 +10782,14 @@ function aurLaunchIdeas(){
   if(typeof document==='undefined')return;
   const still=typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let k=0,j=0,del=false,ideas=aurLaunchIdeas(),tl=aurAppLang();
+  const de=document.documentElement,dash=()=>{const d=document.getElementById('tab-dashboard');return !!d&&d.classList.contains('active');};
   function tick(){
     const el=document.getElementById('aur-launch-ph');let wait=80;
     if(tl!==aurAppLang()){tl=aurAppLang();ideas=aurLaunchIdeas();k=0;j=0;del=false;}
-    if(el&&!document.hidden){
-      if(still){el.textContent=ideas[0];wait=4000;}
+    const m=de.getAttribute('data-motion'),calm=m==='suave'&&de.classList.contains('sk-new');
+    if(el&&!document.hidden&&dash()){
+      if(still||m==='desligado'||(calm&&k>0)){if(el.textContent!==ideas[0])el.textContent=ideas[0];k=Math.max(k,1);j=0;del=false;wait=4000;}
+      else if(calm&&del){k=1;wait=4000;}
       else{const w=ideas[k%ideas.length];
         if(!del){j++;el.textContent=w.slice(0,j);if(j>=w.length){del=true;wait=k===0?3400:2200;}else wait=55+Math.random()*45;}
         else{j--;el.textContent=w.slice(0,Math.max(0,j));if(j<=0){del=false;k++;if(k%ideas.length===0){ideas=aurLaunchIdeas();k=0;}wait=420;}else wait=28;}}
@@ -11298,7 +11302,7 @@ async function avOnboardRender(){
 
 /* ── ligações à app existente ── */
 (function(){
-  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const r=st.apply(this,arguments);avCurTab=t;avAddLabel();return r;};}
+  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const r=st.apply(this,arguments);avCurTab=t;avAddLabel();try{avChunkResume();}catch(e){}return r;};}
   if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avApplyMode();avOnboardRender();}catch(e){}return r;};}
   if(typeof setLang==='function'){const sl=setLang;setLang=function(){const r=sl.apply(this,arguments);try{avAddLabel();avRenderSaveState();avRenderSettings();avOnboardRender();avEnhanceEmpty();}catch(e){}return r;};}
   if(typeof openSettings==='function'){const os=openSettings;openSettings=function(){const r=os.apply(this,arguments);try{avRenderSettings();}catch(e){}return r;};}
@@ -11469,12 +11473,15 @@ function avChunkRender(grid,head,arr){
   grid.innerHTML=head+arr.slice(0,_avChunk.i).join('');
   const next=()=>{
     if(tok!==_avChunk.tok||_avChunk.i>=arr.length)return;
+    // aba escondida (ex.: o Início depois de desbloquear): os lotes seguintes esperam até o Cofre ser aberto
+    const tab=grid.closest('[id^="tab-"]');if(tab&&!tab.classList.contains('active')){_avChunk.wait=next;return;}
     grid.insertAdjacentHTML('beforeend',arr.slice(_avChunk.i,_avChunk.i+STEP).join(''));_avChunk.i+=STEP;
     if(_avChunk.i<arr.length)(window.requestIdleCallback?requestIdleCallback(next,{timeout:100}):setTimeout(next,16));
   };
   if(_avChunk.i<arr.length)setTimeout(next,0);
 }
-function avFlushChunks(){const c=_avChunk;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
+function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;(window.requestIdleCallback?requestIdleCallback(f,{timeout:250}):setTimeout(f,60));} // depois de o Cofre aparecer
+function avFlushChunks(){const c=_avChunk;c.wait=null;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
 
 
 /* ── abas vazias: botão para começar (só aparece quando a aba não tem nada) ── */
@@ -14387,7 +14394,9 @@ function avxClose(focus){
 (function(){
   if(typeof document==='undefined')return;
   const go=()=>{if(!AVX.raf)AVX.raf=requestAnimationFrame(avxScan);};
-  new MutationObserver(go).observe(document.documentElement,{childList:true,subtree:true});go();
+  // só quando entram cartões novos (antes revia a página inteira a cada mudança — até a cada letra que a Aurora escreve)
+  const hasCard=n=>n.nodeType===1&&(n.matches('.card-actions')||!!n.querySelector('.card-actions'));
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(hasCard(n))return go();}).observe(document.documentElement,{childList:true,subtree:true});go();
   document.addEventListener('click',e=>{if(AVX.menu&&!(AVX.btn&&AVX.btn.contains(e.target)))avxClose();});
   document.addEventListener('keydown',e=>{
     if(!AVX.menu)return;

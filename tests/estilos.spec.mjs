@@ -179,3 +179,39 @@ test('tocar no selo pede a impressão digital e entra', async ({ page, context, 
   await page.waitForFunction(() => !!masterKey);
   await expect(page.locator('#app')).toBeVisible();
 });
+
+// v11.1 — fluidez: estas garantias impedem que o gasto escondido volte
+test.describe('Fluidez', () => {
+  test('parado no Início: o anel da Aurora fica quieto no «Suave» e flui no «Completo»', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    const ring = () => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.target && a.effect.target.classList && a.effect.target.classList.contains('aur-ring')).length);
+    await page.waitForTimeout(300);
+    expect(await ring()).toBe(0);
+    await page.evaluate(() => setMotion('completo'));
+    await expect.poll(ring).toBeGreaterThan(0);
+  });
+
+  test('mudanças de texto não fazem rever a página inteira (só quando entram cartões)', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    const n = await page.evaluate(async () => {
+      let c = 0; const o = avxScan; avxScan = function () { c++; return o.apply(this, arguments); };
+      const el = document.getElementById('aur-launch-ph') || document.body;
+      for (let i = 0; i < 20; i++) { el.textContent = 'x' + i; await new Promise(r => requestAnimationFrame(r)); }
+      avxScan = o; return c;
+    });
+    expect(n).toBe(0);
+  });
+
+  test('cofre grande: com o Cofre fechado só se desenha o 1.º lote; o resto quando é aberto', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    await page.evaluate(() => { for (let i = 0; i < 150; i++) vault.push({ id: 'f' + i, name: 'Conta ' + i, user: 'u' + i, pw: 'Pw!' + i + 'aB9', cat: 'email', created: Date.now() }); renderAll(); switchTab('dashboard'); });
+    await page.waitForTimeout(600);
+    const before = await page.evaluate(() => document.querySelectorAll('#tab-vault .entry-card').length);
+    expect(before).toBeLessThan(150);
+    await page.evaluate(() => switchTab('vault'));
+    await expect.poll(() => page.evaluate(() => document.querySelectorAll('#tab-vault .entry-card').length)).toBe(150);
+  });
+});
