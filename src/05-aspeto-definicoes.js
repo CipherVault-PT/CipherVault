@@ -60,7 +60,30 @@ function accentInk(accent,bgs){
 }
 function hexToHslArr(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0,s=0;const l=(max+min)/2;if(max!==min){const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h/=6;}return[h*360,s,l];}
 function hslToRgbArr(h,s,l){h=(((h%360)+360)%360)/360;const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};let r,g,b;if(s===0){r=g=b=l;}else{const q=l<0.5?l*(1+s):l+s-l*s;const p=2*l-q;r=f(p,q,h+1/3);g=f(p,q,h);b=f(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}
+/* ══ ESTILOS ══ Ónix & Ouro e Nórdico têm paleta própria (escura e clara); o Clássico usa as cores escolhidas acima.
+   (função e não constante: é chamada logo no arranque, antes de o resto do ficheiro estar carregado) */
+function avSkin(){const s=document.documentElement.getAttribute('data-skin');return s==='onix'||s==='nordico'?s:'classico';}
+function avSkinPal(theme){
+  const s=avSkin(),dk=theme!=='light';
+  if(s==='onix')return dk
+    ?{bg:'#0b0b0c',panel:'#121214',card:'#161618',border:'#2b2825',text:'#f2eee6',muted:'#a8a296',accent:'#c9a84c',ink:'#e6cb7e',red:'#ec8b7f',green:'#7fd1a8',shadow:'rgba(0,0,0,.55)'}
+    :{bg:'#f5f1e9',panel:'#fbf8f2',card:'#ffffff',border:'#e3dac8',text:'#1d1a16',muted:'#665f52',accent:'#b08d3a',ink:'#765a15',red:'#b23a2c',green:'#2a7a50',shadow:'rgba(40,30,10,.14)'};
+  if(s==='nordico')return dk
+    ?{bg:'#0e1a17',panel:'#13231f',card:'#172925',border:'#24403a',text:'#eef3ee',muted:'#9fb3ab',accent:'#f2c27a',ink:'#f5cf92',red:'#ef8a7a',green:'#5ee6a8',shadow:'rgba(0,0,0,.5)'}
+    :{bg:'#f3f1ea',panel:'#fbfaf6',card:'#ffffff',border:'#dbe2da',text:'#1b2a26',muted:'#52665f',accent:'#b8792c',ink:'#80521a',red:'#b0402e',green:'#1f7a52',shadow:'rgba(20,40,30,.12)'};
+  return null;
+}
+function applySkinColors(sp){
+  const root=document.documentElement,set=(k,v)=>root.style.setProperty(k,v),rgb=h=>hexToRgb(h);
+  set('--bg',sp.bg);set('--panel',sp.panel);set('--card',sp.card);set('--border',sp.border);
+  set('--panel-glass',`rgba(${rgb(sp.panel)},.92)`);set('--card-glass',`rgba(${rgb(sp.card)},.88)`);
+  set('--text',sp.text);set('--text-muted',sp.muted);
+  set('--accent',sp.accent);set('--accent-dim',darkenHex(sp.accent,0.65));set('--accent-rgb',rgb(sp.accent));set('--accent-ink',sp.ink);
+  try{const[h2,s2,l2]=hexToHslArr(sp.accent);const[r2,g2,b2]=hslToRgbArr(h2+42,s2,l2);set('--accent2-rgb',`${r2},${g2},${b2}`);}catch(e){}
+  set('--red',sp.red);set('--green',sp.green);set('--shadow',sp.shadow);
+}
 function applyThemeColors(theme){
+  {const sp=avSkinPal(theme);if(sp){applySkinColors(sp);return;}}
   const c=themeColors[theme];
   const root=document.documentElement;
   // Apply bg variants

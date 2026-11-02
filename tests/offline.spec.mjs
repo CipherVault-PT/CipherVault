@@ -29,12 +29,13 @@ test('o leitor de QR só é descarregado quando é preciso', async ({ page }) =>
 });
 
 test('o service worker guarda os ficheiros com a versão que a página usa (sem descarregar tudo 2 vezes)', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('av_skin', 'classico')); // a fotografia do fundo é do estilo Clássico
   await openApp(page);
   await page.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, { timeout: 20_000 });
   await page.waitForFunction(async () => (await caches.keys()).includes('av-img-v1') && (await (await caches.open('av-img-v1')).keys()).length > 0, null, { timeout: 20_000 });
   const r = await page.evaluate(async () => {
     const keys = async n => (await (await caches.open(n)).keys()).map(k => new URL(k.url).pathname + new URL(k.url).search);
-    const used = [...document.querySelectorAll('link[rel=stylesheet][href^="styles"],script[src^="app.js"]')].map(e => '/' + e.getAttribute(e.src ? 'src' : 'href'));
+    const used = [...document.querySelectorAll('link[rel=stylesheet][href^="styles"],link[rel=stylesheet][href^="skin"],script[src^="js/skin-boot.js"],script[src^="app.js"]')].map(e => '/' + e.getAttribute(e.src ? 'src' : 'href'));
     return { app: await keys('av-app-v2'), img: await keys('av-img-v1'), used };
   });
   for (const u of r.used) expect(r.app).toContain(u);

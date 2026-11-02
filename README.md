@@ -21,17 +21,19 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 | Ficheiro | O que é |
 | --- | --- |
 | `index.html` | Estrutura da página |
-| `styles.css` | Aparência |
+| `styles.css` | Aparência (base e estilo Clássico) |
+| `skin.css` | Estilos Ónix & Ouro e Nórdico: ecrã de entrada (Lanterna, Constelação, Voz da Aurora), menu lateral no PC, barra de baixo no telemóvel |
+| `js/skin-boot.js` | Aplica o estilo, o ecrã de entrada e o movimento escolhidos antes de a página se desenhar |
 | `js/crypto.js` | Encriptação do cofre (AES-256-GCM, PBKDF2, formato do ficheiro) — testada à parte |
 | `js/actions.js` | Botões e campos sem código dentro do HTML (`data-act`, `data-input`…) |
 | `src/*.js` | A lógica da app, dividida por área (estado e idiomas, desbloqueio, 2FA, cofre, documentos, Drive, Aurora AI…) |
 | `app.js` | **Gerado** a partir de `src/` com `npm run build` — é o que o browser carrega. Não editar à mão |
 | `sw.js` | Service worker: abre sem internet e guarda cada versão uma só vez |
-| `img/` | Fotografias do ecrã de entrada |
+| `img/` | Fotografias do ecrã de entrada (só o estilo Clássico as usa) |
 | `vendor/jsqr.js` | Leitor de QR (só é descarregado quando se usa a câmara num browser sem leitor próprio) |
 | `vendor/tesseract-5.1.1/` | OCR (ler validades e documentos em fotos), com os dicionários PT e EN — só descarregado quando se usa |
 | `vendor/pdfjs-3.11.174/` | Leitura de PDFs anexados — só descarregado quando se usa |
-| `vendor/fonts/` | Fontes Playfair Display e JetBrains Mono (licença OFL) |
+| `vendor/fonts/` | Fontes Playfair Display, JetBrains Mono, Bodoni Moda, Inter, Fraunces e Manrope (licença OFL) — cada estilo só descarrega as suas |
 | `tests/` | Testes automáticos (Playwright) |
 
 Não há passo de compilação: os ficheiros são publicados tal como estão.
@@ -58,7 +60,7 @@ o aspeto em telemóvel/computador e tema claro/escuro, e o consumo do fundo anim
 
 Mudar o número (ex.: `10.0` → `10.1`) **em todos estes sítios**, senão os telemóveis continuam com a versão antiga guardada:
 
-1. `index.html` — `<meta name="app-version">`, o comentário de compatibilidade logo abaixo, todos os `?v=` (`styles.css`, `js/*.js`, `app.js`) e o `· v…` dos dois rodapés;
+1. `index.html` — `<meta name="app-version">`, o comentário de compatibilidade logo abaixo, todos os `?v=` (`styles.css`, `skin.css`, `js/*.js`, `app.js`) e o `· v…` dos dois rodapés;
 2. `src/01-estado-idiomas.js` — `const APP_VERSION` (e depois `npm run build`).
 
 O teste `tests/version.spec.mjs` falha se algum ficar esquecido.

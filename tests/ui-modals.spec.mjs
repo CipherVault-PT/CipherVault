@@ -42,7 +42,7 @@ test.describe('Janelas, definições e menus', () => {
   });
 
   test('definições: separadores, tema, fundo e cor com cliques; fundo escuro fecha', async ({ page }) => {
-    await page.evaluate(() => openSettings());
+    await page.evaluate(() => { setSkin('classico'); openSettings(); }); // temas de cores e fundos animados são do estilo Clássico
     await page.locator('#settings-overlay [data-act="switchSettingsTab"][data-arg="seguranca"]').click();
     await expect(page.locator('#settings-overlay [data-act="switchSettingsTab"][data-arg="seguranca"]')).toHaveClass(/active/);
     await page.locator('#settings-overlay [data-act="switchSettingsTab"][data-arg="aspeto"]').click();

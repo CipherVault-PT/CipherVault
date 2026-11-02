@@ -31,7 +31,7 @@ test.describe('Definições organizadas', () => {
   });
 
   test('cores personalizadas ficam recolhidas', async ({ page }) => {
-    await page.evaluate(() => { openSettings(); switchSettingsTab('aspeto'); });
+    await page.evaluate(() => { setSkin('classico'); openSettings(); switchSettingsTab('aspeto'); }); // as cores personalizadas são do estilo Clássico
     await expect(page.locator('#s-colors-adv')).not.toHaveAttribute('open', '');
     await expect(page.locator('#picker-bg')).toBeHidden();
     await page.locator('#s-colors-title').click();

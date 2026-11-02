@@ -74,10 +74,13 @@ async function avSha256(txt){return avB64(new Uint8Array(await crypto.subtle.dig
 // que no Windows só extrai esse ficheiro para uma pasta temporária
 async function avPenHtml(){
   let html=(await avPenFetch('index.html',true)).replace(/<link rel="preload" as="font"[^>]*>\s*/g,'');
-  let css=await avPenFetch('styles.css',true);
-  const fonts=[...new Set([...css.matchAll(/url\((vendor\/fonts\/[\w.-]+\.woff2)\)/g)].map(m=>m[1]))];
-  for(const u of fonts){const b=await avPenFetch(u);css=css.split('url('+u+')').join('url(data:font/woff2;base64,'+avB64(b)+')');}
-  html=html.replace(/<link rel="stylesheet" href="styles\.css[^"]*">/,()=>'<style>'+css.replace(/<\/style/gi,'<\\/style')+'</style>');
+  // as duas folhas de estilo (a base e a dos estilos Ónix & Ouro / Nórdico), com as fontes lá dentro
+  for(const sheet of ['styles.css','skin.css']){
+    let css=await avPenFetch(sheet,true);
+    const fonts=[...new Set([...css.matchAll(/url\((vendor\/fonts\/[\w.-]+\.woff2)\)/g)].map(m=>m[1]))];
+    for(const u of fonts){const b=await avPenFetch(u);css=css.split('url('+u+')').join('url(data:font/woff2;base64,'+avB64(b)+')');}
+    html=html.replace(new RegExp('<link rel="stylesheet" href="'+sheet.replace('.','\\.')+'[^"]*">'),()=>'<style>'+css.replace(/<\/style/gi,'<\\/style')+'</style>');
+  }
   const imgs={};for(const f of ['img/aurora-l.webp','img/aurora-p.webp'])imgs[f]='data:image/webp;base64,'+avB64(await avPenFetch(f));
   for(const f of ['img/av-icon-v1.svg','img/av-icon-v1-32.png']){const b=await avPenFetch(f);html=html.split('"'+f+'"').join('"data:'+(f.endsWith('.svg')?'image/svg+xml':'image/png')+';base64,'+avB64(b)+'"');}
   const hashes=[];

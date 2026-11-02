@@ -154,7 +154,7 @@ function applyLangStatic(){
   const createBtn=document.getElementById('l-create-btn');if(createBtn)createBtn.textContent=currentLang==='en'?'✦ Create Vault':'✦ Criar Cofre';
   s('l-howto-title','howToTitle');
   s('tab-vault-txt','tabVault');s('tab-notes-txt','tabNotes');s('tab-archive-txt','tabArchive');
-  {const gd=document.getElementById('grp-btn-dashboard');if(gd)gd.textContent=t('tabDash');}
+  {const gd=document.getElementById('grp-dash-txt');if(gd)gd.textContent=skDashLabel();}
   s('tb-new-txt','tbNew');s('tb-import-txt','tbImport');s('tb-save-txt','tbSave');s('tb-pdf-txt','tbPdf');
   const tbCsv=document.getElementById('tb-csv-txt');if(tbCsv)tbCsv.textContent=t('tbCsv');
   const tdocs=document.getElementById('tab-docs-txt');if(tdocs)tdocs.textContent=currentLang==='en'?'Documents':'Documentos';
@@ -320,7 +320,7 @@ function renderAll(){renderWifiBar();renderSidebar();renderCards();renderDashboa
 function renderHowTo(){
   const cards=T[currentLang].howCards;
   const el=document.getElementById('lock-how-grid');if(!el)return;
-  el.innerHTML=cards.map(([num,title,text])=>`<div class="lock-how-card"><div style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--accent-dim);margin-bottom:5px;line-height:1">${num}</div><div style="font-size:.68rem;font-weight:600;color:var(--text);margin-bottom:4px">${title}</div><div style="font-size:.62rem;color:var(--text-muted);line-height:1.6">${text}</div></div>`).join('');
+  el.innerHTML=cards.map(([num,title,text])=>`<div class="lock-how-card"><div style="font-family:var(--f-display);font-size:1.3rem;color:var(--accent-dim);margin-bottom:5px;line-height:1">${num}</div><div style="font-size:.68rem;font-weight:600;color:var(--text);margin-bottom:4px">${title}</div><div style="font-size:.62rem;color:var(--text-muted);line-height:1.6">${text}</div></div>`).join('');
   const titleEl=document.getElementById('l-howto-title');if(titleEl)titleEl.textContent=t('howToTitle');
 }
 function openLoginModal(which){

@@ -536,7 +536,7 @@ const AuroraBG=(function(){
     raf=requestAnimationFrame(frame);
   }
   function kick(){if(running&&!raf&&!_mt)raf=requestAnimationFrame(frame);}
-  function start(){if(mode==='none'||reduce)return;running=true;kick();}
+  function start(){if(mode==='none'||reduce||avSkin()!=='classico'||document.documentElement.getAttribute('data-motion')==='desligado')return;running=true;kick();} // fundo animado: só no Clássico (e com movimento)
   function stop(){running=false;_last=0;if(raf){cancelAnimationFrame(raf);raf=null;}if(_mt){clearTimeout(_mt);_mt=0;}}
   function setMode(m){
     const soft=!!SOFT[mode]!==!!SOFT[m];
