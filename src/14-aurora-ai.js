@@ -1157,11 +1157,14 @@ function aurLaunchIdeas(){
   if(typeof document==='undefined')return;
   const still=typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let k=0,j=0,del=false,ideas=aurLaunchIdeas(),tl=aurAppLang();
+  const de=document.documentElement,dash=()=>{const d=document.getElementById('tab-dashboard');return !!d&&d.classList.contains('active');};
   function tick(){
     const el=document.getElementById('aur-launch-ph');let wait=80;
     if(tl!==aurAppLang()){tl=aurAppLang();ideas=aurLaunchIdeas();k=0;j=0;del=false;}
-    if(el&&!document.hidden){
-      if(still){el.textContent=ideas[0];wait=4000;}
+    const m=de.getAttribute('data-motion'),calm=m==='suave'&&de.classList.contains('sk-new');
+    if(el&&!document.hidden&&dash()){
+      if(still||m==='desligado'||(calm&&k>0)){if(el.textContent!==ideas[0])el.textContent=ideas[0];k=Math.max(k,1);j=0;del=false;wait=4000;}
+      else if(calm&&del){k=1;wait=4000;}
       else{const w=ideas[k%ideas.length];
         if(!del){j++;el.textContent=w.slice(0,j);if(j>=w.length){del=true;wait=k===0?3400:2200;}else wait=55+Math.random()*45;}
         else{j--;el.textContent=w.slice(0,Math.max(0,j));if(j<=0){del=false;k++;if(k%ideas.length===0){ideas=aurLaunchIdeas();k=0;}wait=420;}else wait=28;}}

@@ -2205,3 +2205,8 @@ html,body{overscroll-behavior-y:none}
 }
 #drive-forget-btn{border-color:transparent;background:none;color:var(--text-muted);font-size:.58rem}
 #drive-forget-btn:hover{color:var(--red)}
+
+/* ══ v11.1 — listas longas: só se desenham os cartões à vista (passwords, documentos, 2FA) ══ */
+.entry-card,.doc-card,.totp-card{content-visibility:auto;contain-intrinsic-size:auto 300px;}
+.cards-grid.compact .entry-card{contain-intrinsic-size:auto 120px;}
+.totp-card{contain-intrinsic-size:auto 170px;}

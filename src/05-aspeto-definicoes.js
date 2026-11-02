@@ -484,6 +484,7 @@ function applySettingsLang(){
 // ══ INDICADOR DE TABS ══
 function positionTabIndicator(){
   const ind=document.getElementById('tab-indicator');if(!ind)return;
+  if(avSkin()!=='classico'&&getComputedStyle(ind).display==='none')return; // menu lateral / barra de baixo: não há o que medir
   const act=document.querySelector('.tab-btn.active');
   if(!act||!act.offsetWidth){ind.style.opacity='0';return;}
   ind.style.opacity='1';

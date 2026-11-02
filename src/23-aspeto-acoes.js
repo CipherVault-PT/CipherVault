@@ -62,7 +62,9 @@ function avxClose(focus){
 (function(){
   if(typeof document==='undefined')return;
   const go=()=>{if(!AVX.raf)AVX.raf=requestAnimationFrame(avxScan);};
-  new MutationObserver(go).observe(document.documentElement,{childList:true,subtree:true});go();
+  // só quando entram cartões novos (antes revia a página inteira a cada mudança — até a cada letra que a Aurora escreve)
+  const hasCard=n=>n.nodeType===1&&(n.matches('.card-actions')||!!n.querySelector('.card-actions'));
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(hasCard(n))return go();}).observe(document.documentElement,{childList:true,subtree:true});go();
   document.addEventListener('click',e=>{if(AVX.menu&&!(AVX.btn&&AVX.btn.contains(e.target)))avxClose();});
   document.addEventListener('keydown',e=>{
     if(!AVX.menu)return;

@@ -189,7 +189,7 @@ async function avOnboardRender(){
 
 /* ── ligações à app existente ── */
 (function(){
-  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const r=st.apply(this,arguments);avCurTab=t;avAddLabel();return r;};}
+  if(typeof switchTab==='function'){const st=switchTab;switchTab=function(t){const r=st.apply(this,arguments);avCurTab=t;avAddLabel();try{avChunkResume();}catch(e){}return r;};}
   if(typeof renderGreeting==='function'){const rg=renderGreeting;renderGreeting=function(){const r=rg.apply(this,arguments);try{avApplyMode();avOnboardRender();}catch(e){}return r;};}
   if(typeof setLang==='function'){const sl=setLang;setLang=function(){const r=sl.apply(this,arguments);try{avAddLabel();avRenderSaveState();avRenderSettings();avOnboardRender();avEnhanceEmpty();}catch(e){}return r;};}
   if(typeof openSettings==='function'){const os=openSettings;openSettings=function(){const r=os.apply(this,arguments);try{avRenderSettings();}catch(e){}return r;};}
@@ -360,12 +360,15 @@ function avChunkRender(grid,head,arr){
   grid.innerHTML=head+arr.slice(0,_avChunk.i).join('');
   const next=()=>{
     if(tok!==_avChunk.tok||_avChunk.i>=arr.length)return;
+    // aba escondida (ex.: o Início depois de desbloquear): os lotes seguintes esperam até o Cofre ser aberto
+    const tab=grid.closest('[id^="tab-"]');if(tab&&!tab.classList.contains('active')){_avChunk.wait=next;return;}
     grid.insertAdjacentHTML('beforeend',arr.slice(_avChunk.i,_avChunk.i+STEP).join(''));_avChunk.i+=STEP;
     if(_avChunk.i<arr.length)(window.requestIdleCallback?requestIdleCallback(next,{timeout:100}):setTimeout(next,16));
   };
   if(_avChunk.i<arr.length)setTimeout(next,0);
 }
-function avFlushChunks(){const c=_avChunk;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
+function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;(window.requestIdleCallback?requestIdleCallback(f,{timeout:250}):setTimeout(f,60));} // depois de o Cofre aparecer
+function avFlushChunks(){const c=_avChunk;c.wait=null;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
 
 
 /* ── abas vazias: botão para começar (só aparece quando a aba não tem nada) ── */
