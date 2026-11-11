@@ -230,22 +230,23 @@ html[data-skin="nordico"] .sk-joia{--g:60,200,150}
 .sk-gem-btn{position:absolute;inset:0;z-index:1;border:0;padding:0;background:none;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sk-gem-btn:active .sk-gem{transform:scale(.985)}
 .sk-gem-btn.bio::after{content:'';position:absolute;inset:6%;border-radius:50%;border:1px solid var(--accent);opacity:0;animation:skPing 2.4s ease-out infinite}
-.sk-gem{display:block;width:100%;height:100%;overflow:visible;transition:transform .2s ease}
-.sk-gem-f polygon{stroke:rgba(225,233,255,.46);stroke-width:.6;stroke-linejoin:round}
+.sk-gem{position:relative;display:block;width:100%;height:100%;transition:transform .2s ease}
+.sk-gem svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.sk-gem-l polygon[data-a]{stroke:rgba(225,233,255,.46);stroke-width:.6;stroke-linejoin:round}
 .sk-gem-cu{fill:rgba(255,255,255,.12);stroke:rgba(225,233,255,.6);stroke-width:.6}
 .sk-gem-rim{fill:none;stroke:var(--accent);stroke-opacity:.8;stroke-width:1}
 .sk-gem-rim2{fill:none;stroke:var(--accent);stroke-opacity:.3;stroke-width:.7}
-html[data-theme="light"] .sk-gem-f polygon{stroke:rgba(255,255,255,.72)}
+html[data-theme="light"] .sk-gem-l polygon[data-a]{stroke:rgba(255,255,255,.72)}
 html[data-theme="light"] .sk-gem-cu{fill:rgba(255,255,255,.4);stroke:rgba(255,255,255,.85)}
 html[data-theme="light"] .sk-joia::after{background:radial-gradient(circle,rgba(var(--g),.22),rgba(var(--g),.07) 46%,transparent 66%)}
 .sk-serial{font:500 .6rem/1 var(--f-body);letter-spacing:4px;color:var(--text-muted)}
 /* abertura (~0,5 s) depois de o cofre abrir */
-#lock-screen.sk-opening .sk-gem-f polygon{transform-box:fill-box;transform-origin:center;animation:skGemBurst .46s cubic-bezier(.3,.6,.2,1) forwards;animation-delay:calc(var(--r) * 20ms)}
-#lock-screen.sk-opening .sk-gem-cu,#lock-screen.sk-opening .sk-gem-rim,#lock-screen.sk-opening .sk-gem-rim2{transform-box:fill-box;transform-origin:center;animation:skGemRim .42s ease forwards}
-#lock-screen.sk-opening .sk-joia::after{animation:skGemGlow .46s ease forwards}
-@keyframes skGemBurst{to{transform:translate(var(--dx),var(--dy)) scale(.3) rotate(38deg);opacity:0}}
-@keyframes skGemRim{to{transform:scale(1.7);opacity:0}}
-@keyframes skGemGlow{to{transform:scale(2.6);opacity:.95}}
+/* a joia abre-se em profundidade: cintura, coroa e pavilhão afastam-se uma a seguir à outra (só escala e opacidade:
+   rodar camadas grandes custava fotogramas em equipamentos sem placa gráfica) */
+#lock-screen.sk-opening .sk-gem-l{animation:skGemIris .4s cubic-bezier(.45,0,.2,1) forwards;animation-delay:calc((2 - var(--r)) * 40ms)}
+#lock-screen.sk-opening .sk-joia::after{animation:skGemGlow .44s ease forwards}
+@keyframes skGemIris{to{transform:scale(calc(1.18 + var(--r) * .2));opacity:0}}
+@keyframes skGemGlow{to{transform:scale(1.5);opacity:.95}}
 #lock-screen.sk-opening .sk-full{animation:skReveal .36s cubic-bezier(.3,.7,.2,1) forwards}
 #lock-screen.sk-opening .sk-seal{animation:skSealOn .3s ease forwards}
 #lock-screen.sk-opening .sk-st{animation:skStarOn .18s ease forwards;animation-delay:calc(var(--i) * 32ms)}

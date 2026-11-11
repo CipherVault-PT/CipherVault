@@ -165,8 +165,8 @@ test.describe('Estilos', () => {
 // v12 — Safira & Platina e a Joia: uma pedra lapidada só deste cofre, que apanha a luz
 test.describe('Safira & Platina', () => {
   const SIG = '2b91c4e07a5d3f1866aa09bc4de1f273';
-  const fills = page => page.evaluate(() => [...document.querySelectorAll('#sk-art .sk-gem-f polygon')].map(p => p.getAttribute('fill')).join('|'));
-  const cut = page => page.evaluate(() => [...document.querySelectorAll('#sk-art .sk-gem-f polygon')].map(p => p.getAttribute('points')).join('|'));
+  const fills = page => page.evaluate(() => [...document.querySelectorAll('#sk-art .sk-gem-l polygon[data-a]')].map(p => p.getAttribute('fill')).join('|'));
+  const cut = page => page.evaluate(() => [...document.querySelectorAll('#sk-art .sk-gem-l polygon[data-a]')].map(p => p.getAttribute('points')).join('|'));
 
   test('Joia: as faces têm cor, acendem-se ao escrever e a luz segue o rato', async ({ page }) => {
     await openApp(page);
@@ -210,7 +210,7 @@ test.describe('Safira & Platina', () => {
     expect(n).toBe(0);
     await page.evaluate(() => lockApp());
     // ao trancar a joia volta, já com a lapidação deste cofre (6 a 12 lados → 48 a 96 faces)
-    expect(await page.evaluate(() => { const g = document.querySelector('#sk-art .sk-gem'); return [48, 64, 80, 96].includes(g.querySelectorAll('.sk-gem-f polygon').length) && +g.dataset.n === g.querySelectorAll('.sk-gem-f polygon').length; })).toBe(true);
+    expect(await page.evaluate(() => { const g = document.querySelector('#sk-art .sk-gem'); return [48, 64, 80, 96].includes(g.querySelectorAll('.sk-gem-l polygon[data-a]').length) && +g.dataset.n === g.querySelectorAll('.sk-gem-l polygon[data-a]').length; })).toBe(true);
   });
 
   test('Joia com «Movimento: desligado»: fica parada e sem animações', async ({ page }) => {

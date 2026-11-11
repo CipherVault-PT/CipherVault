@@ -14824,16 +14824,20 @@ function skGemBuild(sig){
   for(let k=0;k<n;k++)F.push([[T[k],T[(k+1)%n],M[k]],2,.3]);
   for(let k=0;k<n;k++)F.push([[T[k],M[k],G[2*k],M[(k+n-1)%n]],3,.5]);
   for(let k=0;k<n;k++){F.push([[M[k],G[2*k],G[2*k+1]],4,.74]);F.push([[M[k],G[2*k+1],G[(2*k+2)%(2*n)]],4,.74]);}
-  let h=`<svg class="sk-gem" viewBox="0 0 400 400" data-hue="${S.hue.toFixed(3)}" data-n="${F.length}" aria-hidden="true"><g class="sk-gem-f">`;
+  // três camadas (pavilhão, coroa, cintura): ao abrir, cada uma roda e afasta-se como camada própria —
+  // é a placa gráfica que as anima, sem repintar; poucas camadas e pouca ampliação para não pesar na memória
+  const L=['','',''];
   F.forEach(([pts,ring,tilt])=>{
-    const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length-C,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length-C,th=Math.atan2(cy,cx),d=Math.hypot(cx,cy)/R;
-    h+=`<polygon points="${pts.map(p=>f(p[0])+','+f(p[1])).join(' ')}" data-a="${th.toFixed(3)}" data-t="${tilt}" data-r="${ring}" style="--r:${ring};--dx:${f(Math.cos(th)*(40+d*120))}px;--dy:${f(Math.sin(th)*(40+d*120))}px"/>`;
+    const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length-C,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length-C;
+    L[ring>>1]+=`<polygon points="${pts.map(p=>f(p[0])+','+f(p[1])).join(' ')}" data-a="${Math.atan2(cy,cx).toFixed(3)}" data-t="${tilt}" data-r="${ring}"/>`;
   });
-  return h+`</g><polygon class="sk-gem-cu" points="${cu.map(p=>f(p[0])+','+f(p[1])).join(' ')}"/><circle class="sk-gem-rim" cx="200" cy="200" r="${R+4}"/><circle class="sk-gem-rim2" cx="200" cy="200" r="${R+11}"/></svg>`;
+  L[0]+=`<polygon class="sk-gem-cu" points="${cu.map(p=>f(p[0])+','+f(p[1])).join(' ')}"/>`;
+  L[2]+=`<circle class="sk-gem-rim" cx="200" cy="200" r="${R+4}"/><circle class="sk-gem-rim2" cx="200" cy="200" r="${R+11}"/>`;
+  return `<span class="sk-gem" data-hue="${S.hue.toFixed(3)}" data-n="${F.length}">${L.map((g,r)=>`<svg class="sk-gem-l" viewBox="0 0 400 400" style="--r:${r}" aria-hidden="true">${g}</svg>`).join('')}</span>`;
 }
 // Luz: cada face tem uma direção; a cor mistura o corpo da pedra com o «fogo» da aurora onde a luz bate
 function skGemLight(svg,lx,ly,lit){
-  const F=svg._f||(svg._f=[...svg.querySelectorAll('.sk-gem-f polygon')].map(p=>{const a=+p.dataset.a,t=+p.dataset.t,s=Math.sin(t);return{p,a,inn:+p.dataset.r<2,n:[Math.cos(a)*s,Math.sin(a)*s,Math.cos(t)],c:''};}));
+  const F=svg._f||(svg._f=[...svg.querySelectorAll('polygon[data-a]')].map(p=>{const a=+p.dataset.a,t=+p.dataset.t,s=Math.sin(t);return{p,a,inn:+p.dataset.r<2,n:[Math.cos(a)*s,Math.sin(a)*s,Math.cos(t)],c:''};}));
   const light=document.documentElement.getAttribute('data-theme')==='light',tn=(SK_GEM_TONE[avSkin()]||SK_GEM_TONE.safira)[light?'l':'d'],base=tn[0],body=tn[1];
   const hue=+svg.dataset.hue||0,m=Math.hypot(lx,ly,.85),L=[lx/m,ly/m,.85/m],hm=Math.hypot(L[0],L[1],L[2]+1),H=[L[0]/hm,L[1]/hm,(L[2]+1)/hm];
   for(let i=0;i<F.length;i++){
@@ -14881,11 +14885,11 @@ function skGemAmbient(){
   };
   SKG.amb=requestAnimationFrame(tick);
 }
-// ao abrir: a pedra acende-se toda e as faces soltam-se (o resto é CSS: #lock-screen.sk-opening)
+// ao abrir: a pedra acende-se toda e os anéis abrem-se como um diafragma (o resto é CSS: #lock-screen.sk-opening)
 function skGemOpen(){
   const svg=document.querySelector('#sk-art .sk-gem');
   if(svg&&!skStill()){SKG.lx=0;SKG.ly=-.1;SKG.ptr=false;SKG.open=true;skGemPaint();}
-  setTimeout(()=>{SKG.open=false;skGemSensors(false);},900);
+  setTimeout(()=>{SKG.open=false;const ls=document.getElementById('lock-screen');if(!ls||ls.style.display==='none')skGemSensors(false);},900);
 }
 
 /* ── Arte do ecrã de entrada ── */
@@ -14932,7 +14936,8 @@ function skHint(kind,bio){
   const en=skEn(),touch=!window.matchMedia||matchMedia('(pointer:coarse)').matches;
   if(kind==='lanterna')return bio?(en?'Tap the seal to unlock.':'Toca no selo para entrar.'):touch?(en?'Run your finger over the engraving.':'Passa o dedo pela gravura.'):(en?'Move the mouse over the engraving.':'Passa o rato pela gravura.');
   if(/^[0-9a-f]{32}$/.test(skGet('av_sig','')))return bio?(en?'This is your vault’s jewel.<br>Tap it to unlock.':'Esta é a joia do teu cofre.<br>Toca-lhe para entrar.'):(en?'This is your vault’s jewel.<br>If you don’t recognise it, don’t type anything.':'Esta é a joia do teu cofre.<br>Se não a reconheceres, não escrevas nada.');
-  return bio?(en?'Tap the jewel to unlock.':'Toca na joia para entrar.'):touch&&SKG.can?(en?'Tilt your phone: the jewel catches the light.':'Inclina o telemóvel: a joia apanha a luz.'):touch?(en?'The jewel lights up as you type.':'A joia ganha luz enquanto escreves.'):(en?'Move the mouse: the jewel catches the light.':'Mexe o rato: a joia apanha a luz.');
+  return bio?(en?'Tap the jewel to unlock.':'Toca na joia para entrar.'):touch&&SKG.can&&!skStill()?(en?'Tilt your phone: the jewel catches the light.':'Inclina o telemóvel: a joia apanha a luz.')
+    :touch||skMotion()==='desligado'?(en?'The jewel lights up as you type.':'A joia ganha luz enquanto escreves.'):(en?'Move the mouse: the jewel catches the light.':'Mexe o rato: a joia apanha a luz.');
 }
 // O selo: com impressão digital disponível pede-a já (é o toque que o browser exige); senão leva ao campo certo
 function skSealState(){
