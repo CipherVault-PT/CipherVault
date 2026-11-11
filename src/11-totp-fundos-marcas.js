@@ -208,8 +208,8 @@ function renderTotp(){
 }
 setInterval(()=>{
   if((!masterKey&&!presentationMode)||!totp.length||document.hidden)return;
-  const grid=document.getElementById('totp-grid');
-  if(!grid||!grid.offsetParent)return;
+  const tabT=document.getElementById('tab-totp');
+  if(!tabT||!tabT.classList.contains('active')||!document.getElementById('app').classList.contains('visible'))return; // sem medir a página (offsetParent obrigava a calcular o layout a cada segundo)
   const now=Math.floor(Date.now()/1000);
   let needRefresh=false;
   for(const t2 of totp){
@@ -262,8 +262,14 @@ function avIdle(){return performance.now()-AV_IDLE.last>AV_IDLE.ms;}
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Animações SVG só correm se estiverem à vista (as do ecrã de entrada continuavam a correr por trás da app: ~300 recálculos de estilo por segundo)
   // (procura pelas etiquetas <animate>: o seletor :has() em svg custava ~120 ms por chamada com um cofre grande num telemóvel lento)
-  const smil=on=>{const l=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)l.add(v.ownerSVGElement||v);});
-    l.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+  // (a lista dos SVG animados faz-se uma vez: estão todos no index.html. Antes procurava-se na página inteira a cada troca de aba e a cada 5 s)
+  let roots=null,parked=false;
+  const smil=on=>{
+    if(!roots){roots=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)roots.add(v.ownerSVGElement||v);});}
+    const still=avSkin()!=='classico'||document.documentElement.getAttribute('data-motion')==='desligado'; // estilos novos: estes SVG nem se veem
+    if(still){if(!parked){parked=true;roots.forEach(v=>{try{v.pauseAnimations();}catch(e){}});}return;}
+    parked=false;
+    roots.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
   // Sem atividade: as animações decorativas em ciclo (brilhos, manchas do fundo, ícones a flutuar) param até ao próximo toque
   const still=on=>document.documentElement.classList.toggle('av-still',on);
   window.avSmilSync=()=>smil(!AV_IDLE.asleep);
@@ -1092,7 +1098,7 @@ function renderSub2(){
   el.innerHTML=items.map((w,i)=>`<span class="sub2-word${i===(sub2Idx%items.length)?' active':''}">${w}</span>`).join('<span class="sub2-sep">·</span>');
 }
 setInterval(()=>{
-  if(document.hidden)return;
+  if(document.hidden||(typeof masterKey!=='undefined'&&masterKey)||avSkin()!=='classico')return; // só no ecrã de entrada do Clássico
   const el=document.getElementById('l-sub2');
   if(!el||!el.offsetParent)return;
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;

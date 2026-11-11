@@ -307,6 +307,11 @@ html.sk-new[data-motion="suave"] .aur-ring::before,html.sk-new[data-motion="suav
 html.sk-new[data-motion="suave"] .aur-ring,html.sk-new[data-motion="suave"] #aurora-fab{animation:none!important;background-size:100% 100%!important}
 html.sk-new[data-motion="suave"] .aur-caret{opacity:0}
 
+/* troca de aba imediata, como numa app nativa */
+html.sk-new #app>[id^="tab-"].active{animation:none!important}
+html.sk-new[data-motion="suave"] #aurora-panel::before,html.sk-new[data-motion="suave"] .a-logo svg{animation:none!important}
+html.sk-new[data-motion="suave"] #aurora-panel::before{background-size:100% 100%!important}
+
 /* avisos curtos: não tapam toques */
 html.sk-new .toast{pointer-events:none;font-size:.7rem;letter-spacing:.3px;line-height:1.5;border-radius:var(--sk-r);max-width:min(520px,calc(100vw - 20px))}
 

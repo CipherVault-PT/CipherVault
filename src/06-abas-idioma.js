@@ -50,24 +50,17 @@ function renderTabNav(tab){
   });
 }
 function switchTab(tab){
+  const same=avActiveTab()===tab;
   ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash','warranty','license','vehicle','dates'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     if(tabEl)tabEl.classList.remove('active');
   });
-  {const nt=document.getElementById('tab-'+tab);if(nt)void nt.offsetHeight;} // 1 só recálculo (reinicia a animação de entrada)
+  // só ao reabrir a MESMA aba é preciso um recálculo para a animação de entrada recomeçar (noutra aba, a classe nova basta)
+  if(same){const nt=document.getElementById('tab-'+tab);if(nt)void nt.offsetHeight;}
   renderTabNav(tab);
   const active=document.getElementById('tab-'+tab);
   if(active)active.classList.add('active');
-  if(tab==='dashboard')avOnce('dashboard',()=>renderDashboard());
-  if(tab==='archive')avOnce('archive',()=>renderArchive());
-  if(tab==='notes')avOnce('notes',()=>renderNotesList());
-  if(tab==='cards')avOnce('cards',()=>renderBankCards());
-  if(tab==='docs')avOnce('docs',()=>renderDocs());
-  if(tab==='trash')avOnce('trash',()=>renderTrash());
-  if(tab==='totp')renderTotp();
-  if(tab==='info')avOnce('info',()=>renderInfo());
-  if(tab==='store')avOnce('store',()=>renderStoreCards());
-  if(['warranty','license','vehicle','dates'].includes(tab))avOnce(tab,renderAssets,tab);
+  avTabFresh(tab);
   requestAnimationFrame(positionTabIndicator);
   requestAnimationFrame(applyStagger);
 }
@@ -314,7 +307,24 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderWifiBar();renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderTotp();renderHowTo();}
+/* v12 — só se desenha a aba que está à vista; as outras são desenhadas quando forem abertas (switchTab → avTabFresh).
+   Antes desenhava-se tudo a cada alteração: o Cofre inteiro, os documentos, o 2FA… para mostrar o Início. */
+const AV_TAB_RENDER={vault:()=>{renderSidebar();renderCards();},dashboard:()=>renderDashboard(),notes:()=>renderNotesList(),archive:()=>renderArchive(),
+  cards:()=>renderBankCards(),docs:()=>renderDocs(),trash:()=>renderTrash(),info:()=>renderInfo(),store:()=>renderStoreCards()};
+const AV_ASSET_TABS=['warranty','license','vehicle','dates'];
+function avActiveTab(){const a=document.querySelector('#app>[id^="tab-"].active');return a?a.id.slice(4):'dashboard';}
+// desenha a aba se os dados (ou o idioma, a pasta, os filtros…) mudaram desde a última vez que foi desenhada
+function avTabFresh(tab){
+  if(tab==='totp')return renderTotp();
+  if(AV_TAB_RENDER[tab])return avOnce(tab,AV_TAB_RENDER[tab]);
+  if(AV_ASSET_TABS.includes(tab))avOnce(tab,renderAssets,tab);
+}
+function avTabDraw(tab){
+  if(tab==='totp')return renderTotp();
+  if(AV_TAB_RENDER[tab])return AV_TAB_RENDER[tab]();
+  if(AV_ASSET_TABS.includes(tab))renderAssets(tab);
+}
+function renderAll(){renderWifiBar();avTabDraw(avActiveTab());renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){

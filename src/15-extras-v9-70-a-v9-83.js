@@ -354,20 +354,23 @@ function avCopyPw(id){const e=avEntry(id);if(e&&e.pw)copyText(e.pw,t('pwCopied')
 function avGoSite(id){const e=avEntry(id);if(e&&e.url)goToSiteEntry(e.url,e.pw);}
 function avReadTogglePw(id){const e=avEntry(id),el=document.getElementById('read-pw');if(!e||!el)return;el.textContent=el.classList.contains('masked')?e.pw:'••••••••••••';el.classList.toggle('masked');}
 let _avChunk={tok:0,grid:null,arr:null,i:0};
+// Os lotes seguintes só entram depois de o anterior estar pintado (um rAF + um temporizador = já passou um fotograma) e em tempo livre:
+// antes, o 2.º lote entrava antes do 1.º fotograma — abrir o Cofre desenhava logo os cartões todos.
+function avChunkLater(f){requestAnimationFrame(()=>setTimeout(()=>(window.requestIdleCallback?requestIdleCallback(f,{timeout:200}):f()),0));}
 function avChunkRender(grid,head,arr){
-  const tok=++_avChunk.tok,FIRST=40,STEP=60;
-  _avChunk.grid=grid;_avChunk.arr=arr;_avChunk.i=Math.min(FIRST,arr.length);
+  const tok=++_avChunk.tok,FIRST=innerWidth>1000?18:8,STEP=12; // 1.º lote = o que cabe no ecrã; depois, lotes pequenos (não travam o deslizar)
+  _avChunk.grid=grid;_avChunk.arr=arr;_avChunk.i=Math.min(FIRST,arr.length);_avChunk.wait=null;
   grid.innerHTML=head+arr.slice(0,_avChunk.i).join('');
   const next=()=>{
     if(tok!==_avChunk.tok||_avChunk.i>=arr.length)return;
     // aba escondida (ex.: o Início depois de desbloquear): os lotes seguintes esperam até o Cofre ser aberto
     const tab=grid.closest('[id^="tab-"]');if(tab&&!tab.classList.contains('active')){_avChunk.wait=next;return;}
     grid.insertAdjacentHTML('beforeend',arr.slice(_avChunk.i,_avChunk.i+STEP).join(''));_avChunk.i+=STEP;
-    if(_avChunk.i<arr.length)(window.requestIdleCallback?requestIdleCallback(next,{timeout:100}):setTimeout(next,16));
+    if(_avChunk.i<arr.length)avChunkLater(next);
   };
-  if(_avChunk.i<arr.length)setTimeout(next,0);
+  if(_avChunk.i<arr.length)avChunkLater(next);
 }
-function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;(window.requestIdleCallback?requestIdleCallback(f,{timeout:250}):setTimeout(f,60));} // depois de o Cofre aparecer
+function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;avChunkLater(f);} // depois de o Cofre aparecer
 function avFlushChunks(){const c=_avChunk;c.wait=null;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
 
 

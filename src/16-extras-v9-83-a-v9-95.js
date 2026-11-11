@@ -160,7 +160,7 @@ function avSwStart(dir){
   const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;if(i<0||j<0||j>=gs.length)return false;
   const tg=gs[j],leaf=lastLeafOf[tg]||TAB_GROUPS[tg][0];
   const out=document.getElementById('tab-'+avCurTab),inn=document.getElementById('tab-'+leaf);if(!out||!inn||out===inn)return false;
-  try{if(leaf==='trash')renderTrash();if(leaf==='totp')renderTotp();if(leaf==='info')renderInfo();if(leaf==='store')renderStoreCards();if(['warranty','license','vehicle','dates'].includes(leaf))renderAssets(leaf);}catch(e){}
+  try{avTabFresh(leaf);}catch(e){}
   const sy=window.scrollY||0,tb=document.getElementById('grp-btn-dashboard').parentElement,tbR=tb.getBoundingClientRect(),tbTop0=tbR.top+sy,tbBot0=tbR.bottom+sy;
   const tpB=Math.max(0,Math.round((document.querySelector('.topbar')||tb).getBoundingClientRect().bottom)),scrolled=sy>1;
   const topMain=scrolled||!tbR.height?tpB:Math.max(0,Math.round(tbR.bottom));
@@ -399,7 +399,7 @@ function avTabKey(k){const el=document.getElementById('tab-'+k);let ui='';if(el)
   return avDataVer+'|'+currentLang+'|'+(typeof currentFolderId!=='undefined'?currentFolderId:'')+'|'+(typeof currentVaultFolderId!=='undefined'?currentVaultFolderId:'')+'|'+(typeof privacyOn!=='undefined'?privacyOn:'')+'|'+avMode()+'|'+JSON.stringify(avHiddenTabs())+'|'+ui+'|'+(k==='dashboard'?new Date().toDateString()+' '+new Date().getHours():'');}
 function avOnce(k,fn,arg){const key=avTabKey(k);if(AV_ONCE[k]===key)return;AV_ONCE[k]=key;fn(arg);}
 (function(){if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){avDataVer++;return mu.apply(this,arguments);};}
-  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{['dashboard','archive','notes','cards','docs','trash'].forEach(t=>{AV_ONCE[t]=avTabKey(t);});}catch(e){}  /* só as que o renderAll desenha de facto */return r;};}})();
+  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{const c=avActiveTab();if(c!=='totp')AV_ONCE[c]=avTabKey(c);}catch(e){}  /* só a aba à vista foi desenhada; as outras ficam por desenhar até serem abertas */return r;};}})();
 
 
 /* ══ v9.92 — AVISO DE NOVA VERSÃO ══

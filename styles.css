@@ -200,7 +200,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 @keyframes savePulse{0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.3);}50%{box-shadow:0 0 0 4px rgba(224,82,82,0);}}
 
 /* ══ CLIPBOARD TIMER ══ */
-.clipboard-toast{position:fixed;bottom:60px;right:20px;background:var(--panel);border:1px solid var(--border);color:var(--text-muted);font-size:.74rem;letter-spacing:1px;padding:9px 15px;border-radius:2px;z-index:998;opacity:0;transform:translateY(10px);transition:all .2s;pointer-events:none;display:flex;align-items:center;gap:8px;}
+.clipboard-toast{position:fixed;bottom:60px;right:20px;background:var(--panel);border:1px solid var(--border);color:var(--text-muted);font-size:.74rem;letter-spacing:1px;padding:9px 15px;border-radius:2px;z-index:998;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none;display:flex;align-items:center;gap:8px;}
 .clipboard-toast.show{opacity:1;transform:translateY(0);}
 .clipboard-timer{font-size:.7rem;color:var(--accent-ink);font-weight:700;min-width:20px;}
 
@@ -502,7 +502,7 @@ body.bg-blur #app,body.bg-blur .modal-overlay{filter:blur(16px);transition:filte
 #print-area{display:none;}
 
 /* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--accent-dim);color:var(--accent-ink);font-size:.6rem;letter-spacing:2px;padding:10px 16px;border-radius:2px;z-index:999;opacity:0;transform:translateY(10px);transition:all .2s;pointer-events:none;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--accent-dim);color:var(--accent-ink);font-size:.6rem;letter-spacing:2px;padding:10px 16px;border-radius:2px;z-index:999;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
 
 /* PWA */
@@ -566,7 +566,7 @@ body.bg-blur #app,body.bg-blur .modal-overlay{filter:blur(16px);transition:filte
 .totp-code{font-family:var(--f-code);font-size:1.65rem;letter-spacing:4px;color:var(--accent-ink);font-weight:600;cursor:pointer;flex:1;user-select:none;transition:opacity .15s;}
 .totp-code:hover{opacity:.8;}
 .totp-ring{flex-shrink:0;}
-.totp-ring-fg{transition:stroke-dashoffset .3s linear,stroke .3s;}
+.totp-ring-fg{transition:none;}
 .totp-secs{font-size:.72rem;color:var(--text-muted);min-width:26px;text-align:right;font-family:var(--f-body);}
 
 /* ══ GESTOR DE CATEGORIAS ══ */
@@ -1228,7 +1228,8 @@ body::after{bottom:-32vmax;right:-24vmax;
 .cat-bar-row{display:flex;align-items:center;gap:10px;font-size:.72rem;}
 .cat-bar-label{width:80px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.68rem;}
 .cat-bar-track{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
-.cat-bar-fill{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.cat-bar-fill{height:100%;border-radius:5px;transform-origin:left center;animation:avBarGrow .8s cubic-bezier(.4,0,.2,1);}
+@keyframes avBarGrow{from{transform:scaleX(0);}}
 .cat-bar-count{width:24px;text-align:right;color:var(--text-muted);font-size:.68rem;}
 
 /* ══ PRESENTATION MODE ══ */
@@ -2210,3 +2211,13 @@ html,body{overscroll-behavior-y:none}
 .entry-card,.doc-card,.totp-card{content-visibility:auto;contain-intrinsic-size:auto 300px;}
 .cards-grid.compact .entry-card{contain-intrinsic-size:auto 120px;}
 .totp-card{contain-intrinsic-size:auto 170px;}
+
+/* ══ v12 — fluidez ══
+   Brilhos em ciclo passam para um anel próprio só com opacidade (trata-o a placa gráfica):
+   com box-shadow, o browser recalculava estilos e redesenhava 60×/s — o «Verificar fugas» fazia-o ~8 s a cada desenho do Cofre. */
+.breach-cta{animation:none;position:relative;}
+.breach-cta::before{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 5px rgba(var(--accent-rgb),.3);opacity:0;pointer-events:none;animation:avRingPulse 2.6s ease-in-out 3;}
+.breach-cta:disabled::before{animation:none;}
+@keyframes avRingPulse{0%,100%{opacity:0;}45%{opacity:1;}}  /* só a opacidade: uma sombra fixa não mexe no tamanho do botão */
+.btn-save-file.has-changes{animation:none;}
+@media(prefers-reduced-motion:reduce){.breach-cta::before{animation:none;}}

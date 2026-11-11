@@ -1446,6 +1446,7 @@ function doUnlock(){
     if(fl&&!skinNew){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
     setTimeout(positionTabIndicator,80);
     document.getElementById('master-pw').value='';
+    try{document.querySelectorAll('#app>[id^="tab-"].active').forEach(el=>{if(el.id!=='tab-dashboard')el.classList.remove('active');});document.getElementById('tab-dashboard').classList.add('active');}catch(e){}
     try{renderAll();}catch(e){console.warn('renderAll error:',e);}
     startAutoLock();
     switchTab('dashboard');
@@ -1995,7 +1996,7 @@ function applySettingsLang(){
 // ══ INDICADOR DE TABS ══
 function positionTabIndicator(){
   const ind=document.getElementById('tab-indicator');if(!ind)return;
-  if(avSkin()!=='classico'&&getComputedStyle(ind).display==='none')return; // menu lateral / barra de baixo: não há o que medir
+  if(avSkin()!=='classico'&&!(window.matchMedia&&matchMedia('(min-width:769px) and (max-width:1023px)').matches))return; // menu lateral / barra de baixo: não há o que medir
   const act=document.querySelector('.tab-btn.active');
   if(!act||!act.offsetWidth){ind.style.opacity='0';return;}
   ind.style.opacity='1';
@@ -2091,24 +2092,17 @@ function renderTabNav(tab){
   });
 }
 function switchTab(tab){
+  const same=avActiveTab()===tab;
   ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash','warranty','license','vehicle','dates'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     if(tabEl)tabEl.classList.remove('active');
   });
-  {const nt=document.getElementById('tab-'+tab);if(nt)void nt.offsetHeight;} // 1 só recálculo (reinicia a animação de entrada)
+  // só ao reabrir a MESMA aba é preciso um recálculo para a animação de entrada recomeçar (noutra aba, a classe nova basta)
+  if(same){const nt=document.getElementById('tab-'+tab);if(nt)void nt.offsetHeight;}
   renderTabNav(tab);
   const active=document.getElementById('tab-'+tab);
   if(active)active.classList.add('active');
-  if(tab==='dashboard')avOnce('dashboard',()=>renderDashboard());
-  if(tab==='archive')avOnce('archive',()=>renderArchive());
-  if(tab==='notes')avOnce('notes',()=>renderNotesList());
-  if(tab==='cards')avOnce('cards',()=>renderBankCards());
-  if(tab==='docs')avOnce('docs',()=>renderDocs());
-  if(tab==='trash')avOnce('trash',()=>renderTrash());
-  if(tab==='totp')renderTotp();
-  if(tab==='info')avOnce('info',()=>renderInfo());
-  if(tab==='store')avOnce('store',()=>renderStoreCards());
-  if(['warranty','license','vehicle','dates'].includes(tab))avOnce(tab,renderAssets,tab);
+  avTabFresh(tab);
   requestAnimationFrame(positionTabIndicator);
   requestAnimationFrame(applyStagger);
 }
@@ -2355,7 +2349,24 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderWifiBar();renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderTotp();renderHowTo();}
+/* v12 — só se desenha a aba que está à vista; as outras são desenhadas quando forem abertas (switchTab → avTabFresh).
+   Antes desenhava-se tudo a cada alteração: o Cofre inteiro, os documentos, o 2FA… para mostrar o Início. */
+const AV_TAB_RENDER={vault:()=>{renderSidebar();renderCards();},dashboard:()=>renderDashboard(),notes:()=>renderNotesList(),archive:()=>renderArchive(),
+  cards:()=>renderBankCards(),docs:()=>renderDocs(),trash:()=>renderTrash(),info:()=>renderInfo(),store:()=>renderStoreCards()};
+const AV_ASSET_TABS=['warranty','license','vehicle','dates'];
+function avActiveTab(){const a=document.querySelector('#app>[id^="tab-"].active');return a?a.id.slice(4):'dashboard';}
+// desenha a aba se os dados (ou o idioma, a pasta, os filtros…) mudaram desde a última vez que foi desenhada
+function avTabFresh(tab){
+  if(tab==='totp')return renderTotp();
+  if(AV_TAB_RENDER[tab])return avOnce(tab,AV_TAB_RENDER[tab]);
+  if(AV_ASSET_TABS.includes(tab))avOnce(tab,renderAssets,tab);
+}
+function avTabDraw(tab){
+  if(tab==='totp')return renderTotp();
+  if(AV_TAB_RENDER[tab])return AV_TAB_RENDER[tab]();
+  if(AV_ASSET_TABS.includes(tab))renderAssets(tab);
+}
+function renderAll(){renderWifiBar();avTabDraw(avActiveTab());renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){
@@ -2707,16 +2718,11 @@ function renderDashboard(){
       <div class="cat-bar-row">
         <div class="cat-bar-label">${c.icon} ${c.label}</div>
         <div class="cat-bar-track">
-          <div class="cat-bar-fill" style="width:0%;background:${c.color}" data-target="${Math.round((c.count/max)*100)}"></div>
+          <div class="cat-bar-fill" style="width:${Math.round((c.count/max)*100)}%;background:${c.color}"></div>
         </div>
         <div class="cat-bar-count">${c.count}</div>
       </div>`).join('');
-    // Animate bars
-    setTimeout(()=>{
-      chartEl.querySelectorAll('.cat-bar-fill').forEach(bar=>{
-        bar.style.width=bar.dataset.target+'%';
-      });
-    },50);
+    // (as barras crescem por CSS, só com «transform»: a animar a largura, o browser recalculava a página 60×/s durante 0,8 s a cada desenho do Início)
   } else if(chartEl){
     chartEl.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);padding:10px 0">${currentLang==='en'?'No entries yet.':'Sem entradas ainda.'}</div>`;
   }
@@ -6694,8 +6700,8 @@ function renderTotp(){
 }
 setInterval(()=>{
   if((!masterKey&&!presentationMode)||!totp.length||document.hidden)return;
-  const grid=document.getElementById('totp-grid');
-  if(!grid||!grid.offsetParent)return;
+  const tabT=document.getElementById('tab-totp');
+  if(!tabT||!tabT.classList.contains('active')||!document.getElementById('app').classList.contains('visible'))return; // sem medir a página (offsetParent obrigava a calcular o layout a cada segundo)
   const now=Math.floor(Date.now()/1000);
   let needRefresh=false;
   for(const t2 of totp){
@@ -6748,8 +6754,14 @@ function avIdle(){return performance.now()-AV_IDLE.last>AV_IDLE.ms;}
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Animações SVG só correm se estiverem à vista (as do ecrã de entrada continuavam a correr por trás da app: ~300 recálculos de estilo por segundo)
   // (procura pelas etiquetas <animate>: o seletor :has() em svg custava ~120 ms por chamada com um cofre grande num telemóvel lento)
-  const smil=on=>{const l=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)l.add(v.ownerSVGElement||v);});
-    l.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+  // (a lista dos SVG animados faz-se uma vez: estão todos no index.html. Antes procurava-se na página inteira a cada troca de aba e a cada 5 s)
+  let roots=null,parked=false;
+  const smil=on=>{
+    if(!roots){roots=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)roots.add(v.ownerSVGElement||v);});}
+    const still=avSkin()!=='classico'||document.documentElement.getAttribute('data-motion')==='desligado'; // estilos novos: estes SVG nem se veem
+    if(still){if(!parked){parked=true;roots.forEach(v=>{try{v.pauseAnimations();}catch(e){}});}return;}
+    parked=false;
+    roots.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
   // Sem atividade: as animações decorativas em ciclo (brilhos, manchas do fundo, ícones a flutuar) param até ao próximo toque
   const still=on=>document.documentElement.classList.toggle('av-still',on);
   window.avSmilSync=()=>smil(!AV_IDLE.asleep);
@@ -7578,7 +7590,7 @@ function renderSub2(){
   el.innerHTML=items.map((w,i)=>`<span class="sub2-word${i===(sub2Idx%items.length)?' active':''}">${w}</span>`).join('<span class="sub2-sep">·</span>');
 }
 setInterval(()=>{
-  if(document.hidden)return;
+  if(document.hidden||(typeof masterKey!=='undefined'&&masterKey)||avSkin()!=='classico')return; // só no ecrã de entrada do Clássico
   const el=document.getElementById('l-sub2');
   if(!el||!el.offsetParent)return;
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -11467,20 +11479,23 @@ function avCopyPw(id){const e=avEntry(id);if(e&&e.pw)copyText(e.pw,t('pwCopied')
 function avGoSite(id){const e=avEntry(id);if(e&&e.url)goToSiteEntry(e.url,e.pw);}
 function avReadTogglePw(id){const e=avEntry(id),el=document.getElementById('read-pw');if(!e||!el)return;el.textContent=el.classList.contains('masked')?e.pw:'••••••••••••';el.classList.toggle('masked');}
 let _avChunk={tok:0,grid:null,arr:null,i:0};
+// Os lotes seguintes só entram depois de o anterior estar pintado (um rAF + um temporizador = já passou um fotograma) e em tempo livre:
+// antes, o 2.º lote entrava antes do 1.º fotograma — abrir o Cofre desenhava logo os cartões todos.
+function avChunkLater(f){requestAnimationFrame(()=>setTimeout(()=>(window.requestIdleCallback?requestIdleCallback(f,{timeout:200}):f()),0));}
 function avChunkRender(grid,head,arr){
-  const tok=++_avChunk.tok,FIRST=40,STEP=60;
-  _avChunk.grid=grid;_avChunk.arr=arr;_avChunk.i=Math.min(FIRST,arr.length);
+  const tok=++_avChunk.tok,FIRST=innerWidth>1000?18:8,STEP=12; // 1.º lote = o que cabe no ecrã; depois, lotes pequenos (não travam o deslizar)
+  _avChunk.grid=grid;_avChunk.arr=arr;_avChunk.i=Math.min(FIRST,arr.length);_avChunk.wait=null;
   grid.innerHTML=head+arr.slice(0,_avChunk.i).join('');
   const next=()=>{
     if(tok!==_avChunk.tok||_avChunk.i>=arr.length)return;
     // aba escondida (ex.: o Início depois de desbloquear): os lotes seguintes esperam até o Cofre ser aberto
     const tab=grid.closest('[id^="tab-"]');if(tab&&!tab.classList.contains('active')){_avChunk.wait=next;return;}
     grid.insertAdjacentHTML('beforeend',arr.slice(_avChunk.i,_avChunk.i+STEP).join(''));_avChunk.i+=STEP;
-    if(_avChunk.i<arr.length)(window.requestIdleCallback?requestIdleCallback(next,{timeout:100}):setTimeout(next,16));
+    if(_avChunk.i<arr.length)avChunkLater(next);
   };
-  if(_avChunk.i<arr.length)setTimeout(next,0);
+  if(_avChunk.i<arr.length)avChunkLater(next);
 }
-function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;(window.requestIdleCallback?requestIdleCallback(f,{timeout:250}):setTimeout(f,60));} // depois de o Cofre aparecer
+function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;avChunkLater(f);} // depois de o Cofre aparecer
 function avFlushChunks(){const c=_avChunk;c.wait=null;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
 
 
@@ -12428,7 +12443,7 @@ function avSwStart(dir){
   const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;if(i<0||j<0||j>=gs.length)return false;
   const tg=gs[j],leaf=lastLeafOf[tg]||TAB_GROUPS[tg][0];
   const out=document.getElementById('tab-'+avCurTab),inn=document.getElementById('tab-'+leaf);if(!out||!inn||out===inn)return false;
-  try{if(leaf==='trash')renderTrash();if(leaf==='totp')renderTotp();if(leaf==='info')renderInfo();if(leaf==='store')renderStoreCards();if(['warranty','license','vehicle','dates'].includes(leaf))renderAssets(leaf);}catch(e){}
+  try{avTabFresh(leaf);}catch(e){}
   const sy=window.scrollY||0,tb=document.getElementById('grp-btn-dashboard').parentElement,tbR=tb.getBoundingClientRect(),tbTop0=tbR.top+sy,tbBot0=tbR.bottom+sy;
   const tpB=Math.max(0,Math.round((document.querySelector('.topbar')||tb).getBoundingClientRect().bottom)),scrolled=sy>1;
   const topMain=scrolled||!tbR.height?tpB:Math.max(0,Math.round(tbR.bottom));
@@ -12667,7 +12682,7 @@ function avTabKey(k){const el=document.getElementById('tab-'+k);let ui='';if(el)
   return avDataVer+'|'+currentLang+'|'+(typeof currentFolderId!=='undefined'?currentFolderId:'')+'|'+(typeof currentVaultFolderId!=='undefined'?currentVaultFolderId:'')+'|'+(typeof privacyOn!=='undefined'?privacyOn:'')+'|'+avMode()+'|'+JSON.stringify(avHiddenTabs())+'|'+ui+'|'+(k==='dashboard'?new Date().toDateString()+' '+new Date().getHours():'');}
 function avOnce(k,fn,arg){const key=avTabKey(k);if(AV_ONCE[k]===key)return;AV_ONCE[k]=key;fn(arg);}
 (function(){if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){avDataVer++;return mu.apply(this,arguments);};}
-  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{['dashboard','archive','notes','cards','docs','trash'].forEach(t=>{AV_ONCE[t]=avTabKey(t);});}catch(e){}  /* só as que o renderAll desenha de facto */return r;};}})();
+  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{const c=avActiveTab();if(c!=='totp')AV_ONCE[c]=avTabKey(c);}catch(e){}  /* só a aba à vista foi desenhada; as outras ficam por desenhar até serem abertas */return r;};}})();
 
 
 /* ══ v9.92 — AVISO DE NOVA VERSÃO ══
@@ -14368,7 +14383,12 @@ function avxEnhance(box){
   extra.forEach(b=>{b.setAttribute('role','menuitem');menu.appendChild(b);});
   box.append(more,menu);
 }
-function avxScan(){AVX.raf=0;document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance);if(AVX.btn&&!AVX.btn.isConnected)avxClose();}
+function avxScan(){
+  AVX.raf=0;
+  if(AVX.q){const q=AVX.q;AVX.q=null;q.forEach(b=>{if(b.isConnected&&!b.dataset.avx)avxEnhance(b);});}
+  else document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance); // 1.ª vez: a página toda
+  if(AVX.btn&&!AVX.btn.isConnected)avxClose();
+}
 function avxMore(btn){
   const was=AVX.btn;if(AVX.menu)avxClose();if(was===btn)return;
   const menu=btn.nextElementSibling;if(!menu||!menu.classList.contains('cbx-menu'))return;
@@ -14395,8 +14415,9 @@ function avxClose(focus){
   if(typeof document==='undefined')return;
   const go=()=>{if(!AVX.raf)AVX.raf=requestAnimationFrame(avxScan);};
   // só quando entram cartões novos (antes revia a página inteira a cada mudança — até a cada letra que a Aurora escreve)
-  const hasCard=n=>n.nodeType===1&&(n.matches('.card-actions')||!!n.querySelector('.card-actions'));
-  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(hasCard(n))return go();}).observe(document.documentElement,{childList:true,subtree:true});go();
+  // junta só os cartões que entraram (antes procurava-se na página inteira a cada lote)
+  const add=n=>{if(n.nodeType!==1)return;const q=AVX.q||(AVX.q=new Set());if(n.matches('.card-actions'))q.add(n);n.querySelectorAll('.card-actions:not([data-avx])').forEach(b=>q.add(b));};
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)add(n);if(AVX.q&&AVX.q.size)go();else AVX.q=null;}).observe(document.documentElement,{childList:true,subtree:true});go();
   document.addEventListener('click',e=>{if(AVX.menu&&!(AVX.btn&&AVX.btn.contains(e.target)))avxClose();});
   document.addEventListener('keydown',e=>{
     if(!AVX.menu)return;
@@ -14929,3 +14950,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')skMoreClose();});
 function skMoreGo(fn,arg){skMoreClose();const f=avFn(fn);if(f)setTimeout(()=>arg?f(arg):f(),30);}
 
 try{skDecorate();skArtBuild();}catch(e){console.warn('Estilos:',e);}
+
+/* ══ v12 — FLUIDEZ ══
+   · Só se desenha a aba à vista (renderAll em 06-abas-idioma.js); as outras desenham-se ao abrir.
+   · Ao bloquear, as abas ficam vazias: antes, os cartões do cofre continuavam na página (escondidos) até ao desbloqueio
+     seguinte — agora, com o cofre fechado, a página não guarda nada dele. */
+function avTabsClear(){
+  if(typeof masterKey!=='undefined'&&masterKey)return;
+  avDataVer++;
+  [...Object.keys(AV_TAB_RENDER),'totp',...AV_ASSET_TABS].forEach(t=>{try{avTabDraw(t);}catch(e){}});
+  for(const k in AV_ONCE)delete AV_ONCE[k];
+}
+if(typeof lockApp==='function'){const _fl=lockApp;lockApp=function(){const demo=typeof presentationMode!=='undefined'&&presentationMode;const r=_fl.apply(this,arguments);if(!demo)try{avTabsClear();}catch(e){}return r;};}
