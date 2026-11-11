@@ -22,7 +22,7 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 | --- | --- |
 | `index.html` | Estrutura da página |
 | `styles.css` | Aparência (base e estilo Clássico) |
-| `skin.css` | Estilos Ónix & Ouro e Nórdico: ecrã de entrada (Lanterna, Constelação, Voz da Aurora), menu lateral no PC, barra de baixo no telemóvel |
+| `skin.css` | Estilos Safira & Platina, Ónix & Ouro e Nórdico: ecrã de entrada (Joia, Lanterna, Constelação, Voz da Aurora), menu lateral no PC, barra de baixo no telemóvel |
 | `js/skin-boot.js` | Aplica o estilo, o ecrã de entrada e o movimento escolhidos antes de a página se desenhar |
 | `js/crypto.js` | Encriptação do cofre (AES-256-GCM, PBKDF2, formato do ficheiro) — testada à parte |
 | `js/actions.js` | Botões e campos sem código dentro do HTML (`data-act`, `data-input`…) |
@@ -33,7 +33,7 @@ App web instalável (PWA), publicada com GitHub Pages: <https://ciphervault-pt.g
 | `vendor/jsqr.js` | Leitor de QR (só é descarregado quando se usa a câmara num browser sem leitor próprio) |
 | `vendor/tesseract-5.1.1/` | OCR (ler validades e documentos em fotos), com os dicionários PT e EN — só descarregado quando se usa |
 | `vendor/pdfjs-3.11.174/` | Leitura de PDFs anexados — só descarregado quando se usa |
-| `vendor/fonts/` | Fontes Playfair Display, JetBrains Mono, Bodoni Moda, Inter, Fraunces e Manrope (licença OFL) — cada estilo só descarrega as suas |
+| `vendor/fonts/` | Fontes Playfair Display, JetBrains Mono, Marcellus, Jost, Bodoni Moda, Inter, Fraunces e Manrope (licença OFL) — cada estilo só descarrega as suas |
 | `tests/` | Testes automáticos (Playwright) |
 
 Não há passo de compilação: os ficheiros são publicados tal como estão.

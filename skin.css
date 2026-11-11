@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════════════════════════
-   Aurora Vault — ESTILOS (v11): Ónix & Ouro e Nórdico. O Clássico fica todo em styles.css.
+   Aurora Vault — ESTILOS (v11, v12): Safira & Platina, Ónix & Ouro e Nórdico. O Clássico fica todo em styles.css.
    Tudo aqui está dentro de html[data-skin=…] / html.sk-new (posto por js/skin-boot.js antes de a página se desenhar).
    Estilos novos = sem fotografia, sem céu WebGL e sem fundo animado: ficam leves. As fontes só são
    descarregadas quando o estilo que as usa está escolhido.
@@ -28,10 +28,35 @@
 @font-face{font-family:'Manrope';font-style:normal;font-display:swap;font-weight:600;src:url(vendor/fonts/manrope-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Manrope';font-style:normal;font-display:swap;font-weight:700;src:url(vendor/fonts/manrope-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Manrope';font-style:normal;font-display:swap;font-weight:700;src:url(vendor/fonts/manrope-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Marcellus';font-style:normal;font-display:swap;font-weight:400;src:url(vendor/fonts/marcellus-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Marcellus';font-style:normal;font-display:swap;font-weight:400;src:url(vendor/fonts/marcellus-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Jost';font-style:normal;font-display:swap;font-weight:400;src:url(vendor/fonts/jost-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Jost';font-style:normal;font-display:swap;font-weight:400;src:url(vendor/fonts/jost-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Jost';font-style:normal;font-display:swap;font-weight:500;src:url(vendor/fonts/jost-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Jost';font-style:normal;font-display:swap;font-weight:500;src:url(vendor/fonts/jost-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Jost';font-style:normal;font-display:swap;font-weight:600;src:url(vendor/fonts/jost-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Jost';font-style:normal;font-display:swap;font-weight:600;src:url(vendor/fonts/jost-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @property --mx{syntax:'<length-percentage>';inherits:true;initial-value:30%}
 @property --my{syntax:'<length-percentage>';inherits:true;initial-value:32%}
 
 /* ── Tokens ── */
+html[data-skin="safira"]{
+  --f-body:'Jost',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--f-display:'Marcellus',Georgia,'Times New Roman',serif;
+  --f-code:'Jost',system-ui,sans-serif;--f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sk-foil:linear-gradient(135deg,#f6f8ff,#c9d3e8 40%,#8794b3 58%,#e9eefb 80%,#c9d3e8);
+  --sk-gold:linear-gradient(135deg,#f3f6ff,#cdd6ea 45%,#98a5c5 74%,#e3e9f8);--sk-on-gold:#0a1024;
+  --sk-opal:conic-gradient(#bdf5e2,#bfe3ff,#d9ccff,#ffd3e8,#ffebc6,#bdf5e2);
+  --sk-rgb:conic-gradient(from 200deg,#00e6a8,#1fb6ff,#7b5cff,#ff5fb8,#ffcf5a,#00e6a8);
+  --sk-r:3px;--sk-r2:4px;--sk-pill:0px;--sk-ch:9px;--sk-seal-bg:#0a0f1e;--sk-line:rgba(201,211,232,.36);
+  --sk-sky:radial-gradient(ellipse 72% 52% at 50% -10%,rgba(46,84,214,.36),rgba(7,10,19,0) 70%),radial-gradient(ellipse 50% 42% at 100% 100%,rgba(30,58,160,.2),rgba(7,10,19,0) 70%);
+  --bg:#070a13;--panel:#0c1120;--card:#101728;--border:#1f2942;--text:#eef2fb;--text-muted:#9aa6c0;--accent:#c9d3e8;--accent-ink:#dbe4f7;--accent-rgb:201,211,232;--accent-dim:#7d89a8;
+}
+html[data-skin="safira"][data-theme="light"]{
+  --sk-foil:linear-gradient(135deg,#3f5bd8,#22378f 45%,#5b78ee 70%,#2c43b0);--sk-gold:linear-gradient(135deg,#5670e6,#3f5bd8 45%,#2c43b0 78%,#4a66de);--sk-on-gold:#ffffff;
+  --sk-seal-bg:#fafbfe;--sk-line:rgba(63,91,216,.38);
+  --sk-sky:radial-gradient(ellipse 72% 52% at 50% -10%,rgba(92,122,240,.2),rgba(243,245,250,0) 70%),radial-gradient(ellipse 50% 42% at 100% 100%,rgba(140,160,240,.16),rgba(243,245,250,0) 70%);
+  --bg:#f3f5fa;--panel:#fafbfe;--card:#ffffff;--border:#dde2ee;--text:#131a2b;--text-muted:#56617a;--accent:#3f5bd8;--accent-ink:#2c43b0;--accent-rgb:63,91,216;--accent-dim:#6f84dd;
+}
 html[data-skin="onix"]{
   --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--f-display:'Bodoni Moda',Georgia,'Times New Roman',serif;
   --f-code:'Bodoni Moda',Georgia,serif;--f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
@@ -65,6 +90,8 @@ html[data-skin="nordico"][data-theme="light"]{
   --bg:#f3f1ea;--panel:#fbfaf6;--card:#ffffff;--border:#dbe2da;--text:#1b2a26;--text-muted:#52665f;--accent:#b8792c;--accent-ink:#80521a;--accent-rgb:184,121,44;--accent-dim:#a26a26;
 }
 /* o ecrã de entrada do Clássico define as cores dele (#lock-screen.aurora): nos estilos novos repõem-se as do estilo */
+html[data-skin="safira"] #lock-screen.aurora{--bg:#070a13;--panel:#0c1120;--card:#101728;--border:#1f2942;--text:#eef2fb;--text-muted:#9aa6c0;--accent-ink:#dbe4f7}
+html[data-skin="safira"][data-theme="light"] #lock-screen.aurora{--bg:#f3f5fa;--panel:#fafbfe;--card:#ffffff;--border:#dde2ee;--text:#131a2b;--text-muted:#56617a;--accent-ink:#2c43b0}
 html[data-skin="onix"] #lock-screen.aurora{--bg:#0b0b0c;--panel:#121214;--card:#161618;--border:#2b2825;--text:#f2eee6;--text-muted:#a8a296;--accent-ink:#e6cb7e}
 html[data-skin="onix"][data-theme="light"] #lock-screen.aurora{--bg:#f5f1e9;--panel:#fbf8f2;--card:#ffffff;--border:#e3dac8;--text:#1d1a16;--text-muted:#665f52;--accent-ink:#765a15}
 html[data-skin="nordico"] #lock-screen.aurora{--bg:#0e1a17;--panel:#13231f;--card:#172925;--border:#24403a;--text:#eef3ee;--text-muted:#9fb3ab;--accent-ink:#f5cf92}
@@ -133,6 +160,7 @@ html.sk-new .sk-art{display:flex;flex-direction:column;align-items:center;gap:18
 .sk-stage{position:relative}
 .sk-txt{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .sk-brand{display:flex;align-items:center;gap:14px}
+.sk-brand span{white-space:nowrap}
 .sk-brand i{width:36px;height:1px;background:linear-gradient(90deg,transparent,var(--accent))}
 .sk-brand i:last-child{background:linear-gradient(90deg,var(--accent),transparent)}
 .sk-brand span,.sk-hello{font-family:var(--f-display);font-weight:500;font-size:1.45rem;letter-spacing:8px;background:var(--sk-foil);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -144,7 +172,7 @@ html[data-skin="nordico"] .sk-brand span{letter-spacing:3px;font-weight:600}
 /* selo AV */
 .sk-seal{position:absolute;left:50%;top:50%;width:27.5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:var(--sk-seal-bg);border:1px solid var(--accent);box-shadow:0 0 0 5px var(--sk-seal-bg),0 0 0 6px var(--sk-line);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;z-index:2;transition:box-shadow .3s ease,transform .2s ease}
 .sk-seal span{font-family:var(--f-display);font-weight:500;font-size:clamp(28px,8vw,46px);background:var(--sk-foil);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
-.sk-seal:focus-visible,.sk-orb:focus-visible{outline:1px solid var(--accent);outline-offset:8px}
+.sk-seal:focus-visible,.sk-orb:focus-visible,.sk-gem-btn:focus-visible{outline:1px solid var(--accent);outline-offset:8px}
 .sk-seal:active{transform:translate(-50%,-50%) scale(.97)}
 .sk-seal.bio::after{content:'';position:absolute;inset:-7px;border-radius:50%;border:1px solid var(--accent);opacity:0;animation:skPing 2.4s ease-out infinite}
 @keyframes skPing{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.5);opacity:0}}
@@ -193,7 +221,31 @@ html[data-motion="completo"] .sk-orb{animation:skBreath 5s ease-in-out infinite}
 @keyframes skBreath{50%{transform:scale(1.035)}}
 .sk-bars{display:flex;align-items:center;justify-content:center;gap:4px;height:60px;margin-top:6px}
 .sk-bars i{display:block;width:4px;height:var(--h);border-radius:2px;background:var(--c);transition:height .22s ease}
+/* Joia: pedra lapidada (as cores das faces são postas pelo JS conforme a luz), raios déco e um brilho por trás */
+.sk-joia{width:min(380px,82vw);aspect-ratio:1;--g:63,100,240}
+html[data-skin="onix"] .sk-joia{--g:201,150,60}
+html[data-skin="nordico"] .sk-joia{--g:60,200,150}
+.sk-joia::before{content:'';position:absolute;inset:-7%;border-radius:50%;pointer-events:none;background:repeating-conic-gradient(from 0deg,rgba(var(--accent-rgb),.3) 0 .5deg,transparent .5deg 7.5deg);-webkit-mask:radial-gradient(circle,transparent 46.5%,#000 47%,transparent 70%);mask:radial-gradient(circle,transparent 46.5%,#000 47%,transparent 70%)}
+.sk-joia::after{content:'';position:absolute;inset:-4%;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(var(--g),.34),rgba(var(--g),.1) 46%,transparent 66%)}
+.sk-gem-btn{position:absolute;inset:0;z-index:1;border:0;padding:0;background:none;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sk-gem-btn:active .sk-gem{transform:scale(.985)}
+.sk-gem-btn.bio::after{content:'';position:absolute;inset:6%;border-radius:50%;border:1px solid var(--accent);opacity:0;animation:skPing 2.4s ease-out infinite}
+.sk-gem{display:block;width:100%;height:100%;overflow:visible;transition:transform .2s ease}
+.sk-gem-f polygon{stroke:rgba(225,233,255,.46);stroke-width:.6;stroke-linejoin:round}
+.sk-gem-cu{fill:rgba(255,255,255,.12);stroke:rgba(225,233,255,.6);stroke-width:.6}
+.sk-gem-rim{fill:none;stroke:var(--accent);stroke-opacity:.8;stroke-width:1}
+.sk-gem-rim2{fill:none;stroke:var(--accent);stroke-opacity:.3;stroke-width:.7}
+html[data-theme="light"] .sk-gem-f polygon{stroke:rgba(255,255,255,.72)}
+html[data-theme="light"] .sk-gem-cu{fill:rgba(255,255,255,.4);stroke:rgba(255,255,255,.85)}
+html[data-theme="light"] .sk-joia::after{background:radial-gradient(circle,rgba(var(--g),.22),rgba(var(--g),.07) 46%,transparent 66%)}
+.sk-serial{font:500 .6rem/1 var(--f-body);letter-spacing:4px;color:var(--text-muted)}
 /* abertura (~0,5 s) depois de o cofre abrir */
+#lock-screen.sk-opening .sk-gem-f polygon{transform-box:fill-box;transform-origin:center;animation:skGemBurst .46s cubic-bezier(.3,.6,.2,1) forwards;animation-delay:calc(var(--r) * 20ms)}
+#lock-screen.sk-opening .sk-gem-cu,#lock-screen.sk-opening .sk-gem-rim,#lock-screen.sk-opening .sk-gem-rim2{transform-box:fill-box;transform-origin:center;animation:skGemRim .42s ease forwards}
+#lock-screen.sk-opening .sk-joia::after{animation:skGemGlow .46s ease forwards}
+@keyframes skGemBurst{to{transform:translate(var(--dx),var(--dy)) scale(.3) rotate(38deg);opacity:0}}
+@keyframes skGemRim{to{transform:scale(1.7);opacity:0}}
+@keyframes skGemGlow{to{transform:scale(2.6);opacity:.95}}
 #lock-screen.sk-opening .sk-full{animation:skReveal .36s cubic-bezier(.3,.7,.2,1) forwards}
 #lock-screen.sk-opening .sk-seal{animation:skSealOn .3s ease forwards}
 #lock-screen.sk-opening .sk-st{animation:skStarOn .18s ease forwards;animation-delay:calc(var(--i) * 32ms)}
@@ -222,6 +274,9 @@ html[data-motion="completo"] .sk-orb{animation:skBreath 5s ease-in-out infinite}
   .sk-lan{width:min(270px,66vw)}
   html.sk-new .lpanel-welcome{display:none}
   html.sk-new .lpanel-sub{margin-bottom:14px}
+  .sk-joia{width:min(250px,62vw)}
+  html[data-skin="safira"] .sk-brand span{letter-spacing:6px}
+  .sk-serial{font-size:.56rem;letter-spacing:3.4px}
   .sk-con{width:min(270px,72vw);padding-top:18px}
   .sk-art[data-kind="constelacao"] .sk-brand{display:none}
   .sk-con .sk-seal{width:54px}
@@ -311,9 +366,16 @@ html.sk-new[data-motion="suave"] .aur-caret{opacity:0}
 html.sk-new #app>[id^="tab-"].active{animation:none!important}
 html.sk-new[data-motion="suave"] #aurora-panel::before,html.sk-new[data-motion="suave"] .a-logo svg{animation:none!important}
 html.sk-new[data-motion="suave"] #aurora-panel::before{background-size:100% 100%!important}
+html.sk-new[data-motion="suave"] .empty-state svg{animation:none!important} /* a ilustração dos ecrãs vazios não fica a flutuar sem parar */
 
 /* avisos curtos: não tapam toques */
 html.sk-new .toast{pointer-events:none;font-size:.7rem;letter-spacing:.3px;line-height:1.5;border-radius:var(--sk-r);max-width:min(520px,calc(100vw - 20px))}
+
+/* modo claro dos estilos novos: avisos, vistos e feriados com tinta escura (as cores de origem são para fundo escuro) */
+html[data-theme="light"].sk-new :is(.avw-h b,.avw-chips span){color:var(--red)}
+html[data-theme="light"].sk-new .av-step.done .dot{color:#fff}
+html[data-theme="light"].sk-new .cal-day.holiday .cal-day-num{color:#6b4fb0}
+html[data-theme="light"].sk-new .card-cat-badge{filter:brightness(.72) saturate(1.35)}
 
 /* cartões, janelas e botões */
 html.sk-new .dcard,html.sk-new .entry-card,html.sk-new .totp-card,html.sk-new .doc-card,html.sk-new .folder-card,html.sk-new .trash-card,html.sk-new .asset-card,html.sk-new .dash-card{border-radius:var(--sk-r)}
@@ -342,16 +404,60 @@ html.sk-new #t2-bio-btn,html.sk-new #t2-rec-btn,html.sk-new #t2-setup-btn{border
 html.sk-new #t2-links .unlock-link{font-family:var(--f-display);font-style:italic;font-size:.98rem;letter-spacing:0;color:var(--accent-ink)}
 html[data-skin="nordico"] #t2-links .unlock-link{font-style:normal;font-family:var(--f-body);font-size:.84rem}
 
+/* ══ SAFIRA & PLATINA (v12): Art Déco — azul-safira profundo, platina e cantos facetados ══ */
+html[data-skin="safira"]{--sk-bar-rgb:7,10,19}
+html[data-skin="safira"][data-theme="light"]{--sk-bar-rgb:243,245,250}
+/* a Marcellus só tem redondo: nada de itálico inventado pelo browser */
+html[data-skin="safira"] :is(.lpanel-sub,.sk-hint,#lock-screen .unlock-link,#t2-links .unlock-link,.aur-launch-txt b){font-style:normal;font-family:var(--f-body)}
+html[data-skin="safira"] .lpanel-sub,html[data-skin="safira"] .sk-hint{font-size:.95rem;letter-spacing:.2px}
+html[data-skin="safira"] #lock-screen .unlock-link,html[data-skin="safira"] #t2-links .unlock-link{font-size:.84rem;letter-spacing:.4px}
+html[data-skin="safira"] .aur-launch-txt b{font-weight:600;font-size:.98rem}
+html[data-skin="safira"] .lpanel-welcome{font-size:2.3rem;letter-spacing:1px}
+html[data-skin="safira"] .sk-brand span{font-weight:400;letter-spacing:9px}
+html[data-skin="safira"] .modal-title,html[data-skin="safira"] .t2-lock-title,html[data-skin="safira"] .sk-more-h{letter-spacing:.8px}
+html[data-skin="safira"] .totp-code{font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:5px}
+/* botões principais com os cantos cortados, como uma pedra lapidada */
+html[data-skin="safira"] :is(.lk-enter,#lock-screen .btn-gold,#lock-screen #bio-btn,#lock-screen .lock-choice.gold,.btn-gold,.tb-add-main,#t2-bio-btn,#t2-setup-btn){clip-path:polygon(var(--sk-ch) 0,calc(100% - var(--sk-ch)) 0,100% var(--sk-ch),100% calc(100% - var(--sk-ch)),calc(100% - var(--sk-ch)) 100%,var(--sk-ch) 100%,0 calc(100% - var(--sk-ch)),0 var(--sk-ch));box-shadow:none}
+html[data-skin="safira"] :is(.lk-enter,#lock-screen .btn-gold,#lock-screen #bio-btn,#lock-screen .lock-choice.gold,.btn-gold,.tb-add-main,#t2-bio-btn,#t2-setup-btn):focus-visible{outline:2px solid var(--sk-on-gold);outline-offset:-5px}
+html[data-skin="safira"] .btn-gold,html[data-skin="safira"] .tb-add-main{--sk-ch:7px}
+html[data-skin="safira"] #lock-screen .lock-choice.gold .lock-choice-sub{color:rgba(10,16,36,.74)}
+html[data-skin="safira"][data-theme="light"] #lock-screen .lock-choice.gold .lock-choice-sub{color:rgba(255,255,255,.9)}
+@media(max-width:768px){html[data-skin="safira"] body.av-app-on #av-fab-add{border-radius:0;box-shadow:none;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)}}
+/* cantos direitos em tudo o que é caixa ou botão (a Aurora AI mantém as formas dela) */
+html[data-skin="safira"] :is(.lnav-badge,.tb-add,.aur-alerts,.avw-row,.av-onb,.av-step,.av-tip,.av-step .sb,.av-opt,.vault-securebar,.breach-cta,.card-btn,.pw-age-badge,.t2-lock,.av-cc-reveal,.doc-filter-btn,.av-seg,.dq-guide,.dq-open,#av-nudge,.av-nudge-b,.cat-item,.topbar-actions button,.tb-saved,.tb-lock-btn,#totp-shield-btn,#totp-ga-btn){border-radius:var(--sk-r)}
+/* a marca com uma pequena pedra; cartões com a aresta de cima a apanhar a luz */
+html[data-skin="safira"] .topbar-logo{font-weight:400}
+html[data-skin="safira"] .topbar-logo::before{content:'';display:inline-block;width:.78em;height:.78em;margin-right:.72em;vertical-align:-.05em;background:conic-gradient(from 22.5deg,#6f8aff 0 45deg,#16307e 0 90deg,#3f5bd8 0 135deg,#0e1c4a 0 180deg,#00e6a8 0 225deg,#1e3aa0 0 270deg,#7b5cff 0 315deg,#122256 0);clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)}
+@media(min-width:1024px){html[data-skin="safira"] .topbar-logo{letter-spacing:3.2px;font-size:.94rem}}
+html[data-skin="safira"] :is(.dcard,.entry-card,.totp-card,.doc-card,.folder-card,.trash-card,.asset-card,.dash-card){border-top-color:rgba(var(--accent-rgb),.36)}
+/* estrelas e selo em platina (em vez de ouro) */
+html[data-skin="safira"] .sk-st{fill:#6b7896}
+html[data-skin="safira"] .sk-st.lit{fill:#f4f7ff}
+html[data-skin="safira"][data-theme="light"] .sk-st{fill:#a9b4d6}
+html[data-skin="safira"][data-theme="light"] .sk-st.lit{fill:var(--accent)}
+html[data-skin="safira"] #lock-screen.sk-opening .sk-st{animation-name:skStarOnS}
+html[data-skin="safira"] #lock-screen.sk-opening .sk-seal{animation-name:skSealOnS}
+@keyframes skStarOnS{to{fill:#f4f7ff;transform:scale(1.8)}}
+@keyframes skSealOnS{to{box-shadow:0 0 0 5px var(--sk-seal-bg),0 0 0 6px #e9eefb,0 0 70px 24px rgba(92,122,240,.5)}}
+/* modo claro (Madrepérola): texto branco sobre o azul-safira */
+html[data-skin="safira"][data-theme="light"] :is(.view-btn.active,.timeout-btn.active,.theme-mode-tab.active,#tb-more-menu .tbm-seg button.on,.aur-launch-go,.aurora-msg.me,.aurora-in button,.av-step.next .sb){color:#fff}
+html[data-skin="safira"][data-theme="light"].sk-new .modal-overlay{background:rgba(18,26,58,.38)}
+html[data-skin="safira"][data-theme="light"] .sk-bn-aur svg{stroke:#4f46d8}
+
 /* Definições → Aspeto */
 .sk-opts{display:grid;gap:8px;margin-bottom:12px}
 .sk-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .sk-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sk-5{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:560px){.sk-5{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .sk-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 8px 10px;border-radius:var(--sk-r,6px);border:1px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-width:0;transition:border-color .2s}
 .sk-opt:hover{border-color:var(--accent-dim)}
 .sk-opt.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .sk-opt b{font-size:.78rem;font-weight:600;letter-spacing:.3px}
 .sk-opt small{font-size:.64rem;line-height:1.35;color:var(--text-muted)}
 .sk-thumb{display:block;width:100%;height:58px;border-radius:calc(var(--sk-r,6px) - 2px);position:relative;overflow:hidden}
+.sk-th-safira{background:radial-gradient(circle at 50% 50%,transparent 24px,rgba(201,211,232,.7) 24.5px,transparent 25.5px),radial-gradient(circle at 50% 50%,transparent 21px,#070a13 21.5px),conic-gradient(from 22.5deg,#6f8aff 0 45deg,#16307e 0 90deg,#3f5bd8 0 135deg,#0e1c4a 0 180deg,#00e6a8 0 225deg,#1e3aa0 0 270deg,#7b5cff 0 315deg,#122256 0)}
+.sk-th-joia{background:radial-gradient(circle at 46% 42%,#a9bcff 0,#3f5bd8 5px,#16307e 11px,#0c1838 14.5px,transparent 15px),radial-gradient(circle at 50% 50%,#070a13 19px,transparent 19.5px),repeating-conic-gradient(from 0deg,rgba(201,211,232,.42) 0 1.4deg,transparent 1.4deg 15deg),#070a13}
 .sk-th-onix{background:radial-gradient(circle at 50% 50%,transparent 15px,rgba(201,168,76,.5) 16px,transparent 17px),repeating-radial-gradient(ellipse at 50% 50%,rgba(201,168,76,.28) 0 1px,transparent 1px 6px),#0b0b0c}
 .sk-th-nordico{background:radial-gradient(ellipse 60% 70% at 30% 0%,rgba(94,230,168,.5),transparent 70%),radial-gradient(ellipse 50% 60% at 80% 0%,rgba(155,123,255,.4),transparent 70%),#0e1a17}
 .sk-th-classico{background:linear-gradient(180deg,rgba(46,204,113,.35),transparent 60%),linear-gradient(180deg,#121a33,#0a0e1a)}
@@ -369,5 +475,5 @@ html[data-skin="nordico"] #t2-links .unlock-link{font-style:normal;font-family:v
 
 /* ══ MOVIMENTO ══ */
 html[data-motion="desligado"] *,html[data-motion="desligado"] *::before,html[data-motion="desligado"] *::after{animation:none!important;transition:none!important}
-html[data-motion="desligado"] .sk-seal.bio::after{display:none}
-@media(prefers-reduced-motion:reduce){.sk-seal.bio::after,.sk-lan,.sk-orb,.sk-orb-flow,.sk-orb-glow,.sk-st{animation:none!important}}
+html[data-motion="desligado"] .sk-seal.bio::after,html[data-motion="desligado"] .sk-gem-btn.bio::after{display:none}
+@media(prefers-reduced-motion:reduce){.sk-seal.bio::after,.sk-gem-btn.bio::after,.sk-lan,.sk-orb,.sk-orb-flow,.sk-orb-glow,.sk-st{animation:none!important}}

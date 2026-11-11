@@ -1215,7 +1215,7 @@ function aurLaunchIdeas(){
   +'#aurora-panel::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,'+G+');background-size:100% 300%;animation:aurFlowY 7s steps(140) infinite;box-shadow:0 0 16px rgba(94,242,201,.55);z-index:2}'
   /* painel fechado (fora do ecrã): as animações dele ficavam a correr e obrigavam a redesenhar sempre */
   +'#aurora-panel:not(.open)::before,#aurora-panel:not(.open) *,#aurora-panel:not(.open) .aur-ring::before{animation-play-state:paused!important}'
-  +'body.aur-docked #app{transition:margin-right .38s cubic-bezier(.2,.8,.2,1)}'
+  /* (sem transição na margem: a app inteira era recalculada a cada fotograma enquanto o painel entrava; assim ajusta-se uma vez) */
   +'@media(min-width:1100px){body.aur-docked #app{margin-right:var(--aur-w)}}'
   +'.aurora-grab{display:none}'
   +'@media(min-width:761px){body.aur-docked .toast,body.aur-docked .clipboard-toast{right:calc(var(--aur-w) + 20px)}}'
