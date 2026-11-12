@@ -138,4 +138,25 @@ test.describe('Ecrã de entrada com cofre memorizado', () => {
     await page.evaluate(() => lockApp());
     await expect(page.locator('#lk-swipe')).toBeVisible();
   });
+
+  test('bloquear logo depois de criar o cofre volta ao cofre memorizado, com o PIN e os dados gravados', async ({ page }) => {
+    await page.addInitScript(() => { delete window.showOpenFilePicker; localStorage.setItem('av_bk_freq', 'off'); });
+    await openApp(page);
+    await page.evaluate(async () => {
+      startNewVault(); document.getElementById('new-pw1').value = document.getElementById('new-pw2').value = 'rightpass';
+      await submitNewVault(); await savePinUnlock('482915');
+      vault.push({ id: 'z', name: 'Depois de abrir', user: 'u', pw: 'Abc!12345xyz', cat: 'email', created: Date.now() });
+      markUnsaved(); await saveFile({ auto: true });
+      lockApp();
+    });
+    // antes ficava no ecrã «Criar cofre» e pedia o ficheiro; agora é igual a abrir a app
+    await page.waitForFunction(() => lockOnPwStep() && !!pendingVaultText);
+    await expect(page.locator('#login-state-new')).toBeHidden();
+    await expect(page.locator('#l-file-name')).toContainText(/dispositivo|device/);
+    await expect(page.locator('#lk-swipe')).toBeVisible();
+    await swipeUp(page);
+    await page.locator('#pin-input').pressSequentially('482915');
+    await page.waitForFunction(() => !!masterKey);
+    expect(await page.evaluate(() => vault.some(e => e.name === 'Depois de abrir'))).toBe(true);
+  });
 });
