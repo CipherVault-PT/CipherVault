@@ -26,7 +26,8 @@ test.describe('Fundo animado', () => {
   test('para durante o scroll e retoma logo a seguir', async ({ page }) => {
     await page.evaluate(() => { setBackground('aurora'); for (let i = 0; i < 80; i++) vault.push({ id: 's' + i, name: 'C' + i, cat: 'email', pw: 'x' }); renderAll(); switchTab('vault'); });
     await page.waitForTimeout(300);
-    const stopped = await page.evaluate(async () => { scrollBy(0, 200); await new Promise(r => setTimeout(r, 50)); return !AuroraBG.isRunning(); });
+    // vê-se no próprio evento de scroll (o da app corre antes); esperar um tempo fixo falhava com a máquina carregada
+    const stopped = await page.evaluate(() => new Promise(res => { addEventListener('scroll', () => res(!AuroraBG.isRunning()), { once: true, passive: true }); scrollBy(0, 200); }));
     expect(stopped).toBe(true);
     await expect.poll(() => page.evaluate(() => AuroraBG.isRunning())).toBe(true);
   });
