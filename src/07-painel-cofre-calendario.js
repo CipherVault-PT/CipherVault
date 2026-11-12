@@ -469,7 +469,10 @@ function renderCards(){
     grid.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><p>${currentVaultFolderId&&!vFilterActive?(enV?'This folder is empty.':'Esta pasta está vazia.'):t('emptyState')}</p></div>`;
     return;
   }
+  let __lastL='';
   const __cards=filtered.map(entry=>{
+    const __L=sortVal==='name'?(String(entry.name||'').trim().charAt(0).toLocaleUpperCase('pt')||'#'):'';
+    const __first=__L&&__L!==__lastL;if(__L)__lastL=__L;
     const bc=`badge-${entry.cat}`,cl=getCatLabel(entry.cat);
     const isOld=entry.pwUpdated&&(now-entry.pwUpdated)>180*86400000;
     const isRecent=entry.pwUpdated&&(now-entry.pwUpdated)<30*86400000;
@@ -481,7 +484,9 @@ function renderCards(){
     const brandSvg=userIcon?null:getBrandIcon(entry);
     const svcIcon=userIcon?userIcon:(brandSvg?`<span class="brand-logo">${brandSvg}</span>`:getServiceIcon(entry.name));
     const ci=vaultCatInfo(entry.cat);
-    return `<div class="entry-card cat-${esc(entry.cat)}${entry.fav?' is-fav':''}" id="card-${esc(entry.id)}"${ci.custom?` style="border-left:3px solid ${esc(ci.color)}"`:''} draggable="true" data-dnd="vault" data-arg="${esc(entry.id)}">
+    return `<div class="entry-card cat-${esc(entry.cat)}${entry.fav?' is-fav':''}" id="card-${esc(entry.id)}"${ci.custom?` style="border-left:3px solid ${esc(ci.color)}"`:''}${__first?` data-l="${esc(__L)}"`:''} draggable="true" data-dnd="vault" data-arg="${esc(entry.id)}">
+      <div class="avn-sub">${esc(entry.user||'')}${isWeak?`<span class="avn-weak">${currentLang==='en'?'weak':'fraca'}</span>`:''}</div>
+      ${entry.pw?`<button class="avn-copy" data-act="avCopyPw" data-arg="${esc(entry.id)}" title="${currentLang==='en'?'Copy password':'Copiar password'}" aria-label="${currentLang==='en'?'Copy password':'Copiar password'}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>`:''}
       <div class="card-top">
         <div class="card-badge-row">
           ${svcIcon?`<span class="service-icon">${svcIcon}</span>`:avMono(entry.name)}

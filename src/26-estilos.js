@@ -72,7 +72,10 @@ function skRenderSettings(){
     ${opt('setEntryStyle','surpresa',c==='surpresa','sk-th-surpresa',en?'Surprise me':'Surpreende-me',en?'A different one each day':'Um diferente cada dia')}
   </div>
   <div class="sk-lbl">${en?'Mode':'Modo'}</div>
-  ${seg('setSkinMode',[['dark',en?'Dark':'Escuro'],['light',en?'Light':'Claro']],dark?'dark':'light')}`:''}
+  ${seg('setSkinMode',[['dark',en?'Dark':'Escuro'],['light',en?'Light':'Claro']],dark?'dark':'light')}
+  <div class="sk-lbl">${en?'Layout':'Disposição'}</div>
+  ${seg('setLayout',[['nova',en?'New':'Nova'],['atual',en?'Previous':'Anterior']],document.documentElement.getAttribute('data-layout')==='atual'?'atual':'nova')}
+  <small class="sk-note">${en?'New: home as a gallery and the vault as a list (tap an account to see it). Previous: the cards from before.':'Nova: Início em galeria e Cofre em lista (toca numa conta para a ver). Anterior: os cartões de antes.'}</small>`:''}
   <div class="sk-lbl">${en?'Motion':'Movimento'}</div>
   ${seg('setMotion',[['completo',en?'Full':'Completo'],['suave',en?'Gentle':'Suave'],['desligado',en?'Off':'Desligado']],m)}
   <small class="sk-note">${m==='desligado'?(en?'No animations — the lightest on the battery.':'Sem animações — o mais leve para a bateria.')
