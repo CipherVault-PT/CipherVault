@@ -126,13 +126,31 @@ test.describe('Aurora percebe o dia a dia', () => {
       const txt = [...box.children].slice(before + 1).map(m => m.innerText.replace(/\s+/g, ' ')).join(' ‖ ');
       if (!new RegExp(reSrc).test(txt)) out.push(q + '  →  ' + txt.slice(0, 160)
         // estado interno no momento da falha (falha intermitente no iPhone: para se perceber a causa)
-        + `  [trace=${AUR.trace} v=${vault.length} d=${documents.length} c=${bankCards.length} idx=${AUR_IDX ? AUR_IDX.E.length : '-'} ver=${AUR_DATA_VER} cands=${(() => { try { const F = aurFrame(q); return F.cands.slice(0, 3).map(e => e.name + ':' + e.score.toFixed(2)).join(',') || '-'; } catch (e) { return 'erro:' + e.message; } })()} aberto=${!!masterKey}]`);
+        + `  [trace=${AUR.trace} v=${vault.length} d=${documents.length} c=${bankCards.length} idx=${AUR_IDX ? AUR_IDX.E.length : '-'} ver=${AUR_DATA_VER} cands=${(() => { try { const F = aurFrame(q); return F.cands.slice(0, 3).map(e => e.name + ':' + e.score.toFixed(2)).join(',') || '-'; } catch (e) { return 'erro:' + e.message; } })()} aberto=${!!masterKey} err=${AUR_IDX_ERR || '-'}]`);
     }
     return out;
   }, cases.map(([q, re]) => [q, re.source]));
 
   test(`${CASES.length} pedidos do dia a dia`, async ({ page }) => {
     expect(await ask(page, CASES)).toEqual([]);
+    // se o índice teve de ser refeito (falha rara no Safari), fica registado o porquê
+    const err = await page.evaluate(() => AUR_IDX_ERR);
+    if (err) console.log('Aurora — índice refeito: ' + err);
+  });
+
+  // v12.3: se a construção do índice falhar a meio (visto raramente no Safari), a Aurora refaz e não guarda um índice vazio
+  test('o índice das entradas nunca fica vazio se a construção falhar', async ({ page }) => {
+    const r = await page.evaluate(() => {
+      const orig = aurIndexAdd; let n = 0;
+      aurIndexAdd = function () { if (n++ < 40) throw new Error('falha simulada'); return orig.apply(this, arguments); };
+      AUR_IDX = null; AUR_IDX_ERR = '';
+      const E = aurIndex(); aurIndexAdd = orig;
+      return { n: E.length, cached: !!AUR_IDX && AUR_IDX.E === E, err: AUR_IDX_ERR };
+    });
+    expect(r.n).toBeGreaterThan(20);
+    expect(r.cached).toBe(true);
+    expect(r.err).toMatch(/falha simulada/);
+    expect(await ask(page, [['tenho a escritura da casa?', /Escritura da casa/]])).toEqual([]);
   });
 
   // v12.3: a conta também pelo utilizador, email ou site; «id» e «login» (com a password) são o utilizador

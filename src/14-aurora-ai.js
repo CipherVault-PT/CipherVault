@@ -289,26 +289,35 @@ function aurDocText(d,canon){
   const k=canon?'c':'n';if(c[k]==null)c[k]=canon?aurCanon(d.text):aurNorm(d.text);
   return c[k];
 }
+// No Safari do iPhone o índice saía, raramente, vazio (nem os temas, que existem sempre): a construção falhava a meio
+// e o índice vazio ficava guardado até os dados mudarem. Agora tenta outra vez e nunca guarda um índice vazio.
+let AUR_IDX_ERR='';
 function aurIndex(){
   if(aurDataSame(AUR_IDX))return AUR_IDX.E;
-  const E=aurIndexBuild();AUR_IDX=Object.assign(aurDataStamp(),{E});return E;
-}
-function aurIndexBuild(){
-  const E=[];
-  const add=(type,obj,name,extra,more)=>{if(!name)return;const nn=aurCanon(name);const toks=aurSig(nn);if(!toks.length)return;let alias=[];Object.keys(AUR_ALIAS).forEach(k=>{if(nn.indexOf(k)>=0)alias=alias.concat(AUR_ALIAS[k]);});if(more)alias=alias.concat(more);E.push({type,obj,name:String(name).trim(),norm:nn,toks,alias,extra:aurNorm(extra||''),archived:!!(obj&&obj.archived)});};
-  try{aurA(typeof vault!=='undefined'?vault:[]).forEach(v=>add('vault',v,v.name,[v.user,v.url].join(' ')));}catch(e){}
-  try{aurA(typeof documents!=='undefined'?documents:[]).forEach(d=>add('doc',d,d.title||d.name));}catch(e){}
-  try{aurA(typeof bankCards!=='undefined'?bankCards:[]).forEach(c=>add('bank',c,c.name||c.bank||c.title,c.bank));}catch(e){}
-  try{aurA(typeof storeCards!=='undefined'?storeCards:[]).forEach(s=>add('store',s,s.name||s.store));}catch(e){}
-  try{aurA(typeof totp!=='undefined'?totp:[]).forEach(t=>add('totp',t,t.name||t.issuer||t.label,t.issuer));}catch(e){}
-  try{aurA(typeof wifiNets!=='undefined'?wifiNets:[]).forEach(w=>add('wifi',w,w.name||w.ssid,w.ssid));}catch(e){}
-  try{aurA(typeof notes!=='undefined'?notes:[]).forEach(n=>add('note',n,n.title,String(n.body||'').slice(0,4000)));}catch(e){}
-  try{aurA(typeof assets!=='undefined'?assets:[]).forEach(a=>add('asset',a,a.name,a.plate));}catch(e){}
-  try{aurA(typeof subscriptions!=='undefined'?subscriptions:[]).forEach(s=>add('sub',s,s.name));}catch(e){}
-  try{aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>{if(p&&Array.isArray(p.fields))add('person',p,p.name);});}catch(e){}
-  try{aurA(typeof THEME_PRESETS!=='undefined'?THEME_PRESETS:[]).forEach(t=>add('theme',t,t.name,'',AUR_THEME_EN[t.id]||[]));}catch(e){}
+  let E=[],errs=[],first='';
+  for(let k=0;k<3;k++){errs=[];E=aurIndexBuild(errs);if(errs.length&&!first)first=errs.length+'× '+errs[0];if(E.length&&!errs.length)break;}
+  if(first)AUR_IDX_ERR=first;
+  if(E.length)AUR_IDX=Object.assign(aurDataStamp(),{E});
   return E;
 }
+function aurIndexBuild(errs){
+  const E=[];
+  const add=(type,obj,name,extra,more)=>{try{aurIndexAdd(E,type,obj,name,extra,more);}catch(e){if(errs)errs.push(type+': '+(e&&e.message||e));}};
+  const L=(n,f)=>{try{aurA(aurGlobal(n)).forEach(f);}catch(e){if(errs)errs.push(n+': '+(e&&e.message||e));}};
+  L('vault',v=>add('vault',v,v.name,[v.user,v.url].join(' ')));
+  L('documents',d=>add('doc',d,d.title||d.name));
+  L('bankCards',c=>add('bank',c,c.name||c.bank||c.title,c.bank));
+  L('storeCards',s=>add('store',s,s.name||s.store));
+  L('totp',t=>add('totp',t,t.name||t.issuer||t.label,t.issuer));
+  L('wifiNets',w=>add('wifi',w,w.name||w.ssid,w.ssid));
+  L('notes',n=>add('note',n,n.title,String(n.body||'').slice(0,4000)));
+  L('assets',a=>add('asset',a,a.name,a.plate));
+  L('subscriptions',s=>add('sub',s,s.name));
+  try{aurA(typeof personalInfo!=='undefined'?personalInfo:[]).forEach(p=>{if(p&&Array.isArray(p.fields))add('person',p,p.name);});}catch(e){if(errs)errs.push('personalInfo: '+(e&&e.message||e));}
+  try{aurA(typeof THEME_PRESETS!=='undefined'?THEME_PRESETS:[]).forEach(t=>add('theme',t,t.name,'',AUR_THEME_EN[t.id]||[]));}catch(e){if(errs)errs.push('themes: '+(e&&e.message||e));}
+  return E;
+}
+function aurIndexAdd(E,type,obj,name,extra,more){if(!name)return;const nn=aurCanon(name);const toks=aurSig(nn);if(!toks.length)return;let alias=[];Object.keys(AUR_ALIAS).forEach(k=>{if(nn.indexOf(k)>=0)alias=alias.concat(AUR_ALIAS[k]);});if(more)alias=alias.concat(more);E.push({type,obj,name:String(name).trim(),norm:nn,toks,alias,extra:aurNorm(extra||''),archived:!!(obj&&obj.archived)});}
 function aurMatchEnt(e,Q,Qset){
   if(!e.toks.length)return 0;
   let got=0,total=0,spec=0;
