@@ -230,12 +230,16 @@ test.describe('Safira & Platina', () => {
 
   test('telemóvel baixo: o ecrã de entrada do cofre memorizado cabe todo, sem deslizar', async ({ page }) => {
     await page.addInitScript(() => { delete window.showOpenFilePicker; localStorage.setItem('av_bk_freq', 'off'); });
+    await page.setViewportSize({ width: 390, height: 664 });
+    await openApp(page);
+    await createVault(page);
+    await page.evaluate(async () => { await saveFile({ auto: true }); });
+    await page.reload();
+    await page.waitForFunction(() => typeof lockOnPwStep === 'function' && lockOnPwStep());
+    // só muda o tamanho do ecrã (sem voltar a carregar a página: o WebKit dos testes rebentava a navegar depois disso)
     for (const [w, h] of [[390, 664], [360, 640], [320, 568]]) {
       await page.setViewportSize({ width: w, height: h });
-      await openApp(page);
-      if (w === 390) { await createVault(page); await page.evaluate(async () => { await saveFile({ auto: true }); }); await page.reload(); }
-      await page.waitForFunction(() => typeof lockOnPwStep === 'function' && lockOnPwStep());
-      expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), `${w}×${h}`).toBeLessThanOrEqual(0);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight - innerHeight), { message: `${w}×${h}` }).toBeLessThanOrEqual(0);
     }
   });
 
