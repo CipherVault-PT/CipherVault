@@ -19,6 +19,8 @@
   if (skin !== 'classico') d.classList.add('sk-new');
   d.setAttribute('data-motion', motion);
   d.setAttribute('data-entry', entry);
+  var layout = get('av_layout', 'nova');
+  d.setAttribute('data-layout', layout === 'atual' ? 'atual' : 'nova');
   d.setAttribute('data-theme', mode === 'light' ? 'light' : 'dark');
   var fonts = skin === 'classico'
     ? ['jetbrains-mono-latin-400-normal', 'playfair-display-latin-400-normal']

@@ -14,6 +14,8 @@ export const test = base.extend({
     page.on('dialog', d => d.accept().catch(() => {}));
     await page.addInitScript(() => {
       try { localStorage.setItem('cv_welcomed', '1'); localStorage.setItem('av_tour_offered', '1'); } catch (e) {}
+      // a disposição «Nova» (v12.4) tem testes próprios; os restantes usam a «Anterior» (cartões com os botões à vista)
+      try { if (!localStorage.getItem('av_layout')) localStorage.setItem('av_layout', 'atual'); } catch (e) {}
     });
     await page.addInitScript(() => {
       window.__csp = [];
