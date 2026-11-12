@@ -99,14 +99,14 @@ html[data-skin="nordico"][data-theme="light"] #lock-screen.aurora{--bg:#f3f1ea;-
 
 /* ── Base ── */
 html.sk-new body{background:var(--sk-sky),var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale} /* sem «fixed»: deslizar não obriga a redesenhar o ecrã inteiro */
-html.sk-new body::before,html.sk-new body::after,html.sk-new #bg-net,html.sk-new #particles-canvas,html.sk-new #vault-door,html.sk-new #unlock-flash{display:none!important;animation:none!important} /* escondido e sem animação: o Safari mantinha a do fundo do Clássico a contar */
+html.sk-new body::before,html.sk-new body::after,html.sk-new #bg-net,html.sk-new #particles-canvas,html.sk-new #vault-door,html.sk-new #unlock-flash{display:none!important;animation-name:none!important} /* escondido e sem animação: o Safari mantinha a do fundo do Clássico a contar (só o nome: a pausa por inatividade continua a aplicar-se) */
 html.sk-new ::selection{background:rgba(var(--accent-rgb),.35)}
 html.sk-new .sk-classic-only{display:none!important}
 .sk-settings:empty{display:none}
 
 /* ══ ECRÃ DE ENTRADA ══ */
 html.sk-new #lock-screen{background:var(--sk-sky),var(--bg)}
-html.sk-new #lock-screen::before,html.sk-new .asky,html.sk-new .lc-bg,html.sk-new .lc-veil,html.sk-new .lhero-content,html.sk-new .lc-right .vault-icon,html.sk-new .lnav-brand{display:none!important;animation:none!important}
+html.sk-new #lock-screen::before,html.sk-new .asky,html.sk-new .lc-bg,html.sk-new .lc-veil,html.sk-new .lhero-content,html.sk-new .lc-right .vault-icon,html.sk-new .lnav-brand{display:none!important;animation-name:none!important}
 html.sk-new .login-nav{animation:none;padding:18px 28px}
 html.sk-new .lnav-link{font-size:.72rem;letter-spacing:.5px;text-shadow:none!important}
 html.sk-new .lnav-link.active{color:var(--accent-ink)}
