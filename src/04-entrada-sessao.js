@@ -57,7 +57,6 @@ function onFileSelected(e){
 }
 async function submitOpenVault(pwArg,qk){
   if(lockedOut)return;
-  if(lockReinitP)await lockReinitP;
   if(!pendingVaultFile&&!pendingVaultText){
     if(typeof pwArg==='string'){lockHeldPw=pwArg;lockHeldQk=qk||null;}
     if(!(await lockEnsureFile()))return;
@@ -275,33 +274,25 @@ function lockApp(){
   // Close any open modals
   document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
   document.getElementById('welcome-screen').classList.remove('show');
-  const pwStep=document.getElementById('open-step-pw');
-  if(pwStep&&pwStep.style.display!=='none'){lockSwipeNeed=true;lockSwipeRetry=false;refreshQuickUnlock(false);}
-  lockReinitP=lockReinit().catch(()=>{}).finally(()=>{lockReinitP=null;});
+  lockReady();
   try{lockSubText();auroraSkyStart();}catch(e){}
   try{avFlushNow();}catch(e){}
 }
 
-/* Bloquear deixa o ecrã de entrada como ao abrir a app: o cofre memorizado, lido de novo (cópia deste dispositivo,
-   cópia sincronizada com o Drive ou o ficheiro), pronto para o PIN ou a impressão digital. Antes ficava no ecrã por
-   onde se tinha entrado («Criar cofre», «Carregar cofre») e pedia o ficheiro outra vez. */
-let lockReinitP=null;  // entrar enquanto o ecrã ainda se prepara espera por ele (não se atropelam)
-async function lockReinit(){
-  let hd=null,loc=null;
-  try{hd=await idbGet('vaultHandle');}catch(e){}
-  if(!hd&&(!FSA_OK||localStorage.getItem('av_dev_mode')==='1')){try{loc=await localVaultGet();}catch(e){}}
-  const ready=()=>lockOnPwStep()&&!!(pendingVaultFile||pendingVaultText);
-  if(masterKey||ready())return;  // já voltou a abrir, ou o ecrã já está pronto para entrar
-  if(hd||(loc&&loc.json)){
-    const keepF=pendingVaultFile,keepT=pendingVaultText;
-    pendingVaultFile=null;pendingVaultText=null;lockHeldPw=null;
-    let ok=false;try{ok=await lockDirectInit();}catch(e){}
-    if(ok||masterKey)return;
-    pendingVaultFile=keepF;pendingVaultText=keepT;
+/* Bloquear deixa o ecrã de entrada pronto para o PIN ou a impressão digital do cofre que estava aberto
+   (o texto encriptado é atualizado a cada gravação). Antes ficava no ecrã por onde se tinha entrado («Criar cofre»,
+   «Carregar cofre») e pedia o ficheiro outra vez. Tudo síncrono: nada em segundo plano a trocar o cofre escolhido. */
+function lockReady(){
+  if(pendingVaultFile||pendingVaultText){
+    if(!lockOnPwStep()){
+      lockShowPwStep();
+      const fn=document.getElementById('l-file-name'),en=currentLang==='en';
+      if(fn&&!fn.textContent)fn.textContent=vaultFileHandle&&vaultFileHandle.name?vaultFileHandle.name:!FSA_OK?(en?'📱 Vault stored on this device':'📱 Cofre guardado neste dispositivo'):'';
+    }
+    lockSwipeNeed=true;lockSwipeRetry=false;refreshQuickUnlock(false);return;
   }
-  // sem cofre memorizado: fica pronto para o cofre que estava aberto (o texto é atualizado a cada gravação)
-  if(pendingVaultText||pendingVaultFile){lockSwipeNeed=true;lockSwipeRetry=false;lockShowPwStep();refreshQuickUnlock(false);return;}
   backToInitial();
+  try{lockDirectInit();}catch(e){}  // sem cofre carregado: como ao abrir a app
 }
 
 // ══ AUTO-LOCK ══

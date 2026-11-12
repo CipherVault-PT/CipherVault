@@ -150,7 +150,7 @@ test.describe('Ecrã de entrada com cofre memorizado', () => {
       lockApp();
     });
     // antes ficava no ecrã «Criar cofre» e pedia o ficheiro; agora é igual a abrir a app
-    await page.waitForFunction(() => !lockReinitP && lockOnPwStep() && !!pendingVaultText);
+    await page.waitForFunction(() => lockOnPwStep() && !!pendingVaultText && quickAvail.pin);
     await expect(page.locator('#login-state-new')).toBeHidden();
     await expect(page.locator('#l-file-name')).toContainText(/dispositivo|device/);
     await expect(page.locator('#lk-swipe')).toBeVisible();
