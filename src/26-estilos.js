@@ -167,7 +167,10 @@ function skGemPaint(){
 }
 function skGemQueue(){if(!SKG.raf)SKG.raf=requestAnimationFrame(()=>{SKG.raf=0;skGemPaint();});}
 function skGemLive(){const art=document.getElementById('sk-art'),ls=document.getElementById('lock-screen');return !!art&&art.dataset.kind==='joia'&&!SKG.open&&!!ls&&ls.style.display!=='none'&&skMotion()!=='desligado';}
-document.addEventListener('pointermove',e=>{if(!skGemLive())return;SKG.px=e.clientX;SKG.py=e.clientY;SKG.ptr=true;SKG.hand=performance.now()+4000;skGemQueue();},{passive:true});
+// a luz segue o rato e o dedo (ao tocar e ao arrastar: a joia não deixa o browser usar o arrastar para deslizar o ecrã)
+function skGemPointer(e){if(!skGemLive())return;SKG.px=e.clientX;SKG.py=e.clientY;SKG.ptr=true;SKG.hand=performance.now()+4000;skGemQueue();}
+document.addEventListener('pointermove',skGemPointer,{passive:true});
+document.addEventListener('pointerdown',skGemPointer,{passive:true});
 function skGemTilt(e){
   if(e.gamma==null||e.beta==null||!skGemLive())return;
   const now=performance.now();if(now<SKG.hand)return;
