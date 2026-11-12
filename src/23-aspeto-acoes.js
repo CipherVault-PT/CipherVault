@@ -36,7 +36,12 @@ function avxEnhance(box){
   extra.forEach(b=>{b.setAttribute('role','menuitem');menu.appendChild(b);});
   box.append(more,menu);
 }
-function avxScan(){AVX.raf=0;document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance);if(AVX.btn&&!AVX.btn.isConnected)avxClose();}
+function avxScan(){
+  AVX.raf=0;
+  if(AVX.q){const q=AVX.q;AVX.q=null;q.forEach(b=>{if(b.isConnected&&!b.dataset.avx)avxEnhance(b);});}
+  else document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance); // 1.ª vez: a página toda
+  if(AVX.btn&&!AVX.btn.isConnected)avxClose();
+}
 function avxMore(btn){
   const was=AVX.btn;if(AVX.menu)avxClose();if(was===btn)return;
   const menu=btn.nextElementSibling;if(!menu||!menu.classList.contains('cbx-menu'))return;
@@ -63,8 +68,9 @@ function avxClose(focus){
   if(typeof document==='undefined')return;
   const go=()=>{if(!AVX.raf)AVX.raf=requestAnimationFrame(avxScan);};
   // só quando entram cartões novos (antes revia a página inteira a cada mudança — até a cada letra que a Aurora escreve)
-  const hasCard=n=>n.nodeType===1&&(n.matches('.card-actions')||!!n.querySelector('.card-actions'));
-  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(hasCard(n))return go();}).observe(document.documentElement,{childList:true,subtree:true});go();
+  // junta só os cartões que entraram (antes procurava-se na página inteira a cada lote)
+  const add=n=>{if(n.nodeType!==1)return;const q=AVX.q||(AVX.q=new Set());if(n.matches('.card-actions'))q.add(n);n.querySelectorAll('.card-actions:not([data-avx])').forEach(b=>q.add(b));};
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)add(n);if(AVX.q&&AVX.q.size)go();else AVX.q=null;}).observe(document.documentElement,{childList:true,subtree:true});go();
   document.addEventListener('click',e=>{if(AVX.menu&&!(AVX.btn&&AVX.btn.contains(e.target)))avxClose();});
   document.addEventListener('keydown',e=>{
     if(!AVX.menu)return;

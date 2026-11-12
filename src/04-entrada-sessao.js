@@ -239,6 +239,7 @@ function doUnlock(){
     if(fl&&!skinNew){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
     setTimeout(positionTabIndicator,80);
     document.getElementById('master-pw').value='';
+    try{document.querySelectorAll('#app>[id^="tab-"].active').forEach(el=>{if(el.id!=='tab-dashboard')el.classList.remove('active');});document.getElementById('tab-dashboard').classList.add('active');}catch(e){}
     try{renderAll();}catch(e){console.warn('renderAll error:',e);}
     startAutoLock();
     switchTab('dashboard');

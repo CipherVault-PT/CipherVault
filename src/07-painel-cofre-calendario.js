@@ -324,16 +324,11 @@ function renderDashboard(){
       <div class="cat-bar-row">
         <div class="cat-bar-label">${c.icon} ${c.label}</div>
         <div class="cat-bar-track">
-          <div class="cat-bar-fill" style="width:0%;background:${c.color}" data-target="${Math.round((c.count/max)*100)}"></div>
+          <div class="cat-bar-fill" style="width:${Math.round((c.count/max)*100)}%;background:${c.color}"></div>
         </div>
         <div class="cat-bar-count">${c.count}</div>
       </div>`).join('');
-    // Animate bars
-    setTimeout(()=>{
-      chartEl.querySelectorAll('.cat-bar-fill').forEach(bar=>{
-        bar.style.width=bar.dataset.target+'%';
-      });
-    },50);
+    // (as barras crescem por CSS, só com «transform»: a animar a largura, o browser recalculava a página 60×/s durante 0,8 s a cada desenho do Início)
   } else if(chartEl){
     chartEl.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);padding:10px 0">${currentLang==='en'?'No entries yet.':'Sem entradas ainda.'}</div>`;
   }

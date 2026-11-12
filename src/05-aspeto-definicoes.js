@@ -60,11 +60,14 @@ function accentInk(accent,bgs){
 }
 function hexToHslArr(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0,s=0;const l=(max+min)/2;if(max!==min){const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h/=6;}return[h*360,s,l];}
 function hslToRgbArr(h,s,l){h=(((h%360)+360)%360)/360;const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};let r,g,b;if(s===0){r=g=b=l;}else{const q=l<0.5?l*(1+s):l+s-l*s;const p=2*l-q;r=f(p,q,h+1/3);g=f(p,q,h);b=f(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}
-/* ══ ESTILOS ══ Ónix & Ouro e Nórdico têm paleta própria (escura e clara); o Clássico usa as cores escolhidas acima.
+/* ══ ESTILOS ══ Safira & Platina, Ónix & Ouro e Nórdico têm paleta própria (escura e clara); o Clássico usa as cores escolhidas acima.
    (função e não constante: é chamada logo no arranque, antes de o resto do ficheiro estar carregado) */
-function avSkin(){const s=document.documentElement.getAttribute('data-skin');return s==='onix'||s==='nordico'?s:'classico';}
+function avSkin(){const s=document.documentElement.getAttribute('data-skin');return s==='safira'||s==='onix'||s==='nordico'?s:'classico';}
 function avSkinPal(theme){
   const s=avSkin(),dk=theme!=='light';
+  if(s==='safira')return dk
+    ?{bg:'#070a13',panel:'#0c1120',card:'#101728',border:'#1f2942',text:'#eef2fb',muted:'#9aa6c0',accent:'#c9d3e8',ink:'#dbe4f7',red:'#f29088',green:'#7fe0b8',shadow:'rgba(0,0,0,.55)'}
+    :{bg:'#f3f5fa',panel:'#fafbfe',card:'#ffffff',border:'#dde2ee',text:'#131a2b',muted:'#56617a',accent:'#3f5bd8',ink:'#2c43b0',red:'#b23a2c',green:'#1f7a52',shadow:'rgba(20,30,70,.13)'};
   if(s==='onix')return dk
     ?{bg:'#0b0b0c',panel:'#121214',card:'#161618',border:'#2b2825',text:'#f2eee6',muted:'#a8a296',accent:'#c9a84c',ink:'#e6cb7e',red:'#ec8b7f',green:'#7fd1a8',shadow:'rgba(0,0,0,.55)'}
     :{bg:'#f5f1e9',panel:'#fbf8f2',card:'#ffffff',border:'#e3dac8',text:'#1d1a16',muted:'#665f52',accent:'#b08d3a',ink:'#765a15',red:'#b23a2c',green:'#2a7a50',shadow:'rgba(40,30,10,.14)'};
@@ -484,7 +487,7 @@ function applySettingsLang(){
 // ══ INDICADOR DE TABS ══
 function positionTabIndicator(){
   const ind=document.getElementById('tab-indicator');if(!ind)return;
-  if(avSkin()!=='classico'&&getComputedStyle(ind).display==='none')return; // menu lateral / barra de baixo: não há o que medir
+  if(avSkin()!=='classico'&&!(window.matchMedia&&matchMedia('(min-width:769px) and (max-width:1023px)').matches))return; // menu lateral / barra de baixo: não há o que medir
   const act=document.querySelector('.tab-btn.active');
   if(!act||!act.offsetWidth){ind.style.opacity='0';return;}
   ind.style.opacity='1';

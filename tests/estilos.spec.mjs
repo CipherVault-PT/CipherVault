@@ -1,6 +1,6 @@
 import { test, expect, openApp, createVault } from './fixtures.mjs';
 
-// Estilos (v11): Ónix & Ouro (por omissão), Nórdico e Clássico — ecrã de entrada, selo, barra de baixo, movimento
+// Estilos (v11, v12): Safira & Platina (por omissão), Ónix & Ouro, Nórdico e Clássico — ecrã de entrada, selo, barra de baixo, movimento
 const skin = (page, s, extra = {}) => page.addInitScript(([s, extra]) => {
   localStorage.setItem('av_skin', s);
   for (const [k, v] of Object.entries(extra)) localStorage.setItem(k, v);
@@ -8,7 +8,7 @@ const skin = (page, s, extra = {}) => page.addInitScript(([s, extra]) => {
 const isMobile = testInfo => testInfo.project.name !== 'desktop';
 
 test.describe('Estilos', () => {
-  test('por omissão: Ónix & Ouro, sem fotografia nem céu WebGL nem fundo animado', async ({ page }) => {
+  test('por omissão: Safira & Platina com a Joia, sem fotografia nem céu WebGL nem fundo animado', async ({ page }) => {
     const imgs = [];
     page.on('request', r => { if (/aurora-[lp]\.webp/.test(r.url())) imgs.push(r.url()); });
     await openApp(page);
@@ -21,8 +21,8 @@ test.describe('Estilos', () => {
         bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
       };
     });
-    expect(r).toMatchObject({ skin: 'onix', cls: true, gl: null, run: false, art: 'lanterna', bg: '#0b0b0c' });
-    expect(r.fonts).toEqual(expect.arrayContaining(['Inter', 'Bodoni Moda']));
+    expect(r).toMatchObject({ skin: 'safira', cls: true, gl: null, run: false, art: 'joia', bg: '#070a13' });
+    expect(r.fonts).toEqual(expect.arrayContaining(['Jost', 'Marcellus']));
     await createVault(page);
     await page.waitForTimeout(600);
     expect(await page.evaluate(() => AuroraBG.isRunning())).toBe(false);
@@ -42,7 +42,9 @@ test.describe('Estilos', () => {
     await openApp(page);
     await createVault(page);
     await page.evaluate(() => { openSettings(); switchSettingsTab('aspeto'); });
-    await expect(page.locator('#sk-settings [data-act="setSkin"]')).toHaveCount(3);
+    await expect(page.locator('#sk-settings [data-act="setSkin"]')).toHaveCount(4);
+    await expect(page.locator('#sk-settings [data-act="setSkin"][data-arg="safira"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#sk-settings [data-act="setEntryStyle"][data-arg="joia"]')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#theme-grid')).toBeHidden();
     await page.locator('#sk-settings [data-act="setSkin"][data-arg="nordico"]').click();
     await page.locator('#sk-settings [data-act="setEntryStyle"][data-arg="constelacao"]').click();
@@ -63,7 +65,7 @@ test.describe('Estilos', () => {
     await skin(page, 'onix', { av_entry: 'surpresa' });
     await openApp(page);
     const r = await page.evaluate(() => [document.documentElement.dataset.entry, document.getElementById('sk-art').dataset.kind]);
-    expect(['lanterna', 'constelacao', 'aurora']).toContain(r[0]);
+    expect(['joia', 'lanterna', 'constelacao', 'aurora']).toContain(r[0]);
     expect(r[1]).toBe(r[0]);
   });
 
@@ -156,6 +158,104 @@ test.describe('Estilos', () => {
     expect(html).toContain('html.sk-new');
     expect(html).not.toContain('url(vendor/fonts/');
     expect(html).toContain("font-family:'Bodoni Moda'");
+    expect(html).toContain("font-family:'Marcellus'");
+  });
+});
+
+// v12 — Safira & Platina e a Joia: uma pedra lapidada só deste cofre, que apanha a luz
+test.describe('Safira & Platina', () => {
+  const SIG = '2b91c4e07a5d3f1866aa09bc4de1f273';
+  const fills = page => page.evaluate(() => [...document.querySelectorAll('#sk-art .sk-gem-l polygon[data-a]')].map(p => p.getAttribute('fill')).join('|'));
+  const cut = page => page.evaluate(() => [...document.querySelectorAll('#sk-art .sk-gem-l polygon[data-a]')].map(p => p.getAttribute('points')).join('|'));
+
+  test('Joia: as faces têm cor, acendem-se ao escrever e a luz segue o rato', async ({ page }) => {
+    await openApp(page);
+    const a = await fills(page);
+    expect(a.split('|')).toHaveLength(64);
+    expect(a).toMatch(/^rgb\(\d+,\d+,\d+\)(\|rgb\(\d+,\d+,\d+\))+$/);
+    expect(new Set(a.split('|')).size).toBeGreaterThan(20);
+    await page.locator('#start-pw').fill('abcd');
+    const b = await fills(page);
+    expect(b).not.toBe(a);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent('pointermove', { clientX: innerWidth - 10, clientY: innerHeight - 10, bubbles: true })));
+    await expect.poll(() => fills(page)).not.toBe(b);
+    // só o número de caracteres conta — o conteúdo nunca chega à joia
+    await page.locator('#start-pw').fill('wxyz');
+    await page.evaluate(() => { SKG.lx = -.35; SKG.ly = -.45; skGemPaint(); });
+    expect(await fills(page)).toBe(b);
+  });
+
+  test('Joia: o corte vem da assinatura do cofre — cofres diferentes, joias diferentes', async ({ page }) => {
+    await skin(page, 'safira', { av_sig: SIG });
+    await openApp(page);
+    await expect(page.locator('#sk-art .sk-serial')).toHaveText(/Nº 2B91/);
+    await expect(page.locator('#sk-hint')).toContainText(/joia do teu cofre|vault’s jewel/);
+    const a = await cut(page);
+    await page.evaluate(() => { localStorage.setItem('av_sig', 'f0e1d2c3b4a5968778695a4b3c2d1e0f'); skArtBuild(); });
+    const b = await cut(page);
+    expect(b).not.toBe(a);
+    await page.evaluate(sig => { localStorage.setItem('av_sig', sig); skArtBuild(); }, SIG);
+    expect(await cut(page)).toBe(a);
+  });
+
+  test('Joia: com o cofre aberto fica tudo desligado (sem sensor, sem redesenhar)', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    await expect.poll(() => page.evaluate(() => SKG.tilt || SKG.open || !!SKG.amb)).toBe(false);
+    const n = await page.evaluate(async () => {
+      let c = 0; const o = skGemPaint; skGemPaint = function () { c++; return o.apply(this, arguments); };
+      for (let i = 0; i < 5; i++) { document.dispatchEvent(new PointerEvent('pointermove', { clientX: 20 * i, clientY: 30, bubbles: true })); await new Promise(r => requestAnimationFrame(r)); }
+      skGemPaint = o; return c;
+    });
+    expect(n).toBe(0);
+    await page.evaluate(() => lockApp());
+    // ao trancar a joia volta, já com a lapidação deste cofre (6 a 12 lados → 48 a 96 faces)
+    expect(await page.evaluate(() => { const g = document.querySelector('#sk-art .sk-gem'); return [48, 64, 80, 96].includes(g.querySelectorAll('.sk-gem-l polygon[data-a]').length) && +g.dataset.n === g.querySelectorAll('.sk-gem-l polygon[data-a]').length; })).toBe(true);
+  });
+
+  test('Joia com «Movimento: desligado»: fica parada e sem animações', async ({ page }) => {
+    await skin(page, 'safira', { av_motion: 'desligado' });
+    await openApp(page);
+    const a = await fills(page);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent('pointermove', { clientX: 5, clientY: 5, bubbles: true })));
+    await page.waitForTimeout(200);
+    expect(await fills(page)).toBe(a);
+    expect(await page.evaluate(() => ({ run: document.getAnimations().filter(x => x.playState === 'running').length, tilt: SKG.tilt, amb: SKG.amb }))).toEqual({ run: 0, tilt: false, amb: 0 });
+  });
+
+  test('modo claro e escuro, e o estilo fica em todos os ecrãs sem transbordar', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    for (const mode of ['light', 'dark']) {
+      await page.evaluate(m => setSkinMode(m), mode);
+      const r = await page.evaluate(() => ({
+        bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+        font: getComputedStyle(document.body).fontFamily, over: document.documentElement.scrollWidth - innerWidth,
+      }));
+      expect(r.bg).toBe(mode === 'light' ? '#f3f5fa' : '#070a13');
+      expect(r.font).toContain('Jost');
+      expect(r.over).toBeLessThanOrEqual(0);
+    }
+  });
+
+  test('quem já tinha escolhido outro estilo fica com ele e recebe só o convite para experimentar', async ({ page }) => {
+    await skin(page, 'onix');
+    await openApp(page);
+    await createVault(page);
+    expect(await page.evaluate(() => [document.documentElement.dataset.skin, document.documentElement.dataset.entry])).toEqual(['onix', 'lanterna']);
+    await page.evaluate(() => { vault.push({ id: 'w1', name: 'Conta', user: 'u', pw: 'Xk9!fA2#pQ7', cat: 'email', created: Date.now() }); });
+    // o convite não atropela o resumo da semana (que aparece aos 5 s): espera que ele feche
+    await expect(page.locator('#av-nudge.show')).toContainText(/resumo da semana|weekly summary/, { timeout: 9000 });
+    await page.waitForTimeout(2600);
+    await expect(page.locator('#av-nudge.show')).toContainText(/resumo da semana|weekly summary/);
+    await page.locator('#av-nudge .av-nudge-x').click();
+    await expect(page.locator('#av-nudge.show')).toContainText(/Safira|Sapphire/, { timeout: 9000 });
+    expect(await page.evaluate(() => localStorage.getItem('av_skin_intro'))).toBe('2');
+    await page.locator('#av-nudge .av-nudge-b').first().click();
+    expect(await page.evaluate(() => [document.documentElement.dataset.skin, document.documentElement.dataset.entry, localStorage.getItem('av_skin'), localStorage.getItem('av_entry')]))
+      .toEqual(['safira', 'joia', 'safira', 'joia']);
+    // só uma vez
+    expect(await page.evaluate(() => localStorage.getItem('av_skin_intro'))).toBe('2');
   });
 });
 
@@ -202,6 +302,40 @@ test.describe('Fluidez', () => {
       avxScan = o; return c;
     });
     expect(n).toBe(0);
+  });
+
+  // v12
+  test('só a aba aberta é desenhada; as outras desenham-se ao entrar e esvaziam-se ao trancar', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    await page.evaluate(() => {
+      for (let i = 0; i < 6; i++) vault.push({ id: 'z' + i, name: 'Conta secreta ' + i, user: 'u' + i, pw: 'Pw!' + i + 'aB9', cat: 'email', created: Date.now() });
+      notes.push({ id: 'n1', title: 'Nota secreta', body: 'x', updated: Date.now() });
+      renderAll();
+    });
+    expect(await page.evaluate(() => [document.querySelectorAll('#tab-vault .entry-card').length, document.getElementById('tab-notes').textContent.includes('Nota secreta')])).toEqual([0, false]);
+    await page.evaluate(() => switchTab('vault'));
+    await expect(page.locator('#tab-vault .entry-card')).toHaveCount(6);
+    await page.evaluate(() => switchTab('notes'));
+    await expect(page.locator('#tab-notes')).toContainText('Nota secreta');
+    await page.evaluate(() => lockApp());
+    expect(await page.evaluate(() => /secreta/.test(document.getElementById('app').textContent))).toBe(false);
+  });
+
+  test('parado em qualquer aba no «Suave»: nenhuma animação a correr sem fim', async ({ page }) => {
+    await openApp(page);
+    await createVault(page);
+    await page.evaluate(() => {
+      vault.push({ id: 'q1', name: 'Fraca', user: 'u', pw: '123456', cat: 'email', created: Date.now() });
+      totp.push({ id: 't1', name: 'Google', issuer: 'Google', secret: 'JBSWY3DPEHPK3PXP', digits: 6, period: 30, algo: 'SHA1' });
+      renderAll();
+    });
+    for (const tab of ['dashboard', 'vault', 'totp', 'notes', 'cards', 'docs', 'archive']) {
+      await page.evaluate(t => switchTab(t), tab);
+      await page.waitForTimeout(250);
+      const endless = await page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.getComputedTiming().iterations === Infinity).map(a => a.animationName || '?'));
+      expect(endless, 'animações sem fim na aba ' + tab).toEqual([]);
+    }
   });
 
   test('cofre grande: com o Cofre fechado só se desenha o 1.º lote; o resto quando é aberto', async ({ page }) => {

@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='11.1';
+const APP_VERSION='12.0';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -1446,6 +1446,7 @@ function doUnlock(){
     if(fl&&!skinNew){fl.classList.remove('play');void fl.offsetWidth;fl.classList.add('play');}
     setTimeout(positionTabIndicator,80);
     document.getElementById('master-pw').value='';
+    try{document.querySelectorAll('#app>[id^="tab-"].active').forEach(el=>{if(el.id!=='tab-dashboard')el.classList.remove('active');});document.getElementById('tab-dashboard').classList.add('active');}catch(e){}
     try{renderAll();}catch(e){console.warn('renderAll error:',e);}
     startAutoLock();
     switchTab('dashboard');
@@ -1571,11 +1572,14 @@ function accentInk(accent,bgs){
 }
 function hexToHslArr(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0,s=0;const l=(max+min)/2;if(max!==min){const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h/=6;}return[h*360,s,l];}
 function hslToRgbArr(h,s,l){h=(((h%360)+360)%360)/360;const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};let r,g,b;if(s===0){r=g=b=l;}else{const q=l<0.5?l*(1+s):l+s-l*s;const p=2*l-q;r=f(p,q,h+1/3);g=f(p,q,h);b=f(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}
-/* ══ ESTILOS ══ Ónix & Ouro e Nórdico têm paleta própria (escura e clara); o Clássico usa as cores escolhidas acima.
+/* ══ ESTILOS ══ Safira & Platina, Ónix & Ouro e Nórdico têm paleta própria (escura e clara); o Clássico usa as cores escolhidas acima.
    (função e não constante: é chamada logo no arranque, antes de o resto do ficheiro estar carregado) */
-function avSkin(){const s=document.documentElement.getAttribute('data-skin');return s==='onix'||s==='nordico'?s:'classico';}
+function avSkin(){const s=document.documentElement.getAttribute('data-skin');return s==='safira'||s==='onix'||s==='nordico'?s:'classico';}
 function avSkinPal(theme){
   const s=avSkin(),dk=theme!=='light';
+  if(s==='safira')return dk
+    ?{bg:'#070a13',panel:'#0c1120',card:'#101728',border:'#1f2942',text:'#eef2fb',muted:'#9aa6c0',accent:'#c9d3e8',ink:'#dbe4f7',red:'#f29088',green:'#7fe0b8',shadow:'rgba(0,0,0,.55)'}
+    :{bg:'#f3f5fa',panel:'#fafbfe',card:'#ffffff',border:'#dde2ee',text:'#131a2b',muted:'#56617a',accent:'#3f5bd8',ink:'#2c43b0',red:'#b23a2c',green:'#1f7a52',shadow:'rgba(20,30,70,.13)'};
   if(s==='onix')return dk
     ?{bg:'#0b0b0c',panel:'#121214',card:'#161618',border:'#2b2825',text:'#f2eee6',muted:'#a8a296',accent:'#c9a84c',ink:'#e6cb7e',red:'#ec8b7f',green:'#7fd1a8',shadow:'rgba(0,0,0,.55)'}
     :{bg:'#f5f1e9',panel:'#fbf8f2',card:'#ffffff',border:'#e3dac8',text:'#1d1a16',muted:'#665f52',accent:'#b08d3a',ink:'#765a15',red:'#b23a2c',green:'#2a7a50',shadow:'rgba(40,30,10,.14)'};
@@ -1995,7 +1999,7 @@ function applySettingsLang(){
 // ══ INDICADOR DE TABS ══
 function positionTabIndicator(){
   const ind=document.getElementById('tab-indicator');if(!ind)return;
-  if(avSkin()!=='classico'&&getComputedStyle(ind).display==='none')return; // menu lateral / barra de baixo: não há o que medir
+  if(avSkin()!=='classico'&&!(window.matchMedia&&matchMedia('(min-width:769px) and (max-width:1023px)').matches))return; // menu lateral / barra de baixo: não há o que medir
   const act=document.querySelector('.tab-btn.active');
   if(!act||!act.offsetWidth){ind.style.opacity='0';return;}
   ind.style.opacity='1';
@@ -2091,24 +2095,17 @@ function renderTabNav(tab){
   });
 }
 function switchTab(tab){
+  const same=avActiveTab()===tab;
   ['dashboard','vault','notes','cards','store','info','archive','docs','totp','trash','warranty','license','vehicle','dates'].forEach(id=>{
     const tabEl=document.getElementById('tab-'+id);
     if(tabEl)tabEl.classList.remove('active');
   });
-  {const nt=document.getElementById('tab-'+tab);if(nt)void nt.offsetHeight;} // 1 só recálculo (reinicia a animação de entrada)
+  // só ao reabrir a MESMA aba é preciso um recálculo para a animação de entrada recomeçar (noutra aba, a classe nova basta)
+  if(same){const nt=document.getElementById('tab-'+tab);if(nt)void nt.offsetHeight;}
   renderTabNav(tab);
   const active=document.getElementById('tab-'+tab);
   if(active)active.classList.add('active');
-  if(tab==='dashboard')avOnce('dashboard',()=>renderDashboard());
-  if(tab==='archive')avOnce('archive',()=>renderArchive());
-  if(tab==='notes')avOnce('notes',()=>renderNotesList());
-  if(tab==='cards')avOnce('cards',()=>renderBankCards());
-  if(tab==='docs')avOnce('docs',()=>renderDocs());
-  if(tab==='trash')avOnce('trash',()=>renderTrash());
-  if(tab==='totp')renderTotp();
-  if(tab==='info')avOnce('info',()=>renderInfo());
-  if(tab==='store')avOnce('store',()=>renderStoreCards());
-  if(['warranty','license','vehicle','dates'].includes(tab))avOnce(tab,renderAssets,tab);
+  avTabFresh(tab);
   requestAnimationFrame(positionTabIndicator);
   requestAnimationFrame(applyStagger);
 }
@@ -2355,7 +2352,24 @@ function applyLangStatic(){
 }
 
 // ══ RENDER ALL ══
-function renderAll(){renderWifiBar();renderSidebar();renderCards();renderDashboard();renderNotesList();renderArchive();renderBankCards();renderDocs();renderTrash();renderTotp();renderHowTo();}
+/* v12 — só se desenha a aba que está à vista; as outras são desenhadas quando forem abertas (switchTab → avTabFresh).
+   Antes desenhava-se tudo a cada alteração: o Cofre inteiro, os documentos, o 2FA… para mostrar o Início. */
+const AV_TAB_RENDER={vault:()=>{renderSidebar();renderCards();},dashboard:()=>renderDashboard(),notes:()=>renderNotesList(),archive:()=>renderArchive(),
+  cards:()=>renderBankCards(),docs:()=>renderDocs(),trash:()=>renderTrash(),info:()=>renderInfo(),store:()=>renderStoreCards()};
+const AV_ASSET_TABS=['warranty','license','vehicle','dates'];
+function avActiveTab(){const a=document.querySelector('#app>[id^="tab-"].active');return a?a.id.slice(4):'dashboard';}
+// desenha a aba se os dados (ou o idioma, a pasta, os filtros…) mudaram desde a última vez que foi desenhada
+function avTabFresh(tab){
+  if(tab==='totp')return renderTotp();
+  if(AV_TAB_RENDER[tab])return avOnce(tab,AV_TAB_RENDER[tab]);
+  if(AV_ASSET_TABS.includes(tab))avOnce(tab,renderAssets,tab);
+}
+function avTabDraw(tab){
+  if(tab==='totp')return renderTotp();
+  if(AV_TAB_RENDER[tab])return AV_TAB_RENDER[tab]();
+  if(AV_ASSET_TABS.includes(tab))renderAssets(tab);
+}
+function renderAll(){renderWifiBar();avTabDraw(avActiveTab());renderHowTo();}
 
 // ══ HOW TO ══
 function renderHowTo(){
@@ -2707,16 +2721,11 @@ function renderDashboard(){
       <div class="cat-bar-row">
         <div class="cat-bar-label">${c.icon} ${c.label}</div>
         <div class="cat-bar-track">
-          <div class="cat-bar-fill" style="width:0%;background:${c.color}" data-target="${Math.round((c.count/max)*100)}"></div>
+          <div class="cat-bar-fill" style="width:${Math.round((c.count/max)*100)}%;background:${c.color}"></div>
         </div>
         <div class="cat-bar-count">${c.count}</div>
       </div>`).join('');
-    // Animate bars
-    setTimeout(()=>{
-      chartEl.querySelectorAll('.cat-bar-fill').forEach(bar=>{
-        bar.style.width=bar.dataset.target+'%';
-      });
-    },50);
+    // (as barras crescem por CSS, só com «transform»: a animar a largura, o browser recalculava a página 60×/s durante 0,8 s a cada desenho do Início)
   } else if(chartEl){
     chartEl.innerHTML=`<div style="font-size:.72rem;color:var(--text-muted);padding:10px 0">${currentLang==='en'?'No entries yet.':'Sem entradas ainda.'}</div>`;
   }
@@ -6694,8 +6703,8 @@ function renderTotp(){
 }
 setInterval(()=>{
   if((!masterKey&&!presentationMode)||!totp.length||document.hidden)return;
-  const grid=document.getElementById('totp-grid');
-  if(!grid||!grid.offsetParent)return;
+  const tabT=document.getElementById('tab-totp');
+  if(!tabT||!tabT.classList.contains('active')||!document.getElementById('app').classList.contains('visible'))return; // sem medir a página (offsetParent obrigava a calcular o layout a cada segundo)
   const now=Math.floor(Date.now()/1000);
   let needRefresh=false;
   for(const t2 of totp){
@@ -6748,8 +6757,14 @@ function avIdle(){return performance.now()-AV_IDLE.last>AV_IDLE.ms;}
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Animações SVG só correm se estiverem à vista (as do ecrã de entrada continuavam a correr por trás da app: ~300 recálculos de estilo por segundo)
   // (procura pelas etiquetas <animate>: o seletor :has() em svg custava ~120 ms por chamada com um cofre grande num telemóvel lento)
-  const smil=on=>{const l=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)l.add(v.ownerSVGElement||v);});
-    l.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
+  // (a lista dos SVG animados faz-se uma vez: estão todos no index.html. Antes procurava-se na página inteira a cada troca de aba e a cada 5 s)
+  let roots=null,parked=false;
+  const smil=on=>{
+    if(!roots){roots=new Set();document.querySelectorAll('animate,animateTransform').forEach(a=>{const v=a.ownerSVGElement;if(v)roots.add(v.ownerSVGElement||v);});}
+    const still=avSkin()!=='classico'||document.documentElement.getAttribute('data-motion')==='desligado'; // estilos novos: estes SVG nem se veem
+    if(still){if(!parked){parked=true;roots.forEach(v=>{try{v.pauseAnimations();}catch(e){}});}return;}
+    parked=false;
+    roots.forEach(v=>{try{on&&!reduce&&v.getClientRects().length?v.unpauseAnimations():v.pauseAnimations();}catch(e){}});};
   // Sem atividade: as animações decorativas em ciclo (brilhos, manchas do fundo, ícones a flutuar) param até ao próximo toque
   const still=on=>document.documentElement.classList.toggle('av-still',on);
   window.avSmilSync=()=>smil(!AV_IDLE.asleep);
@@ -7578,7 +7593,7 @@ function renderSub2(){
   el.innerHTML=items.map((w,i)=>`<span class="sub2-word${i===(sub2Idx%items.length)?' active':''}">${w}</span>`).join('<span class="sub2-sep">·</span>');
 }
 setInterval(()=>{
-  if(document.hidden)return;
+  if(document.hidden||(typeof masterKey!=='undefined'&&masterKey)||avSkin()!=='classico')return; // só no ecrã de entrada do Clássico
   const el=document.getElementById('l-sub2');
   if(!el||!el.offsetParent)return;
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -10840,7 +10855,7 @@ function aurLaunchIdeas(){
   +'#aurora-panel::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,'+G+');background-size:100% 300%;animation:aurFlowY 7s steps(140) infinite;box-shadow:0 0 16px rgba(94,242,201,.55);z-index:2}'
   /* painel fechado (fora do ecrã): as animações dele ficavam a correr e obrigavam a redesenhar sempre */
   +'#aurora-panel:not(.open)::before,#aurora-panel:not(.open) *,#aurora-panel:not(.open) .aur-ring::before{animation-play-state:paused!important}'
-  +'body.aur-docked #app{transition:margin-right .38s cubic-bezier(.2,.8,.2,1)}'
+  /* (sem transição na margem: a app inteira era recalculada a cada fotograma enquanto o painel entrava; assim ajusta-se uma vez) */
   +'@media(min-width:1100px){body.aur-docked #app{margin-right:var(--aur-w)}}'
   +'.aurora-grab{display:none}'
   +'@media(min-width:761px){body.aur-docked .toast,body.aur-docked .clipboard-toast{right:calc(var(--aur-w) + 20px)}}'
@@ -11467,20 +11482,23 @@ function avCopyPw(id){const e=avEntry(id);if(e&&e.pw)copyText(e.pw,t('pwCopied')
 function avGoSite(id){const e=avEntry(id);if(e&&e.url)goToSiteEntry(e.url,e.pw);}
 function avReadTogglePw(id){const e=avEntry(id),el=document.getElementById('read-pw');if(!e||!el)return;el.textContent=el.classList.contains('masked')?e.pw:'••••••••••••';el.classList.toggle('masked');}
 let _avChunk={tok:0,grid:null,arr:null,i:0};
+// Os lotes seguintes só entram depois de o anterior estar pintado (um rAF + um temporizador = já passou um fotograma) e em tempo livre:
+// antes, o 2.º lote entrava antes do 1.º fotograma — abrir o Cofre desenhava logo os cartões todos.
+function avChunkLater(f){requestAnimationFrame(()=>setTimeout(()=>(window.requestIdleCallback?requestIdleCallback(f,{timeout:200}):f()),0));}
 function avChunkRender(grid,head,arr){
-  const tok=++_avChunk.tok,FIRST=40,STEP=60;
-  _avChunk.grid=grid;_avChunk.arr=arr;_avChunk.i=Math.min(FIRST,arr.length);
+  const tok=++_avChunk.tok,FIRST=innerWidth>1000?18:8,STEP=12; // 1.º lote = o que cabe no ecrã; depois, lotes pequenos (não travam o deslizar)
+  _avChunk.grid=grid;_avChunk.arr=arr;_avChunk.i=Math.min(FIRST,arr.length);_avChunk.wait=null;
   grid.innerHTML=head+arr.slice(0,_avChunk.i).join('');
   const next=()=>{
     if(tok!==_avChunk.tok||_avChunk.i>=arr.length)return;
     // aba escondida (ex.: o Início depois de desbloquear): os lotes seguintes esperam até o Cofre ser aberto
     const tab=grid.closest('[id^="tab-"]');if(tab&&!tab.classList.contains('active')){_avChunk.wait=next;return;}
     grid.insertAdjacentHTML('beforeend',arr.slice(_avChunk.i,_avChunk.i+STEP).join(''));_avChunk.i+=STEP;
-    if(_avChunk.i<arr.length)(window.requestIdleCallback?requestIdleCallback(next,{timeout:100}):setTimeout(next,16));
+    if(_avChunk.i<arr.length)avChunkLater(next);
   };
-  if(_avChunk.i<arr.length)setTimeout(next,0);
+  if(_avChunk.i<arr.length)avChunkLater(next);
 }
-function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;(window.requestIdleCallback?requestIdleCallback(f,{timeout:250}):setTimeout(f,60));} // depois de o Cofre aparecer
+function avChunkResume(){const f=_avChunk.wait;if(!f)return;_avChunk.wait=null;avChunkLater(f);} // depois de o Cofre aparecer
 function avFlushChunks(){const c=_avChunk;c.wait=null;if(c.grid&&c.arr&&c.i<c.arr.length){c.grid.insertAdjacentHTML('beforeend',c.arr.slice(c.i).join(''));c.i=c.arr.length;}}
 
 
@@ -12428,7 +12446,7 @@ function avSwStart(dir){
   const gs=avSwGroups(),i=gs.indexOf(currentGroup),j=i+dir;if(i<0||j<0||j>=gs.length)return false;
   const tg=gs[j],leaf=lastLeafOf[tg]||TAB_GROUPS[tg][0];
   const out=document.getElementById('tab-'+avCurTab),inn=document.getElementById('tab-'+leaf);if(!out||!inn||out===inn)return false;
-  try{if(leaf==='trash')renderTrash();if(leaf==='totp')renderTotp();if(leaf==='info')renderInfo();if(leaf==='store')renderStoreCards();if(['warranty','license','vehicle','dates'].includes(leaf))renderAssets(leaf);}catch(e){}
+  try{avTabFresh(leaf);}catch(e){}
   const sy=window.scrollY||0,tb=document.getElementById('grp-btn-dashboard').parentElement,tbR=tb.getBoundingClientRect(),tbTop0=tbR.top+sy,tbBot0=tbR.bottom+sy;
   const tpB=Math.max(0,Math.round((document.querySelector('.topbar')||tb).getBoundingClientRect().bottom)),scrolled=sy>1;
   const topMain=scrolled||!tbR.height?tpB:Math.max(0,Math.round(tbR.bottom));
@@ -12667,7 +12685,7 @@ function avTabKey(k){const el=document.getElementById('tab-'+k);let ui='';if(el)
   return avDataVer+'|'+currentLang+'|'+(typeof currentFolderId!=='undefined'?currentFolderId:'')+'|'+(typeof currentVaultFolderId!=='undefined'?currentVaultFolderId:'')+'|'+(typeof privacyOn!=='undefined'?privacyOn:'')+'|'+avMode()+'|'+JSON.stringify(avHiddenTabs())+'|'+ui+'|'+(k==='dashboard'?new Date().toDateString()+' '+new Date().getHours():'');}
 function avOnce(k,fn,arg){const key=avTabKey(k);if(AV_ONCE[k]===key)return;AV_ONCE[k]=key;fn(arg);}
 (function(){if(typeof markUnsaved==='function'){const mu=markUnsaved;markUnsaved=function(){avDataVer++;return mu.apply(this,arguments);};}
-  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{['dashboard','archive','notes','cards','docs','trash'].forEach(t=>{AV_ONCE[t]=avTabKey(t);});}catch(e){}  /* só as que o renderAll desenha de facto */return r;};}})();
+  if(typeof renderAll==='function'){const ra=renderAll;renderAll=function(){avDataVer++;const r=ra.apply(this,arguments);try{const c=avActiveTab();if(c!=='totp')AV_ONCE[c]=avTabKey(c);}catch(e){}  /* só a aba à vista foi desenhada; as outras ficam por desenhar até serem abertas */return r;};}})();
 
 
 /* ══ v9.92 — AVISO DE NOVA VERSÃO ══
@@ -14368,7 +14386,12 @@ function avxEnhance(box){
   extra.forEach(b=>{b.setAttribute('role','menuitem');menu.appendChild(b);});
   box.append(more,menu);
 }
-function avxScan(){AVX.raf=0;document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance);if(AVX.btn&&!AVX.btn.isConnected)avxClose();}
+function avxScan(){
+  AVX.raf=0;
+  if(AVX.q){const q=AVX.q;AVX.q=null;q.forEach(b=>{if(b.isConnected&&!b.dataset.avx)avxEnhance(b);});}
+  else document.querySelectorAll('.card-actions:not([data-avx])').forEach(avxEnhance); // 1.ª vez: a página toda
+  if(AVX.btn&&!AVX.btn.isConnected)avxClose();
+}
 function avxMore(btn){
   const was=AVX.btn;if(AVX.menu)avxClose();if(was===btn)return;
   const menu=btn.nextElementSibling;if(!menu||!menu.classList.contains('cbx-menu'))return;
@@ -14395,8 +14418,9 @@ function avxClose(focus){
   if(typeof document==='undefined')return;
   const go=()=>{if(!AVX.raf)AVX.raf=requestAnimationFrame(avxScan);};
   // só quando entram cartões novos (antes revia a página inteira a cada mudança — até a cada letra que a Aurora escreve)
-  const hasCard=n=>n.nodeType===1&&(n.matches('.card-actions')||!!n.querySelector('.card-actions'));
-  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(hasCard(n))return go();}).observe(document.documentElement,{childList:true,subtree:true});go();
+  // junta só os cartões que entraram (antes procurava-se na página inteira a cada lote)
+  const add=n=>{if(n.nodeType!==1)return;const q=AVX.q||(AVX.q=new Set());if(n.matches('.card-actions'))q.add(n);n.querySelectorAll('.card-actions:not([data-avx])').forEach(b=>q.add(b));};
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)add(n);if(AVX.q&&AVX.q.size)go();else AVX.q=null;}).observe(document.documentElement,{childList:true,subtree:true});go();
   document.addEventListener('click',e=>{if(AVX.menu&&!(AVX.btn&&AVX.btn.contains(e.target)))avxClose();});
   document.addEventListener('keydown',e=>{
     if(!AVX.menu)return;
@@ -14666,23 +14690,24 @@ async function avPenDownload(){
   if(btn)btn.disabled=false;
 }
 
-/* ══ ESTILOS (v11) — Ónix & Ouro, Nórdico e Clássico ══
+/* ══ ESTILOS (v11, v12) — Safira & Platina, Ónix & Ouro, Nórdico e Clássico ══
    O estilo, o ecrã de entrada e o movimento ficam neste browser (js/skin-boot.js aplica-os antes de a página se desenhar).
    Estilos novos: sem fotografia nem céu WebGL no ecrã de entrada e sem fundo animado na app — muito mais leves.
-   Ecrãs de entrada: Lanterna (gravura que se acende onde passa o dedo), Constelação (a assinatura do cofre: estrelas
-   próprias deste cofre, que só esta app conhece) e Voz da Aurora. Tocar no selo pede a impressão digital. */
-const SK_SKINS=['onix','nordico','classico'],SK_ENTRIES=['lanterna','constelacao','aurora'],SK_MOTIONS=['completo','suave','desligado'];
+   Ecrãs de entrada: Joia (uma pedra lapidada só deste cofre, que apanha a luz), Lanterna (gravura que se acende onde
+   passa o dedo), Constelação (a assinatura do cofre em estrelas) e Voz da Aurora. Tocar no selo pede a impressão digital. */
+const SK_SKINS=['safira','onix','nordico','classico'],SK_ENTRIES=['joia','lanterna','constelacao','aurora'],SK_MOTIONS=['completo','suave','desligado'];
 function skGet(k,d){try{return localStorage.getItem(k)||d;}catch(e){return d;}}
 function skSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function skEn(){return typeof currentLang!=='undefined'&&currentLang==='en';}
 function skNew(){return avSkin()!=='classico';}
-function skEntry(){const e=document.documentElement.getAttribute('data-entry');return SK_ENTRIES.includes(e)?e:'lanterna';}
+function skEntryDef(){return avSkin()==='safira'?'joia':'lanterna';}
+function skEntry(){const e=document.documentElement.getAttribute('data-entry');return SK_ENTRIES.includes(e)?e:skEntryDef();}
 function skMotion(){const m=document.documentElement.getAttribute('data-motion');return SK_MOTIONS.includes(m)?m:'suave';}
 function skStill(){return skMotion()==='desligado'||!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}
 function skDashLabel(){return skNew()?(skEn()?'Home':'Início'):t('tabDash').replace(/^📊\s*/,'');}
 function skEntryFor(choice){
-  if(choice!=='surpresa')return SK_ENTRIES.includes(choice)?choice:'lanterna';
-  const n=new Date(),day=Math.floor((n-new Date(n.getFullYear(),0,0))/864e5);return SK_ENTRIES[day%3];
+  if(choice!=='surpresa')return SK_ENTRIES.includes(choice)?choice:skEntryDef();
+  const n=new Date(),day=Math.floor((n-new Date(n.getFullYear(),0,0))/864e5);return SK_ENTRIES[day%SK_ENTRIES.length];
 }
 
 /* ── Escolhas (Definições → Aspeto) ── */
@@ -14691,12 +14716,13 @@ function setSkin(s){
   skSet('av_skin',s);
   document.documentElement.setAttribute('data-skin',s);
   document.documentElement.classList.toggle('sk-new',s!=='classico');
+  document.documentElement.setAttribute('data-entry',skEntryFor(skGet('av_entry',skEntryDef())));
   try{applyThemeColors(currentTheme);buildManifest();}catch(e){}
   try{if(s==='classico'){if(!skStill()&&AuroraBG)AuroraBG.setMode(currentBg);}else if(AuroraBG)AuroraBG.stop();}catch(e){}
   try{renderThemeGrid();refreshColorPickers();}catch(e){}
   skDecorate();skArtBuild();skRenderSettings();
   try{positionTabIndicator();}catch(e){}
-  const n={onix:'Ónix & Ouro',nordico:skEn()?'Nordic':'Nórdico',classico:skEn()?'Classic':'Clássico'}[s];
+  const n={safira:skEn()?'Sapphire & Platinum':'Safira & Platina',onix:'Ónix & Ouro',nordico:skEn()?'Nordic':'Nórdico',classico:skEn()?'Classic':'Clássico'}[s];
   toast((skEn()?'Style: ':'Estilo: ')+n);
 }
 function setEntryStyle(c){
@@ -14718,17 +14744,19 @@ avAllow('setSkin','setEntryStyle','setMotion','setSkinMode','skSealTap','skMoreO
 
 function skRenderSettings(){
   const box=document.getElementById('sk-settings');if(!box)return;
-  const en=skEn(),s=avSkin(),c=skGet('av_entry','lanterna'),m=skMotion(),dark=currentTheme!=='light';
+  const en=skEn(),s=avSkin(),c=skGet('av_entry',skEntryDef()),m=skMotion(),dark=currentTheme!=='light';
   const opt=(act,arg,on,cls,name,sub)=>`<button type="button" class="sk-opt${on?' on':''}" data-act="${act}" data-arg="${arg}" aria-pressed="${on}"><span class="sk-thumb ${cls}" aria-hidden="true"></span><b>${name}</b><small>${sub}</small></button>`;
   const seg=(act,items,cur)=>`<div class="sk-seg" role="group">${items.map(([v,l])=>`<button type="button" data-act="${act}" data-arg="${v}" aria-pressed="${v===cur}" class="${v===cur?'on':''}">${l}</button>`).join('')}</div>`;
   box.innerHTML=`<div class="settings-title">✨ ${en?'Style':'Estilo'}</div>
-  <div class="sk-opts sk-3">
+  <div class="sk-opts sk-4">
+    ${opt('setSkin','safira',s==='safira','sk-th-safira',en?'Sapphire &amp; Platinum':'Safira &amp; Platina',en?'Deep blue and platinum, Art Deco':'Azul profundo e platina, Art Déco')}
     ${opt('setSkin','onix',s==='onix','sk-th-onix','Ónix &amp; Ouro',en?'Black and gold, elegant':'Preto e dourado, elegante')}
     ${opt('setSkin','nordico',s==='nordico','sk-th-nordico',en?'Nordic':'Nórdico',en?'Pine green and amber, cosy':'Verde-pinho e âmbar, acolhedor')}
     ${opt('setSkin','classico',s==='classico','sk-th-classico',en?'Classic':'Clássico',en?'The original look, animated aurora':'O aspeto de sempre, com a aurora animada')}
   </div>
   ${s!=='classico'?`<div class="sk-lbl">${en?'Entry screen':'Ecrã de entrada'}</div>
-  <div class="sk-opts sk-4">
+  <div class="sk-opts sk-5">
+    ${opt('setEntryStyle','joia',c==='joia','sk-th-joia',en?'Jewel':'Joia',en?'Your vault’s own gem':'A pedra só do teu cofre')}
     ${opt('setEntryStyle','lanterna',c==='lanterna','sk-th-lanterna',en?'Lantern':'Lanterna',en?'An engraving that lights up':'Gravura que se acende')}
     ${opt('setEntryStyle','constelacao',c==='constelacao','sk-th-constelacao',en?'Constellation':'Constelação',en?'Your vault’s signature':'A assinatura do cofre')}
     ${opt('setEntryStyle','aurora',c==='aurora','sk-th-aurora',en?'Aurora’s voice':'Voz da Aurora',en?'Aurora greets you':'A Aurora recebe-te')}
@@ -14771,6 +14799,99 @@ function skSigStars(){
   return{known:true,pts,edges:s.e};
 }
 
+/* ── Joia (v12): uma pedra lapidada, desenhada em vetor. O corte (número de faces, proporções, rotação e a cor do «fogo»)
+   vem da assinatura do cofre: cada cofre tem a sua. A luz segue o rato, o dedo ou a inclinação do telemóvel; só se
+   redesenha quando a luz muda (parada não gasta nada). ── */
+const SK_GEM_PAL=[[0,230,168],[31,182,255],[123,92,255],[255,95,184],[255,207,90]];
+const SK_GEM_TONE={safira:{d:[[7,11,26],[30,58,160]],l:[[238,242,251],[120,150,235]]},onix:{d:[[12,11,10],[126,90,26]],l:[[247,243,234],[212,176,98]]},nordico:{d:[[10,22,19],[14,100,76]],l:[[244,243,236],[100,186,154]]}};
+const SKG={lx:-.35,ly:-.45,px:0,py:0,ptr:false,raf:0,amb:0,hand:0,tl:0,tilt:false,open:false,
+  can:!!(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission!=='function'&&window.isSecureContext)};
+function skGemHue(t){t=((t%1)+1)%1;const n=SK_GEM_PAL.length,x=t*n,i=Math.floor(x),f=x-i,a=SK_GEM_PAL[i%n],b=SK_GEM_PAL[(i+1)%n];return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];}
+function skGemSpec(sig){
+  const b=/^[0-9a-f]{32}$/.test(sig||'')?sig.match(/../g).map(x=>parseInt(x,16)):null;
+  if(!b)return{n:8,rt:.5,rs:.7,rot:Math.PI/8,hue:.02};
+  const n=[8,8,10,12,6,8,10,8][b[0]%8];
+  return{n,rt:.44+(b[1]/255)*.12,rs:.64+(b[2]/255)*.1,rot:(b[3]/255)*(Math.PI*2/n),hue:b[4]/255};
+}
+function skGemBuild(sig){
+  const S=skGemSpec(sig),n=S.n,R=150,C=200,TAU=Math.PI*2,f=v=>v.toFixed(1);
+  const P=(a,r)=>[C+Math.cos(a)*r,C+Math.sin(a)*r];
+  const T=[],M=[],G=[],Q=[],cu=[],F=[]; // mesa, estrelas, cintura, pavilhão, culaça; faces = [pontos, anel, inclinação]
+  for(let k=0;k<n;k++){const a=S.rot+k*TAU/n;T.push(P(a,R*S.rt));M.push(P(a+Math.PI/n,R*S.rs));cu.push(P(a+Math.PI/n,R*S.rt*.2));}
+  for(let j=0;j<2*n;j++){const a=S.rot+j*Math.PI/n;G.push(P(a,R));Q.push(P(a,R*S.rt*(j%2?.62:.94)));}
+  for(let j=0;j<2*n;j++)F.push([[cu[Math.floor(j/2)%n],Q[j],Q[(j+1)%(2*n)]],0,-.42+(j%2?.16:-.1)]);
+  for(let j=0;j<2*n;j++)F.push([[Q[j],Q[(j+1)%(2*n)],T[Math.floor((j+1)/2)%n]],1,-.2+(j%2?-.12:.12)]);
+  for(let k=0;k<n;k++)F.push([[T[k],T[(k+1)%n],M[k]],2,.3]);
+  for(let k=0;k<n;k++)F.push([[T[k],M[k],G[2*k],M[(k+n-1)%n]],3,.5]);
+  for(let k=0;k<n;k++){F.push([[M[k],G[2*k],G[2*k+1]],4,.74]);F.push([[M[k],G[2*k+1],G[(2*k+2)%(2*n)]],4,.74]);}
+  // três camadas (pavilhão, coroa, cintura): ao abrir, cada uma roda e afasta-se como camada própria —
+  // é a placa gráfica que as anima, sem repintar; poucas camadas e pouca ampliação para não pesar na memória
+  const L=['','',''];
+  F.forEach(([pts,ring,tilt])=>{
+    const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length-C,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length-C;
+    L[ring>>1]+=`<polygon points="${pts.map(p=>f(p[0])+','+f(p[1])).join(' ')}" data-a="${Math.atan2(cy,cx).toFixed(3)}" data-t="${tilt}" data-r="${ring}"/>`;
+  });
+  L[0]+=`<polygon class="sk-gem-cu" points="${cu.map(p=>f(p[0])+','+f(p[1])).join(' ')}"/>`;
+  L[2]+=`<circle class="sk-gem-rim" cx="200" cy="200" r="${R+4}"/><circle class="sk-gem-rim2" cx="200" cy="200" r="${R+11}"/>`;
+  return `<span class="sk-gem" data-hue="${S.hue.toFixed(3)}" data-n="${F.length}">${L.map((g,r)=>`<svg class="sk-gem-l" viewBox="0 0 400 400" style="--r:${r}" aria-hidden="true">${g}</svg>`).join('')}</span>`;
+}
+// Luz: cada face tem uma direção; a cor mistura o corpo da pedra com o «fogo» da aurora onde a luz bate
+function skGemLight(svg,lx,ly,lit){
+  const F=svg._f||(svg._f=[...svg.querySelectorAll('polygon[data-a]')].map(p=>{const a=+p.dataset.a,t=+p.dataset.t,s=Math.sin(t);return{p,a,inn:+p.dataset.r<2,n:[Math.cos(a)*s,Math.sin(a)*s,Math.cos(t)],c:''};}));
+  const light=document.documentElement.getAttribute('data-theme')==='light',tn=(SK_GEM_TONE[avSkin()]||SK_GEM_TONE.safira)[light?'l':'d'],base=tn[0],body=tn[1];
+  const hue=+svg.dataset.hue||0,m=Math.hypot(lx,ly,.85),L=[lx/m,ly/m,.85/m],hm=Math.hypot(L[0],L[1],L[2]+1),H=[L[0]/hm,L[1]/hm,(L[2]+1)/hm];
+  for(let i=0;i<F.length;i++){
+    const fc=F[i],N=fc.n,inn=fc.inn,on=lit>i?1:0;
+    const d=Math.max(0,N[0]*L[0]+N[1]*L[1]+N[2]*L[2]),sp=Math.pow(Math.max(0,N[0]*H[0]+N[1]*H[1]+N[2]*H[2]),60);
+    const fire=Math.min(1,Math.pow(inn?d*1.25:d,inn?1.2:2.2)*(inn?1.15:1.5)+on*.55),hc=skGemHue(fc.a/(Math.PI*2)+hue+(inn?.45:0)+.16*(L[0]-L[1]));
+    const b=Math.min(1,(inn?.1:.2)+d*(inn?.8:.55)+on*.2),mix=light?.34+b*.66:b,w=Math.min(.92,sp*1.3);
+    let c='rgb(';
+    for(let k=0;k<3;k++){const col=body[k]+(hc[k]-body[k])*fire,v=base[k]+(col-base[k])*mix;c+=Math.round(v+(255-v)*w)+(k<2?',':')');}
+    if(c!==fc.c){fc.c=c;fc.p.setAttribute('fill',c);}
+  }
+}
+function skGemPaint(){
+  const svg=document.querySelector('#sk-art .sk-gem');if(!svg)return;
+  if(SKG.ptr){SKG.ptr=false;const r=svg.getBoundingClientRect(),k=r.width*.75||1,cl=v=>Math.max(-1.3,Math.min(1.3,v));SKG.lx=cl((SKG.px-r.left-r.width/2)/k);SKG.ly=cl((SKG.py-r.top-r.height/2)/k);}
+  const n=+svg.dataset.n||0;
+  skGemLight(svg,SKG.lx,SKG.ly,SKG.open?n:Math.round(Math.min(1,skTyped/8)*n));
+}
+function skGemQueue(){if(!SKG.raf)SKG.raf=requestAnimationFrame(()=>{SKG.raf=0;skGemPaint();});}
+function skGemLive(){const art=document.getElementById('sk-art'),ls=document.getElementById('lock-screen');return !!art&&art.dataset.kind==='joia'&&!SKG.open&&!!ls&&ls.style.display!=='none'&&skMotion()!=='desligado';}
+document.addEventListener('pointermove',e=>{if(!skGemLive())return;SKG.px=e.clientX;SKG.py=e.clientY;SKG.ptr=true;SKG.hand=performance.now()+4000;skGemQueue();},{passive:true});
+function skGemTilt(e){
+  if(e.gamma==null||e.beta==null||!skGemLive())return;
+  const now=performance.now();if(now<SKG.hand)return;
+  const lx=Math.max(-1,Math.min(1,e.gamma/28)),ly=Math.max(-1,Math.min(1,(e.beta-48)/28));
+  if(Math.abs(lx-SKG.lx)+Math.abs(ly-SKG.ly)<.03)return;
+  SKG.lx+=(lx-SKG.lx)*.4;SKG.ly+=(ly-SKG.ly)*.4;SKG.tl=now;skGemQueue();
+}
+// o sensor de inclinação só fica ligado enquanto a joia está no ecrã (não gasta bateria com o cofre aberto)
+function skGemSensors(on){
+  const ok=!!on&&SKG.can&&!skStill()&&!!window.matchMedia&&matchMedia('(pointer:coarse)').matches;
+  if(ok===SKG.tilt)return;SKG.tilt=ok;
+  window[ok?'addEventListener':'removeEventListener']('deviceorientation',skGemTilt);
+}
+// «Completo»: a luz passeia devagar pela pedra quando ninguém lhe mexe (~24 fps, só com a joia à vista)
+function skGemAmbient(){
+  cancelAnimationFrame(SKG.amb);SKG.amb=0;
+  if(skMotion()!=='completo'||skStill())return;
+  let last=0;
+  const tick=ts=>{
+    SKG.amb=0;if(!skGemLive()&&!SKG.open)return;
+    SKG.amb=requestAnimationFrame(tick);
+    if(SKG.open||document.hidden||ts-last<42||ts<SKG.hand||ts<SKG.tl+3000)return;last=ts;
+    const a=ts/2600;SKG.lx=.62*Math.cos(a);SKG.ly=.5*Math.sin(a*1.3)-.12;skGemPaint();
+  };
+  SKG.amb=requestAnimationFrame(tick);
+}
+// ao abrir: a pedra acende-se toda e os anéis abrem-se como um diafragma (o resto é CSS: #lock-screen.sk-opening)
+function skGemOpen(){
+  const svg=document.querySelector('#sk-art .sk-gem');
+  if(svg&&!skStill()){SKG.lx=0;SKG.ly=-.1;SKG.ptr=false;SKG.open=true;skGemPaint();}
+  setTimeout(()=>{SKG.open=false;const ls=document.getElementById('lock-screen');if(!ls||ls.style.display==='none')skGemSensors(false);},900);
+}
+
 /* ── Arte do ecrã de entrada ── */
 let skTyped=0;
 function skRosette(id,stroke,extra){
@@ -14795,14 +14916,28 @@ function skArtBuild(){
     const stars=P.map((p,i)=>`<circle class="sk-halo" style="--i:${i}" cx="${p[0]}" cy="${p[1]}" r="14"/><circle class="sk-st" style="--i:${i}" cx="${p[0]}" cy="${p[1]}" r="2.6"/>`).join('');
     h=`<div class="sk-stage sk-con"><div class="sk-cap">${en?'VAULT SIGNATURE':'ASSINATURA DO COFRE'}</div><svg class="sk-sky" viewBox="0 0 340 300" role="img" aria-label="${en?'Vault signature: a golden constellation of eight stars':'Assinatura do cofre: constelação dourada de oito estrelas'}">${lines}${stars}</svg>${skSealHtml()}</div>
       <div class="sk-txt"><div class="sk-brand"><i aria-hidden="true"></i><span>AURORA VAULT</span><i aria-hidden="true"></i></div><p class="sk-hint" id="sk-hint">${st.known?(en?'These are your vault’s stars.<br>If you don’t recognise them, don’t type anything.':'Estas são as estrelas do teu cofre.<br>Se não as reconheceres, não escrevas nada.'):(en?'The stars light up as you type.':'As estrelas acendem-se enquanto escreves.')}</p></div>`;
+  }else if(kind==='joia'){
+    const sig=skGet('av_sig',''),known=/^[0-9a-f]{32}$/.test(sig);
+    h=`<div class="sk-stage sk-joia"><button type="button" class="sk-gem-btn" id="sk-seal" data-act="skSealTap">${skGemBuild(sig)}</button></div>
+      <div class="sk-txt"><div class="sk-brand"><i aria-hidden="true"></i><span>AURORA VAULT</span><i aria-hidden="true"></i></div>${known?`<div class="sk-serial">${en?'CUT':'LAPIDAÇÃO'} Nº ${sig.slice(0,4).toUpperCase()}</div>`:''}<p class="sk-hint" id="sk-hint"></p></div>`;
   }else{
-    let bars='';for(let i=0;i<28;i++)bars+=`<i style="--h:${Math.round(4+3*Math.sin(Math.PI*(i+.5)/28))}px;--c:${['#8a6e2f','#c9a84c','#f3dfa2','#d9ccff','#bfe3ff','#bdf5e2','#d9ccff','#f3dfa2','#c9a84c','#8a6e2f'][Math.floor(i/28*10)]}"></i>`;
+    const m=avSkin()==='safira'?['#5f6c8c','#97a4c4','#e3e9f8']:['#8a6e2f','#c9a84c','#f3dfa2'];
+    let bars='';for(let i=0;i<28;i++)bars+=`<i style="--h:${Math.round(4+3*Math.sin(Math.PI*(i+.5)/28))}px;--c:${[m[0],m[1],m[2],'#d9ccff','#bfe3ff','#bdf5e2','#d9ccff',m[2],m[1],m[0]][Math.floor(i/28*10)]}"></i>`;
     const known=!!(skGet('av_sig',''));
     h=`<div class="sk-stage sk-aur"><button type="button" class="sk-orb" id="sk-seal" data-act="skSealTap"><span class="sk-orb-glow" aria-hidden="true"></span><span class="sk-orb-core" aria-hidden="true"><span class="sk-orb-flow"></span><span class="sk-orb-shine"></span></span></button></div>
       <div class="sk-txt"><div class="sk-hello">${known?(en?'Hello again.':'Olá de novo.'):(en?'Hello.':'Olá.')}</div><p class="sk-hint" id="sk-hint">${en?'I’m Aurora. Tell me the password<br>and I’ll open your vault.':'Sou a Aurora. Diz-me a palavra-passe<br>e eu abro o teu cofre.'}</p><div class="sk-bars" id="sk-bars" aria-hidden="true">${bars}</div></div>`;
   }
   art.innerHTML=h;
   skTyped=0;skSealState();skTypeFx();
+  const ls=document.getElementById('lock-screen'),live=kind==='joia'&&ls&&ls.style.display!=='none';
+  skGemSensors(live);if(live)skGemAmbient();
+}
+function skHint(kind,bio){
+  const en=skEn(),touch=!window.matchMedia||matchMedia('(pointer:coarse)').matches;
+  if(kind==='lanterna')return bio?(en?'Tap the seal to unlock.':'Toca no selo para entrar.'):touch?(en?'Run your finger over the engraving.':'Passa o dedo pela gravura.'):(en?'Move the mouse over the engraving.':'Passa o rato pela gravura.');
+  if(/^[0-9a-f]{32}$/.test(skGet('av_sig','')))return bio?(en?'This is your vault’s jewel.<br>Tap it to unlock.':'Esta é a joia do teu cofre.<br>Toca-lhe para entrar.'):(en?'This is your vault’s jewel.<br>If you don’t recognise it, don’t type anything.':'Esta é a joia do teu cofre.<br>Se não a reconheceres, não escrevas nada.');
+  return bio?(en?'Tap the jewel to unlock.':'Toca na joia para entrar.'):touch&&SKG.can&&!skStill()?(en?'Tilt your phone: the jewel catches the light.':'Inclina o telemóvel: a joia apanha a luz.')
+    :touch||skMotion()==='desligado'?(en?'The jewel lights up as you type.':'A joia ganha luz enquanto escreves.'):(en?'Move the mouse: the jewel catches the light.':'Mexe o rato: a joia apanha a luz.');
 }
 // O selo: com impressão digital disponível pede-a já (é o toque que o browser exige); senão leva ao campo certo
 function skSealState(){
@@ -14812,8 +14947,7 @@ function skSealState(){
   b.classList.toggle('bio',!!bio);
   const ls=document.getElementById('lock-screen');if(ls)ls.classList.toggle('sk-bio',!!bio);
   const h=document.getElementById('sk-hint'),art=document.getElementById('sk-art');
-  if(h&&art&&art.dataset.kind==='lanterna'){const touch=!window.matchMedia||matchMedia('(pointer:coarse)').matches;
-    h.textContent=bio?(en?'Tap the seal to unlock.':'Toca no selo para entrar.'):touch?(en?'Run your finger over the engraving.':'Passa o dedo pela gravura.'):(en?'Move the mouse over the engraving.':'Passa o rato pela gravura.');}
+  if(h&&art&&(art.dataset.kind==='lanterna'||art.dataset.kind==='joia'))h.innerHTML=skHint(art.dataset.kind,bio);
 }
 function skSealTap(){
   if(typeof lockedOut!=='undefined'&&lockedOut)return;
@@ -14836,7 +14970,7 @@ function skTypeFx(){
     art.classList.toggle('typing',n>0);
     const bars=art.querySelectorAll('.sk-bars i'),N=bars.length,seed=(n*7919)%97;
     bars.forEach((b,i)=>{const env=Math.sin(Math.PI*(i+.5)/N);b.style.setProperty('--h',Math.round(n?6+env*(12+((seed*(i+7)+n*13)%34)):4+3*env)+'px');});
-  }
+  }else if(art.dataset.kind==='joia')skGemPaint();
 }
 document.addEventListener('input',e=>{
   const id=e.target&&e.target.id;
@@ -14861,13 +14995,31 @@ if(typeof lockShowPwStep==='function'){const _skSps=lockShowPwStep;lockShowPwSte
 if(typeof lockApp==='function'){const _skLa=lockApp;lockApp=function(){const r=_skLa.apply(this,arguments);try{if(typeof avNudgeClose==='function')avNudgeClose();skTyped=0;skArtBuild();}catch(e){}return r;};} // a sugestão aberta não fica por cima do ecrã de entrada
 // Uma vez por dispositivo, depois da atualização: onde se escolhe o aspeto (o Clássico continua lá)
 function skIntro(){
-  if(skGet('av_skin_intro','')||(typeof presentationMode!=='undefined'&&presentationMode))return;
-  skSet('av_skin_intro','1');if(!skNew())return;
-  setTimeout(()=>{try{const t2=document.getElementById('toast');if(!t2)return;const en=skEn();
-    t2.textContent=en?'✨ New look. Choose another style, entry screen or motion in Settings → Appearance — the Classic is still there.':'✨ Aspeto novo. Escolhe outro estilo, ecrã de entrada ou movimento em Definições → Aspeto — o Clássico continua lá.';
+  if(skGet('av_skin_intro','')==='2'||(typeof presentationMode!=='undefined'&&presentationMode))return;
+  const en=skEn(),mine=avSkin()==='safira';
+  // quem já tinha escolhido outro estilo fica com ele: só recebe o convite para experimentar
+  if(!mine&&typeof avNudge==='function'&&avNudgesOn()){if(!SKG.inv){SKG.inv=true;setTimeout(()=>skInvite(0),6500);}return;}
+  skSet('av_skin_intro','2');
+  setTimeout(()=>{try{
+    const t2=document.getElementById('toast');if(!t2)return;
+    t2.textContent=mine?(en?'✨ New look: Sapphire & Platinum. The other styles are still in Settings → Appearance.':'✨ Aspeto novo: Safira & Platina. Os outros estilos continuam em Definições → Aspeto.')
+      :(en?'✨ New style, Sapphire & Platinum, in Settings → Appearance.':'✨ Estilo novo, Safira & Platina, em Definições → Aspeto.');
     t2.classList.add('show');clearTimeout(_toastT);_toastT=setTimeout(()=>t2.classList.remove('show'),7000);}catch(e){}},1800);
 }
-if(typeof doUnlock==='function'){const _skDu=doUnlock;doUnlock=function(){try{skSaveSig();skIntro();}catch(e){}return _skDu.apply(this,arguments);};}
+// o convite espera a vez: não atropela outro aviso (o resumo da semana aparece aos 5 s) nem a apresentação
+function skInvite(tries){
+  try{
+    SKG.inv=false;
+    if(!masterKey||avSkin()==='safira'||skGet('av_skin_intro','')==='2')return;
+    const n=document.getElementById('av-nudge');
+    if(((n&&n.classList.contains('show'))||(typeof AVT!=='undefined'&&AVT.on))&&tries<30){SKG.inv=true;setTimeout(()=>skInvite(tries+1),2500);return;}
+    skSet('av_skin_intro','2');
+    const en=skEn();
+    avNudge(en?'New style: <b>Sapphire &amp; Platinum</b>, with a jewel that belongs to your vault alone.':'Estilo novo: <b>Safira &amp; Platina</b>, com uma joia que é só do teu cofre.',
+      [{label:en?'Try it':'Experimentar',fn:()=>{setEntryStyle('joia');setSkin('safira');}}],16000);
+  }catch(e){}
+}
+if(typeof doUnlock==='function'){const _skDu=doUnlock;doUnlock=function(){try{skSaveSig();skIntro();skGemOpen();}catch(e){}return _skDu.apply(this,arguments);};}
 
 /* ── Interior: menu lateral no PC, barra de baixo no telemóvel (com a Aurora ao centro) ── */
 function skDecorate(){
@@ -14929,3 +15081,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')skMoreClose();});
 function skMoreGo(fn,arg){skMoreClose();const f=avFn(fn);if(f)setTimeout(()=>arg?f(arg):f(),30);}
 
 try{skDecorate();skArtBuild();}catch(e){console.warn('Estilos:',e);}
+
+/* ══ v12 — FLUIDEZ ══
+   · Só se desenha a aba à vista (renderAll em 06-abas-idioma.js); as outras desenham-se ao abrir.
+   · Ao bloquear, as abas ficam vazias: antes, os cartões do cofre continuavam na página (escondidos) até ao desbloqueio
+     seguinte — agora, com o cofre fechado, a página não guarda nada dele. */
+function avTabsClear(){
+  if(typeof masterKey!=='undefined'&&masterKey)return;
+  avDataVer++;
+  [...Object.keys(AV_TAB_RENDER),'totp',...AV_ASSET_TABS].forEach(t=>{try{avTabDraw(t);}catch(e){}});
+  for(const k in AV_ONCE)delete AV_ONCE[k];
+}
+if(typeof lockApp==='function'){const _fl=lockApp;lockApp=function(){const demo=typeof presentationMode!=='undefined'&&presentationMode;const r=_fl.apply(this,arguments);if(!demo)try{avTabsClear();}catch(e){}return r;};}

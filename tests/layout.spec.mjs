@@ -55,7 +55,7 @@ test('barra de segurança sem espaços vazios quando não há resultados de fuga
   expect(hidden).toEqual(['none', 'none']);
 });
 
-for (const [skin, fonts] of [['onix', ['Bodoni Moda', 'Inter']], ['nordico', ['Fraunces', 'Manrope']], ['classico', ['JetBrains Mono', 'Playfair Display']]]) {
+for (const [skin, fonts] of [['safira', ['Jost', 'Marcellus']], ['onix', ['Bodoni Moda', 'Inter']], ['nordico', ['Fraunces', 'Manrope']], ['classico', ['JetBrains Mono', 'Playfair Display']]]) {
   test(`as fontes da app vêm deste site e carregam (estilo ${skin})`, async ({ page }) => {
     await page.addInitScript(s => localStorage.setItem('av_skin', s), skin);
     await openApp(page);
