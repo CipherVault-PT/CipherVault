@@ -155,6 +155,9 @@ test.describe('Ecrã de entrada com cofre memorizado', () => {
     await expect(page.locator('#l-file-name')).toContainText(/dispositivo|device/);
     await expect(page.locator('#lk-swipe')).toBeVisible();
     await swipeUp(page);
+    // como nos outros testes: o campo do PIN só fica ativo uns instantes depois de deslizar
+    await expect(page.locator('#lk-swipe')).toBeHidden();
+    await expect(page.locator('#pin-input')).toBeFocused();
     await page.locator('#pin-input').pressSequentially('482915');
     // se não abrir, o valor mostra o estado do ecrã de entrada (para se perceber porquê)
     await expect.poll(() => page.evaluate(() => masterKey ? 'aberto' : JSON.stringify({
