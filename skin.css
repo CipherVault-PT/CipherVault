@@ -239,7 +239,6 @@ html[data-skin="nordico"] .sk-joia{--g:60,200,150}
 html[data-theme="light"] .sk-gem-l polygon[data-a]{stroke:rgba(255,255,255,.72)}
 html[data-theme="light"] .sk-gem-cu{fill:rgba(255,255,255,.4);stroke:rgba(255,255,255,.85)}
 html[data-theme="light"] .sk-joia::after{background:radial-gradient(circle,rgba(var(--g),.22),rgba(var(--g),.07) 46%,transparent 66%)}
-.sk-serial{font:500 .6rem/1 var(--f-body);letter-spacing:4px;color:var(--text-muted)}
 /* abertura (~0,5 s) depois de o cofre abrir */
 /* a joia abre-se em profundidade: cintura, coroa e pavilhão afastam-se uma a seguir à outra (só escala e opacidade:
    rodar camadas grandes custava fotogramas em equipamentos sem placa gráfica) */
@@ -277,7 +276,6 @@ html[data-theme="light"] .sk-joia::after{background:radial-gradient(circle,rgba(
   html.sk-new .lpanel-sub{margin-bottom:14px}
   .sk-joia{width:min(250px,62vw)}
   html[data-skin="safira"] .sk-brand span{letter-spacing:6px}
-  .sk-serial{font-size:.56rem;letter-spacing:3.4px}
   .sk-con{width:min(270px,72vw);padding-top:18px}
   .sk-art[data-kind="constelacao"] .sk-brand{display:none}
   .sk-con .sk-seal{width:54px}

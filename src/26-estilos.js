@@ -229,9 +229,9 @@ function skArtBuild(){
     h=`<div class="sk-stage sk-con"><div class="sk-cap">${en?'VAULT SIGNATURE':'ASSINATURA DO COFRE'}</div><svg class="sk-sky" viewBox="0 0 340 300" role="img" aria-label="${en?'Vault signature: a golden constellation of eight stars':'Assinatura do cofre: constelação dourada de oito estrelas'}">${lines}${stars}</svg>${skSealHtml()}</div>
       <div class="sk-txt"><div class="sk-brand"><i aria-hidden="true"></i><span>AURORA VAULT</span><i aria-hidden="true"></i></div><p class="sk-hint" id="sk-hint">${st.known?(en?'These are your vault’s stars.<br>If you don’t recognise them, don’t type anything.':'Estas são as estrelas do teu cofre.<br>Se não as reconheceres, não escrevas nada.'):(en?'The stars light up as you type.':'As estrelas acendem-se enquanto escreves.')}</p></div>`;
   }else if(kind==='joia'){
-    const sig=skGet('av_sig',''),known=/^[0-9a-f]{32}$/.test(sig);
+    const sig=skGet('av_sig','');
     h=`<div class="sk-stage sk-joia"><button type="button" class="sk-gem-btn" id="sk-seal" data-act="skSealTap">${skGemBuild(sig)}</button></div>
-      <div class="sk-txt"><div class="sk-brand"><i aria-hidden="true"></i><span>AURORA VAULT</span><i aria-hidden="true"></i></div>${known?`<div class="sk-serial">${en?'CUT':'LAPIDAÇÃO'} Nº ${sig.slice(0,4).toUpperCase()}</div>`:''}<p class="sk-hint" id="sk-hint"></p></div>`;
+      <div class="sk-txt"><div class="sk-brand"><i aria-hidden="true"></i><span>AURORA VAULT</span><i aria-hidden="true"></i></div><p class="sk-hint" id="sk-hint"></p></div>`;
   }else{
     const m=avSkin()==='safira'?['#5f6c8c','#97a4c4','#e3e9f8']:['#8a6e2f','#c9a84c','#f3dfa2'];
     let bars='';for(let i=0;i<28;i++)bars+=`<i style="--h:${Math.round(4+3*Math.sin(Math.PI*(i+.5)/28))}px;--c:${[m[0],m[1],m[2],'#d9ccff','#bfe3ff','#bdf5e2','#d9ccff',m[2],m[1],m[0]][Math.floor(i/28*10)]}"></i>`;

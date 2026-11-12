@@ -193,7 +193,7 @@ test.describe('Safira & Platina', () => {
   test('Joia: o corte vem da assinatura do cofre — cofres diferentes, joias diferentes', async ({ page }) => {
     await skin(page, 'safira', { av_sig: SIG });
     await openApp(page);
-    await expect(page.locator('#sk-art .sk-serial')).toHaveText(/Nº 2B91/);
+    await expect(page.locator('#sk-art .sk-serial')).toHaveCount(0);
     await expect(page.locator('#sk-hint')).toContainText(/joia do teu cofre|vault’s jewel/);
     const a = await cut(page);
     await page.evaluate(() => { localStorage.setItem('av_sig', 'f0e1d2c3b4a5968778695a4b3c2d1e0f'); skArtBuild(); });
