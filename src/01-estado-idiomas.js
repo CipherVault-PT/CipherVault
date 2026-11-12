@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='12.1';
+const APP_VERSION='12.2';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];

@@ -179,6 +179,11 @@ test.describe('Safira & Platina', () => {
     expect(b).not.toBe(a);
     await page.evaluate(() => document.dispatchEvent(new PointerEvent('pointermove', { clientX: innerWidth - 10, clientY: innerHeight - 10, bubbles: true })));
     await expect.poll(() => fills(page)).not.toBe(b);
+    // arrastar o dedo na joia move a luz (o browser não usa esse arrastar para deslizar o ecrã)
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.sk-joia')).touchAction)).toBe('none');
+    const c = await fills(page);
+    await page.evaluate(() => document.body.dispatchEvent(new PointerEvent('pointerdown', { clientX: 12, clientY: 12, bubbles: true })));
+    await expect.poll(() => fills(page)).not.toBe(c);
     // só o número de caracteres conta — o conteúdo nunca chega à joia
     await page.locator('#start-pw').fill('wxyz');
     await page.evaluate(() => { SKG.lx = -.35; SKG.ly = -.45; skGemPaint(); });
@@ -188,7 +193,7 @@ test.describe('Safira & Platina', () => {
   test('Joia: o corte vem da assinatura do cofre — cofres diferentes, joias diferentes', async ({ page }) => {
     await skin(page, 'safira', { av_sig: SIG });
     await openApp(page);
-    await expect(page.locator('#sk-art .sk-serial')).toHaveText(/Nº 2B91/);
+    await expect(page.locator('#sk-art .sk-serial')).toHaveCount(0);
     await expect(page.locator('#sk-hint')).toContainText(/joia do teu cofre|vault’s jewel/);
     const a = await cut(page);
     await page.evaluate(() => { localStorage.setItem('av_sig', 'f0e1d2c3b4a5968778695a4b3c2d1e0f'); skArtBuild(); });
@@ -221,6 +226,21 @@ test.describe('Safira & Platina', () => {
     await page.waitForTimeout(200);
     expect(await fills(page)).toBe(a);
     expect(await page.evaluate(() => ({ run: document.getAnimations().filter(x => x.playState === 'running').length, tilt: SKG.tilt, amb: SKG.amb }))).toEqual({ run: 0, tilt: false, amb: 0 });
+  });
+
+  test('telemóvel baixo: o ecrã de entrada do cofre memorizado cabe todo, sem deslizar', async ({ page }) => {
+    await page.addInitScript(() => { delete window.showOpenFilePicker; localStorage.setItem('av_bk_freq', 'off'); });
+    await page.setViewportSize({ width: 390, height: 664 });
+    await openApp(page);
+    await createVault(page);
+    await page.evaluate(async () => { await saveFile({ auto: true }); });
+    await page.reload();
+    await page.waitForFunction(() => typeof lockOnPwStep === 'function' && lockOnPwStep());
+    // só muda o tamanho do ecrã (sem voltar a carregar a página: o WebKit dos testes rebentava a navegar depois disso)
+    for (const [w, h] of [[390, 664], [360, 640], [320, 568]]) {
+      await page.setViewportSize({ width: w, height: h });
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight - innerHeight), { message: `${w}×${h}` }).toBeLessThanOrEqual(0);
+    }
   });
 
   test('modo claro e escuro, e o estilo fica em todos os ecrãs sem transbordar', async ({ page }) => {
