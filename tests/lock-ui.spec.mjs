@@ -156,7 +156,12 @@ test.describe('Ecrã de entrada com cofre memorizado', () => {
     await expect(page.locator('#lk-swipe')).toBeVisible();
     await swipeUp(page);
     await page.locator('#pin-input').pressSequentially('482915');
-    await page.waitForFunction(() => !!masterKey);
+    // se não abrir, o valor mostra o estado do ecrã de entrada (para se perceber porquê)
+    await expect.poll(() => page.evaluate(() => masterKey ? 'aberto' : JSON.stringify({
+      erro: document.getElementById('lock-error').textContent, pinErr: (document.getElementById('pin-err') || {}).textContent,
+      texto: !!pendingVaultText, ficheiro: !!pendingVaultFile, modo: unlockMode, deslizar: lockSwipeNeed, pin: document.getElementById('pin-input').value,
+      ecra: ['login-state-initial', 'login-state-open', 'open-step-file', 'open-step-pw', 'login-state-new'].filter(id => getComputedStyle(document.getElementById(id)).display !== 'none'),
+    })), { timeout: 30_000 }).toBe('aberto');
     expect(await page.evaluate(() => vault.some(e => e.name === 'Depois de abrir'))).toBe(true);
   });
 });

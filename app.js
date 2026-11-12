@@ -9301,8 +9301,9 @@ async function lockUseSyncedCopy(hd){
   await refreshQuickUnlock(true);
   return true;
 }
-function lockEnsureFile(){
-  if(pendingVaultFile||pendingVaultText)return Promise.resolve(true);
+async function lockEnsureFile(){
+  if(typeof lockReinitP!=='undefined'&&lockReinitP)await lockReinitP;  // o bloquear ainda está a preparar o ecrã
+  if(pendingVaultFile||pendingVaultText)return true;
   if(lockEnsureP)return lockEnsureP;
   lockEnsureP=(async()=>{
     const en=currentLang==='en';
