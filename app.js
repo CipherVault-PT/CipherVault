@@ -1264,6 +1264,7 @@ function onFileSelected(e){
 }
 async function submitOpenVault(pwArg,qk){
   if(lockedOut)return;
+  if(lockReinitP)await lockReinitP;
   if(!pendingVaultFile&&!pendingVaultText){
     if(typeof pwArg==='string'){lockHeldPw=pwArg;lockHeldQk=qk||null;}
     if(!(await lockEnsureFile()))return;
@@ -1483,7 +1484,7 @@ function lockApp(){
   document.getElementById('welcome-screen').classList.remove('show');
   const pwStep=document.getElementById('open-step-pw');
   if(pwStep&&pwStep.style.display!=='none'){lockSwipeNeed=true;lockSwipeRetry=false;refreshQuickUnlock(false);}
-  lockReinit();
+  lockReinitP=lockReinit().catch(()=>{}).finally(()=>{lockReinitP=null;});
   try{lockSubText();auroraSkyStart();}catch(e){}
   try{avFlushNow();}catch(e){}
 }
@@ -1491,6 +1492,7 @@ function lockApp(){
 /* Bloquear deixa o ecrã de entrada como ao abrir a app: o cofre memorizado, lido de novo (cópia deste dispositivo,
    cópia sincronizada com o Drive ou o ficheiro), pronto para o PIN ou a impressão digital. Antes ficava no ecrã por
    onde se tinha entrado («Criar cofre», «Carregar cofre») e pedia o ficheiro outra vez. */
+let lockReinitP=null;  // entrar enquanto o ecrã ainda se prepara espera por ele (não se atropelam)
 async function lockReinit(){
   let hd=null,loc=null;
   try{hd=await idbGet('vaultHandle');}catch(e){}
