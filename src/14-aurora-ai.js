@@ -68,6 +68,8 @@ const AUR_PHR=[
  [/\bsign ?in\b|\blog ?in\b/g,' login '],
  [/\brecycl(e|ing) bin\b/g,' reciclagem '],
  [/\bgo to\b|\btake me to\b/g,' abre '],
+ // «o id e a pass», «login e password»: o id/login é o utilizador (só quando se fala também da password)
+ [/\b(id|login)\b(?=.*\bpassword\b)/g,' utilizador '],[/(\bpassword\b.*)\b(id|login)\b/g,'$1 utilizador '],
 ];
 // junta os espaços a cada passo: as regras seguintes contam com um só espaço entre palavras
 function aurCanon(s){let n=' '+aurNorm(s).replace(/[?!,;:()"“”«»\[\]{}’']/g,' ').replace(/\s+/g,' ')+' ';AUR_PHR.forEach(p=>{n=n.replace(p[0],p[1]).replace(/\s{2,}/g,' ');});return n.replace(/\s+/g,' ').trim();}
@@ -324,6 +326,15 @@ function aurMatchEnt(e,Q,Qset){
   return s;
 }
 
+// o que identifica uma conta além do nome: utilizador/email e o nome do site (palavras distintivas, nunca só números)
+function aurHandles(e){
+  const v=e.obj||{},out=new Set(),ok=x=>x&&x.length>=5&&/[a-z]/.test(x)&&!AUR_STOP.has(x)&&!AUR_VOCAB[x]&&!e.toks.includes(x);
+  const u=aurCanon(v.user||'');if(ok(u))out.add(u);
+  try{const h=new URL(/^[a-z]+:\/\//i.test(v.url||'')?v.url:'https://'+(v.url||'')).hostname.replace(/^www\./,'');
+    const parts=h.split('.');if(parts.length>=2){const core=parts.length>2&&parts[parts.length-2].length<=3?parts[parts.length-3]:parts[parts.length-2];if(ok(core))out.add(core);}}catch(x){}
+  return [...out];
+}
+
 /* ── frame: compreensão do pedido ── */
 function aurFrame(raw){
   const r=(raw||'').trim().replace(/^\s*aurora\s*[,:!\-]?\s+/i,'');
@@ -352,6 +363,14 @@ function aurFrame(raw){
   const allowTheme=c.has('D_THEME')||c.has('APPLY');
   let cands=E.filter(e=>e.type!=='theme'||allowTheme).map(e=>Object.assign({},e,{score:aurMatchEnt(e,Q,Qset)})).filter(e=>e.score>=0.34);
   cands.forEach(e=>{const d={vault:['D_PW','D_VAULT','D_EMAIL'],doc:['D_DOC'],bank:['D_BANK','D_CARD'],store:['D_STORE','D_CARD'],totp:['D_2FA','D_2FAW'],wifi:['D_WIFI'],note:['D_NOTE'],asset:['D_WARRANTY','D_VEHICLE','D_LICENSE','D_DATES','D_ASSETS'],sub:['D_SUBS','D_MONEY'],person:['D_INFO','D_FIELD'],theme:['D_THEME']}[e.type];if(d&&d.some(x=>c.has(x)))e.score+=0.15;if(e.archived)e.score-=0.05;});
+  // contas também pelo utilizador, email ou site (ex.: «a password do junkiequaresma», «a conta do carlos@gmail.com»)
+  E.forEach(e=>{
+    if(e.type!=='vault')return;
+    const hs=e._h||(e._h=aurHandles(e));
+    if(!hs.some(x=>Qset.has(x)||(x.indexOf(' ')>0&&(' '+n+' ').indexOf(' '+x+' ')>=0)))return;
+    const c0=cands.find(x=>x.obj===e.obj);
+    if(c0)c0.score=Math.max(c0.score,0.95);else cands.push(Object.assign({},e,{score:0.95,byHandle:true}));
+  });
   if(c.has('D_PW')||c.has('D_EMAIL'))cands.forEach(e=>{if(e.type==='vault')e.score+=0.2;});
   cands.sort((a,b)=>b.score-a.score);
   const best=cands[0]||null,second=cands[1]||null;

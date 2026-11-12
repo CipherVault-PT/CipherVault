@@ -124,13 +124,32 @@ test.describe('Aurora percebe o dia a dia', () => {
       await new Promise(r => setTimeout(r, 30));
       document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
       const txt = [...box.children].slice(before + 1).map(m => m.innerText.replace(/\s+/g, ' ')).join(' ‖ ');
-      if (!new RegExp(reSrc).test(txt)) out.push(q + '  →  ' + txt.slice(0, 160));
+      if (!new RegExp(reSrc).test(txt)) out.push(q + '  →  ' + txt.slice(0, 160)
+        // estado interno no momento da falha (falha intermitente no iPhone: para se perceber a causa)
+        + `  [trace=${AUR.trace} v=${vault.length} d=${documents.length} c=${bankCards.length} idx=${AUR_IDX ? AUR_IDX.E.length : '-'} ver=${AUR_DATA_VER} cands=${(() => { try { const F = aurFrame(q); return F.cands.slice(0, 3).map(e => e.name + ':' + e.score.toFixed(2)).join(',') || '-'; } catch (e) { return 'erro:' + e.message; } })()} aberto=${!!masterKey}]`);
     }
     return out;
   }, cases.map(([q, re]) => [q, re.source]));
 
   test(`${CASES.length} pedidos do dia a dia`, async ({ page }) => {
     expect(await ask(page, CASES)).toEqual([]);
+  });
+
+  // v12.3: a conta também pelo utilizador, email ou site; «id» e «login» (com a password) são o utilizador
+  test('contas pelo utilizador, email ou site', async ({ page }) => {
+    await page.evaluate(() => {
+      vault.push({ id: 'st1', name: 'Steam', cat: 'jogos', user: 'junkiequaresma', pw: 'St3am!pass1', url: 'store.steampowered.com' },
+        { id: 'st2', name: 'Steam', cat: 'jogos', user: 'outro_jogador', pw: 'St3am!pass2', url: 'store.steampowered.com' });
+      renderAll();
+    });
+    expect(await ask(page, [
+      ['da-me o id e pass do junkiequaresma', /Steam[\s\S]*junkiequaresma[\s\S]*Password/],
+      ['qual a password do outro_jogador', /Steam[\s\S]*outro_jogador[\s\S]*Password/],
+      ['password da steam', /qual é\?[\s\S]*junkiequaresma[\s\S]*outro_jogador/],
+      ['qual a conta do carlitos', /Facebook[\s\S]*carlitos/],
+      ['o login e a senha do netflix', /Netflix[\s\S]*carlos@gmail\.com/],
+      ['qual o id do cartao de cidadao', /Cartão de Cidadão|Info/],
+    ].map(([q, re]) => [q, re]))).toEqual([]);
   });
 
   test('ações numa frase: nota, favorito, duplicar, pasta, subscrição, email de outra pessoa', async ({ page }) => {

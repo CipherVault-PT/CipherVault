@@ -108,7 +108,9 @@ test.describe('Aurora AI percebe pedidos reais', () => {
         aurQuick(q);
         await new Promise(r => setTimeout(r, 30));
         const txt = [...box.children].slice(before + 1).map(m => m.innerText.replace(/\s+/g, ' ')).join(' ‖ ');
-        if (!new RegExp(reSrc).test(txt)) out.push(q + '  →  ' + txt.slice(0, 160));
+        if (!new RegExp(reSrc).test(txt)) out.push(q + '  →  ' + txt.slice(0, 160)
+        // estado interno no momento da falha (falha intermitente no iPhone: para se perceber a causa)
+        + `  [trace=${AUR.trace} v=${vault.length} d=${documents.length} c=${bankCards.length} idx=${AUR_IDX ? AUR_IDX.E.length : '-'} ver=${AUR_DATA_VER} cands=${(() => { try { const F = aurFrame(q); return F.cands.slice(0, 3).map(e => e.name + ':' + e.score.toFixed(2)).join(',') || '-'; } catch (e) { return 'erro:' + e.message; } })()} aberto=${!!masterKey}]`);
       }
       return out;
     }, CASES.map(([q, re]) => [q, re.source]));

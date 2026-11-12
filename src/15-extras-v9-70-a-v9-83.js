@@ -939,7 +939,10 @@ function avAliasCmd(raw){
   if((m=n.match(/^(?:alcunha|apelido|alias)\s*:?\s*(.+?)\s*(?:=|->|e|é|means|is)\s*(?:o |a |the )?(.+)$/)))return {set:[m[1],m[2]],explicit:true};
   if((m=n.match(/^quando (?:eu )?(?:disser|escrever|digo)\s+(.+?)\s*,?\s*(?:e|é|quero dizer|refiro-me a|refiro me a|significa)\s+(?:o |a )?(.+)$/)))return {set:[m[1],m[2]],explicit:true};
   if((m=n.match(/^when i (?:say|type) (.+?),? i mean (?:the |my )?(.+)$/)))return {set:[m[1],m[2]],explicit:true};
-  if((m=n.match(/^(?:o|a) (?:meu |minha )?([a-z0-9 ]{2,24}?) (?:e|é) (?:o|a) (.+)$/))&&!/^(que|qual|quanto|onde|como)\b/.test(m[1])&&avAliasResolve(m[2]))return {set:[m[1],m[2]]};
+  // «o banco é o Revolut» ensina uma alcunha; «o login e a senha do netflix» é um pedido (sem acentos, «e» parece «é»)
+  if((m=n.match(/^(?:o|a) (?:meu |minha )?([a-z0-9 ]{2,24}?) (?:e|é) (?:o|a) (.+)$/))&&!/^(que|qual|quanto|onde|como)\b/.test(m[1])
+    &&!/^(id|login|user|username|utilizador|email|mail|password|pass|senha|pin|codigo|cvv|nif|iban)$/.test(m[1].trim())&&!/^(password|pass|senha|palavra[ -]?passe|pin|codigo|cvv|utilizador|user|login|email)\b/.test(m[2])
+    &&avAliasResolve(m[2]))return {set:[m[1],m[2]]};
   return null;
 }
 function avAliasHandle(raw){
