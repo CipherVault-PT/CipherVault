@@ -7,7 +7,7 @@
     }
   }catch(e){}
 })();
-const APP_VERSION='12.0';
+const APP_VERSION='12.1';
 let vault=[],notes=[],masterKey=null,masterPwRaw='',currentCat='all',currentTag='',editingId=null;
 let activityLog=[];
 let trash=[];
@@ -548,8 +548,9 @@ async function onPinInput(){
   const el=document.getElementById('pin-input');
   el.value=el.value.replace(/\D/g,'');
   if(el.value.length<quickAvail.pinLen)return;
+  const pin=el.value.slice(0,quickAvail.pinLen);  // lido já: o ecrã pode refrescar-se (e limpar o campo) enquanto se espera pelo cofre
   if(!(await lockEnsureFile()))return;
-  const pin=el.value.slice(0,quickAvail.pinLen);el.value='';
+  el.value='';
   const en=currentLang==='en';
   const err=document.getElementById('pin-err');
   const res=await tryPin(pin);
@@ -1481,10 +1482,25 @@ function lockApp(){
   // Close any open modals
   document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
   document.getElementById('welcome-screen').classList.remove('show');
-  const pwStep=document.getElementById('open-step-pw');
-  if(pwStep&&pwStep.style.display!=='none'){lockSwipeNeed=true;lockSwipeRetry=false;refreshQuickUnlock(false);}
+  lockReady();
   try{lockSubText();auroraSkyStart();}catch(e){}
   try{avFlushNow();}catch(e){}
+}
+
+/* Bloquear deixa o ecrã de entrada pronto para o PIN ou a impressão digital do cofre que estava aberto
+   (o texto encriptado é atualizado a cada gravação). Antes ficava no ecrã por onde se tinha entrado («Criar cofre»,
+   «Carregar cofre») e pedia o ficheiro outra vez. Tudo síncrono: nada em segundo plano a trocar o cofre escolhido. */
+function lockReady(){
+  if(pendingVaultFile||pendingVaultText){
+    if(!lockOnPwStep()){
+      lockShowPwStep();
+      const fn=document.getElementById('l-file-name'),en=currentLang==='en';
+      if(fn&&!fn.textContent)fn.textContent=vaultFileHandle&&vaultFileHandle.name?vaultFileHandle.name:!FSA_OK?(en?'📱 Vault stored on this device':'📱 Cofre guardado neste dispositivo'):'';
+    }
+    lockSwipeNeed=true;lockSwipeRetry=false;refreshQuickUnlock(false);return;
+  }
+  backToInitial();
+  try{lockDirectInit();}catch(e){}  // sem cofre carregado: como ao abrir a app
 }
 
 // ══ AUTO-LOCK ══

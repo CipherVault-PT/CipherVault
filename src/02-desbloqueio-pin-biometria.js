@@ -348,8 +348,9 @@ async function onPinInput(){
   const el=document.getElementById('pin-input');
   el.value=el.value.replace(/\D/g,'');
   if(el.value.length<quickAvail.pinLen)return;
+  const pin=el.value.slice(0,quickAvail.pinLen);  // lido já: o ecrã pode refrescar-se (e limpar o campo) enquanto se espera pelo cofre
   if(!(await lockEnsureFile()))return;
-  const pin=el.value.slice(0,quickAvail.pinLen);el.value='';
+  el.value='';
   const en=currentLang==='en';
   const err=document.getElementById('pin-err');
   const res=await tryPin(pin);

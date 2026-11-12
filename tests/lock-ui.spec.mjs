@@ -138,4 +138,33 @@ test.describe('Ecrã de entrada com cofre memorizado', () => {
     await page.evaluate(() => lockApp());
     await expect(page.locator('#lk-swipe')).toBeVisible();
   });
+
+  test('bloquear logo depois de criar o cofre volta ao cofre memorizado, com o PIN e os dados gravados', async ({ page }) => {
+    await page.addInitScript(() => { delete window.showOpenFilePicker; localStorage.setItem('av_bk_freq', 'off'); });
+    await openApp(page);
+    await page.evaluate(async () => {
+      startNewVault(); document.getElementById('new-pw1').value = document.getElementById('new-pw2').value = 'rightpass';
+      await submitNewVault(); await savePinUnlock('482915');
+      vault.push({ id: 'z', name: 'Depois de abrir', user: 'u', pw: 'Abc!12345xyz', cat: 'email', created: Date.now() });
+      markUnsaved(); await saveFile({ auto: true });
+      lockApp();
+    });
+    // antes ficava no ecrã «Criar cofre» e pedia o ficheiro; agora é igual a abrir a app
+    await page.waitForFunction(() => lockOnPwStep() && !!pendingVaultText && quickAvail.pin);
+    await expect(page.locator('#login-state-new')).toBeHidden();
+    await expect(page.locator('#l-file-name')).toContainText(/dispositivo|device/);
+    await expect(page.locator('#lk-swipe')).toBeVisible();
+    await swipeUp(page);
+    // como nos outros testes: o campo do PIN só fica ativo uns instantes depois de deslizar
+    await expect(page.locator('#lk-swipe')).toBeHidden();
+    await expect(page.locator('#pin-input')).toBeFocused();
+    await page.locator('#pin-input').pressSequentially('482915');
+    // se não abrir, o valor mostra o estado do ecrã de entrada (para se perceber porquê)
+    await expect.poll(() => page.evaluate(() => masterKey ? 'aberto' : JSON.stringify({
+      erro: document.getElementById('lock-error').textContent, pinErr: (document.getElementById('pin-err') || {}).textContent,
+      texto: !!pendingVaultText, ficheiro: !!pendingVaultFile, modo: unlockMode, deslizar: lockSwipeNeed, pin: document.getElementById('pin-input').value,
+      ecra: ['login-state-initial', 'login-state-open', 'open-step-file', 'open-step-pw', 'login-state-new'].filter(id => getComputedStyle(document.getElementById(id)).display !== 'none'),
+    })), { timeout: 30_000 }).toBe('aberto');
+    expect(await page.evaluate(() => vault.some(e => e.name === 'Depois de abrir'))).toBe(true);
+  });
 });
