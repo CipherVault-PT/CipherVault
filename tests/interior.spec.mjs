@@ -1,6 +1,6 @@
 import { test, expect, openApp, createVault, modalSettled } from './fixtures.mjs';
 
-// Disposição «Nova» (v12.4): Início em galeria e Cofre em lista com folha da conta; a «Anterior» continua disponível
+// Disposição «Nova» (v12.4/v12.5): Início com a saudação e a Aurora como no Clássico e o que expira (sem contas); Cofre em lista com folha da conta; a «Anterior» continua disponível
 const nova = page => page.addInitScript(() => { if (!sessionStorage.getItem('__nova')) { sessionStorage.setItem('__nova', '1'); localStorage.setItem('av_layout', 'nova'); } });
 
 async function seed(page) {
@@ -10,29 +10,45 @@ async function seed(page) {
       ['Steam', 'jogador_um', 'jogos', 'https://store.steampowered.com'], ['Netflix', 'ana@gmail.com', 'social', 'https://netflix.com']];
     d.forEach((x, i) => vault.push({ id: 'n' + i, name: x[0], user: x[1], pw: i === 1 ? '123456' : 'Xk9!fA2#pQ' + i, cat: x[2], url: x[3], created: now - i * day, updated: now - i * day, fav: i === 0 }));
     documents.push({ id: 'd1', title: 'Cartão de Cidadão', cat: 'pessoal', expiry: new Date(now + 20 * day).toISOString().slice(0, 10) });
-    localStorage.setItem('av_recent', JSON.stringify(['n2', 'n0']));
     renderAll(); switchTab('dashboard');
   });
 }
 
 test.describe('Disposição Nova', () => {
-  test('Início: boas-vindas, usadas recentemente e o que expira', async ({ page }) => {
+  test('Início: saudação e Aurora como no Clássico, avisos ao lado e o que expira — sem cartão grande nem contas', async ({ page }) => {
     await nova(page);
     await openApp(page);
     await createVault(page);
     await seed(page);
-    const hero = page.locator('#avn-home .avn-hero');
-    await expect(hero).toBeVisible();
-    await expect(hero.locator('.avn-gem svg').first()).toBeVisible();
-    await expect(hero.locator('.avn-st.warn')).toBeVisible();
-    const rec = page.locator('#avn-home2 .avn-rc');
-    await expect(page.locator('#avn-home2 .avn-rail-h').first()).toContainText('Usadas recentemente');
-    expect(await rec.locator('b').allTextContents()).toEqual(['Steam', 'Gmail', 'Banco', 'Netflix']);
+    // sem o cartão grande de boas-vindas: a saudação é a do Clássico e só a Aurora tem as cores
+    await expect(page.locator('#avn-home, .avn-hero')).toHaveCount(0);
+    await expect(page.locator('#dash-greeting .dash-greet-left')).toBeVisible();
     await expect(page.locator('#avn-home2 .avn-exp')).toContainText('Cartão de Cidadão');
-    // a galeria fica logo a seguir às boas-vindas, antes dos avisos e dos primeiros passos
-    expect(await page.evaluate(() => [...document.querySelector('#tab-dashboard .dashboard').children].slice(0, 3).map(c => c.id))).toEqual(['avn-home', 'avn-home2', 'dash-greeting']);
-    await rec.first().click();
-    await expect(page.locator('#avn-sheet.open .avn-sh-t')).toContainText('Steam');
+    // as contas ficam no Cofre: o Início não mostra nomes nem utilizadores
+    const home = await page.evaluate(() => ['dash-greeting', 'avn-home2'].map(id => document.getElementById(id).innerText).join(' '));
+    for (const s of ['Steam', 'jogador_um', 'Gmail', 'ana@gmail.com']) expect(home).not.toContain(s);
+    // ordem: saudação (com a Aurora e os avisos), (primeiros passos) e o que expira
+    await expect.poll(() => page.evaluate(() => [...document.querySelector('#tab-dashboard .dashboard').children].map(c => c.id).filter(id => id && id !== 'av-onboard').slice(0, 2)))
+      .toEqual(['dash-greeting', 'avn-home2']);
+    // no computador: a Aurora na mesma linha da saudação; avisos (e Wi-Fi) à direita ou, com pouca largura, numa linha própria a toda a largura
+    const aur = page.locator('#dash-greeting .aur-launch');
+    if (await aur.isVisible()) {
+      for (const side of ['#aur-alerts', '#av-side']) {
+        if (side === '#av-side') await page.evaluate(() => { wifiNets.push({ id: 'w1', name: 'Casa', ssid: 'Casa', pw: 'x', sec: 'WPA' }); renderAll(); switchTab('dashboard'); });
+        const [g, a, s, row] = await Promise.all(['#dash-greeting .dash-greet-left', '#dash-greeting .aur-launch', side, '#dash-greeting'].map(q => page.locator(q).boundingBox()));
+        expect(a.x, side).toBeGreaterThanOrEqual(g.x + g.width);
+        expect(Math.abs((a.y + a.height / 2) - (g.y + g.height / 2)), side).toBeLessThan(40);
+        if (s.x >= a.x + a.width) expect(s.y, side).toBeLessThan(a.y + a.height);
+        else { expect(s.y, side).toBeGreaterThanOrEqual(a.y + a.height - 1); expect(s.width, side).toBeGreaterThan(row.width * 0.9); }
+      }
+      if (await page.locator('#av-side #av-wifi-card').isVisible()) {
+        const [al, wf] = await Promise.all(['#av-side #aur-alerts', '#av-side #av-wifi-card'].map(q => page.locator(q).boundingBox()));
+        if (wf.x > al.x) expect(Math.abs(wf.y - al.y)).toBeLessThan(4);
+      }
+    }
+    // já não se guarda um histórico das contas usadas
+    await page.evaluate(() => { switchTab('vault'); avnOpen('n2'); avCopyPw('n2'); });
+    expect(await page.evaluate(() => localStorage.getItem('av_recent'))).toBeNull();
   });
 
   test('Cofre: linhas simples e a folha da conta com copiar, mostrar e ações', async ({ page }) => {
@@ -81,7 +97,7 @@ test.describe('Disposição Nova', () => {
     await seed(page);
     await page.evaluate(() => setLayout('atual'));
     expect(await page.evaluate(() => [document.documentElement.dataset.layout, localStorage.getItem('av_layout')])).toEqual(['atual', 'atual']);
-    await expect(page.locator('#avn-home .avn-hero')).toHaveCount(0);
+    await expect(page.locator('#avn-home2')).toBeHidden();
     await page.evaluate(() => switchTab('vault'));
     await expect(page.locator('#card-n2 .card-actions')).toBeVisible();
     await expect(page.locator('#card-n2 .avn-sub')).toBeHidden();
@@ -92,13 +108,47 @@ test.describe('Disposição Nova', () => {
     expect(await page.evaluate(() => document.documentElement.dataset.layout)).toBe('atual');
   });
 
+  test('mudar para o Clássico com o cofre aberto não mistura as duas disposições (e voltar repõe a nova)', async ({ page }) => {
+    await nova(page);
+    await openApp(page);
+    await createVault(page);
+    await seed(page);
+    await expect(page.locator('#avn-home2 .avn-exp')).toBeVisible();
+    await page.evaluate(() => setSkin('classico'));
+    await expect(page.locator('#avn-home2')).toBeHidden();
+    await expect(page.locator('#dash-greeting .dash-greet-left')).toBeVisible();
+    await page.evaluate(() => switchTab('vault'));
+    await expect(page.locator('#card-n2 .card-actions')).toBeVisible();
+    await expect(page.locator('#card-n2 .avn-sub')).toBeHidden();
+    await page.locator('#card-n2 .card-name').click();
+    await expect(page.locator('#avn-sheet.open')).toHaveCount(0);
+    await page.evaluate(() => { setSkin('safira'); switchTab('dashboard'); });
+    await expect(page.locator('#avn-home2 .avn-exp')).toBeVisible();
+    await expect(page.locator('#dash-greeting .dash-greet-left')).toBeVisible();
+  });
+
+  test('o botão «•••» no fundo da barra lateral abre as abas visíveis dentro do ecrã', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'a barra lateral é só no computador');
+    await nova(page);
+    await openApp(page);
+    await createVault(page);
+    await page.locator('#grp-gear').click();
+    const pop = page.locator('#av-tabs-pop.open');
+    await expect(pop).toBeVisible();
+    const r = await pop.boundingBox(), vp = page.viewportSize();
+    expect(r.y).toBeGreaterThanOrEqual(0);
+    expect(r.y + r.height).toBeLessThanOrEqual(vp.height);
+    expect(r.x + r.width).toBeLessThanOrEqual(vp.width);
+    await expect(pop).toContainText('Abas visíveis');
+  });
+
   test('no Clássico fica sempre a disposição de antes', async ({ page }) => {
     await nova(page);
     await page.addInitScript(() => localStorage.setItem('av_skin', 'classico'));
     await openApp(page);
     await createVault(page);
     await seed(page);
-    await expect(page.locator('#avn-home .avn-hero')).toHaveCount(0);
+    await expect(page.locator('#avn-home2')).toBeHidden();
     await page.evaluate(() => switchTab('vault'));
     await expect(page.locator('#card-n2 .card-actions')).toBeVisible();
   });
