@@ -1,7 +1,7 @@
 
-/* ══ INTERIOR (v12.4) — disposição «Nova»: Início em galeria e Cofre em lista com folha de detalhes ══
-   Só nos estilos novos (Safira, Ónix, Nórdico). A disposição «Atual» continua em Definições → Aspeto.
-   As «usadas recentemente» são só identificadores de contas guardados neste browser (nunca nomes nem dados). */
+/* ══ INTERIOR (v12.4) — disposição «Nova»: Início com boas-vindas, Aurora e o que expira; Cofre em lista com folha de detalhes ══
+   Só nos estilos novos (Safira, Ónix, Nórdico). A disposição «Anterior» continua em Definições → Aspeto.
+   O Início não mostra contas (essas estão no Cofre). */
 const AVN={sheet:null,pwT:0,ret:null};
 function avnOn(){return document.documentElement.getAttribute('data-layout')!=='atual'&&typeof skNew==='function'&&skNew();}
 function setLayout(l){
@@ -11,15 +11,11 @@ function setLayout(l){
   skRenderSettings();
 }
 avAllow('setLayout','avnOpen','avnClose','avnPw','avnDo');
+// mudar de estilo com o cofre aberto (p. ex. para o Clássico) redesenha logo o Início e o Cofre na disposição certa
+if(typeof setSkin==='function'){const _avnSs=setSkin;setSkin=function(){const was=avnOn();const r=_avnSs.apply(this,arguments);try{if(was!==avnOn()){avnClose();if(typeof masterKey!=='undefined'&&masterKey)renderAll();}}catch(e){}return r;};}
 
-// ── usadas recentemente (só ids, neste browser) ──
-function avnRecentIds(){try{const a=JSON.parse(localStorage.getItem('av_recent')||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string'):[];}catch(e){return [];}}
-function avnTouch(id){
-  if(!id||(typeof presentationMode!=='undefined'&&presentationMode))return;
-  const a=avnRecentIds().filter(x=>x!==id);a.unshift(id);
-  try{localStorage.setItem('av_recent',JSON.stringify(a.slice(0,12)));}catch(e){}
-}
-['avCopyPw','avGoSite','openReadMode'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(id){try{avnTouch(id);}catch(e){}return f.apply(this,arguments);};});
+// a v12.4 guardava aqui as contas usadas recentemente; já não são usadas
+try{localStorage.removeItem('av_recent');}catch(e){}
 
 function avnIcon(e){
   const userIcon=e.icon&&e.icon!=='⭐'?e.icon:null;
@@ -29,17 +25,18 @@ function avnIcon(e){
 }
 function avnHost(u){try{return new URL(/^[a-z]+:\/\//i.test(u)?u:'https://'+u).hostname.replace(/^www\./,'');}catch(e){return String(u||'');}}
 
-// ── Início: cartão de boas-vindas com a joia, usadas recentemente e o que expira ──
+// ── Início: cartão de boas-vindas com a joia, a Aurora e o que expira ──
 function avnHome(){
   let box=document.getElementById('avn-home'),box2=document.getElementById('avn-home2');
   if(!avnOn()){if(box)box.innerHTML='';if(box2)box2.innerHTML='';return;}
   const dash=document.querySelector('#tab-dashboard .dashboard'),greet=document.getElementById('dash-greeting');
   if(!dash||!greet)return;
-  // ordem: boas-vindas, usadas recentemente e o que expira, e só depois a saudação (avisos; Aurora no computador) e o resto
-  // (outros blocos entram logo a seguir à saudação em cada render; por isso a posição é reposta sempre)
+  // ordem: boas-vindas, a saudação (só com a barra da Aurora, no computador), os primeiros passos (se ainda houver) e o que expira
   if(!box){box=document.createElement('div');box.id='avn-home';}
   if(!box2){box2=document.createElement('div');box2.id='avn-home2';}
-  if(greet.previousElementSibling!==box2||box2.previousElementSibling!==box){dash.insertBefore(box,greet);dash.insertBefore(box2,greet);}
+  if(greet.previousElementSibling!==box)dash.insertBefore(box,greet);
+  const onb=greet.nextElementSibling&&greet.nextElementSibling.id==='av-onboard'?greet.nextElementSibling:greet;
+  if(onb.nextElementSibling!==box2)onb.after(box2);
   const en=currentLang==='en',active=vault.filter(x=>!x.archived);
   const weak=active.filter(x=>x.pw&&getPwScore(x.pw)<2).length;
   const name=(vaultName||'').trim();
@@ -48,12 +45,6 @@ function avnHome(){
     n2fa?`${n2fa} ${en?'2FA codes':(n2fa===1?'código 2FA':'códigos 2FA')}`:'',ncards?`${ncards} ${en?(ncards===1?'card':'cards'):(ncards===1?'cartão':'cartões')}`:''].filter(Boolean).join(' · ');
   const st=weak?`<button type="button" class="avn-st warn" data-act="switchGroup" data-arg="cofre">⚠️ ${weak} ${en?(weak===1?'weak password to review':'weak passwords to review'):(weak===1?'password fraca para rever':'passwords fracas para rever')}</button>`
     :`<span class="avn-st ok">✓ ${en?'All safe and sound':'Tudo seguro e guardado'}</span>`;
-  // usadas recentemente; sem histórico, as favoritas e depois as primeiras por nome
-  const byId=new Map(active.map(x=>[x.id,x]));
-  let rec=avnRecentIds().map(id=>byId.get(id)).filter(Boolean);
-  if(rec.length<6){const seen=new Set(rec.map(x=>x.id));active.filter(x=>x.fav&&!seen.has(x.id)).concat(active.filter(x=>!x.fav).sort((a,b)=>a.name.localeCompare(b.name))).forEach(x=>{if(rec.length<8&&!seen.has(x.id)){rec.push(x);seen.add(x.id);}});}
-  rec=rec.slice(0,8);
-  const recTitle=avnRecentIds().some(id=>byId.has(id))?(en?'Recently used':'Usadas recentemente'):(en?'Your accounts':'As tuas contas');
   // o que expira nos próximos 90 dias (documentos, cartões, subscrições, bens)
   let ev=[];try{const now=new Date();now.setHours(0,0,0,0);const lim=now.getTime()+90*864e5;ev=(typeof aurEvents==='function'?aurEvents():[]).filter(x=>x.date>=now.getTime()&&x.date<=lim).sort((a,b)=>a.date-b.date).slice(0,3);}catch(e){ev=[];}
   const day=d=>Math.max(0,Math.round((d-new Date().setHours(0,0,0,0))/864e5));
@@ -64,9 +55,7 @@ function avnHome(){
       <h2 class="avn-hello">${name?(en?'Hello, ':'Olá, ')+esc(name):(en?'Hello':'Olá')}</h2>
       <div class="avn-stats">${esc(stats)}</div>${st}
     </section>`;
-  box2.innerHTML=`${rec.length?`<div class="avn-rail-h"><b>${recTitle}</b><button type="button" data-act="switchGroup" data-arg="cofre">${en?'See all':'Ver todas'}</button></div>
-    <div class="avn-rail">${rec.map(x=>`<button type="button" class="avn-rc" data-act="avnOpen" data-arg="${esc(x.id)}">${avnIcon(x)}<b>${esc(x.name)}</b><span>${esc(x.user||avnHost(x.url)||'')}</span></button>`).join('')}</div>`:''}
-    ${ev.length?`<div class="avn-rail-h"><b>${en?'Expiring soon':'A expirar'}</b><button type="button" data-act="openCalendar">${en?'Calendar':'Calendário'}</button></div>
+  box2.innerHTML=`${ev.length?`<div class="avn-rail-h"><b>${en?'Expiring soon':'A expirar'}</b><button type="button" data-act="openCalendar">${en?'Calendar':'Calendário'}</button></div>
     ${ev.map(x=>`<button type="button" class="avn-exp" data-act="openCalendar"><span class="avn-days"><b>${day(x.date)}</b><span>${en?'DAYS':'DIAS'}</span></span><span class="avn-exp-t"><b>${esc(x.label)}</b><small>${fmt(x.date)}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`).join('')}`:''}`;
   const g=box.querySelector('.sk-gem');if(g)try{skGemLight(g,-.35,-.45,0);}catch(e){}
 }
@@ -88,7 +77,6 @@ document.addEventListener('keydown',e=>{
 });
 function avnOpen(id){
   const x=typeof avEntry==='function'?avEntry(id):null;if(!x)return;
-  avnTouch(id);
   if(!AVN.sheet)AVN.ret=document.activeElement;
   const en=currentLang==='en';
   let ov=document.getElementById('avn-sheet');

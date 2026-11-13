@@ -500,6 +500,8 @@ html[data-motion="desligado"] .sk-seal.bio::after,html[data-motion="desligado"] 
 html.sk-new:not([data-layout="atual"]) #tab-dashboard .dash-greet-left{display:none}
 /* Início */
 #avn-home:empty{display:none}
+/* fora da disposição «Nova» (Clássico ou «Anterior») estes blocos nunca aparecem, mesmo antes de o Início ser redesenhado */
+html:not(.sk-new) #avn-home,html:not(.sk-new) #avn-home2,html[data-layout="atual"] #avn-home,html[data-layout="atual"] #avn-home2,html:not(.sk-new) #avn-sheet,html[data-layout="atual"] #avn-sheet{display:none!important}
 #avn-home{display:flex;flex-direction:column;gap:0}
 .avn-hero{position:relative;overflow:hidden;border-radius:calc(var(--sk-r2) + 18px);padding:22px;min-height:170px;border:1px solid rgba(var(--accent-rgb),.22);
   background:radial-gradient(circle at 88% 18%,rgba(123,92,255,.32),transparent 46%),radial-gradient(circle at 8% 100%,rgba(0,230,168,.2),transparent 52%),var(--panel)}
@@ -516,13 +518,6 @@ html[data-theme="light"] .avn-st.warn{color:#8a5a00;background:rgba(200,140,20,.
 .avn-rail-h{display:flex;justify-content:space-between;align-items:baseline;padding:18px 2px 10px}
 .avn-rail-h b{font-family:var(--f-display);font-weight:400;font-size:1.25rem;color:var(--text)}
 .avn-rail-h button{border:0;background:none;color:var(--text-muted);font:500 .8rem var(--f-body);cursor:pointer;padding:4px}
-.avn-rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.avn-rail::-webkit-scrollbar{display:none}
-.avn-rc{flex:none;width:136px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;border-radius:calc(var(--sk-r2) + 12px);background:var(--card);border:1px solid var(--border);color:var(--text);text-align:left;cursor:pointer;font-family:inherit}
-.avn-rc:hover{border-color:rgba(var(--accent-rgb),.4)}
-.avn-rc .service-icon{width:40px;height:40px;border-radius:12px;margin-bottom:16px;font-size:1rem}
-.avn-rc b{font-weight:500;font-size:.95rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.avn-rc span:not(.service-icon):not(.brand-logo){font-size:.74rem;color:var(--text-muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .avn-exp{display:flex;align-items:center;gap:12px;width:100%;margin-bottom:8px;padding:12px 14px;border-radius:calc(var(--sk-r2) + 10px);background:var(--card);border:1px solid var(--border);color:var(--text);text-align:left;cursor:pointer;font-family:inherit}
 .avn-exp>svg{width:18px;height:18px;margin-left:auto;fill:none;stroke:var(--text-muted);stroke-width:1.8;flex:none}
 .avn-days{width:48px;height:48px;border-radius:14px;background:rgba(245,201,122,.12);color:#f5c97a;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none}
@@ -537,6 +532,20 @@ html.sk-new:not([data-layout="atual"]) #tab-dashboard #dash-greeting{margin:0 0 
 html.sk-new:not([data-layout="atual"]) #tab-dashboard #dash-greeting .aur-launch{width:100%;max-width:none;margin:14px 0 0}
 #avn-home2:empty{display:none}
 #avn-home2{margin:16px 0 14px}
+/* Início no computador organizado como no Clássico: à esquerda boas-vindas, Aurora e o que expira; à direita avisos e Wi-Fi.
+   Os primeiros passos e as restantes secções (subscrições, renovações…) ficam por baixo, a toda a largura. */
+@media(min-width:1100px){
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard .dashboard{display:grid;grid-template-columns:minmax(0,1fr) 320px;grid-template-rows:auto auto 1fr;column-gap:22px;align-content:start}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard .dashboard>*{grid-column:1/-1;min-width:0}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard #dash-greeting{display:contents}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard #avn-home{grid-column:1;grid-row:1}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard #dash-greeting .aur-launch{grid-column:1;grid-row:2}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard #avn-home2{grid-column:1;grid-row:3;margin-bottom:0;align-self:start}
+  /* a coluna da direita: #av-side (avisos + Wi-Fi) ou, sem redes Wi-Fi, só os avisos */
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard #dash-greeting>:is(#av-side,.aur-alerts){grid-column:2;grid-row:1/4;align-self:start;width:auto;max-width:none;margin:0 0 14px}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard #av-onboard{grid-row:4;margin-top:18px}
+  html.sk-new:not([data-layout="atual"]) #tab-dashboard .dashboard>:not(#avn-home):not(#avn-home2):not(#dash-greeting):first-of-type{margin-top:0}
+}
 .avn-sheet:focus{outline:none}
 
 /* Cofre: lista compacta (logótipo, nome, utilizador e copiar); o resto está na folha */

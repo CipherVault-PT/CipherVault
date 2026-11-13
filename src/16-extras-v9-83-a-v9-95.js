@@ -102,8 +102,13 @@ function avTabsPanel(e){
     p=document.createElement('div');p.id='av-tabs-pop';p.className='av-pop';document.body.appendChild(p);}
   avTabsRender();
   if(avIsDesk()){p.classList.remove('sheet');d.classList.remove('open');const g=document.getElementById('grp-gear').getBoundingClientRect();
-    p.style.top=Math.round(g.bottom+8)+'px';p.style.left=Math.max(10,Math.min(innerWidth-390,Math.round(g.left-160)))+'px';p.style.right='auto';p.style.bottom='auto';}
-  else{p.classList.add('sheet');p.style.top='auto';p.style.left='0';p.style.right='0';d.classList.add('open');}
+    p.style.right='auto';p.style.bottom='auto';p.style.maxHeight=(innerHeight-20)+'px';p.style.overflowY='auto';
+    p.classList.add('open');const h=p.offsetHeight,w=p.offsetWidth||380;
+    let top=g.bottom+8,left=g.left-160;
+    // sem espaço por baixo (o botão está no fundo da barra lateral dos estilos novos): abre ao lado do botão, para cima
+    if(top+h>innerHeight-10){if(g.left<innerWidth/2&&g.right+10+w<=innerWidth-10){left=g.right+10;top=g.bottom-h;}else top=g.top-8-h;}
+    p.style.top=Math.round(Math.max(10,Math.min(innerHeight-10-h,top)))+'px';p.style.left=Math.round(Math.max(10,Math.min(innerWidth-w-10,left)))+'px';}
+  else{p.classList.add('sheet');p.style.top='auto';p.style.left='0';p.style.right='0';p.style.maxHeight='';p.style.overflowY='';d.classList.add('open');}
   p.classList.add('open');document.getElementById('grp-gear').classList.add('on');
 }
 function avTabsRender(){
