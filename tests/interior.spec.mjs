@@ -1,6 +1,6 @@
 import { test, expect, openApp, createVault, modalSettled } from './fixtures.mjs';
 
-// Disposição «Nova» (v12.4/v12.5): Início com boas-vindas, Aurora e o que expira (sem contas); Cofre em lista com folha da conta; a «Anterior» continua disponível
+// Disposição «Nova» (v12.4/v12.5): Início com a saudação e a Aurora como no Clássico e o que expira (sem contas); Cofre em lista com folha da conta; a «Anterior» continua disponível
 const nova = page => page.addInitScript(() => { if (!sessionStorage.getItem('__nova')) { sessionStorage.setItem('__nova', '1'); localStorage.setItem('av_layout', 'nova'); } });
 
 async function seed(page) {
@@ -15,38 +15,35 @@ async function seed(page) {
 }
 
 test.describe('Disposição Nova', () => {
-  test('Início: boas-vindas, Aurora logo a seguir e o que expira — sem mostrar contas', async ({ page }) => {
+  test('Início: saudação e Aurora como no Clássico, avisos ao lado e o que expira — sem cartão grande nem contas', async ({ page }) => {
     await nova(page);
     await openApp(page);
     await createVault(page);
     await seed(page);
-    const hero = page.locator('#avn-home .avn-hero');
-    await expect(hero).toBeVisible();
-    await expect(hero.locator('.avn-gem svg').first()).toBeVisible();
-    await expect(hero.locator('.avn-st.warn')).toBeVisible();
+    // sem o cartão grande de boas-vindas: a saudação é a do Clássico e só a Aurora tem as cores
+    await expect(page.locator('#avn-home, .avn-hero')).toHaveCount(0);
+    await expect(page.locator('#dash-greeting .dash-greet-left')).toBeVisible();
     await expect(page.locator('#avn-home2 .avn-exp')).toContainText('Cartão de Cidadão');
     // as contas ficam no Cofre: o Início não mostra nomes nem utilizadores
-    const home = await page.evaluate(() => ['avn-home', 'avn-home2'].map(id => document.getElementById(id).innerText).join(' '));
+    const home = await page.evaluate(() => ['dash-greeting', 'avn-home2'].map(id => document.getElementById(id).innerText).join(' '));
     for (const s of ['Steam', 'jogador_um', 'Gmail', 'ana@gmail.com']) expect(home).not.toContain(s);
-    // ordem: boas-vindas, saudação com a Aurora, (primeiros passos) e o que expira
-    await expect.poll(() => page.evaluate(() => [...document.querySelector('#tab-dashboard .dashboard').children].map(c => c.id).filter(id => id && id !== 'av-onboard').slice(0, 3)))
-      .toEqual(['avn-home', 'dash-greeting', 'avn-home2']);
+    // ordem: saudação (com a Aurora e os avisos), (primeiros passos) e o que expira
+    await expect.poll(() => page.evaluate(() => [...document.querySelector('#tab-dashboard .dashboard').children].map(c => c.id).filter(id => id && id !== 'av-onboard').slice(0, 2)))
+      .toEqual(['dash-greeting', 'avn-home2']);
+    // no computador: a Aurora na mesma linha da saudação; avisos (e Wi-Fi) à direita ou, com pouca largura, numa linha própria a toda a largura
     const aur = page.locator('#dash-greeting .aur-launch');
     if (await aur.isVisible()) {
-      const [h, a, x] = await Promise.all(['#avn-home .avn-hero', '#dash-greeting .aur-launch', '#avn-home2'].map(s => page.locator(s).boundingBox()));
-      expect(a.y).toBeGreaterThanOrEqual(h.y + h.height);
-      expect(a.y - (h.y + h.height)).toBeLessThan(40);
-      expect(x.y).toBeGreaterThan(a.y);
-    }
-    // no computador: avisos e Wi-Fi numa coluna à direita das boas-vindas (como no Clássico), não empilhados por baixo
-    // (com e sem redes Wi-Fi: sem elas, os avisos vêm sozinhos)
-    if (page.viewportSize().width >= 1100) {
       for (const side of ['#aur-alerts', '#av-side']) {
         if (side === '#av-side') await page.evaluate(() => { wifiNets.push({ id: 'w1', name: 'Casa', ssid: 'Casa', pw: 'x', sec: 'WPA' }); renderAll(); switchTab('dashboard'); });
-        const [h, s, a] = await Promise.all(['#avn-home .avn-hero', side, '#dash-greeting .aur-launch'].map(q => page.locator(q).boundingBox()));
-        expect(s.x, side).toBeGreaterThanOrEqual(h.x + h.width);
-        expect(s.y, side).toBeLessThan(h.y + h.height);
-        expect(a.y - (h.y + h.height), side).toBeLessThan(40);
+        const [g, a, s, row] = await Promise.all(['#dash-greeting .dash-greet-left', '#dash-greeting .aur-launch', side, '#dash-greeting'].map(q => page.locator(q).boundingBox()));
+        expect(a.x, side).toBeGreaterThanOrEqual(g.x + g.width);
+        expect(Math.abs((a.y + a.height / 2) - (g.y + g.height / 2)), side).toBeLessThan(40);
+        if (s.x >= a.x + a.width) expect(s.y, side).toBeLessThan(a.y + a.height);
+        else { expect(s.y, side).toBeGreaterThanOrEqual(a.y + a.height - 1); expect(s.width, side).toBeGreaterThan(row.width * 0.9); }
+      }
+      if (await page.locator('#av-side #av-wifi-card').isVisible()) {
+        const [al, wf] = await Promise.all(['#av-side #aur-alerts', '#av-side #av-wifi-card'].map(q => page.locator(q).boundingBox()));
+        if (wf.x > al.x) expect(Math.abs(wf.y - al.y)).toBeLessThan(4);
       }
     }
     // já não se guarda um histórico das contas usadas
@@ -100,7 +97,7 @@ test.describe('Disposição Nova', () => {
     await seed(page);
     await page.evaluate(() => setLayout('atual'));
     expect(await page.evaluate(() => [document.documentElement.dataset.layout, localStorage.getItem('av_layout')])).toEqual(['atual', 'atual']);
-    await expect(page.locator('#avn-home .avn-hero')).toHaveCount(0);
+    await expect(page.locator('#avn-home2')).toBeHidden();
     await page.evaluate(() => switchTab('vault'));
     await expect(page.locator('#card-n2 .card-actions')).toBeVisible();
     await expect(page.locator('#card-n2 .avn-sub')).toBeHidden();
@@ -116,9 +113,8 @@ test.describe('Disposição Nova', () => {
     await openApp(page);
     await createVault(page);
     await seed(page);
-    await expect(page.locator('#avn-home .avn-hero')).toBeVisible();
+    await expect(page.locator('#avn-home2 .avn-exp')).toBeVisible();
     await page.evaluate(() => setSkin('classico'));
-    await expect(page.locator('#avn-home')).toBeHidden();
     await expect(page.locator('#avn-home2')).toBeHidden();
     await expect(page.locator('#dash-greeting .dash-greet-left')).toBeVisible();
     await page.evaluate(() => switchTab('vault'));
@@ -127,8 +123,8 @@ test.describe('Disposição Nova', () => {
     await page.locator('#card-n2 .card-name').click();
     await expect(page.locator('#avn-sheet.open')).toHaveCount(0);
     await page.evaluate(() => { setSkin('safira'); switchTab('dashboard'); });
-    await expect(page.locator('#avn-home .avn-hero')).toBeVisible();
-    await expect(page.locator('#dash-greeting .dash-greet-left')).toBeHidden();
+    await expect(page.locator('#avn-home2 .avn-exp')).toBeVisible();
+    await expect(page.locator('#dash-greeting .dash-greet-left')).toBeVisible();
   });
 
   test('o botão «•••» no fundo da barra lateral abre as abas visíveis dentro do ecrã', async ({ page }, testInfo) => {
@@ -152,7 +148,7 @@ test.describe('Disposição Nova', () => {
     await openApp(page);
     await createVault(page);
     await seed(page);
-    await expect(page.locator('#avn-home .avn-hero')).toHaveCount(0);
+    await expect(page.locator('#avn-home2')).toBeHidden();
     await page.evaluate(() => switchTab('vault'));
     await expect(page.locator('#card-n2 .card-actions')).toBeVisible();
   });

@@ -75,7 +75,7 @@ function skRenderSettings(){
   ${seg('setSkinMode',[['dark',en?'Dark':'Escuro'],['light',en?'Light':'Claro']],dark?'dark':'light')}
   <div class="sk-lbl">${en?'Layout':'Disposição'}</div>
   ${seg('setLayout',[['nova',en?'New':'Nova'],['atual',en?'Previous':'Anterior']],document.documentElement.getAttribute('data-layout')==='atual'?'atual':'nova')}
-  <small class="sk-note">${en?'New: home as a gallery and the vault as a list (tap an account to see it). Previous: the cards from before.':'Nova: Início em galeria e Cofre em lista (toca numa conta para a ver). Anterior: os cartões de antes.'}</small>`:''}
+  <small class="sk-note">${en?'New: the vault as a list (tap an account to see it) and what is expiring on the home screen. Previous: the cards from before.':'Nova: Cofre em lista (toca numa conta para a ver) e o que está a expirar no Início. Anterior: os cartões de antes.'}</small>`:''}
   <div class="sk-lbl">${en?'Motion':'Movimento'}</div>
   ${seg('setMotion',[['completo',en?'Full':'Completo'],['suave',en?'Gentle':'Suave'],['desligado',en?'Off':'Desligado']],m)}
   <small class="sk-note">${m==='desligado'?(en?'No animations — the lightest on the battery.':'Sem animações — o mais leve para a bateria.')

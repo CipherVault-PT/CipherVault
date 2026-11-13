@@ -14823,7 +14823,7 @@ function skRenderSettings(){
   ${seg('setSkinMode',[['dark',en?'Dark':'Escuro'],['light',en?'Light':'Claro']],dark?'dark':'light')}
   <div class="sk-lbl">${en?'Layout':'Disposição'}</div>
   ${seg('setLayout',[['nova',en?'New':'Nova'],['atual',en?'Previous':'Anterior']],document.documentElement.getAttribute('data-layout')==='atual'?'atual':'nova')}
-  <small class="sk-note">${en?'New: home as a gallery and the vault as a list (tap an account to see it). Previous: the cards from before.':'Nova: Início em galeria e Cofre em lista (toca numa conta para a ver). Anterior: os cartões de antes.'}</small>`:''}
+  <small class="sk-note">${en?'New: the vault as a list (tap an account to see it) and what is expiring on the home screen. Previous: the cards from before.':'Nova: Cofre em lista (toca numa conta para a ver) e o que está a expirar no Início. Anterior: os cartões de antes.'}</small>`:''}
   <div class="sk-lbl">${en?'Motion':'Movimento'}</div>
   ${seg('setMotion',[['completo',en?'Full':'Completo'],['suave',en?'Gentle':'Suave'],['desligado',en?'Off':'Desligado']],m)}
   <small class="sk-note">${m==='desligado'?(en?'No animations — the lightest on the battery.':'Sem animações — o mais leve para a bateria.')
@@ -15157,7 +15157,7 @@ function avTabsClear(){
 }
 if(typeof lockApp==='function'){const _fl=lockApp;lockApp=function(){const demo=typeof presentationMode!=='undefined'&&presentationMode;const r=_fl.apply(this,arguments);if(!demo)try{avTabsClear();}catch(e){}return r;};}
 
-/* ══ INTERIOR (v12.4) — disposição «Nova»: Início com boas-vindas, Aurora e o que expira; Cofre em lista com folha de detalhes ══
+/* ══ INTERIOR (v12.4) — disposição «Nova»: Início com a saudação e a Aurora (como no Clássico) e o que expira; Cofre em lista com folha de detalhes ══
    Só nos estilos novos (Safira, Ónix, Nórdico). A disposição «Anterior» continua em Definições → Aspeto.
    O Início não mostra contas (essas estão no Cofre). */
 const AVN={sheet:null,pwT:0,ret:null};
@@ -15183,39 +15183,23 @@ function avnIcon(e){
 }
 function avnHost(u){try{return new URL(/^[a-z]+:\/\//i.test(u)?u:'https://'+u).hostname.replace(/^www\./,'');}catch(e){return String(u||'');}}
 
-// ── Início: cartão de boas-vindas com a joia, a Aurora e o que expira ──
+// ── Início: a saudação e a Aurora como no Clássico (só a Aurora tem as cores) e, por baixo, o que expira ──
 function avnHome(){
-  let box=document.getElementById('avn-home'),box2=document.getElementById('avn-home2');
-  if(!avnOn()){if(box)box.innerHTML='';if(box2)box2.innerHTML='';return;}
-  const dash=document.querySelector('#tab-dashboard .dashboard'),greet=document.getElementById('dash-greeting');
-  if(!dash||!greet)return;
-  // ordem: boas-vindas, a saudação (só com a barra da Aurora, no computador), os primeiros passos (se ainda houver) e o que expira
-  if(!box){box=document.createElement('div');box.id='avn-home';}
+  let box2=document.getElementById('avn-home2');
+  const old=document.getElementById('avn-home');if(old)old.remove();
+  if(!avnOn()){if(box2)box2.innerHTML='';return;}
+  const greet=document.getElementById('dash-greeting');if(!greet)return;
+  // a seguir à saudação e aos primeiros passos (se ainda houver)
   if(!box2){box2=document.createElement('div');box2.id='avn-home2';}
-  if(greet.previousElementSibling!==box)dash.insertBefore(box,greet);
   const onb=greet.nextElementSibling&&greet.nextElementSibling.id==='av-onboard'?greet.nextElementSibling:greet;
   if(onb.nextElementSibling!==box2)onb.after(box2);
-  const en=currentLang==='en',active=vault.filter(x=>!x.archived);
-  const weak=active.filter(x=>x.pw&&getPwScore(x.pw)<2).length;
-  const name=(vaultName||'').trim();
-  const n2fa=typeof totp!=='undefined'?totp.length:0,ncards=typeof bankCards!=='undefined'?bankCards.length:0;
-  const stats=[`${active.length} ${en?(active.length===1?'account':'accounts'):(active.length===1?'conta':'contas')}`,
-    n2fa?`${n2fa} ${en?'2FA codes':(n2fa===1?'código 2FA':'códigos 2FA')}`:'',ncards?`${ncards} ${en?(ncards===1?'card':'cards'):(ncards===1?'cartão':'cartões')}`:''].filter(Boolean).join(' · ');
-  const st=weak?`<button type="button" class="avn-st warn" data-act="switchGroup" data-arg="cofre">⚠️ ${weak} ${en?(weak===1?'weak password to review':'weak passwords to review'):(weak===1?'password fraca para rever':'passwords fracas para rever')}</button>`
-    :`<span class="avn-st ok">✓ ${en?'All safe and sound':'Tudo seguro e guardado'}</span>`;
+  const en=currentLang==='en';
   // o que expira nos próximos 90 dias (documentos, cartões, subscrições, bens)
   let ev=[];try{const now=new Date();now.setHours(0,0,0,0);const lim=now.getTime()+90*864e5;ev=(typeof aurEvents==='function'?aurEvents():[]).filter(x=>x.date>=now.getTime()&&x.date<=lim).sort((a,b)=>a.date-b.date).slice(0,3);}catch(e){ev=[];}
   const day=d=>Math.max(0,Math.round((d-new Date().setHours(0,0,0,0))/864e5));
   const fmt=d=>new Date(d).toLocaleDateString(en?'en-GB':'pt-PT',{day:'numeric',month:'long'});
-  box.innerHTML=`<section class="avn-hero">
-      <div class="avn-gem" aria-hidden="true">${skGemBuild(skGet('av_sig',''))}</div>
-      <div class="avn-eb">AURORA VAULT</div>
-      <h2 class="avn-hello">${name?(en?'Hello, ':'Olá, ')+esc(name):(en?'Hello':'Olá')}</h2>
-      <div class="avn-stats">${esc(stats)}</div>${st}
-    </section>`;
   box2.innerHTML=`${ev.length?`<div class="avn-rail-h"><b>${en?'Expiring soon':'A expirar'}</b><button type="button" data-act="openCalendar">${en?'Calendar':'Calendário'}</button></div>
     ${ev.map(x=>`<button type="button" class="avn-exp" data-act="openCalendar"><span class="avn-days"><b>${day(x.date)}</b><span>${en?'DAYS':'DIAS'}</span></span><span class="avn-exp-t"><b>${esc(x.label)}</b><small>${fmt(x.date)}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`).join('')}`:''}`;
-  const g=box.querySelector('.sk-gem');if(g)try{skGemLight(g,-.35,-.45,0);}catch(e){}
 }
 if(typeof renderDashboard==='function'){const _avnRd=renderDashboard;renderDashboard=function(){const r=_avnRd.apply(this,arguments);try{avnHome();}catch(e){console.warn('Início:',e);}return r;};}
 
