@@ -303,7 +303,7 @@ test.describe('Motor da Aurora', () => {
       sorted: AUR_INTENTS.every((it, i, a) => !i || a[i - 1].prio <= it.prio),
       n: AUR_INTENTS.length,
     }));
-    expect(r.stages).toEqual(['aprender', 'desfazer', 'avisos', 'conversa', 'alcunhas', 'ficheiros-tutorial']);
+    expect(r.stages).toEqual(['aprender', 'desfazer', 'avisos', 'registar', 'conversa', 'alcunhas', 'ficheiros-tutorial']);
     expect(r.unique && r.sorted).toBe(true);
     expect(r.n).toBeGreaterThan(25);
   });
